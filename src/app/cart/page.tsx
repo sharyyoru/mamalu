@@ -1,0 +1,179 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  ShoppingBag,
+  Plus,
+  Minus,
+  Trash2,
+  ArrowRight,
+  ShoppingCart,
+} from "lucide-react";
+import { formatPrice } from "@/lib/utils";
+
+// Placeholder cart items
+const initialCartItems = [
+  {
+    id: "1",
+    title: "Premium Za'atar Blend",
+    price: 45,
+    quantity: 2,
+  },
+  {
+    id: "2",
+    title: "Authentic Harissa Paste",
+    price: 35,
+    quantity: 1,
+  },
+];
+
+export default function CartPage() {
+  const [cartItems, setCartItems] = useState(initialCartItems);
+
+  const updateQuantity = (id: string, delta: number) => {
+    setCartItems((items) =>
+      items
+        .map((item) =>
+          item.id === id
+            ? { ...item, quantity: Math.max(0, item.quantity + delta) }
+            : item
+        )
+        .filter((item) => item.quantity > 0)
+    );
+  };
+
+  const removeItem = (id: string) => {
+    setCartItems((items) => items.filter((item) => item.id !== id));
+  };
+
+  const subtotal = cartItems.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0
+  );
+  const shipping = subtotal > 200 ? 0 : 25;
+  const total = subtotal + shipping;
+
+  return (
+    <div className="py-12 bg-stone-50 min-h-[60vh]">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <h1 className="text-3xl font-bold text-stone-900 mb-8">
+          Shopping Cart
+        </h1>
+
+        {cartItems.length > 0 ? (
+          <div className="grid lg:grid-cols-3 gap-8">
+            {/* Cart Items */}
+            <div className="lg:col-span-2 space-y-4">
+              {cartItems.map((item) => (
+                <Card key={item.id}>
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-4">
+                      <div className="h-20 w-20 bg-gradient-to-br from-amber-100 to-orange-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <ShoppingBag className="h-8 w-8 text-amber-600/30" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-stone-900">
+                          {item.title}
+                        </h3>
+                        <p className="text-amber-600 font-medium">
+                          {formatPrice(item.price)}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => updateQuantity(item.id, -1)}
+                          className="p-1 hover:bg-stone-100 rounded"
+                        >
+                          <Minus className="h-4 w-4" />
+                        </button>
+                        <span className="w-8 text-center font-medium">
+                          {item.quantity}
+                        </span>
+                        <button
+                          onClick={() => updateQuantity(item.id, 1)}
+                          className="p-1 hover:bg-stone-100 rounded"
+                        >
+                          <Plus className="h-4 w-4" />
+                        </button>
+                      </div>
+                      <div className="text-right w-24">
+                        <p className="font-semibold text-stone-900">
+                          {formatPrice(item.price * item.quantity)}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => removeItem(item.id)}
+                        className="p-2 text-stone-400 hover:text-red-500"
+                      >
+                        <Trash2 className="h-5 w-5" />
+                      </button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {/* Order Summary */}
+            <div className="lg:col-span-1">
+              <Card>
+                <CardContent className="p-6">
+                  <h2 className="text-lg font-semibold text-stone-900 mb-4">
+                    Order Summary
+                  </h2>
+                  <div className="space-y-3 mb-6">
+                    <div className="flex justify-between text-stone-600">
+                      <span>Subtotal</span>
+                      <span>{formatPrice(subtotal)}</span>
+                    </div>
+                    <div className="flex justify-between text-stone-600">
+                      <span>Shipping</span>
+                      <span>
+                        {shipping === 0 ? "Free" : formatPrice(shipping)}
+                      </span>
+                    </div>
+                    {shipping > 0 && (
+                      <p className="text-xs text-stone-500">
+                        Free shipping on orders over {formatPrice(200)}
+                      </p>
+                    )}
+                    <div className="border-t pt-3 flex justify-between font-semibold text-stone-900">
+                      <span>Total</span>
+                      <span>{formatPrice(total)}</span>
+                    </div>
+                  </div>
+                  <Button className="w-full" size="lg">
+                    Proceed to Checkout
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </Button>
+                  <Link
+                    href="/products"
+                    className="block text-center text-sm text-amber-600 hover:text-amber-700 mt-4"
+                  >
+                    Continue Shopping
+                  </Link>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        ) : (
+          <div className="text-center py-16">
+            <ShoppingCart className="h-16 w-16 text-stone-300 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-stone-900 mb-2">
+              Your cart is empty
+            </h2>
+            <p className="text-stone-600 mb-6">
+              Looks like you haven&apos;t added anything yet.
+            </p>
+            <Button asChild href="/products">
+              Start Shopping
+              <ArrowRight className="h-4 w-4 ml-2" />
+            </Button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
