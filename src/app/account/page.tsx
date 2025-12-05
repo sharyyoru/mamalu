@@ -1,16 +1,192 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, Mail, Lock, ArrowRight } from "lucide-react";
+import { User, Mail, Lock, ArrowRight, AlertCircle, CheckCircle, LogOut, Package, Calendar, Heart } from "lucide-react";
 
 type AuthMode = "login" | "register";
 
 export default function AccountPage() {
   const [mode, setMode] = useState<AuthMode>("login");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [user, setUser] = useState<any>(null);
+  const [profile, setProfile] = useState<any>(null);
+  const router = useRouter();
 
+  // Form state
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [fullName, setFullName] = useState("");
+
+  const supabase = createClient();
+
+  useEffect(() => {
+    checkUser();
+  }, []);
+
+  async function checkUser() {
+    if (!supabase) return;
+    
+    const { data: { user } } = await supabase.auth.getUser();
+    setUser(user);
+
+    if (user) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .single();
+      setProfile(profile);
+    }
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+    setSuccess("");
+    setLoading(true);
+
+    if (!supabase) {
+      setError("Authentication service not configured");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      if (mode === "register") {
+        if (password !== confirmPassword) {
+          throw new Error("Passwords do not match");
+        }
+        if (password.length < 6) {
+          throw new Error("Password must be at least 6 characters");
+        }
+
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              full_name: fullName,
+            },
+          },
+        });
+
+        if (error) throw error;
+
+        if (data.user) {
+          setSuccess("Account created! Please check your email to verify your account.");
+          setMode("login");
+        }
+      } else {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+        if (error) throw error;
+
+        if (data.user) {
+          setUser(data.user);
+          await checkUser();
+          router.refresh();
+        }
+      }
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleSignOut() {
+    if (!supabase) return;
+    await supabase.auth.signOut();
+    setUser(null);
+    setProfile(null);
+    router.refresh();
+  }
+
+  // If user is logged in, show dashboard
+  if (user) {
+    return (
+      <div className="py-20 bg-stone-50 min-h-[70vh]">
+        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-stone-900">My Account</h1>
+            <p className="text-stone-600 mt-1">Welcome back, {profile?.full_name || user.email}</p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6 mb-8">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+              <CardContent className="p-6 text-center">
+                <Package className="h-10 w-10 text-amber-600 mx-auto mb-3" />
+                <h3 className="font-semibold text-stone-900">My Orders</h3>
+                <p className="text-sm text-stone-500 mt-1">View order history</p>
+              </CardContent>
+            </Card>
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+              <CardContent className="p-6 text-center">
+                <Calendar className="h-10 w-10 text-amber-600 mx-auto mb-3" />
+                <h3 className="font-semibold text-stone-900">My Bookings</h3>
+                <p className="text-sm text-stone-500 mt-1">View class bookings</p>
+              </CardContent>
+            </Card>
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+              <CardContent className="p-6 text-center">
+                <Heart className="h-10 w-10 text-amber-600 mx-auto mb-3" />
+                <h3 className="font-semibold text-stone-900">Wishlist</h3>
+                <p className="text-sm text-stone-500 mt-1">Saved items</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Profile Information</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-stone-700 mb-1">Email</label>
+                  <p className="text-stone-900">{user.email}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-stone-700 mb-1">Full Name</label>
+                  <p className="text-stone-900">{profile?.full_name || "Not set"}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-stone-700 mb-1">Phone</label>
+                  <p className="text-stone-900">{profile?.phone || "Not set"}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-stone-700 mb-1">Member Since</label>
+                  <p className="text-stone-900">
+                    {new Date(user.created_at).toLocaleDateString()}
+                  </p>
+                </div>
+              </div>
+              <div className="pt-4 border-t">
+                <Button variant="outline" onClick={handleSignOut}>
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Sign Out
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  // Login/Register form
   return (
     <div className="py-20 bg-stone-50 min-h-[70vh]">
       <div className="mx-auto max-w-md px-4 sm:px-6 lg:px-8">
@@ -29,7 +205,20 @@ export default function AccountPage() {
             </p>
           </CardHeader>
           <CardContent>
-            <form className="space-y-4">
+            {error && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
+                <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
+                <p className="text-sm text-red-700">{error}</p>
+              </div>
+            )}
+            {success && (
+              <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-start gap-2">
+                <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
+                <p className="text-sm text-green-700">{success}</p>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-4">
               {mode === "register" && (
                 <div>
                   <label className="block text-sm font-medium text-stone-700 mb-2">
@@ -37,7 +226,13 @@ export default function AccountPage() {
                   </label>
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" />
-                    <Input placeholder="John Doe" className="pl-10" />
+                    <Input 
+                      placeholder="John Doe" 
+                      className="pl-10" 
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      required
+                    />
                   </div>
                 </div>
               )}
@@ -51,6 +246,9 @@ export default function AccountPage() {
                     type="email"
                     placeholder="john@example.com"
                     className="pl-10"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
                   />
                 </div>
               </div>
@@ -59,11 +257,14 @@ export default function AccountPage() {
                   Password
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" />
-                  <Input
-                    type="password"
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400 z-10" />
+                  <PasswordInput
                     placeholder="••••••••"
                     className="pl-10"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    minLength={6}
                   />
                 </div>
               </div>
@@ -73,11 +274,14 @@ export default function AccountPage() {
                     Confirm Password
                   </label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" />
-                    <Input
-                      type="password"
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400 z-10" />
+                    <PasswordInput
                       placeholder="••••••••"
                       className="pl-10"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      required
+                      minLength={6}
                     />
                   </div>
                 </div>
@@ -92,8 +296,8 @@ export default function AccountPage() {
                   </a>
                 </div>
               )}
-              <Button type="submit" className="w-full">
-                {mode === "login" ? "Sign In" : "Create Account"}
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? "Please wait..." : mode === "login" ? "Sign In" : "Create Account"}
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
             </form>
@@ -104,9 +308,11 @@ export default function AccountPage() {
                   ? "Don't have an account?"
                   : "Already have an account?"}{" "}
                 <button
-                  onClick={() =>
-                    setMode(mode === "login" ? "register" : "login")
-                  }
+                  onClick={() => {
+                    setMode(mode === "login" ? "register" : "login");
+                    setError("");
+                    setSuccess("");
+                  }}
                   className="text-amber-600 hover:text-amber-700 font-medium"
                 >
                   {mode === "login" ? "Sign up" : "Sign in"}

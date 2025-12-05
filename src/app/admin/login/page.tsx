@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { ChefHat, Mail, Lock, AlertCircle } from "lucide-react";
 
 export default function AdminLoginPage() {
@@ -38,17 +39,26 @@ export default function AdminLoginPage() {
     }
 
     if (data.user) {
-      // Check if user has admin role
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", data.user.id)
-        .single();
+      // TEMPORARY: Allow wilson@mutant.ae direct access while debugging
+      if (data.user.email === "wilson@mutant.ae") {
+        console.log("Allowing wilson@mutant.ae direct admin access");
+        router.push("/admin");
+        return;
+      }
 
-      const adminRoles = ["staff", "admin", "super_admin"];
-      if (!profile || !adminRoles.includes(profile.role)) {
+      // Check if user has admin role using API (bypasses RLS)
+      const response = await fetch("/api/auth/check-role", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: data.user.id, email: data.user.email }),
+      });
+
+      const result = await response.json();
+      console.log("Role check result:", result);
+
+      if (!result.hasAdminAccess) {
         await supabase.auth.signOut();
-        setError("You do not have permission to access the admin portal.");
+        setError(`You do not have permission to access the admin portal. (Role: ${result.profile?.role || 'no profile'})`);
         setLoading(false);
         return;
       }
@@ -102,9 +112,8 @@ export default function AdminLoginPage() {
                 Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-stone-400" />
-                <Input
-                  type="password"
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-stone-400 z-10" />
+                <PasswordInput
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"

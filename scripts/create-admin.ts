@@ -37,13 +37,13 @@ interface UserToCreate {
 const usersToCreate: UserToCreate[] = [
   {
     email: "wilson@mutant.ae",
-    password: "MutantAdmin2024!", // Change this!
+    password: "wilsontest",
     full_name: "Wilson Admin",
     role: "super_admin",
   },
   {
     email: "test@mamalukitchen.com",
-    password: "TestUser2024!", // Change this!
+    password: "testuser123",
     full_name: "Test Customer",
     role: "customer",
   },
@@ -139,10 +139,14 @@ async function createUsers() {
   console.log("ADMIN LOGIN CREDENTIALS");
   console.log("=".repeat(50));
   console.log(`Email:    wilson@mutant.ae`);
-  console.log(`Password: MutantAdmin2024!`);
+  console.log(`Password: wilsontest`);
   console.log(`URL:      http://localhost:3000/admin/login`);
   console.log("=".repeat(50));
-  console.log("\n⚠️  IMPORTANT: Change these passwords after first login!\n");
+  console.log("\nTEST USER CREDENTIALS");
+  console.log("=".repeat(50));
+  console.log(`Email:    test@mamalukitchen.com`);
+  console.log(`Password: testuser123`);
+  console.log("=".repeat(50));
 }
 
 createUsers().catch(console.error);

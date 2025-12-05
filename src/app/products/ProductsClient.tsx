@@ -23,6 +23,7 @@ interface Product {
   price: number;
   compareAtPrice?: number;
   images?: { asset: { _ref: string }; alt?: string }[];
+  imageUrl?: string | null;
   categories?: Category[];
   inStock: boolean;
   featured?: boolean;
@@ -31,13 +32,11 @@ interface Product {
 interface ProductsClientProps {
   products: Product[];
   categories: Category[];
-  getImageUrl: (image: { asset: { _ref: string } }) => string;
 }
 
 export default function ProductsClient({
   products,
   categories,
-  getImageUrl,
 }: ProductsClientProps) {
   const [activeCategory, setActiveCategory] = useState("all");
 
@@ -82,10 +81,10 @@ export default function ProductsClient({
                 className="group overflow-hidden hover:shadow-lg transition-shadow"
               >
                 <div className="aspect-square bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center relative overflow-hidden">
-                  {product.images && product.images[0] ? (
+                  {product.imageUrl ? (
                     <Image
-                      src={getImageUrl(product.images[0])}
-                      alt={product.images[0].alt || product.title}
+                      src={product.imageUrl}
+                      alt={product.images?.[0]?.alt || product.title}
                       fill
                       className="object-cover group-hover:scale-105 transition-transform duration-300"
                     />

@@ -15,10 +15,13 @@ export default async function ProductsPage() {
     getProductCategories(),
   ]);
 
-  // Create a function to get image URLs that can be passed to client
-  const getImageUrl = (image: { asset: { _ref: string } }) => {
-    return urlFor(image).width(400).height(400).url();
-  };
+  // Pre-process image URLs on the server
+  const productsWithImages = (products || []).map((product: any) => ({
+    ...product,
+    imageUrl: product.images?.[0] 
+      ? urlFor(product.images[0]).width(400).height(400).url() 
+      : null,
+  }));
 
   return (
     <div>
@@ -38,9 +41,8 @@ export default async function ProductsPage() {
       </section>
 
       <ProductsClient
-        products={products || []}
+        products={productsWithImages}
         categories={categories || []}
-        getImageUrl={getImageUrl}
       />
     </div>
   );

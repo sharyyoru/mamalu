@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { ArrowLeft, UserPlus, AlertCircle, CheckCircle } from "lucide-react";
 
 export default function NewUserPage() {
@@ -105,8 +106,7 @@ export default function NewUserPage() {
                 <label className="block text-sm font-medium text-stone-700 mb-2">
                   Temporary Password *
                 </label>
-                <Input
-                  type="password"
+                <PasswordInput
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   placeholder="Min 8 characters"
