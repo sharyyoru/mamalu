@@ -1,6 +1,14 @@
 -- Create class_bookings table if it doesn't exist
 -- Run this FIRST before the add_booking_payment_system.sql migration
 
+-- First, disable RLS if table exists to allow modifications
+ALTER TABLE IF EXISTS public.class_bookings DISABLE ROW LEVEL SECURITY;
+
+-- Drop existing policies if they exist
+DROP POLICY IF EXISTS "Users can view own bookings" ON public.class_bookings;
+DROP POLICY IF EXISTS "Staff can manage all bookings" ON public.class_bookings;
+DROP POLICY IF EXISTS "Anyone can create bookings" ON public.class_bookings;
+
 CREATE TABLE IF NOT EXISTS public.class_bookings (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   booking_number TEXT NOT NULL UNIQUE,
