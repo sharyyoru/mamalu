@@ -19,6 +19,7 @@ export async function POST(request: NextRequest) {
       attendeePhone,
       paymentType,
       sessionsBooked,
+      numberOfGuests = 1,
       dietaryRestrictions,
       notes,
     } = body;
@@ -56,14 +57,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Class not found" }, { status: 404 });
     }
 
-    if (classData.spotsAvailable <= 0) {
-      return NextResponse.json({ error: "Class is fully booked" }, { status: 400 });
+    if (classData.spotsAvailable < numberOfGuests) {
+      return NextResponse.json({ 
+        error: `Not enough spots available. Only ${classData.spotsAvailable} spots left.` 
+      }, { status: 400 });
     }
 
-    // Calculate total amount
-    const totalAmount = paymentType === 'full'
+    // Calculate total amount (multiply by number of guests)
+    const baseAmount = paymentType === 'full'
       ? classData.fullPrice
       : classData.pricePerSession * sessionsBooked;
+    const totalAmount = baseAmount * numberOfGuests;
 
     // Get instructor name if available
     let instructorName = null;
@@ -105,7 +109,8 @@ export async function POST(request: NextRequest) {
       start_date: classData.startDate || null,
       status: 'pending',
       payment_method: 'pending',
-      notes: notes ? `Dietary: ${dietaryRestrictions || 'None'}\n${notes}` : (dietaryRestrictions ? `Dietary: ${dietaryRestrictions}` : null),
+      number_of_guests: numberOfGuests,
+      notes: notes ? `Guests: ${numberOfGuests}\nDietary: ${dietaryRestrictions || 'None'}\n${notes}` : (dietaryRestrictions ? `Guests: ${numberOfGuests}\nDietary: ${dietaryRestrictions}` : `Guests: ${numberOfGuests}`),
     };
 
     const { data: booking, error: bookingError } = await supabase
@@ -119,11 +124,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: bookingError.message }, { status: 500 });
     }
 
-    // Update spots in Sanity (decrement spotsAvailable)
+    // Update spots in Sanity (decrement spotsAvailable by number of guests)
     try {
       await sanityClient
         .patch(classId)
-        .dec({ spotsAvailable: 1 })
+        .dec({ spotsAvailable: numberOfGuests })
         .commit();
     } catch (sanityError) {
       console.error("Failed to update Sanity spots:", sanityError);

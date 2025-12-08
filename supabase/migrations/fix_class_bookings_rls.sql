@@ -15,7 +15,8 @@ ADD COLUMN IF NOT EXISTS amount_due DECIMAL(10,2) DEFAULT 0,
 ADD COLUMN IF NOT EXISTS amount_paid DECIMAL(10,2) DEFAULT 0,
 ADD COLUMN IF NOT EXISTS reminder_enabled BOOLEAN DEFAULT FALSE,
 ADD COLUMN IF NOT EXISTS reminder_updated_at TIMESTAMPTZ,
-ADD COLUMN IF NOT EXISTS reminder_sent_at TIMESTAMPTZ;
+ADD COLUMN IF NOT EXISTS reminder_sent_at TIMESTAMPTZ,
+ADD COLUMN IF NOT EXISTS number_of_guests INTEGER DEFAULT 1;
 
 -- Step 4: Add new payment columns for our booking system
 ALTER TABLE public.class_bookings 

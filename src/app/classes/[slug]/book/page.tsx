@@ -19,9 +19,7 @@ import {
   Loader2,
   AlertCircle,
   ChefHat,
-  Banknote,
-  Upload,
-  Receipt,
+  UserPlus,
 } from "lucide-react";
 import { formatPrice, formatDate } from "@/lib/utils";
 
@@ -63,11 +61,7 @@ export default function BookingPage({ params }: BookingPageProps) {
   
   const [paymentType, setPaymentType] = useState<'full' | 'per_session'>('full');
   const [sessionsToBook, setSessionsToBook] = useState(1);
-  const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'cash'>('stripe');
-  const [bookingId, setBookingId] = useState<string | null>(null);
-  const [showReceiptUpload, setShowReceiptUpload] = useState(false);
-  const [receiptFile, setReceiptFile] = useState<File | null>(null);
-  const [uploadingReceipt, setUploadingReceipt] = useState(false);
+  const [numberOfGuests, setNumberOfGuests] = useState(1);
   
   const [formData, setFormData] = useState({
     name: '',
@@ -120,6 +114,7 @@ export default function BookingPage({ params }: BookingPageProps) {
           attendeePhone: formData.phone,
           paymentType,
           sessionsBooked: paymentType === 'full' ? classData.numberOfSessions : sessionsToBook,
+          numberOfGuests,
           dietaryRestrictions: formData.dietaryRestrictions,
           notes: formData.notes,
         }),
@@ -131,28 +126,22 @@ export default function BookingPage({ params }: BookingPageProps) {
       }
 
       const data = await res.json();
-      setBookingId(data.booking.id);
       
-      if (paymentMethod === 'stripe') {
-        // Create Stripe checkout session
-        const checkoutRes = await fetch('/api/payments/create-checkout', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            bookingId: data.booking.id,
-          }),
-        });
-        
-        if (!checkoutRes.ok) {
-          throw new Error('Failed to create payment session');
-        }
-        
-        const checkoutData = await checkoutRes.json();
-        window.location.href = checkoutData.url;
-      } else {
-        // Cash payment - show receipt upload
-        setShowReceiptUpload(true);
+      // Create Stripe checkout session
+      const checkoutRes = await fetch('/api/payments/create-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          bookingId: data.booking.id,
+        }),
+      });
+      
+      if (!checkoutRes.ok) {
+        throw new Error('Failed to create payment session');
       }
+      
+      const checkoutData = await checkoutRes.json();
+      window.location.href = checkoutData.url;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Booking failed');
     } finally {
@@ -190,124 +179,6 @@ export default function BookingPage({ params }: BookingPageProps) {
     );
   }
 
-  const handleReceiptUpload = async () => {
-    if (!receiptFile || !bookingId) return;
-    
-    setUploadingReceipt(true);
-    setError(null);
-    
-    try {
-      const formDataUpload = new FormData();
-      formDataUpload.append('bookingId', bookingId);
-      formDataUpload.append('receipt', receiptFile);
-      
-      const res = await fetch('/api/payments/upload-receipt', {
-        method: 'POST',
-        body: formDataUpload,
-      });
-      
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || 'Failed to upload receipt');
-      }
-      
-      setSuccess(true);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Upload failed');
-    } finally {
-      setUploadingReceipt(false);
-    }
-  };
-
-  if (showReceiptUpload && !success) {
-    return (
-      <div className="min-h-screen bg-stone-50 py-12">
-        <div className="mx-auto max-w-2xl px-4">
-          <Card>
-            <CardContent className="p-8">
-              <div className="text-center mb-6">
-                <Receipt className="h-16 w-16 text-amber-500 mx-auto mb-4" />
-                <h2 className="text-2xl font-bold text-stone-900 mb-2">Upload Payment Receipt</h2>
-                <p className="text-stone-600">
-                  Please upload a photo or PDF of your cash payment receipt to confirm your booking.
-                </p>
-              </div>
-              
-              {error && (
-                <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
-                  <AlertCircle className="h-5 w-5 inline mr-2" />
-                  {error}
-                </div>
-              )}
-              
-              <div className="space-y-4">
-                <div className="border-2 border-dashed border-stone-200 rounded-lg p-8 text-center hover:border-amber-400 transition-colors">
-                  <input
-                    type="file"
-                    accept="image/*,.pdf"
-                    onChange={(e) => setReceiptFile(e.target.files?.[0] || null)}
-                    className="hidden"
-                    id="receipt-upload"
-                  />
-                  <label htmlFor="receipt-upload" className="cursor-pointer">
-                    <Upload className="h-12 w-12 text-stone-400 mx-auto mb-3" />
-                    {receiptFile ? (
-                      <p className="text-stone-900 font-medium">{receiptFile.name}</p>
-                    ) : (
-                      <>
-                        <p className="text-stone-900 font-medium">Click to upload receipt</p>
-                        <p className="text-sm text-stone-500 mt-1">JPEG, PNG, WebP or PDF (max 10MB)</p>
-                      </>
-                    )}
-                  </label>
-                </div>
-                
-                <div className="bg-amber-50 p-4 rounded-lg">
-                  <h4 className="font-medium text-amber-800 mb-2">Payment Details</h4>
-                  <p className="text-sm text-amber-700">
-                    Amount to pay: <strong>{formatPrice(totalAmount)}</strong>
-                  </p>
-                  <p className="text-sm text-amber-700 mt-1">
-                    Your booking will be confirmed once our team verifies your receipt.
-                  </p>
-                </div>
-                
-                <Button
-                  onClick={handleReceiptUpload}
-                  className="w-full"
-                  size="lg"
-                  disabled={!receiptFile || uploadingReceipt}
-                >
-                  {uploadingReceipt ? (
-                    <>
-                      <Loader2 className="h-5 w-5 animate-spin mr-2" />
-                      Uploading...
-                    </>
-                  ) : (
-                    <>
-                      <Upload className="h-5 w-5 mr-2" />
-                      Submit Receipt
-                    </>
-                  )}
-                </Button>
-                
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => {
-                    setShowReceiptUpload(false);
-                    setPaymentMethod('stripe');
-                  }}
-                >
-                  Pay with Card Instead
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
-  }
 
   if (success) {
     return (
@@ -317,13 +188,10 @@ export default function BookingPage({ params }: BookingPageProps) {
             <CardContent className="p-8 text-center">
               <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
               <h2 className="text-2xl font-bold text-stone-900 mb-2">
-                {paymentMethod === 'cash' ? 'Receipt Submitted!' : 'Booking Confirmed!'}
+                Booking Confirmed!
               </h2>
               <p className="text-stone-600 mb-6">
-                {paymentMethod === 'cash' 
-                  ? 'Thank you! Your receipt has been submitted and is pending verification. You will receive a confirmation email once approved.'
-                  : 'Thank you for booking. You will receive a confirmation email shortly.'
-                }
+                Thank you for booking. You will receive a confirmation email shortly.
               </p>
               <div className="flex gap-3 justify-center">
                 <Link href="/classes">
@@ -438,51 +306,44 @@ export default function BookingPage({ params }: BookingPageProps) {
                     )}
                   </div>
 
-                  {/* Payment Method */}
+                  {/* Group Booking */}
                   <div>
                     <label className="block text-sm font-medium text-stone-700 mb-3">
-                      Payment Method
+                      Number of Guests
                     </label>
-                    <div className="grid grid-cols-2 gap-4">
-                      <button
-                        type="button"
-                        onClick={() => setPaymentMethod('stripe')}
-                        className={`p-4 rounded-lg border-2 text-left transition-colors ${
-                          paymentMethod === 'stripe'
-                            ? 'border-amber-500 bg-amber-50'
-                            : 'border-stone-200 hover:border-stone-300'
-                        }`}
-                      >
-                        <CreditCard className="h-6 w-6 text-violet-600 mb-2" />
-                        <div className="font-semibold text-stone-900">Card Payment</div>
-                        <div className="text-sm text-stone-600">
-                          Pay securely with Stripe
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center border border-stone-200 rounded-lg">
+                        <button
+                          type="button"
+                          onClick={() => setNumberOfGuests(Math.max(1, numberOfGuests - 1))}
+                          className="px-4 py-3 text-stone-600 hover:bg-stone-100 transition-colors"
+                          disabled={numberOfGuests <= 1}
+                        >
+                          -
+                        </button>
+                        <div className="px-6 py-3 font-semibold text-stone-900 border-x border-stone-200">
+                          {numberOfGuests}
                         </div>
-                      </button>
-                      
-                      <button
-                        type="button"
-                        onClick={() => setPaymentMethod('cash')}
-                        className={`p-4 rounded-lg border-2 text-left transition-colors ${
-                          paymentMethod === 'cash'
-                            ? 'border-amber-500 bg-amber-50'
-                            : 'border-stone-200 hover:border-stone-300'
-                        }`}
-                      >
-                        <Banknote className="h-6 w-6 text-green-600 mb-2" />
-                        <div className="font-semibold text-stone-900">Cash Payment</div>
-                        <div className="text-sm text-stone-600">
-                          Upload receipt after payment
-                        </div>
-                      </button>
-                    </div>
-                    
-                    {paymentMethod === 'cash' && (
-                      <div className="mt-4 p-4 bg-amber-50 rounded-lg">
-                        <p className="text-sm text-amber-800">
-                          <strong>Cash Payment Instructions:</strong> After submitting this form, you&apos;ll be asked to upload a photo of your payment receipt. Your booking will be confirmed once our team verifies the payment.
-                        </p>
+                        <button
+                          type="button"
+                          onClick={() => setNumberOfGuests(Math.min(classData?.spotsAvailable || 10, numberOfGuests + 1))}
+                          className="px-4 py-3 text-stone-600 hover:bg-stone-100 transition-colors"
+                          disabled={numberOfGuests >= (classData?.spotsAvailable || 10)}
+                        >
+                          +
+                        </button>
                       </div>
+                      <div className="flex items-center gap-2 text-stone-600">
+                        <UserPlus className="h-5 w-5" />
+                        <span className="text-sm">
+                          {numberOfGuests === 1 ? 'Individual booking' : `Group of ${numberOfGuests} people`}
+                        </span>
+                      </div>
+                    </div>
+                    {numberOfGuests > 1 && (
+                      <p className="mt-2 text-sm text-amber-600">
+                        Total for {numberOfGuests} guests: {formatPrice(totalAmount * numberOfGuests)}
+                      </p>
                     )}
                   </div>
 
@@ -577,15 +438,10 @@ export default function BookingPage({ params }: BookingPageProps) {
                         <Loader2 className="h-5 w-5 animate-spin mr-2" />
                         Processing...
                       </>
-                    ) : paymentMethod === 'stripe' ? (
-                      <>
-                        <CreditCard className="h-5 w-5 mr-2" />
-                        Pay {formatPrice(totalAmount)} with Card
-                      </>
                     ) : (
                       <>
-                        <Banknote className="h-5 w-5 mr-2" />
-                        Continue to Upload Receipt
+                        <CreditCard className="h-5 w-5 mr-2" />
+                        Pay {formatPrice(totalAmount * numberOfGuests)} with Card
                       </>
                     )}
                   </Button>
@@ -616,6 +472,10 @@ export default function BookingPage({ params }: BookingPageProps) {
                     <div className="flex items-center gap-2">
                       <Clock className="h-4 w-4" />
                       {paymentType === 'full' ? classData.numberOfSessions : sessionsToBook} session{(paymentType === 'full' ? classData.numberOfSessions : sessionsToBook) > 1 ? 's' : ''}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <UserPlus className="h-4 w-4" />
+                      {numberOfGuests} {numberOfGuests === 1 ? 'guest' : 'guests'}
                     </div>
                     <div className="flex items-center gap-2">
                       <Users className="h-4 w-4" />
@@ -652,9 +512,15 @@ export default function BookingPage({ params }: BookingPageProps) {
                       </span>
                       <span>{formatPrice(totalAmount)}</span>
                     </div>
+                    {numberOfGuests > 1 && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-stone-600">× {numberOfGuests} guests</span>
+                        <span>{formatPrice(totalAmount * numberOfGuests)}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between font-semibold text-lg pt-2 border-t">
                       <span>Total</span>
-                      <span className="text-amber-600">{formatPrice(totalAmount)}</span>
+                      <span className="text-amber-600">{formatPrice(totalAmount * numberOfGuests)}</span>
                     </div>
                   </div>
                 </div>
