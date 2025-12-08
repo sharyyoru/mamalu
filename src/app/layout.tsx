@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Header, Footer } from "@/components/layout";
 import "./globals.css";
@@ -31,19 +32,24 @@ export const metadata: Metadata = {
   ],
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Check if we're on an admin or studio page
+  const headersList = await headers();
+  const pathname = headersList.get("x-pathname") || "";
+  const isAdminOrStudio = pathname.startsWith("/admin") || pathname.startsWith("/studio");
+
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
       >
-        <Header />
+        {!isAdminOrStudio && <Header />}
         <main className="flex-1">{children}</main>
-        <Footer />
+        {!isAdminOrStudio && <Footer />}
       </body>
     </html>
   );

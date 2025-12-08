@@ -5,7 +5,6 @@ import { recipeCategory } from "./recipeCategory";
 import { product } from "./product";
 import { productCategory } from "./productCategory";
 import { cookingClass } from "./cookingClass";
-import { instructor } from "./instructor";
 import { press } from "./press";
 import { siteSettings } from "./siteSettings";
 import { homePage } from "./homePage";
@@ -21,7 +20,6 @@ export const schemaTypes = [
   product,
   productCategory,
   cookingClass,
-  instructor,
   press,
   // Singletons
   siteSettings,

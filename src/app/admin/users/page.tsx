@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,7 @@ import {
 import { formatDate } from "@/lib/utils";
 
 async function getUsers() {
-  const supabase = await createClient();
+  const supabase = createAdminClient();
   if (!supabase) return [];
 
   const { data, error } = await supabase
@@ -26,7 +26,7 @@ async function getUsers() {
     .limit(50);
 
   if (error) {
-    console.error("Error fetching users:", error);
+    console.error("Error fetching users:", error.message, error.code, error.details);
     return [];
   }
 

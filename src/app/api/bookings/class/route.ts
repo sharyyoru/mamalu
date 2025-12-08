@@ -1,0 +1,142 @@
+import { NextRequest, NextResponse } from "next/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { sanityClient } from "@/lib/sanity/client";
+
+function generateBookingNumber(): string {
+  const prefix = 'CLS';
+  const timestamp = Date.now().toString(36).toUpperCase();
+  const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+  return `${prefix}-${timestamp}-${random}`;
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const {
+      classId,
+      attendeeName,
+      attendeeEmail,
+      attendeePhone,
+      paymentType,
+      sessionsBooked,
+      dietaryRestrictions,
+      notes,
+    } = body;
+
+    // Validate required fields
+    if (!classId || !attendeeName || !attendeeEmail) {
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 }
+      );
+    }
+
+    const supabase = createAdminClient();
+    if (!supabase) {
+      return NextResponse.json(
+        { error: "Database not configured" },
+        { status: 500 }
+      );
+    }
+
+    // Fetch class from Sanity to get pricing and verify spots
+    const classData = await sanityClient.fetch(`
+      *[_type == "cookingClass" && _id == $classId][0] {
+        _id,
+        title,
+        pricePerSession,
+        fullPrice,
+        numberOfSessions,
+        spotsAvailable,
+        instructorId
+      }
+    `, { classId });
+
+    if (!classData) {
+      return NextResponse.json({ error: "Class not found" }, { status: 404 });
+    }
+
+    if (classData.spotsAvailable <= 0) {
+      return NextResponse.json({ error: "Class is fully booked" }, { status: 400 });
+    }
+
+    // Calculate total amount
+    const totalAmount = paymentType === 'full'
+      ? classData.fullPrice
+      : classData.pricePerSession * sessionsBooked;
+
+    // Get instructor name if available
+    let instructorName = null;
+    if (classData.instructorId) {
+      const { data: instructor } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("id", classData.instructorId)
+        .single();
+      instructorName = instructor?.full_name;
+    }
+
+    // Check if user exists
+    const { data: existingUser } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("email", attendeeEmail)
+      .single();
+
+    // Create booking
+    const bookingData = {
+      booking_number: generateBookingNumber(),
+      class_id: classId,
+      class_title: classData.title,
+      user_id: existingUser?.id || null,
+      attendee_name: attendeeName,
+      attendee_email: attendeeEmail,
+      attendee_phone: attendeePhone || null,
+      instructor_name: instructorName,
+      payment_type: paymentType,
+      sessions_booked: sessionsBooked,
+      total_amount: totalAmount,
+      status: 'pending',
+      dietary_notes: dietaryRestrictions || null,
+      notes: notes || null,
+    };
+
+    const { data: booking, error: bookingError } = await supabase
+      .from("class_bookings")
+      .insert(bookingData)
+      .select()
+      .single();
+
+    if (bookingError) {
+      console.error("Booking error:", bookingError);
+      return NextResponse.json({ error: bookingError.message }, { status: 500 });
+    }
+
+    // Update spots in Sanity (decrement spotsAvailable)
+    try {
+      await sanityClient
+        .patch(classId)
+        .dec({ spotsAvailable: 1 })
+        .commit();
+    } catch (sanityError) {
+      console.error("Failed to update Sanity spots:", sanityError);
+      // Don't fail the booking if Sanity update fails
+    }
+
+    // TODO: Send confirmation email
+    // TODO: Create Stripe payment session if payment required
+
+    return NextResponse.json({
+      success: true,
+      booking: {
+        id: booking.id,
+        bookingNumber: booking.booking_number,
+        totalAmount: booking.total_amount,
+      },
+      // paymentUrl: stripeSessionUrl, // Add when Stripe is integrated
+    });
+  } catch (error) {
+    console.error("Booking error:", error);
+    return NextResponse.json({ error: "Failed to create booking" }, { status: 500 });
+  }
+}

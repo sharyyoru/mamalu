@@ -183,7 +183,7 @@ export async function getClasses() {
       maxSpots,
       location,
       featured,
-      instructor->{name, image, title}
+      instructorId
     }
   `);
 }
@@ -210,10 +210,39 @@ export async function getClassBySlug(slug: string) {
       spotsAvailable,
       maxSpots,
       location,
-      instructor->{name, image, title, bio, specialties, experience}
+      instructorId
     }
   `,
     { slug }
+  );
+}
+
+export async function getClassById(id: string) {
+  return sanityClient.fetch(
+    `
+    *[_type == "cookingClass" && _id == $id][0] {
+      _id,
+      title,
+      slug,
+      description,
+      mainImage,
+      body,
+      classType,
+      numberOfSessions,
+      sessionDuration,
+      pricePerSession,
+      fullPrice,
+      startDate,
+      schedule,
+      whatYouLearn,
+      requirements,
+      spotsAvailable,
+      maxSpots,
+      location,
+      instructorId
+    }
+  `,
+    { id }
   );
 }
 

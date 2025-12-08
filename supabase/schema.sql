@@ -65,6 +65,13 @@ CREATE TABLE public.profiles (
     dietary_restrictions TEXT[], -- ['gluten-free', 'nut-allergy', 'vegan']
     dietary_notes TEXT,
     
+    -- Instructor Profile (for role = 'instructor')
+    instructor_title TEXT,
+    instructor_bio TEXT,
+    instructor_specialties TEXT[],
+    instructor_experience_years INTEGER,
+    instructor_image_url TEXT,
+    
     -- Renter Compliance
     is_renter_verified BOOLEAN DEFAULT FALSE,
     food_safety_cert_url TEXT,

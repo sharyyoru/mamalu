@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -26,7 +27,7 @@ interface CookingClass {
   fullPrice: number;
   startDate: string;
   spotsAvailable: number;
-  instructor?: { name: string; image?: { asset: { _ref: string } } };
+  instructorId?: string;
 }
 
 export default async function ClassesPage() {
@@ -87,10 +88,12 @@ export default async function ClassesPage() {
                       {cls.description}
                     </p>
                     <div className="space-y-2 text-sm text-stone-500">
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4" />
-                        Starts {formatDate(cls.startDate)}
-                      </div>
+                      {cls.startDate && (
+                        <div className="flex items-center gap-2">
+                          <Calendar className="h-4 w-4" />
+                          Starts {formatDate(cls.startDate)}
+                        </div>
+                      )}
                       <div className="flex items-center gap-2">
                         <Clock className="h-4 w-4" />
                         {cls.numberOfSessions} session
@@ -113,10 +116,12 @@ export default async function ClassesPage() {
                         </div>
                       )}
                     </div>
-                    <Button asChild href={`/classes/${cls.slug.current}`} size="sm">
-                      Book Now
-                      <ArrowRight className="h-4 w-4 ml-1" />
-                    </Button>
+                    <Link href={`/classes/${cls.slug.current}`}>
+                      <Button size="sm">
+                        Book Now
+                        <ArrowRight className="h-4 w-4 ml-1" />
+                      </Button>
+                    </Link>
                   </CardFooter>
                 </Card>
               ))}

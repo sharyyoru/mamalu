@@ -1,4 +1,5 @@
 import { defineType, defineField } from "sanity";
+import { InstructorInput } from "../components/InstructorInput";
 
 export const cookingClass = defineType({
   name: "cookingClass",
@@ -62,10 +63,13 @@ export const cookingClass = defineType({
       validation: (Rule) => Rule.required(),
     }),
     defineField({
-      name: "instructor",
+      name: "instructorId",
       title: "Instructor",
-      type: "reference",
-      to: [{ type: "instructor" }],
+      type: "string",
+      description: "Select an instructor from your database (Admin → Users with instructor role)",
+      components: {
+        input: InstructorInput,
+      },
     }),
     defineField({
       name: "numberOfSessions",

@@ -1,5 +1,7 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
+import Image from "next/image";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,65 +12,74 @@ import {
   BookOpen,
   ArrowLeft,
   CheckCircle,
+  MapPin,
+  ChefHat,
 } from "lucide-react";
 import { formatPrice, formatDate } from "@/lib/utils";
-// import { getClassBySlug } from "@/lib/sanity/queries";
+import { getClassBySlug } from "@/lib/sanity/queries";
+import { urlFor } from "@/lib/sanity/client";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 interface ClassPageProps {
   params: Promise<{ slug: string }>;
 }
 
-// Placeholder data
-const classesData: Record<string, {
+interface CookingClass {
   _id: string;
   title: string;
+  slug: { current: string };
   description: string;
+  mainImage?: { asset: { _ref: string }; alt?: string };
+  body?: any[];
   classType: string;
   numberOfSessions: number;
+  sessionDuration: number;
   pricePerSession: number;
   fullPrice: number;
   startDate: string;
+  schedule?: Array<{
+    sessionNumber: number;
+    title: string;
+    description: string;
+    date: string;
+  }>;
+  whatYouLearn?: string[];
+  requirements?: string[];
   spotsAvailable: number;
-  schedule: string[];
-  whatYouLearn: string[];
-  instructor: { name: string; bio: string };
-}> = {
-  "middle-eastern-essentials": {
-    _id: "1",
-    title: "Middle Eastern Essentials",
-    description:
-      "Master the fundamentals of Middle Eastern cooking including hummus, falafel, and shawarma.",
-    classType: "In-Person",
-    numberOfSessions: 4,
-    pricePerSession: 150,
-    fullPrice: 500,
-    startDate: "2024-02-15",
-    spotsAvailable: 8,
-    schedule: [
-      "Session 1: The Art of Hummus & Mezze",
-      "Session 2: Perfect Falafel & Tahini Sauces",
-      "Session 3: Shawarma & Grilled Meats",
-      "Session 4: Desserts & Sweet Treats",
-    ],
-    whatYouLearn: [
-      "Traditional techniques passed down through generations",
-      "How to balance spices for authentic flavor",
-      "Tips for achieving perfect textures",
-      "Recipe cards for all dishes covered",
-      "Access to private recipe collection",
-    ],
-    instructor: {
-      name: "Chef Ahmad",
-      bio: "With over 20 years of experience in Middle Eastern cuisine, Chef Ahmad brings authentic flavors and techniques to every class.",
-    },
-  },
-};
+  maxSpots: number;
+  location: string;
+  instructorId?: string;
+}
+
+interface Instructor {
+  id: string;
+  full_name: string;
+  instructor_title: string | null;
+  instructor_bio: string | null;
+  instructor_image_url: string | null;
+  avatar_url: string | null;
+  instructor_specialties: string[] | null;
+  instructor_experience_years: number | null;
+}
+
+async function getInstructor(instructorId: string): Promise<Instructor | null> {
+  const supabase = createAdminClient();
+  if (!supabase) return null;
+  
+  const { data } = await supabase
+    .from("profiles")
+    .select("id, full_name, instructor_title, instructor_bio, instructor_image_url, avatar_url, instructor_specialties, instructor_experience_years")
+    .eq("id", instructorId)
+    .single();
+    
+  return data;
+}
 
 export async function generateMetadata({
   params,
 }: ClassPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const cls = classesData[slug];
+  const cls: CookingClass | null = await getClassBySlug(slug);
 
   if (!cls) {
     return { title: "Class Not Found" };
@@ -82,52 +93,92 @@ export async function generateMetadata({
 
 export default async function ClassPage({ params }: ClassPageProps) {
   const { slug } = await params;
-  const cls = classesData[slug];
+  const cls: CookingClass | null = await getClassBySlug(slug);
 
   if (!cls) {
     notFound();
   }
+
+  // Fetch instructor from database
+  const instructor = cls.instructorId ? await getInstructor(cls.instructorId) : null;
+  
+  const savings = cls.pricePerSession * cls.numberOfSessions - cls.fullPrice;
 
   return (
     <div>
       {/* Hero */}
       <section className="bg-gradient-to-br from-amber-50 to-stone-100 py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <Button variant="ghost" asChild href="/classes" className="mb-6">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Classes
-          </Button>
+          <Link href="/classes">
+            <Button variant="ghost" className="mb-6">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Classes
+            </Button>
+          </Link>
+          
           <div className="grid lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
-              <Badge className="mb-4">{cls.classType}</Badge>
+              {cls.mainImage && (
+                <div className="relative aspect-video rounded-xl overflow-hidden mb-6">
+                  <Image
+                    src={urlFor(cls.mainImage).width(800).height(450).url()}
+                    alt={cls.mainImage.alt || cls.title}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+              )}
+              
+              <div className="flex items-center gap-2 mb-4">
+                <Badge>{cls.classType}</Badge>
+                {cls.spotsAvailable <= 3 && cls.spotsAvailable > 0 && (
+                  <Badge variant="destructive">
+                    Only {cls.spotsAvailable} spots left
+                  </Badge>
+                )}
+                {cls.spotsAvailable === 0 && (
+                  <Badge variant="destructive">Sold Out</Badge>
+                )}
+              </div>
+              
               <h1 className="text-3xl sm:text-4xl font-bold text-stone-900 mb-4">
                 {cls.title}
               </h1>
               <p className="text-lg text-stone-600 mb-6">{cls.description}</p>
+              
               <div className="flex flex-wrap gap-6 text-stone-600">
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5 text-amber-600" />
-                  Starts {formatDate(cls.startDate)}
-                </div>
+                {cls.startDate && (
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-5 w-5 text-amber-600" />
+                    Starts {formatDate(cls.startDate)}
+                  </div>
+                )}
                 <div className="flex items-center gap-2">
                   <Clock className="h-5 w-5 text-amber-600" />
-                  {cls.numberOfSessions} sessions
+                  {cls.numberOfSessions} session{cls.numberOfSessions > 1 ? "s" : ""} 
+                  {cls.sessionDuration && ` × ${cls.sessionDuration}h`}
                 </div>
                 <div className="flex items-center gap-2">
                   <Users className="h-5 w-5 text-amber-600" />
-                  {cls.spotsAvailable} spots left
+                  {cls.spotsAvailable} of {cls.maxSpots} spots available
                 </div>
+                {cls.location && (
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-5 w-5 text-amber-600" />
+                    {cls.location}
+                  </div>
+                )}
               </div>
             </div>
 
             {/* Booking Card */}
-            <Card className="lg:col-span-1">
+            <Card className="lg:col-span-1 h-fit sticky top-6">
               <CardContent className="p-6">
                 <h3 className="text-lg font-semibold text-stone-900 mb-4">
                   Book This Class
                 </h3>
 
-                {/* Full Class Option */}
+                {/* Full Course Option */}
                 <div className="border border-amber-200 bg-amber-50 rounded-lg p-4 mb-4">
                   <div className="flex justify-between items-start mb-2">
                     <div>
@@ -135,16 +186,18 @@ export default async function ClassPage({ params }: ClassPageProps) {
                         Full Course
                       </span>
                       <p className="text-sm text-stone-600">
-                        All {cls.numberOfSessions} sessions
+                        All {cls.numberOfSessions} session{cls.numberOfSessions > 1 ? "s" : ""}
                       </p>
                     </div>
                     <span className="text-xl font-bold text-amber-600">
                       {formatPrice(cls.fullPrice)}
                     </span>
                   </div>
-                  <Badge variant="success" className="text-xs">
-                    Save {formatPrice(cls.pricePerSession * cls.numberOfSessions - cls.fullPrice)}
-                  </Badge>
+                  {savings > 0 && (
+                    <Badge className="bg-green-100 text-green-700 text-xs">
+                      Save {formatPrice(savings)}
+                    </Badge>
+                  )}
                 </div>
 
                 {/* Per Session Option */}
@@ -166,9 +219,17 @@ export default async function ClassPage({ params }: ClassPageProps) {
                   </div>
                 )}
 
-                <Button className="w-full" size="lg">
-                  Book Now
-                </Button>
+                {cls.spotsAvailable > 0 ? (
+                  <Link href={`/classes/${cls.slug.current}/book`}>
+                    <Button className="w-full" size="lg">
+                      Book Now
+                    </Button>
+                  </Link>
+                ) : (
+                  <Button className="w-full" size="lg" disabled>
+                    Sold Out
+                  </Button>
+                )}
                 <p className="text-xs text-stone-500 text-center mt-3">
                   Secure payment powered by Stripe
                 </p>
@@ -185,65 +246,144 @@ export default async function ClassPage({ params }: ClassPageProps) {
             {/* Main Content */}
             <div className="lg:col-span-2 space-y-12">
               {/* What You'll Learn */}
-              <div>
-                <h2 className="text-2xl font-bold text-stone-900 mb-6">
-                  What You&apos;ll Learn
-                </h2>
-                <ul className="space-y-3">
-                  {cls.whatYouLearn.map((item, idx) => (
-                    <li key={idx} className="flex items-start gap-3">
-                      <CheckCircle className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
-                      <span className="text-stone-600">{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              {cls.whatYouLearn && cls.whatYouLearn.length > 0 && (
+                <div>
+                  <h2 className="text-2xl font-bold text-stone-900 mb-6">
+                    What You&apos;ll Learn
+                  </h2>
+                  <ul className="space-y-3">
+                    {cls.whatYouLearn.map((item: string, idx: number) => (
+                      <li key={idx} className="flex items-start gap-3">
+                        <CheckCircle className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
+                        <span className="text-stone-600">{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
               {/* Schedule */}
-              <div>
-                <h2 className="text-2xl font-bold text-stone-900 mb-6">
-                  Class Schedule
-                </h2>
-                <div className="space-y-4">
-                  {cls.schedule.map((session, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-start gap-4 p-4 bg-stone-50 rounded-lg"
-                    >
-                      <div className="h-10 w-10 rounded-full bg-amber-100 text-amber-700 font-semibold flex items-center justify-center flex-shrink-0">
-                        {idx + 1}
+              {cls.schedule && cls.schedule.length > 0 && (
+                <div>
+                  <h2 className="text-2xl font-bold text-stone-900 mb-6">
+                    Class Schedule
+                  </h2>
+                  <div className="space-y-4">
+                    {cls.schedule.map((session, idx: number) => (
+                      <div
+                        key={idx}
+                        className="flex items-start gap-4 p-4 bg-stone-50 rounded-lg"
+                      >
+                        <div className="h-10 w-10 rounded-full bg-amber-100 text-amber-700 font-semibold flex items-center justify-center flex-shrink-0">
+                          {session.sessionNumber || idx + 1}
+                        </div>
+                        <div className="pt-1">
+                          <p className="font-medium text-stone-900">{session.title}</p>
+                          {session.description && (
+                            <p className="text-sm text-stone-600 mt-1">{session.description}</p>
+                          )}
+                          {session.date && (
+                            <p className="text-xs text-stone-400 mt-1">{formatDate(session.date)}</p>
+                          )}
+                        </div>
                       </div>
-                      <div className="pt-2 text-stone-700">{session}</div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
+
+              {/* Requirements */}
+              {cls.requirements && cls.requirements.length > 0 && (
+                <div>
+                  <h2 className="text-2xl font-bold text-stone-900 mb-6">
+                    Requirements
+                  </h2>
+                  <ul className="space-y-2">
+                    {cls.requirements.map((req: string, idx: number) => (
+                      <li key={idx} className="text-stone-600">• {req}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
 
             {/* Sidebar */}
-            <div className="lg:col-span-1">
+            <div className="lg:col-span-1 space-y-6">
               {/* Instructor */}
               <Card>
                 <CardContent className="p-6">
                   <h3 className="text-lg font-semibold text-stone-900 mb-4">
                     Your Instructor
                   </h3>
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="h-16 w-16 rounded-full bg-amber-100 flex items-center justify-center">
-                      <BookOpen className="h-8 w-8 text-amber-600/50" />
-                    </div>
-                    <div>
-                      <div className="font-semibold text-stone-900">
-                        {cls.instructor.name}
+                  {instructor ? (
+                    <>
+                      <div className="flex items-center gap-4 mb-4">
+                        {(instructor.instructor_image_url || instructor.avatar_url) ? (
+                          <Image
+                            src={instructor.instructor_image_url || instructor.avatar_url || ""}
+                            alt={instructor.full_name}
+                            width={64}
+                            height={64}
+                            className="rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="h-16 w-16 rounded-full bg-amber-100 flex items-center justify-center">
+                            <ChefHat className="h-8 w-8 text-amber-600" />
+                          </div>
+                        )}
+                        <div>
+                          <div className="font-semibold text-stone-900">
+                            {instructor.full_name}
+                          </div>
+                          <div className="text-sm text-amber-600">
+                            {instructor.instructor_title || "Professional Chef"}
+                          </div>
+                          {instructor.instructor_experience_years && (
+                            <div className="text-xs text-stone-500">
+                              {instructor.instructor_experience_years} years experience
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      <div className="text-sm text-stone-500">
-                        Professional Chef
-                      </div>
+                      {instructor.instructor_bio && (
+                        <p className="text-sm text-stone-600 mb-4">{instructor.instructor_bio}</p>
+                      )}
+                      {instructor.instructor_specialties && instructor.instructor_specialties.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {instructor.instructor_specialties.map((s: string, i: number) => (
+                            <Badge key={i} variant="outline" className="text-xs">{s}</Badge>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="text-center py-4 text-stone-500">
+                      <ChefHat className="h-12 w-12 mx-auto mb-2 text-stone-300" />
+                      <p className="text-sm">Instructor TBA</p>
                     </div>
-                  </div>
-                  <p className="text-sm text-stone-600">{cls.instructor.bio}</p>
+                  )}
                 </CardContent>
               </Card>
+
+              {/* Location Card */}
+              {cls.location && (
+                <Card>
+                  <CardContent className="p-6">
+                    <h3 className="text-lg font-semibold text-stone-900 mb-4">
+                      Location
+                    </h3>
+                    <div className="flex items-start gap-3">
+                      <MapPin className="h-5 w-5 text-amber-600 mt-0.5" />
+                      <div>
+                        <p className="text-stone-700">{cls.location}</p>
+                        <p className="text-sm text-stone-500 mt-1">
+                          {cls.classType === "online" ? "Online via Zoom" : "In-person class"}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           </div>
         </div>
