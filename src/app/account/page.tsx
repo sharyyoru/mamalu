@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Link from "next/link";
 import { User, Mail, Lock, ArrowRight, AlertCircle, CheckCircle, LogOut, Package, Calendar, Heart } from "lucide-react";
 
 type AuthMode = "login" | "register";
@@ -125,27 +126,33 @@ export default function AccountPage() {
           </div>
 
           <div className="grid md:grid-cols-3 gap-6 mb-8">
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-              <CardContent className="p-6 text-center">
-                <Package className="h-10 w-10 text-amber-600 mx-auto mb-3" />
-                <h3 className="font-semibold text-stone-900">My Orders</h3>
-                <p className="text-sm text-stone-500 mt-1">View order history</p>
-              </CardContent>
-            </Card>
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-              <CardContent className="p-6 text-center">
-                <Calendar className="h-10 w-10 text-amber-600 mx-auto mb-3" />
-                <h3 className="font-semibold text-stone-900">My Bookings</h3>
-                <p className="text-sm text-stone-500 mt-1">View class bookings</p>
-              </CardContent>
-            </Card>
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-              <CardContent className="p-6 text-center">
-                <Heart className="h-10 w-10 text-amber-600 mx-auto mb-3" />
-                <h3 className="font-semibold text-stone-900">Wishlist</h3>
-                <p className="text-sm text-stone-500 mt-1">Saved items</p>
-              </CardContent>
-            </Card>
+            <Link href="/account/orders">
+              <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+                <CardContent className="p-6 text-center">
+                  <Package className="h-10 w-10 text-amber-600 mx-auto mb-3" />
+                  <h3 className="font-semibold text-stone-900">My Orders</h3>
+                  <p className="text-sm text-stone-500 mt-1">View order history</p>
+                </CardContent>
+              </Card>
+            </Link>
+            <Link href="/account/bookings">
+              <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+                <CardContent className="p-6 text-center">
+                  <Calendar className="h-10 w-10 text-amber-600 mx-auto mb-3" />
+                  <h3 className="font-semibold text-stone-900">My Bookings</h3>
+                  <p className="text-sm text-stone-500 mt-1">View class bookings</p>
+                </CardContent>
+              </Card>
+            </Link>
+            <Link href="/account/wishlist">
+              <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+                <CardContent className="p-6 text-center">
+                  <Heart className="h-10 w-10 text-amber-600 mx-auto mb-3" />
+                  <h3 className="font-semibold text-stone-900">Wishlist</h3>
+                  <p className="text-sm text-stone-500 mt-1">Saved items</p>
+                </CardContent>
+              </Card>
+            </Link>
           </div>
 
           <Card>
