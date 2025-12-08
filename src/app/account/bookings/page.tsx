@@ -16,6 +16,9 @@ import {
   ChefHat,
   Receipt,
   ExternalLink,
+  Bell,
+  BellOff,
+  RotateCw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -43,6 +46,8 @@ interface Booking {
   start_date: string | null;
   created_at: string;
   notes: string | null;
+  reminder_enabled: boolean;
+  stripe_checkout_session_id: string | null;
 }
 
 export default function MyBookingsPage() {
@@ -114,6 +119,45 @@ export default function MyBookingsPage() {
       }
     } catch (err) {
       alert("Failed to create payment session");
+    }
+  };
+
+  const verifyPayment = async (bookingId: string) => {
+    try {
+      const res = await fetch("/api/payments/verify-stripe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bookingId }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          alert(data.message);
+          fetchBookings();
+        } else {
+          alert(data.message || "Payment not found");
+        }
+      }
+    } catch (err) {
+      alert("Failed to verify payment");
+    }
+  };
+
+  const toggleReminder = async (bookingId: string, enabled: boolean) => {
+    try {
+      const res = await fetch("/api/user/bookings/reminder", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bookingId, enabled }),
+      });
+
+      if (res.ok) {
+        fetchBookings();
+        alert(enabled ? "Reminder enabled! You will be notified before your class." : "Reminder disabled.");
+      }
+    } catch (err) {
+      alert("Failed to update reminder");
     }
   };
 
@@ -286,9 +330,21 @@ export default function MyBookingsPage() {
                             {formatPrice(booking.amount_due || booking.total_amount)}
                           </span>
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 flex-wrap">
+                          {/* If Stripe payment initiated but not confirmed, show verify button */}
+                          {booking.stripe_checkout_session_id && booking.payment_method === "stripe" && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => verifyPayment(booking.id)}
+                            >
+                              <RotateCw className="h-4 w-4 mr-2" />
+                              Verify Payment
+                            </Button>
+                          )}
+                          
                           {/* If no receipt uploaded yet, show both options */}
-                          {!booking.receipt_url && (
+                          {!booking.receipt_url && !booking.stripe_checkout_session_id && (
                             <>
                               <Button
                                 size="sm"
@@ -356,12 +412,32 @@ export default function MyBookingsPage() {
                     </div>
                   )}
 
-                  {/* Paid confirmation */}
+                  {/* Paid confirmation with reminder toggle */}
                   {booking.paid_at && (
                     <div className="bg-green-50 border-t border-green-100 px-6 py-3">
-                      <div className="flex items-center gap-2 text-green-700 text-sm">
-                        <CheckCircle className="h-4 w-4" />
-                        <span>Paid on {formatDate(booking.paid_at)}</span>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-green-700 text-sm">
+                          <CheckCircle className="h-4 w-4" />
+                          <span>Paid on {formatDate(booking.paid_at)}</span>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => toggleReminder(booking.id, !booking.reminder_enabled)}
+                          className={booking.reminder_enabled ? "text-amber-600" : "text-stone-400"}
+                        >
+                          {booking.reminder_enabled ? (
+                            <>
+                              <Bell className="h-4 w-4 mr-1" />
+                              Reminder On
+                            </>
+                          ) : (
+                            <>
+                              <BellOff className="h-4 w-4 mr-1" />
+                              Set Reminder
+                            </>
+                          )}
+                        </Button>
                       </div>
                     </div>
                   )}
