@@ -9,10 +9,10 @@ ALTER TABLE public.class_bookings DISABLE ROW LEVEL SECURITY;
 -- Step 2: Drop the problematic column if it exists
 ALTER TABLE public.class_bookings DROP COLUMN IF EXISTS class_session_id;
 
--- Step 3: Make sure all required columns exist and allow NULLs where needed
--- First, drop NOT NULL constraints that cause issues
-ALTER TABLE public.class_bookings ALTER COLUMN booking_number DROP NOT NULL;
-ALTER TABLE public.class_bookings ALTER COLUMN class_type DROP NOT NULL;
+-- Step 3: Add missing columns that the API needs
+ALTER TABLE public.class_bookings 
+ADD COLUMN IF NOT EXISTS amount_due DECIMAL(10,2) DEFAULT 0,
+ADD COLUMN IF NOT EXISTS amount_paid DECIMAL(10,2) DEFAULT 0;
 
 -- Step 4: Add new payment columns for our booking system
 ALTER TABLE public.class_bookings 
