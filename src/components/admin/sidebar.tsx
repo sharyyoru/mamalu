@@ -21,6 +21,7 @@ import {
   UserPlus,
   Ticket,
   FileText,
+  Link as LinkIcon,
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -45,6 +46,7 @@ const navigation = [
   ]},
   { name: "Bookings", href: "/admin/bookings", icon: Ticket },
   { name: "Invoices", href: "/admin/invoices", icon: FileText },
+  { name: "Payment Links", href: "/admin/payment-links", icon: LinkIcon },
   { name: "Orders", href: "/admin/orders", icon: ShoppingBag },
   { name: "Memberships", href: "/admin/memberships", icon: CreditCard },
   { name: "Marketing", href: "/admin/marketing", icon: Tags, children: [

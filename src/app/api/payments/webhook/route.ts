@@ -34,6 +34,7 @@ export async function POST(request: NextRequest) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
         const bookingId = session.metadata?.booking_id;
+        const isCustomPaymentLink = session.metadata?.type === "custom_payment_link";
 
         if (bookingId) {
           // Update booking as paid
@@ -61,6 +62,55 @@ export async function POST(request: NextRequest) {
               customer_email: session.customer_email,
             },
           });
+        }
+
+        // Handle custom payment link payments
+        if (isCustomPaymentLink || session.payment_link) {
+          const stripePaymentLinkId = session.payment_link as string;
+          
+          if (stripePaymentLinkId) {
+            // Find and update the payment link
+            const { data: paymentLink } = await supabase
+              .from("payment_links")
+              .select("id, single_use, use_count, max_uses")
+              .eq("stripe_payment_link_id", stripePaymentLinkId)
+              .single();
+
+            if (paymentLink) {
+              const newUseCount = (paymentLink.use_count || 0) + 1;
+              const shouldDeactivate = paymentLink.single_use || 
+                (paymentLink.max_uses && newUseCount >= paymentLink.max_uses);
+
+              await supabase
+                .from("payment_links")
+                .update({
+                  status: shouldDeactivate ? "paid" : "active",
+                  paid_at: new Date().toISOString(),
+                  paid_amount: (session.amount_total || 0) / 100,
+                  use_count: newUseCount,
+                  customer_email: session.customer_email || undefined,
+                  stripe_checkout_session_id: session.id,
+                  stripe_payment_intent_id: session.payment_intent as string,
+                })
+                .eq("id", paymentLink.id);
+
+              // Record transaction
+              await supabase.from("payment_transactions").insert({
+                transaction_type: "payment",
+                payment_method: "stripe",
+                amount: (session.amount_total || 0) / 100,
+                currency: session.currency?.toUpperCase() || "AED",
+                status: "completed",
+                stripe_payment_intent_id: session.payment_intent as string,
+                metadata: {
+                  checkout_session_id: session.id,
+                  payment_link_id: paymentLink.id,
+                  stripe_payment_link_id: stripePaymentLinkId,
+                  customer_email: session.customer_email,
+                },
+              });
+            }
+          }
         }
         break;
       }
