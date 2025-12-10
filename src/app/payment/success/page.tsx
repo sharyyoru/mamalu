@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { CheckCircle, Loader2 } from "lucide-react";
@@ -10,6 +10,42 @@ import { Card, CardContent } from "@/components/ui/card";
 function SuccessContent() {
   const searchParams = useSearchParams();
   const invoiceNumber = searchParams.get("invoice");
+  const sessionId = searchParams.get("session_id");
+  const [verifying, setVerifying] = useState(!!sessionId);
+  const [verified, setVerified] = useState(false);
+
+  useEffect(() => {
+    // Verify payment and update status when session_id is present
+    if (sessionId) {
+      fetch("/api/payment-links/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          console.log("Payment verification:", data);
+          setVerified(true);
+        })
+        .catch((err) => {
+          console.error("Verification error:", err);
+        })
+        .finally(() => {
+          setVerifying(false);
+        });
+    }
+  }, [sessionId]);
+
+  if (verifying) {
+    return (
+      <div className="min-h-screen bg-stone-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-amber-500 mx-auto mb-4" />
+          <p className="text-stone-600">Verifying payment...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-stone-50 py-12">
