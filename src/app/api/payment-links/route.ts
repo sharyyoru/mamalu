@@ -69,37 +69,48 @@ export async function POST(request: NextRequest) {
 
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
-    // Create Stripe payment link
+    // Generate link code first
+    const { data: linkCodeData } = await supabase.rpc("generate_payment_link_code");
+    const linkCode = linkCodeData || `PAY-${Date.now().toString(36).toUpperCase()}`;
+
+    // First create a product in Stripe
+    const product = await stripe.products.create({
+      name: title,
+      description: description || undefined,
+      metadata: {
+        type: "custom_payment_link",
+        link_code: linkCode,
+      },
+    });
+
+    // Create a price for the product
+    const price = await stripe.prices.create({
+      product: product.id,
+      unit_amount: Math.round(amount * 100),
+      currency: "aed",
+    });
+
+    // Create Stripe payment link with the price
     const stripePaymentLink = await stripe.paymentLinks.create({
       line_items: [
         {
-          price_data: {
-            currency: "aed",
-            product_data: {
-              name: title,
-              description: description || undefined,
-            },
-            unit_amount: Math.round(amount * 100),
-          },
+          price: price.id,
           quantity: 1,
         },
       ],
       after_completion: {
         type: "redirect",
         redirect: {
-          url: `${siteUrl}/payment/success?link_id={CHECKOUT_SESSION_ID}`,
+          url: `${siteUrl}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
         },
       },
       metadata: {
         type: "custom_payment_link",
+        link_code: linkCode,
         title,
         customer_email: customerEmail || "",
       },
     });
-
-    // Generate link code
-    const { data: linkCodeData } = await supabase.rpc("generate_payment_link_code");
-    const linkCode = linkCodeData || `PAY-${Date.now().toString(36).toUpperCase()}`;
 
     // Create payment link record
     const paymentLinkData = {
@@ -113,6 +124,7 @@ export async function POST(request: NextRequest) {
       customer_phone: customerPhone || null,
       stripe_payment_link_id: stripePaymentLink.id,
       stripe_payment_link_url: stripePaymentLink.url,
+      stripe_price_id: price.id,
       single_use: singleUse,
       max_uses: maxUses || null,
       expires_at: expiresAt || null,
@@ -138,8 +150,10 @@ export async function POST(request: NextRequest) {
       paymentLink,
       stripeUrl: stripePaymentLink.url,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Create payment link error:", error);
-    return NextResponse.json({ error: "Failed to create payment link" }, { status: 500 });
+    return NextResponse.json({ 
+      error: error.message || "Failed to create payment link" 
+    }, { status: 500 });
   }
 }
