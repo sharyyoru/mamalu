@@ -42,7 +42,8 @@ export default function AdminLoginPage() {
       // TEMPORARY: Allow wilson@mutant.ae direct access while debugging
       if (data.user.email === "wilson@mutant.ae") {
         console.log("Allowing wilson@mutant.ae direct admin access");
-        router.push("/admin");
+        // Use window.location for full page reload to ensure layout renders properly
+        window.location.href = "/admin";
         return;
       }
 
@@ -63,7 +64,8 @@ export default function AdminLoginPage() {
         return;
       }
 
-      router.push("/admin");
+      // Use window.location for full page reload to ensure layout renders properly
+      window.location.href = "/admin";
     }
   };
 
