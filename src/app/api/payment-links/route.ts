@@ -71,18 +71,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Database not configured" }, { status: 500 });
     }
 
-    // Get the correct site URL - Vercel provides VERCEL_URL in production
-    const getSiteUrl = () => {
-      if (process.env.VERCEL_URL) {
-        return `https://${process.env.VERCEL_URL}`;
-      }
-      if (process.env.NEXT_PUBLIC_VERCEL_URL) {
-        return `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`;
-      }
-      return process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
-    };
-    const siteUrl = getSiteUrl();
-
     // Generate link code first
     const { data: linkCodeData } = await supabase.rpc("generate_payment_link_code");
     const linkCode = linkCodeData || `PAY-${Date.now().toString(36).toUpperCase()}`;
@@ -113,9 +101,9 @@ export async function POST(request: NextRequest) {
         },
       ],
       after_completion: {
-        type: "redirect",
-        redirect: {
-          url: `${siteUrl}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
+        type: "hosted_confirmation",
+        hosted_confirmation: {
+          custom_message: "Thank you for your payment! Your transaction has been completed successfully. A receipt has been sent to your email.",
         },
       },
       metadata: {
