@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createClient } from "@/lib/supabase/client";
 import {
   RefreshCw,
   Plus,
@@ -40,6 +41,12 @@ interface PaymentLink {
   paid_amount: number | null;
   notes: string | null;
   created_at: string;
+  created_by: string | null;
+  creator: {
+    id: string;
+    full_name: string | null;
+    email: string | null;
+  } | null;
 }
 
 export default function AdminPaymentLinksPage() {
@@ -50,6 +57,19 @@ export default function AdminPaymentLinksPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [copiedLink, setCopiedLink] = useState<string | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  // Get current user on mount
+  useEffect(() => {
+    const supabase = createClient();
+    if (supabase) {
+      supabase.auth.getUser().then(({ data }) => {
+        if (data.user) {
+          setCurrentUserId(data.user.id);
+        }
+      });
+    }
+  }, []);
 
   // New payment link form
   const [newLink, setNewLink] = useState({
@@ -116,6 +136,7 @@ export default function AdminPaymentLinksPage() {
           customerPhone: newLink.customerPhone || null,
           singleUse: newLink.singleUse,
           notes: newLink.notes || null,
+          createdBy: currentUserId,
         }),
       });
 
@@ -357,6 +378,9 @@ export default function AdminPaymentLinksPage() {
                     <th className="px-4 py-3 text-left text-sm font-medium text-stone-500">
                       Created
                     </th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-stone-500">
+                      Created By
+                    </th>
                     <th className="px-4 py-3 text-right text-sm font-medium text-stone-500">
                       Actions
                     </th>
@@ -416,6 +440,15 @@ export default function AdminPaymentLinksPage() {
                           <div className="text-xs text-green-600">
                             Paid: {formatDate(link.paid_at)}
                           </div>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        {link.creator ? (
+                          <div className="text-sm text-stone-900">
+                            {link.creator.full_name || link.creator.email || "Unknown"}
+                          </div>
+                        ) : (
+                          <span className="text-stone-400 text-sm">—</span>
                         )}
                       </td>
                       <td className="px-4 py-3 text-right">

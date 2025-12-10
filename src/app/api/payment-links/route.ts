@@ -15,7 +15,10 @@ export async function GET(request: NextRequest) {
 
     let query = supabase
       .from("payment_links")
-      .select("*")
+      .select(`
+        *,
+        creator:created_by(id, full_name, email)
+      `)
       .order("created_at", { ascending: false });
 
     if (status && status !== "all") {
@@ -53,6 +56,7 @@ export async function POST(request: NextRequest) {
       referenceType,
       referenceId,
       notes,
+      createdBy,
     } = body;
 
     if (!title || !amount) {
@@ -132,6 +136,7 @@ export async function POST(request: NextRequest) {
       reference_id: referenceId || null,
       notes: notes || null,
       status: "active",
+      created_by: createdBy || null,
     };
 
     const { data: paymentLink, error: insertError } = await supabase
