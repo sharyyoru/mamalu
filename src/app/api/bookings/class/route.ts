@@ -22,12 +22,24 @@ export async function POST(request: NextRequest) {
       numberOfGuests = 1,
       dietaryRestrictions,
       notes,
+      // Waiver fields
+      waiverAccepted,
+      waiverSignature,
+      waiverSignedAt,
     } = body;
 
     // Validate required fields
     if (!classId || !attendeeName || !attendeeEmail) {
       return NextResponse.json(
         { error: "Missing required fields" },
+        { status: 400 }
+      );
+    }
+
+    // Validate waiver acceptance
+    if (!waiverAccepted || !waiverSignature) {
+      return NextResponse.json(
+        { error: "Waiver must be signed to complete booking" },
         { status: 400 }
       );
     }
@@ -111,6 +123,11 @@ export async function POST(request: NextRequest) {
       payment_method: 'pending',
       number_of_guests: numberOfGuests,
       notes: notes ? `Guests: ${numberOfGuests}\nDietary: ${dietaryRestrictions || 'None'}\n${notes}` : (dietaryRestrictions ? `Guests: ${numberOfGuests}\nDietary: ${dietaryRestrictions}` : `Guests: ${numberOfGuests}`),
+      // Waiver fields
+      waiver_accepted: waiverAccepted,
+      waiver_signature: waiverSignature,
+      waiver_signed_at: waiverSignedAt || new Date().toISOString(),
+      terms_version: '1.0',
     };
 
     const { data: booking, error: bookingError } = await supabase
