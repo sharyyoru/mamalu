@@ -244,72 +244,173 @@ export default function AdminPaymentLinksPage() {
     }
   };
 
-  // Export transactions to PDF
+  // Export transactions to PDF - Stripe-inspired design
   const exportToPDF = (links: PaymentLink[], title: string) => {
     const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
     
-    // Header
-    doc.setFontSize(20);
-    doc.setTextColor(41, 37, 36); // stone-800
-    doc.text("Mamalu Kitchen", 14, 20);
+    // Stripe brand colors
+    const stripeBlurple = [99, 91, 255]; // Stripe's signature purple
+    const stripeDark = [50, 50, 93]; // Dark blue-gray
+    const stripeGray = [107, 114, 128]; // Text gray
+    const stripeLight = [249, 250, 251]; // Light background
     
-    doc.setFontSize(14);
-    doc.text(title, 14, 30);
+    // Header bar - Stripe blurple
+    doc.setFillColor(stripeBlurple[0], stripeBlurple[1], stripeBlurple[2]);
+    doc.rect(0, 0, pageWidth, 35, 'F');
     
-    doc.setFontSize(10);
-    doc.setTextColor(120, 113, 108); // stone-500
-    doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 38);
-
-    // Summary stats
-    const paidLinks = links.filter(l => l.status === "paid");
-    const totalCollected = paidLinks.reduce((sum, l) => sum + (l.paid_amount || l.amount), 0);
+    // Logo/Title in header
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(22);
+    doc.setFont("helvetica", "bold");
+    doc.text("Mamalu Kitchen", 14, 18);
     
     doc.setFontSize(11);
-    doc.setTextColor(41, 37, 36);
-    doc.text(`Total Transactions: ${links.length}`, 14, 50);
-    doc.text(`Paid: ${paidLinks.length}`, 14, 57);
-    doc.text(`Total Collected: AED ${totalCollected.toLocaleString()}`, 14, 64);
+    doc.setFont("helvetica", "normal");
+    doc.text("Payment Links Report", 14, 28);
+    
+    // Report info on right side of header
+    doc.setFontSize(9);
+    doc.text(new Date().toLocaleDateString('en-US', { 
+      year: 'numeric', month: 'long', day: 'numeric' 
+    }), pageWidth - 14, 18, { align: "right" });
+    doc.text(title, pageWidth - 14, 28, { align: "right" });
+
+    // Summary cards section
+    const paidLinks = links.filter(l => l.status === "paid");
+    const activeLinks = links.filter(l => l.status === "active");
+    const totalCollected = paidLinks.reduce((sum, l) => sum + (l.paid_amount || l.amount), 0);
+    const totalPending = activeLinks.reduce((sum, l) => sum + l.amount, 0);
+    
+    // Card backgrounds
+    const cardY = 45;
+    const cardHeight = 28;
+    const cardWidth = 42;
+    const cardGap = 6;
+    
+    // Card 1 - Total
+    doc.setFillColor(stripeLight[0], stripeLight[1], stripeLight[2]);
+    doc.roundedRect(14, cardY, cardWidth, cardHeight, 3, 3, 'F');
+    doc.setTextColor(stripeGray[0], stripeGray[1], stripeGray[2]);
+    doc.setFontSize(8);
+    doc.text("TOTAL LINKS", 18, cardY + 10);
+    doc.setTextColor(stripeDark[0], stripeDark[1], stripeDark[2]);
+    doc.setFontSize(16);
+    doc.setFont("helvetica", "bold");
+    doc.text(links.length.toString(), 18, cardY + 22);
+    
+    // Card 2 - Paid
+    doc.setFillColor(stripeLight[0], stripeLight[1], stripeLight[2]);
+    doc.roundedRect(14 + cardWidth + cardGap, cardY, cardWidth, cardHeight, 3, 3, 'F');
+    doc.setTextColor(stripeGray[0], stripeGray[1], stripeGray[2]);
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "normal");
+    doc.text("PAID", 18 + cardWidth + cardGap, cardY + 10);
+    doc.setTextColor(22, 163, 74); // green
+    doc.setFontSize(16);
+    doc.setFont("helvetica", "bold");
+    doc.text(paidLinks.length.toString(), 18 + cardWidth + cardGap, cardY + 22);
+    
+    // Card 3 - Active
+    doc.setFillColor(stripeLight[0], stripeLight[1], stripeLight[2]);
+    doc.roundedRect(14 + (cardWidth + cardGap) * 2, cardY, cardWidth, cardHeight, 3, 3, 'F');
+    doc.setTextColor(stripeGray[0], stripeGray[1], stripeGray[2]);
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "normal");
+    doc.text("ACTIVE", 18 + (cardWidth + cardGap) * 2, cardY + 10);
+    doc.setTextColor(59, 130, 246); // blue
+    doc.setFontSize(16);
+    doc.setFont("helvetica", "bold");
+    doc.text(activeLinks.length.toString(), 18 + (cardWidth + cardGap) * 2, cardY + 22);
+    
+    // Card 4 - Total Collected
+    doc.setFillColor(stripeLight[0], stripeLight[1], stripeLight[2]);
+    doc.roundedRect(14 + (cardWidth + cardGap) * 3, cardY, cardWidth + 10, cardHeight, 3, 3, 'F');
+    doc.setTextColor(stripeGray[0], stripeGray[1], stripeGray[2]);
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "normal");
+    doc.text("COLLECTED", 18 + (cardWidth + cardGap) * 3, cardY + 10);
+    doc.setTextColor(22, 163, 74); // green
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.text(`AED ${totalCollected.toLocaleString()}`, 18 + (cardWidth + cardGap) * 3, cardY + 22);
 
     // Table
     const tableData = links.map(link => [
       link.link_code,
-      link.title,
-      link.customer_name || "-",
+      link.title.length > 20 ? link.title.substring(0, 20) + "..." : link.title,
+      link.customer_name || "—",
       `AED ${link.amount.toLocaleString()}`,
-      link.status.toUpperCase(),
-      link.paid_at ? new Date(link.paid_at).toLocaleDateString() : "-",
-      link.creator?.full_name || link.creator?.email || "-"
+      link.status.charAt(0).toUpperCase() + link.status.slice(1),
+      link.paid_at ? new Date(link.paid_at).toLocaleDateString() : "—",
+      link.creator?.full_name?.split(" ")[0] || link.creator?.email?.split("@")[0] || "—"
     ]);
 
     autoTable(doc, {
-      startY: 72,
-      head: [["Code", "Title", "Customer", "Amount", "Status", "Paid Date", "Created By"]],
+      startY: cardY + cardHeight + 10,
+      head: [["Code", "Description", "Customer", "Amount", "Status", "Paid", "By"]],
       body: tableData,
-      styles: { fontSize: 8, cellPadding: 2 },
-      headStyles: { fillColor: [217, 119, 6], textColor: 255 }, // amber-600
-      alternateRowStyles: { fillColor: [250, 250, 249] }, // stone-50
+      styles: { 
+        fontSize: 8, 
+        cellPadding: 4,
+        font: "helvetica",
+        textColor: [50, 50, 93],
+      },
+      headStyles: { 
+        fillColor: [stripeBlurple[0], stripeBlurple[1], stripeBlurple[2]], 
+        textColor: 255,
+        fontStyle: "bold",
+        fontSize: 8,
+      },
+      alternateRowStyles: { 
+        fillColor: [stripeLight[0], stripeLight[1], stripeLight[2]] 
+      },
       columnStyles: {
-        0: { cellWidth: 25 },
-        1: { cellWidth: 35 },
-        2: { cellWidth: 30 },
-        3: { cellWidth: 22 },
+        0: { cellWidth: 24, fontStyle: "bold" },
+        1: { cellWidth: 38 },
+        2: { cellWidth: 28 },
+        3: { cellWidth: 24, halign: "right" },
         4: { cellWidth: 18 },
         5: { cellWidth: 22 },
-        6: { cellWidth: 28 },
+        6: { cellWidth: 22 },
+      },
+      didParseCell: (data) => {
+        // Color code status
+        if (data.column.index === 4 && data.section === 'body') {
+          const status = data.cell.raw?.toString().toLowerCase();
+          if (status === 'paid') {
+            data.cell.styles.textColor = [22, 163, 74]; // green
+            data.cell.styles.fontStyle = 'bold';
+          } else if (status === 'active') {
+            data.cell.styles.textColor = [59, 130, 246]; // blue
+          } else if (status === 'expired' || status === 'cancelled') {
+            data.cell.styles.textColor = [239, 68, 68]; // red
+          }
+        }
       },
     });
 
-    // Footer
+    // Footer on each page
     const pageCount = doc.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
+      const pageHeight = doc.internal.pageSize.getHeight();
+      
+      // Footer line
+      doc.setDrawColor(stripeBlurple[0], stripeBlurple[1], stripeBlurple[2]);
+      doc.setLineWidth(0.5);
+      doc.line(14, pageHeight - 15, pageWidth - 14, pageHeight - 15);
+      
+      // Footer text
       doc.setFontSize(8);
-      doc.setTextColor(120, 113, 108);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(stripeGray[0], stripeGray[1], stripeGray[2]);
+      doc.text("Powered by Stripe", 14, pageHeight - 8);
       doc.text(
         `Page ${i} of ${pageCount}`,
-        doc.internal.pageSize.getWidth() / 2,
-        doc.internal.pageSize.getHeight() - 10,
-        { align: "center" }
+        pageWidth - 14,
+        pageHeight - 8,
+        { align: "right" }
       );
     }
 
