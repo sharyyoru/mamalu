@@ -15,7 +15,12 @@ import {
   Search,
   Trash2,
   Eye,
+  Download,
+  Calendar,
+  FileText,
 } from "lucide-react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -58,6 +63,14 @@ export default function AdminPaymentLinksPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [copiedLink, setCopiedLink] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [exportStartDate, setExportStartDate] = useState(
+    new Date().toISOString().split("T")[0]
+  );
+  const [exportEndDate, setExportEndDate] = useState(
+    new Date().toISOString().split("T")[0]
+  );
+  const [exportLoading, setExportLoading] = useState(false);
 
   // Get current user on mount
   useEffect(() => {
@@ -231,6 +244,130 @@ export default function AdminPaymentLinksPage() {
     }
   };
 
+  // Export transactions to PDF
+  const exportToPDF = (links: PaymentLink[], title: string) => {
+    const doc = new jsPDF();
+    
+    // Header
+    doc.setFontSize(20);
+    doc.setTextColor(41, 37, 36); // stone-800
+    doc.text("Mamalu Kitchen", 14, 20);
+    
+    doc.setFontSize(14);
+    doc.text(title, 14, 30);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(120, 113, 108); // stone-500
+    doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 38);
+
+    // Summary stats
+    const paidLinks = links.filter(l => l.status === "paid");
+    const totalCollected = paidLinks.reduce((sum, l) => sum + (l.paid_amount || l.amount), 0);
+    
+    doc.setFontSize(11);
+    doc.setTextColor(41, 37, 36);
+    doc.text(`Total Transactions: ${links.length}`, 14, 50);
+    doc.text(`Paid: ${paidLinks.length}`, 14, 57);
+    doc.text(`Total Collected: AED ${totalCollected.toLocaleString()}`, 14, 64);
+
+    // Table
+    const tableData = links.map(link => [
+      link.link_code,
+      link.title,
+      link.customer_name || "-",
+      `AED ${link.amount.toLocaleString()}`,
+      link.status.toUpperCase(),
+      link.paid_at ? new Date(link.paid_at).toLocaleDateString() : "-",
+      link.creator?.full_name || link.creator?.email || "-"
+    ]);
+
+    autoTable(doc, {
+      startY: 72,
+      head: [["Code", "Title", "Customer", "Amount", "Status", "Paid Date", "Created By"]],
+      body: tableData,
+      styles: { fontSize: 8, cellPadding: 2 },
+      headStyles: { fillColor: [217, 119, 6], textColor: 255 }, // amber-600
+      alternateRowStyles: { fillColor: [250, 250, 249] }, // stone-50
+      columnStyles: {
+        0: { cellWidth: 25 },
+        1: { cellWidth: 35 },
+        2: { cellWidth: 30 },
+        3: { cellWidth: 22 },
+        4: { cellWidth: 18 },
+        5: { cellWidth: 22 },
+        6: { cellWidth: 28 },
+      },
+    });
+
+    // Footer
+    const pageCount = doc.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setTextColor(120, 113, 108);
+      doc.text(
+        `Page ${i} of ${pageCount}`,
+        doc.internal.pageSize.getWidth() / 2,
+        doc.internal.pageSize.getHeight() - 10,
+        { align: "center" }
+      );
+    }
+
+    return doc;
+  };
+
+  const exportToday = () => {
+    const today = new Date().toISOString().split("T")[0];
+    const todayLinks = paymentLinks.filter(link => {
+      const createdDate = link.created_at.split("T")[0];
+      const paidDate = link.paid_at?.split("T")[0];
+      return createdDate === today || paidDate === today;
+    });
+
+    if (todayLinks.length === 0) {
+      alert("No transactions found for today.");
+      return;
+    }
+
+    const doc = exportToPDF(todayLinks, `Daily Report - ${new Date().toLocaleDateString()}`);
+    doc.save(`payment-links-${today}.pdf`);
+  };
+
+  const exportDateRange = async () => {
+    setExportLoading(true);
+    try {
+      const startDate = new Date(exportStartDate);
+      const endDate = new Date(exportEndDate);
+      endDate.setHours(23, 59, 59, 999);
+
+      const filteredLinks = paymentLinks.filter(link => {
+        const createdDate = new Date(link.created_at);
+        const paidDate = link.paid_at ? new Date(link.paid_at) : null;
+        return (
+          (createdDate >= startDate && createdDate <= endDate) ||
+          (paidDate && paidDate >= startDate && paidDate <= endDate)
+        );
+      });
+
+      if (filteredLinks.length === 0) {
+        alert("No transactions found for the selected date range.");
+        return;
+      }
+
+      const doc = exportToPDF(
+        filteredLinks,
+        `Report: ${new Date(exportStartDate).toLocaleDateString()} - ${new Date(exportEndDate).toLocaleDateString()}`
+      );
+      doc.save(`payment-links-${exportStartDate}-to-${exportEndDate}.pdf`);
+      setShowExportModal(false);
+    } catch (error) {
+      console.error("Export error:", error);
+      alert("Failed to export report.");
+    } finally {
+      setExportLoading(false);
+    }
+  };
+
   const stats = {
     total: paymentLinks.length,
     active: paymentLinks.filter((l) => l.status === "active").length,
@@ -251,6 +388,14 @@ export default function AdminPaymentLinksPage() {
           </p>
         </div>
         <div className="flex gap-2">
+          <Button onClick={exportToday} variant="outline">
+            <Download className="h-4 w-4 mr-2" />
+            Export Today
+          </Button>
+          <Button onClick={() => setShowExportModal(true)} variant="outline">
+            <Calendar className="h-4 w-4 mr-2" />
+            Date Range
+          </Button>
           <Button onClick={fetchPaymentLinks} variant="outline">
             <RefreshCw className="h-4 w-4 mr-2" />
             Refresh
@@ -658,6 +803,74 @@ export default function AdminPaymentLinksPage() {
                   <Plus className="h-4 w-4 mr-2" />
                 )}
                 Create & Copy Link
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Export Date Range Modal */}
+      {showExportModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
+            <div className="p-6 border-b">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-amber-100 rounded-lg">
+                  <FileText className="h-5 w-5 text-amber-600" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-stone-900">Export Report</h2>
+                  <p className="text-sm text-stone-500">Select date range for PDF export</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-1">
+                  Start Date
+                </label>
+                <input
+                  type="date"
+                  value={exportStartDate}
+                  onChange={(e) => setExportStartDate(e.target.value)}
+                  className="w-full px-4 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-1">
+                  End Date
+                </label>
+                <input
+                  type="date"
+                  value={exportEndDate}
+                  onChange={(e) => setExportEndDate(e.target.value)}
+                  className="w-full px-4 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                />
+              </div>
+
+              <div className="bg-stone-50 rounded-lg p-4">
+                <p className="text-sm text-stone-600">
+                  This will export all payment links created or paid within the selected date range.
+                </p>
+              </div>
+            </div>
+
+            <div className="p-6 border-t bg-stone-50 flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => setShowExportModal(false)}>
+                Cancel
+              </Button>
+              <Button
+                onClick={exportDateRange}
+                disabled={exportLoading}
+              >
+                {exportLoading ? (
+                  <RefreshCw className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <Download className="h-4 w-4 mr-2" />
+                )}
+                Export PDF
               </Button>
             </div>
           </div>
