@@ -22,6 +22,13 @@ export async function POST(request: NextRequest) {
 
     const supabase = await createServerClient();
 
+    if (!supabase) {
+      return NextResponse.json(
+        { error: "Database not configured" },
+        { status: 500 }
+      );
+    }
+
     const {
       data: { user },
     } = await supabase.auth.getUser();
