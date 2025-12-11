@@ -13,6 +13,7 @@ import {
   Edit3,
   Save,
   X,
+  KeyRound,
   DollarSign,
   ShoppingBag,
   BookOpen,
@@ -33,6 +34,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { PasswordInput } from "@/components/ui/password-input";
 import { formatPrice, formatDate } from "@/lib/utils";
 
 interface UserProfile {
@@ -86,6 +88,12 @@ export default function UserDetailPage() {
   const [selectedRole, setSelectedRole] = useState('');
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
+  const [showPasswordReset, setShowPasswordReset] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [passwordSuccess, setPasswordSuccess] = useState('');
+  const [resettingPassword, setResettingPassword] = useState(false);
 
   // Mock data for demonstration - replace with actual API calls
   const [stats, setStats] = useState({
@@ -153,6 +161,48 @@ export default function UserDetailPage() {
     return ['staff', 'admin', 'super_admin', 'instructor'].includes(role);
   };
 
+  const handleResetPassword = async () => {
+    setPasswordError('');
+    setPasswordSuccess('');
+
+    if (newPassword.length < 6) {
+      setPasswordError('Password must be at least 6 characters');
+      return;
+    }
+
+    if (newPassword !== confirmNewPassword) {
+      setPasswordError('Passwords do not match');
+      return;
+    }
+
+    setResettingPassword(true);
+    try {
+      const response = await fetch(`/api/admin/users/${userId}/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ newPassword }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setPasswordSuccess('Password reset successfully');
+        setNewPassword('');
+        setConfirmNewPassword('');
+        setTimeout(() => {
+          setShowPasswordReset(false);
+          setPasswordSuccess('');
+        }, 2000);
+      } else {
+        setPasswordError(data.error || 'Failed to reset password');
+      }
+    } catch (error) {
+      setPasswordError('An error occurred while resetting password');
+    } finally {
+      setResettingPassword(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -209,6 +259,15 @@ export default function UserDetailPage() {
 
             {/* Role Badge & Edit */}
             <div className="flex items-center gap-3">
+              <Button 
+                size="sm" 
+                variant="outline" 
+                onClick={() => setShowPasswordReset(!showPasswordReset)}
+                className="bg-blue-50 hover:bg-blue-100 text-blue-600 border-blue-200"
+              >
+                <KeyRound className="h-4 w-4 mr-1" />
+                Reset Password
+              </Button>
               {editingRole ? (
                 <div className="flex items-center gap-2">
                   <select
@@ -268,6 +327,92 @@ export default function UserDetailPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Password Reset Card */}
+      {showPasswordReset && (
+        <Card className="border-blue-200 bg-blue-50/50">
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between text-lg">
+              <span className="flex items-center gap-2">
+                <KeyRound className="h-5 w-5 text-blue-600" />
+                Reset User Password
+              </span>
+              <Button 
+                size="sm" 
+                variant="ghost" 
+                onClick={() => {
+                  setShowPasswordReset(false);
+                  setPasswordError('');
+                  setPasswordSuccess('');
+                  setNewPassword('');
+                  setConfirmNewPassword('');
+                }}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {passwordError && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
+                <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-red-700">{passwordError}</p>
+              </div>
+            )}
+            {passwordSuccess && (
+              <div className="p-3 bg-green-50 border border-green-200 rounded-lg flex items-start gap-2">
+                <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-green-700">{passwordSuccess}</p>
+              </div>
+            )}
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-2">
+                  New Password
+                </label>
+                <PasswordInput
+                  placeholder="Enter new password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  minLength={6}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-2">
+                  Confirm Password
+                </label>
+                <PasswordInput
+                  placeholder="Confirm new password"
+                  value={confirmNewPassword}
+                  onChange={(e) => setConfirmNewPassword(e.target.value)}
+                  minLength={6}
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-3">
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setShowPasswordReset(false);
+                  setPasswordError('');
+                  setPasswordSuccess('');
+                  setNewPassword('');
+                  setConfirmNewPassword('');
+                }}
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleResetPassword}
+                disabled={resettingPassword || !newPassword || !confirmNewPassword}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                {resettingPassword ? 'Resetting...' : 'Reset Password'}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Tabs */}
       <div className="flex gap-2 border-b border-stone-200">
