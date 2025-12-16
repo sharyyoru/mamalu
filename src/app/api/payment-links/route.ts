@@ -1,9 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { requireAuth } from "@/lib/auth/api-auth";
 
 // GET: Fetch all payment links
 export async function GET(request: NextRequest) {
+  // Verify user has admin access
+  const authResult = await requireAuth(request, ["staff", "admin", "super_admin"]);
+  if (authResult instanceof NextResponse) {
+    return authResult;
+  }
+
   try {
     const supabase = createAdminClient();
     if (!supabase) {
@@ -41,6 +48,13 @@ export async function GET(request: NextRequest) {
 
 // POST: Create a new payment link
 export async function POST(request: NextRequest) {
+  // Verify user has admin access
+  const authResult = await requireAuth(request, ["staff", "admin", "super_admin"]);
+  if (authResult instanceof NextResponse) {
+    return authResult;
+  }
+  const { user } = authResult;
+
   try {
     const body = await request.json();
     const {
@@ -56,7 +70,7 @@ export async function POST(request: NextRequest) {
       referenceType,
       referenceId,
       notes,
-      createdBy,
+      createdBy = user.id,
     } = body;
 
     if (!title || !amount) {

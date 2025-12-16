@@ -1,12 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { requireAuth } from "@/lib/auth/api-auth";
 
 // GET: Fetch single payment link
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  // Verify user has admin access
+  const authResult = await requireAuth(request, ["staff", "admin", "super_admin"]);
+  if (authResult instanceof NextResponse) {
+    return authResult;
+  }
+
   try {
     const { id } = await params;
     const supabase = createAdminClient();
@@ -36,6 +43,12 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  // Verify user has admin access
+  const authResult = await requireAuth(request, ["staff", "admin", "super_admin"]);
+  if (authResult instanceof NextResponse) {
+    return authResult;
+  }
+
   try {
     const { id } = await params;
     const body = await request.json();
@@ -111,6 +124,12 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  // Verify user has admin access
+  const authResult = await requireAuth(request, ["staff", "admin", "super_admin"]);
+  if (authResult instanceof NextResponse) {
+    return authResult;
+  }
+
   try {
     const { id } = await params;
     const supabase = createAdminClient();
