@@ -72,6 +72,21 @@ export async function PATCH(
       updateData.paid_amount = body.paidAmount || currentLink.amount;
     }
 
+    // If marking as unpaid (reverting from paid status)
+    if (body.status === "active" && currentLink.status === "paid") {
+      if (!body.changedBy || !body.changeReason) {
+        return NextResponse.json({ 
+          error: "changedBy and changeReason are required when marking as unpaid" 
+        }, { status: 400 });
+      }
+      
+      updateData.status_changed_by = body.changedBy;
+      updateData.status_change_reason = body.changeReason;
+      updateData.status_changed_at = new Date().toISOString();
+      updateData.paid_at = null;
+      updateData.paid_amount = null;
+    }
+
     const { data: paymentLink, error: updateError } = await supabase
       .from("payment_links")
       .update(updateData)

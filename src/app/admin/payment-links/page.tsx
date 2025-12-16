@@ -71,6 +71,9 @@ export default function AdminPaymentLinksPage() {
     new Date().toISOString().split("T")[0]
   );
   const [exportLoading, setExportLoading] = useState(false);
+  const [showUnpaidModal, setShowUnpaidModal] = useState(false);
+  const [selectedLinkForUnpaid, setSelectedLinkForUnpaid] = useState<PaymentLink | null>(null);
+  const [unpaidReason, setUnpaidReason] = useState("");
 
   // Get current user on mount
   useEffect(() => {
@@ -218,6 +221,49 @@ export default function AdminPaymentLinksPage() {
       }
     } catch (error) {
       console.error("Failed to mark as paid:", error);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const openUnpaidModal = (link: PaymentLink) => {
+    setSelectedLinkForUnpaid(link);
+    setUnpaidReason("");
+    setShowUnpaidModal(true);
+  };
+
+  const markAsUnpaid = async () => {
+    if (!selectedLinkForUnpaid || !currentUserId) return;
+    
+    if (!unpaidReason.trim()) {
+      alert("Please provide a reason for marking this as unpaid");
+      return;
+    }
+
+    setActionLoading(selectedLinkForUnpaid.id);
+    try {
+      const res = await fetch(`/api/payment-links/${selectedLinkForUnpaid.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          status: "active", 
+          changedBy: currentUserId,
+          changeReason: unpaidReason.trim()
+        }),
+      });
+      
+      if (res.ok) {
+        setShowUnpaidModal(false);
+        setSelectedLinkForUnpaid(null);
+        setUnpaidReason("");
+        fetchPaymentLinks();
+      } else {
+        const error = await res.json();
+        alert(error.error || "Failed to mark as unpaid");
+      }
+    } catch (error) {
+      console.error("Failed to mark as unpaid:", error);
+      alert("Failed to mark as unpaid");
     } finally {
       setActionLoading(null);
     }
@@ -748,6 +794,17 @@ export default function AdminPaymentLinksPage() {
                               </Button>
                             </>
                           )}
+                          {link.status === "paid" && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => openUnpaidModal(link)}
+                              disabled={actionLoading === link.id}
+                              title="Mark as unpaid"
+                            >
+                              <XCircle className="h-4 w-4 text-orange-600" />
+                            </Button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -904,6 +961,82 @@ export default function AdminPaymentLinksPage() {
                   <Plus className="h-4 w-4 mr-2" />
                 )}
                 Create & Copy Link
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Mark as Unpaid Modal */}
+      {showUnpaidModal && selectedLinkForUnpaid && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl max-w-md w-full">
+            <div className="p-6 border-b">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold text-stone-900">
+                  Mark as Unpaid
+                </h2>
+                <button
+                  onClick={() => setShowUnpaidModal(false)}
+                  className="text-stone-400 hover:text-stone-600"
+                >
+                  <XCircle className="h-6 w-6" />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                <p className="text-sm text-orange-800 font-medium mb-2">
+                  You are about to mark this payment link as unpaid:
+                </p>
+                <p className="text-sm text-stone-700">
+                  <strong>{selectedLinkForUnpaid.title}</strong>
+                </p>
+                <p className="text-sm text-stone-600">
+                  Code: {selectedLinkForUnpaid.link_code}
+                </p>
+                <p className="text-sm text-stone-600">
+                  Amount: {formatPrice(selectedLinkForUnpaid.paid_amount || selectedLinkForUnpaid.amount)}
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-1">
+                  Reason for marking as unpaid *
+                </label>
+                <textarea
+                  value={unpaidReason}
+                  onChange={(e) => setUnpaidReason(e.target.value)}
+                  className="w-full px-4 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  rows={4}
+                  placeholder="Please provide a detailed reason for reverting this payment status..."
+                />
+              </div>
+
+              <div className="bg-stone-50 rounded-lg p-4">
+                <p className="text-xs text-stone-600">
+                  This action will be logged with your user ID and the reason provided.
+                  The payment link will be reactivated and can be used again.
+                </p>
+              </div>
+            </div>
+
+            <div className="p-6 border-t bg-stone-50 flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => setShowUnpaidModal(false)}>
+                Cancel
+              </Button>
+              <Button
+                onClick={markAsUnpaid}
+                disabled={actionLoading === selectedLinkForUnpaid.id || !unpaidReason.trim()}
+                className="bg-orange-600 hover:bg-orange-700"
+              >
+                {actionLoading === selectedLinkForUnpaid.id ? (
+                  <RefreshCw className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <XCircle className="h-4 w-4 mr-2" />
+                )}
+                Mark as Unpaid
               </Button>
             </div>
           </div>
