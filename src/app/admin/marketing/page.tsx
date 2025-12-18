@@ -1,107 +1,318 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
+import { useState, useEffect, useCallback } from "react";
 import { 
-  Tags, 
   Plus, 
-  Search,
   Megaphone,
   Mail,
   MessageSquare,
   Gift,
   Users,
-  TrendingUp,
   DollarSign,
-  Eye,
   Edit3,
   Play,
   Pause,
   BarChart3,
   Send,
   Target,
-  Percent
+  X,
+  Copy,
+  Check,
+  Trash2,
+  Calendar,
+  Filter,
+  Sparkles,
+  Eye,
+  ChevronDown,
+  Cake,
+  ShoppingBag,
+  Clock,
+  UserPlus,
+  Share2,
+  RefreshCw,
+  AlertCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatPrice, formatDate } from "@/lib/utils";
 
-const campaigns = [
-  {
-    id: '1',
-    name: 'Holiday Special - 20% Off Classes',
-    type: 'email',
-    status: 'active',
-    audience: 'All Subscribers',
-    sent: 2450,
-    opened: 1230,
-    clicked: 456,
-    conversions: 34,
-    revenue: 15300,
-    startDate: '2024-12-01',
-    endDate: '2024-12-31',
-  },
-  {
-    id: '2',
-    name: 'Win-back Campaign',
-    type: 'email',
-    status: 'active',
-    audience: 'Inactive 60+ days',
-    sent: 380,
-    opened: 142,
-    clicked: 45,
-    conversions: 8,
-    revenue: 3600,
-    startDate: '2024-11-15',
-    endDate: '2024-12-15',
-  },
-  {
-    id: '3',
-    name: 'New Year Promo',
-    type: 'sms',
-    status: 'scheduled',
-    audience: 'All Customers',
-    sent: 0,
-    opened: 0,
-    clicked: 0,
-    conversions: 0,
-    revenue: 0,
-    startDate: '2024-12-28',
-    endDate: '2025-01-05',
-  },
-  {
-    id: '4',
-    name: 'Black Friday Flash Sale',
-    type: 'push',
-    status: 'completed',
-    audience: 'App Users',
-    sent: 1850,
-    opened: 920,
-    clicked: 380,
-    conversions: 67,
-    revenue: 28450,
-    startDate: '2024-11-24',
-    endDate: '2024-11-27',
-  },
+interface Campaign {
+  id: string;
+  name: string;
+  type: string;
+  status: string;
+  subject?: string;
+  html_content?: string;
+  audience_name?: string;
+  total_sent: number;
+  total_opened: number;
+  total_clicked: number;
+  total_conversions: number;
+  total_revenue: number;
+  start_date?: string;
+  end_date?: string;
+  created_at: string;
+}
+
+interface Discount {
+  id: string;
+  code: string;
+  type: string;
+  value: number;
+  usage_limit?: number;
+  total_used: number;
+  status: string;
+  valid_until?: string;
+  description?: string;
+  min_order_amount?: number;
+  max_discount_amount?: number;
+  first_order_only: boolean;
+}
+
+interface CustomerVariable {
+  name: string;
+  label: string;
+  example: string;
+}
+
+interface Customer {
+  id: string;
+  email: string;
+  full_name?: string;
+  phone?: string;
+  total_spend: number;
+  total_classes_attended: number;
+  total_orders: number;
+  referral_code?: string;
+}
+
+interface ReferralProgram {
+  is_active: boolean;
+  referrer_reward_type: string;
+  referrer_reward_value: number;
+  referee_reward_type: string;
+  referee_reward_value: number;
+  referrer_reward_description: string;
+  referee_reward_description: string;
+  min_purchase_amount?: number;
+  reward_expires_days: number;
+}
+
+interface TopReferrer {
+  id: string;
+  name: string;
+  referrals: number;
+  earned: number;
+  revenue: number;
+}
+
+const CUSTOMER_VARIABLES: CustomerVariable[] = [
+  { name: "first_name", label: "First Name", example: "John" },
+  { name: "full_name", label: "Full Name", example: "John Smith" },
+  { name: "email", label: "Email", example: "john@example.com" },
+  { name: "total_spend", label: "Total Spend", example: "AED 2,500" },
+  { name: "total_classes", label: "Classes Attended", example: "12" },
+  { name: "referral_code", label: "Referral Code", example: "JOHN1234" },
 ];
 
-const discounts = [
-  { id: '1', code: 'HOLIDAY20', type: 'percent', value: 20, usageLimit: 100, used: 34, status: 'active', expires: '2024-12-31' },
-  { id: '2', code: 'WELCOME50', type: 'fixed', value: 50, usageLimit: null, used: 156, status: 'active', expires: null },
-  { id: '3', code: 'VIP25', type: 'percent', value: 25, usageLimit: 50, used: 50, status: 'exhausted', expires: '2024-12-31' },
-  { id: '4', code: 'FRIEND100', type: 'fixed', value: 100, usageLimit: 200, used: 89, status: 'active', expires: '2025-01-31' },
+const AUDIENCE_PRESETS = [
+  { id: "all", name: "All Customers", icon: Users, filters: {} },
+  { id: "birthday-month", name: "Birthday This Month", icon: Cake, filters: { birthdayThisMonth: true } },
+  { id: "vip", name: "VIP Customers (5K+ spend)", icon: Sparkles, filters: { spendingTier: "vip" } },
+  { id: "premium", name: "Premium (2-5K spend)", icon: DollarSign, filters: { spendingTier: "premium" } },
+  { id: "frequent", name: "Frequent Buyers (10+ orders)", icon: ShoppingBag, filters: { frequencyTier: "frequent" } },
+  { id: "inactive-30", name: "Inactive 30+ Days", icon: Clock, filters: { inactiveDays: "30" } },
+  { id: "inactive-60", name: "Inactive 60+ Days", icon: Clock, filters: { inactiveDays: "60" } },
+  { id: "first-time", name: "First-Time Buyers", icon: UserPlus, filters: { frequencyTier: "first-time" } },
+  { id: "never-purchased", name: "Never Purchased", icon: AlertCircle, filters: { frequencyTier: "never" } },
 ];
 
-const stats = [
-  { label: 'Active Campaigns', value: '4', icon: Megaphone, color: 'from-violet-500 to-purple-600' },
-  { label: 'Total Reach', value: '12.4K', icon: Users, color: 'from-emerald-500 to-teal-600' },
-  { label: 'Conversion Rate', value: '2.8%', icon: Target, color: 'from-amber-500 to-orange-600' },
-  { label: 'Campaign Revenue', value: 'AED 47,350', icon: DollarSign, color: 'from-cyan-500 to-blue-600' },
+const EMAIL_TEMPLATES = [
+  {
+    id: "welcome",
+    name: "Welcome Email",
+    subject: "Welcome to Mamalu Kitchen, {{first_name}}!",
+    preview: "We're excited to have you...",
+    html: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+      <div style="text-align: center; margin-bottom: 30px;">
+        <h1 style="color: #d97706; margin: 0;">Welcome to Mamalu Kitchen!</h1>
+      </div>
+      <p style="color: #44403c; font-size: 16px; line-height: 1.6;">Hi {{first_name}},</p>
+      <p style="color: #44403c; font-size: 16px; line-height: 1.6;">Thank you for joining the Mamalu Kitchen family! We're thrilled to have you with us.</p>
+      <p style="color: #44403c; font-size: 16px; line-height: 1.6;">Explore our cooking classes, artisan products, and culinary experiences that await you.</p>
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="https://mamalu.ae" style="background: #d97706; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold;">Explore Classes</a>
+      </div>
+      <p style="color: #78716c; font-size: 14px;">Best regards,<br>The Mamalu Kitchen Team</p>
+    </div>`
+  },
+  {
+    id: "birthday",
+    name: "Birthday Wishes",
+    subject: "Happy Birthday, {{first_name}}! 🎂 A Special Gift Inside",
+    preview: "Celebrate with a special discount...",
+    html: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);">
+      <div style="text-align: center; margin-bottom: 30px;">
+        <h1 style="color: #d97706; margin: 0; font-size: 32px;">🎂 Happy Birthday!</h1>
+      </div>
+      <div style="background: white; border-radius: 16px; padding: 30px; text-align: center;">
+        <p style="color: #44403c; font-size: 18px; line-height: 1.6;">Dear {{first_name}},</p>
+        <p style="color: #44403c; font-size: 16px; line-height: 1.6;">Wishing you a wonderful birthday filled with joy and delicious food!</p>
+        <div style="background: #fef3c7; border-radius: 12px; padding: 20px; margin: 20px 0;">
+          <p style="color: #92400e; font-size: 14px; margin: 0;">YOUR BIRTHDAY GIFT</p>
+          <p style="color: #d97706; font-size: 36px; font-weight: bold; margin: 10px 0;">20% OFF</p>
+          <p style="color: #78716c; font-size: 14px; margin: 0;">Use code: <strong>BIRTHDAY20</strong></p>
+        </div>
+        <a href="https://mamalu.ae" style="display: inline-block; background: #d97706; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold;">Shop Now</a>
+      </div>
+    </div>`
+  },
+  {
+    id: "winback",
+    name: "We Miss You",
+    subject: "We miss you, {{first_name}}! Come back for 15% off",
+    preview: "It's been a while since your last visit...",
+    html: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+      <div style="text-align: center; margin-bottom: 30px;">
+        <h1 style="color: #44403c; margin: 0;">We Miss You! 💛</h1>
+      </div>
+      <p style="color: #44403c; font-size: 16px; line-height: 1.6;">Hi {{first_name}},</p>
+      <p style="color: #44403c; font-size: 16px; line-height: 1.6;">It's been a while since we've seen you at Mamalu Kitchen. We've been cooking up some exciting new classes and products that we think you'll love!</p>
+      <div style="background: #f5f5f4; border-radius: 12px; padding: 20px; margin: 20px 0; text-align: center;">
+        <p style="color: #78716c; font-size: 14px; margin: 0;">WELCOME BACK OFFER</p>
+        <p style="color: #d97706; font-size: 32px; font-weight: bold; margin: 10px 0;">15% OFF</p>
+        <p style="color: #78716c; font-size: 14px; margin: 0;">Use code: <strong>COMEBACK15</strong></p>
+      </div>
+      <div style="text-align: center;">
+        <a href="https://mamalu.ae" style="display: inline-block; background: #d97706; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold;">See What's New</a>
+      </div>
+    </div>`
+  },
+  {
+    id: "vip",
+    name: "VIP Exclusive",
+    subject: "Exclusive VIP Access for {{first_name}}",
+    preview: "As one of our top customers...",
+    html: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background: linear-gradient(135deg, #1c1917 0%, #292524 100%);">
+      <div style="text-align: center; margin-bottom: 30px;">
+        <p style="color: #d97706; font-size: 14px; letter-spacing: 2px; margin: 0;">✨ VIP EXCLUSIVE ✨</p>
+        <h1 style="color: white; margin: 10px 0; font-size: 28px;">You're One of Our Best</h1>
+      </div>
+      <div style="background: #44403c; border-radius: 16px; padding: 30px;">
+        <p style="color: #e7e5e4; font-size: 16px; line-height: 1.6;">Dear {{first_name}},</p>
+        <p style="color: #e7e5e4; font-size: 16px; line-height: 1.6;">As a valued VIP customer with <strong style="color: #d97706;">{{total_spend}}</strong> in purchases, you've earned exclusive early access to our newest offerings.</p>
+        <div style="border: 1px solid #d97706; border-radius: 12px; padding: 20px; margin: 20px 0; text-align: center;">
+          <p style="color: #d97706; font-size: 24px; font-weight: bold; margin: 0;">25% OFF</p>
+          <p style="color: #a8a29e; font-size: 14px; margin: 5px 0 0 0;">VIP Members Only</p>
+        </div>
+        <div style="text-align: center;">
+          <a href="https://mamalu.ae" style="display: inline-block; background: #d97706; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold;">Shop VIP Collection</a>
+        </div>
+      </div>
+    </div>`
+  },
 ];
 
 export default function MarketingPage() {
   const [tab, setTab] = useState<'campaigns' | 'discounts' | 'referrals'>('campaigns');
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [discounts, setDiscounts] = useState<Discount[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showCampaignModal, setShowCampaignModal] = useState(false);
+  const [showDiscountModal, setShowDiscountModal] = useState(false);
+  const [showReferralModal, setShowReferralModal] = useState(false);
+  const [selectedAudience, setSelectedAudience] = useState(AUDIENCE_PRESETS[0]);
+  const [audienceCount, setAudienceCount] = useState(0);
+  const [selectedTemplate, setSelectedTemplate] = useState(EMAIL_TEMPLATES[0]);
+  const [emailSubject, setEmailSubject] = useState(EMAIL_TEMPLATES[0].subject);
+  const [emailHtml, setEmailHtml] = useState(EMAIL_TEMPLATES[0].html);
+  const [campaignName, setCampaignName] = useState("");
+  const [testEmail, setTestEmail] = useState("");
+  const [sending, setSending] = useState(false);
+  const [copiedVar, setCopiedVar] = useState<string | null>(null);
+  const [referralProgram, setReferralProgram] = useState<ReferralProgram | null>(null);
+  const [topReferrers, setTopReferrers] = useState<TopReferrer[]>([]);
+  const [referralStats, setReferralStats] = useState({ total: 0, completed: 0, totalRevenue: 0 });
+  const [discountForm, setDiscountForm] = useState({
+    code: "",
+    type: "percent" as "percent" | "fixed",
+    value: 10,
+    description: "",
+    usage_limit: null as number | null,
+    min_order_amount: null as number | null,
+    max_discount_amount: null as number | null,
+    valid_until: "",
+    first_order_only: false,
+  });
+  const [editingDiscount, setEditingDiscount] = useState<Discount | null>(null);
+
+  const fetchCampaigns = useCallback(async () => {
+    try {
+      const res = await fetch("/api/admin/marketing/campaigns");
+      const data = await res.json();
+      setCampaigns(data.campaigns || []);
+    } catch (error) {
+      console.error("Error fetching campaigns:", error);
+    }
+  }, []);
+
+  const fetchDiscounts = useCallback(async () => {
+    try {
+      const res = await fetch("/api/admin/marketing/discounts");
+      const data = await res.json();
+      setDiscounts(data.discounts || []);
+    } catch (error) {
+      console.error("Error fetching discounts:", error);
+    }
+  }, []);
+
+  const fetchReferralData = useCallback(async () => {
+    try {
+      const [programRes, referrersRes, statsRes] = await Promise.all([
+        fetch("/api/admin/marketing/referrals?view=program"),
+        fetch("/api/admin/marketing/referrals?view=top-referrers"),
+        fetch("/api/admin/marketing/referrals?view=stats"),
+      ]);
+      const [programData, referrersData, statsData] = await Promise.all([
+        programRes.json(),
+        referrersRes.json(),
+        statsRes.json(),
+      ]);
+      setReferralProgram(programData.program);
+      setTopReferrers(referrersData.topReferrers || []);
+      setReferralStats(statsData.stats || { total: 0, completed: 0, totalRevenue: 0 });
+    } catch (error) {
+      console.error("Error fetching referral data:", error);
+    }
+  }, []);
+
+  const fetchAudienceCount = useCallback(async (filters: Record<string, any>) => {
+    try {
+      const res = await fetch("/api/admin/marketing/customers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ filters }),
+      });
+      const data = await res.json();
+      setAudienceCount(data.count || 0);
+    } catch (error) {
+      console.error("Error fetching audience:", error);
+    }
+  }, []);
+
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      await Promise.all([fetchCampaigns(), fetchDiscounts(), fetchReferralData()]);
+      setLoading(false);
+    };
+    loadData();
+  }, [fetchCampaigns, fetchDiscounts, fetchReferralData]);
+
+  useEffect(() => {
+    fetchAudienceCount(selectedAudience.filters);
+  }, [selectedAudience, fetchAudienceCount]);
 
   const getTypeIcon = (type: string) => {
     switch (type) {
@@ -119,9 +330,164 @@ export default function MarketingPage() {
       case 'completed': return 'bg-stone-100 text-stone-700';
       case 'paused': return 'bg-amber-100 text-amber-700';
       case 'exhausted': return 'bg-red-100 text-red-700';
+      case 'draft': return 'bg-violet-100 text-violet-700';
       default: return 'bg-stone-100 text-stone-700';
     }
   };
+
+  const copyVariable = (varName: string) => {
+    navigator.clipboard.writeText(`{{${varName}}}`);
+    setCopiedVar(varName);
+    setTimeout(() => setCopiedVar(null), 2000);
+  };
+
+  const insertVariable = (varName: string) => {
+    const variable = `{{${varName}}}`;
+    setEmailHtml(prev => prev + variable);
+  };
+
+  const handleTemplateChange = (templateId: string) => {
+    const template = EMAIL_TEMPLATES.find(t => t.id === templateId);
+    if (template) {
+      setSelectedTemplate(template);
+      setEmailSubject(template.subject);
+      setEmailHtml(template.html);
+    }
+  };
+
+  const handleSendTest = async () => {
+    if (!testEmail) return;
+    setSending(true);
+    try {
+      const res = await fetch("/api/admin/marketing/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          campaignId: "test",
+          testEmail,
+          sendTest: true,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert(`Test email sent to ${testEmail}`);
+      } else {
+        alert(data.error || "Failed to send test email");
+      }
+    } catch (error) {
+      console.error("Error sending test:", error);
+      alert("Failed to send test email");
+    }
+    setSending(false);
+  };
+
+  const handleCreateCampaign = async () => {
+    if (!campaignName || !emailSubject) return;
+    setSending(true);
+    try {
+      const res = await fetch("/api/admin/marketing/campaigns", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: campaignName,
+          type: "email",
+          subject: emailSubject,
+          html_content: emailHtml,
+          audience_filter: selectedAudience.filters,
+          audience_name: selectedAudience.name,
+        }),
+      });
+      const data = await res.json();
+      if (data.campaign) {
+        await fetchCampaigns();
+        setShowCampaignModal(false);
+        setCampaignName("");
+        alert("Campaign created successfully!");
+      }
+    } catch (error) {
+      console.error("Error creating campaign:", error);
+      alert("Failed to create campaign");
+    }
+    setSending(false);
+  };
+
+  const handleCreateDiscount = async () => {
+    if (!discountForm.code || !discountForm.value) return;
+    setSending(true);
+    try {
+      const endpoint = editingDiscount 
+        ? "/api/admin/marketing/discounts" 
+        : "/api/admin/marketing/discounts";
+      const method = editingDiscount ? "PUT" : "POST";
+      const body = editingDiscount 
+        ? { id: editingDiscount.id, ...discountForm }
+        : discountForm;
+
+      const res = await fetch(endpoint, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (data.discount) {
+        await fetchDiscounts();
+        setShowDiscountModal(false);
+        setEditingDiscount(null);
+        setDiscountForm({
+          code: "",
+          type: "percent",
+          value: 10,
+          description: "",
+          usage_limit: null,
+          min_order_amount: null,
+          max_discount_amount: null,
+          valid_until: "",
+          first_order_only: false,
+        });
+      }
+    } catch (error) {
+      console.error("Error saving discount:", error);
+    }
+    setSending(false);
+  };
+
+  const handleDeleteDiscount = async (id: string) => {
+    if (!confirm("Delete this discount code?")) return;
+    try {
+      await fetch(`/api/admin/marketing/discounts?id=${id}`, { method: "DELETE" });
+      await fetchDiscounts();
+    } catch (error) {
+      console.error("Error deleting discount:", error);
+    }
+  };
+
+  const handleUpdateReferralProgram = async () => {
+    if (!referralProgram) return;
+    setSending(true);
+    try {
+      const res = await fetch("/api/admin/marketing/referrals", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "program", ...referralProgram }),
+      });
+      const data = await res.json();
+      if (data.program) {
+        setReferralProgram(data.program);
+        setShowReferralModal(false);
+        alert("Referral program updated!");
+      }
+    } catch (error) {
+      console.error("Error updating program:", error);
+    }
+    setSending(false);
+  };
+
+  const stats = [
+    { label: 'Active Campaigns', value: campaigns.filter(c => c.status === 'active').length.toString(), icon: Megaphone, color: 'from-violet-500 to-purple-600' },
+    { label: 'Total Reach', value: campaigns.reduce((sum, c) => sum + c.total_sent, 0).toLocaleString(), icon: Users, color: 'from-emerald-500 to-teal-600' },
+    { label: 'Active Discounts', value: discounts.filter(d => d.status === 'active').length.toString(), icon: Target, color: 'from-amber-500 to-orange-600' },
+    { label: 'Campaign Revenue', value: formatPrice(campaigns.reduce((sum, c) => sum + c.total_revenue, 0)), icon: DollarSign, color: 'from-cyan-500 to-blue-600' },
+  ];
 
   return (
     <div className="space-y-6">
@@ -131,7 +497,7 @@ export default function MarketingPage() {
           <h1 className="text-3xl font-bold text-stone-900">Marketing</h1>
           <p className="text-stone-500 mt-1">Campaigns, discounts, and referral programs</p>
         </div>
-        <Button>
+        <Button onClick={() => setShowCampaignModal(true)}>
           <Plus className="h-4 w-4 mr-2" />
           New Campaign
         </Button>
@@ -184,7 +550,7 @@ export default function MarketingPage() {
                         </Badge>
                       </div>
                       <p className="text-sm text-stone-500 mt-1">
-                        {campaign.audience} • {formatDate(campaign.startDate)} - {formatDate(campaign.endDate)}
+                        {campaign.audience_name || 'All Customers'} • {campaign.start_date ? formatDate(campaign.start_date) : 'No date'} - {campaign.end_date ? formatDate(campaign.end_date) : 'Ongoing'}
                       </p>
                     </div>
                   </div>
@@ -198,26 +564,26 @@ export default function MarketingPage() {
                   </div>
                 </div>
 
-                {campaign.sent > 0 && (
+                {campaign.total_sent > 0 && (
                   <div className="grid grid-cols-5 gap-4 mt-6 pt-4 border-t border-stone-100">
                     <div>
-                      <p className="text-2xl font-bold text-stone-900">{campaign.sent.toLocaleString()}</p>
+                      <p className="text-2xl font-bold text-stone-900">{campaign.total_sent.toLocaleString()}</p>
                       <p className="text-sm text-stone-500">Sent</p>
                     </div>
                     <div>
-                      <p className="text-2xl font-bold text-stone-900">{campaign.opened.toLocaleString()}</p>
-                      <p className="text-sm text-stone-500">Opened ({Math.round((campaign.opened / campaign.sent) * 100)}%)</p>
+                      <p className="text-2xl font-bold text-stone-900">{campaign.total_opened.toLocaleString()}</p>
+                      <p className="text-sm text-stone-500">Opened ({campaign.total_sent > 0 ? Math.round((campaign.total_opened / campaign.total_sent) * 100) : 0}%)</p>
                     </div>
                     <div>
-                      <p className="text-2xl font-bold text-stone-900">{campaign.clicked.toLocaleString()}</p>
-                      <p className="text-sm text-stone-500">Clicked ({Math.round((campaign.clicked / campaign.sent) * 100)}%)</p>
+                      <p className="text-2xl font-bold text-stone-900">{campaign.total_clicked.toLocaleString()}</p>
+                      <p className="text-sm text-stone-500">Clicked ({campaign.total_sent > 0 ? Math.round((campaign.total_clicked / campaign.total_sent) * 100) : 0}%)</p>
                     </div>
                     <div>
-                      <p className="text-2xl font-bold text-emerald-600">{campaign.conversions}</p>
+                      <p className="text-2xl font-bold text-emerald-600">{campaign.total_conversions}</p>
                       <p className="text-sm text-stone-500">Conversions</p>
                     </div>
                     <div>
-                      <p className="text-2xl font-bold text-amber-600">{formatPrice(campaign.revenue)}</p>
+                      <p className="text-2xl font-bold text-amber-600">{formatPrice(campaign.total_revenue)}</p>
                       <p className="text-sm text-stone-500">Revenue</p>
                     </div>
                   </div>
@@ -232,7 +598,7 @@ export default function MarketingPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Discount Codes</CardTitle>
-            <Button size="sm"><Plus className="h-4 w-4 mr-1" /> Add Code</Button>
+            <Button size="sm" onClick={() => setShowDiscountModal(true)}><Plus className="h-4 w-4 mr-1" /> Add Code</Button>
           </CardHeader>
           <CardContent className="p-0">
             <table className="w-full">
@@ -259,17 +625,17 @@ export default function MarketingPage() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm">{discount.used}</span>
-                        {discount.usageLimit && (
+                        <span className="text-sm">{discount.total_used}</span>
+                        {discount.usage_limit && (
                           <>
                             <span className="text-stone-400">/</span>
-                            <span className="text-sm text-stone-500">{discount.usageLimit}</span>
+                            <span className="text-sm text-stone-500">{discount.usage_limit}</span>
                           </>
                         )}
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <p className="text-sm text-stone-600">{discount.expires ? formatDate(discount.expires) : 'Never'}</p>
+                      <p className="text-sm text-stone-600">{discount.valid_until ? formatDate(discount.valid_until) : 'Never'}</p>
                     </td>
                     <td className="px-6 py-4">
                       <Badge className={getStatusBadge(discount.status)}>
@@ -277,9 +643,28 @@ export default function MarketingPage() {
                       </Badge>
                     </td>
                     <td className="px-6 py-4">
-                      <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100">
-                        <Edit3 className="h-4 w-4" />
-                      </Button>
+                      <div className="flex gap-1 opacity-0 group-hover:opacity-100">
+                        <Button variant="ghost" size="sm" onClick={() => {
+                          setEditingDiscount(discount);
+                          setDiscountForm({
+                            code: discount.code,
+                            type: discount.type as "percent" | "fixed",
+                            value: discount.value,
+                            description: discount.description || "",
+                            usage_limit: discount.usage_limit || null,
+                            min_order_amount: discount.min_order_amount || null,
+                            max_discount_amount: discount.max_discount_amount || null,
+                            valid_until: discount.valid_until || "",
+                            first_order_only: discount.first_order_only,
+                          });
+                          setShowDiscountModal(true);
+                        }}>
+                          <Edit3 className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => handleDeleteDiscount(discount.id)}>
+                          <Trash2 className="h-4 w-4 text-red-500" />
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -301,20 +686,24 @@ export default function MarketingPage() {
             <CardContent className="space-y-4">
               <div className="p-4 bg-amber-50 rounded-xl">
                 <p className="font-medium text-stone-900">Current Offer</p>
-                <p className="text-2xl font-bold text-amber-600 mt-1">AED 100 credit</p>
-                <p className="text-sm text-stone-500 mt-1">For both referrer and referee</p>
+                <p className="text-2xl font-bold text-amber-600 mt-1">
+                  {referralProgram ? `AED ${referralProgram.referrer_reward_value}` : 'AED 100'} credit
+                </p>
+                <p className="text-sm text-stone-500 mt-1">
+                  {referralProgram?.referrer_reward_description || 'For both referrer and referee'}
+                </p>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="p-4 bg-stone-50 rounded-xl">
                   <p className="text-sm text-stone-500">Total Referrals</p>
-                  <p className="text-2xl font-bold text-stone-900">234</p>
+                  <p className="text-2xl font-bold text-stone-900">{referralStats.total}</p>
                 </div>
                 <div className="p-4 bg-stone-50 rounded-xl">
                   <p className="text-sm text-stone-500">Revenue Generated</p>
-                  <p className="text-2xl font-bold text-emerald-600">AED 45,600</p>
+                  <p className="text-2xl font-bold text-emerald-600">{formatPrice(referralStats.totalRevenue)}</p>
                 </div>
               </div>
-              <Button className="w-full">Edit Program</Button>
+              <Button className="w-full" onClick={() => setShowReferralModal(true)}>Edit Program</Button>
             </CardContent>
           </Card>
 
@@ -324,13 +713,8 @@ export default function MarketingPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {[
-                  { name: 'Sarah Al Maktoum', referrals: 12, earned: 1200 },
-                  { name: 'Ahmed Hassan', referrals: 8, earned: 800 },
-                  { name: 'Maria Santos', referrals: 6, earned: 600 },
-                  { name: 'John Peterson', referrals: 5, earned: 500 },
-                ].map((referrer, i) => (
-                  <div key={i} className="flex items-center justify-between p-3 bg-stone-50 rounded-lg">
+                {topReferrers.length > 0 ? topReferrers.map((referrer, i) => (
+                  <div key={referrer.id} className="flex items-center justify-between p-3 bg-stone-50 rounded-lg">
                     <div className="flex items-center gap-3">
                       <div className="h-8 w-8 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 font-medium text-sm">
                         {i + 1}
@@ -342,10 +726,391 @@ export default function MarketingPage() {
                     </div>
                     <p className="font-semibold text-emerald-600">{formatPrice(referrer.earned)}</p>
                   </div>
-                ))}
+                )) : (
+                  <p className="text-center text-stone-500 py-8">No referrals yet</p>
+                )}
               </div>
             </CardContent>
           </Card>
+        </div>
+      )}
+
+      {/* Campaign Creation Modal */}
+      {showCampaignModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-stone-200 p-6 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-stone-900">Create Email Campaign</h2>
+              <Button variant="ghost" size="sm" onClick={() => setShowCampaignModal(false)}>
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+            
+            <div className="p-6 space-y-6">
+              {/* Campaign Name */}
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-2">Campaign Name</label>
+                <input
+                  type="text"
+                  value={campaignName}
+                  onChange={(e) => setCampaignName(e.target.value)}
+                  placeholder="e.g., Holiday Sale 2024"
+                  className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                />
+              </div>
+
+              {/* Template Selection */}
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-2">Email Template</label>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {EMAIL_TEMPLATES.map((template) => (
+                    <button
+                      key={template.id}
+                      onClick={() => handleTemplateChange(template.id)}
+                      className={`p-3 border rounded-lg text-left transition-all ${
+                        selectedTemplate.id === template.id 
+                          ? 'border-amber-500 bg-amber-50 ring-2 ring-amber-500' 
+                          : 'border-stone-200 hover:border-amber-300'
+                      }`}
+                    >
+                      <p className="font-medium text-stone-900 text-sm">{template.name}</p>
+                      <p className="text-xs text-stone-500 mt-1 truncate">{template.preview}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Audience Selection */}
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-2">
+                  <Filter className="h-4 w-4 inline mr-1" />
+                  Target Audience
+                </label>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {AUDIENCE_PRESETS.map((audience) => {
+                    const Icon = audience.icon;
+                    return (
+                      <button
+                        key={audience.id}
+                        onClick={() => setSelectedAudience(audience)}
+                        className={`p-3 border rounded-lg text-left transition-all flex items-center gap-3 ${
+                          selectedAudience.id === audience.id 
+                            ? 'border-amber-500 bg-amber-50 ring-2 ring-amber-500' 
+                            : 'border-stone-200 hover:border-amber-300'
+                        }`}
+                      >
+                        <Icon className="h-5 w-5 text-amber-600" />
+                        <div>
+                          <p className="font-medium text-stone-900 text-sm">{audience.name}</p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="mt-2 text-sm text-stone-500">
+                  <Users className="h-4 w-4 inline mr-1" />
+                  Estimated recipients: <strong>{audienceCount.toLocaleString()}</strong>
+                </p>
+              </div>
+
+              {/* Customer Variables */}
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-2">
+                  <Sparkles className="h-4 w-4 inline mr-1" />
+                  Customer Variables (click to copy)
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {CUSTOMER_VARIABLES.map((variable) => (
+                    <button
+                      key={variable.name}
+                      onClick={() => copyVariable(variable.name)}
+                      className="px-3 py-1.5 bg-stone-100 hover:bg-stone-200 rounded-full text-sm flex items-center gap-2 transition-colors"
+                    >
+                      <code className="text-amber-600">{`{{${variable.name}}}`}</code>
+                      {copiedVar === variable.name ? (
+                        <Check className="h-3 w-3 text-green-600" />
+                      ) : (
+                        <Copy className="h-3 w-3 text-stone-400" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Email Subject */}
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-2">Email Subject</label>
+                <input
+                  type="text"
+                  value={emailSubject}
+                  onChange={(e) => setEmailSubject(e.target.value)}
+                  placeholder="Enter email subject..."
+                  className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                />
+              </div>
+
+              {/* Email Content */}
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-2">Email Content (HTML)</label>
+                <textarea
+                  value={emailHtml}
+                  onChange={(e) => setEmailHtml(e.target.value)}
+                  rows={12}
+                  className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 font-mono text-sm"
+                />
+              </div>
+
+              {/* Preview */}
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-2">
+                  <Eye className="h-4 w-4 inline mr-1" />
+                  Preview
+                </label>
+                <div className="border border-stone-200 rounded-lg p-4 bg-stone-50">
+                  <div 
+                    className="bg-white rounded-lg shadow-sm"
+                    dangerouslySetInnerHTML={{ __html: emailHtml }}
+                  />
+                </div>
+              </div>
+
+              {/* Test Email */}
+              <div className="flex gap-3">
+                <input
+                  type="email"
+                  value={testEmail}
+                  onChange={(e) => setTestEmail(e.target.value)}
+                  placeholder="Enter email to send test..."
+                  className="flex-1 px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                />
+                <Button variant="outline" onClick={handleSendTest} disabled={sending || !testEmail}>
+                  <Send className="h-4 w-4 mr-2" />
+                  Send Test
+                </Button>
+              </div>
+            </div>
+
+            <div className="sticky bottom-0 bg-white border-t border-stone-200 p-6 flex justify-end gap-3">
+              <Button variant="outline" onClick={() => setShowCampaignModal(false)}>Cancel</Button>
+              <Button onClick={handleCreateCampaign} disabled={sending || !campaignName || !emailSubject}>
+                {sending ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : <Plus className="h-4 w-4 mr-2" />}
+                Create Campaign
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Discount Modal */}
+      {showDiscountModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-lg w-full">
+            <div className="border-b border-stone-200 p-6 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-stone-900">
+                {editingDiscount ? 'Edit Discount Code' : 'Create Discount Code'}
+              </h2>
+              <Button variant="ghost" size="sm" onClick={() => { setShowDiscountModal(false); setEditingDiscount(null); }}>
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+            
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-2">Discount Code</label>
+                <input
+                  type="text"
+                  value={discountForm.code}
+                  onChange={(e) => setDiscountForm({ ...discountForm, code: e.target.value.toUpperCase() })}
+                  placeholder="e.g., SAVE20"
+                  className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 uppercase"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-stone-700 mb-2">Type</label>
+                  <select
+                    value={discountForm.type}
+                    onChange={(e) => setDiscountForm({ ...discountForm, type: e.target.value as "percent" | "fixed" })}
+                    className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                  >
+                    <option value="percent">Percentage (%)</option>
+                    <option value="fixed">Fixed Amount (AED)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-stone-700 mb-2">Value</label>
+                  <input
+                    type="number"
+                    value={discountForm.value}
+                    onChange={(e) => setDiscountForm({ ...discountForm, value: parseFloat(e.target.value) || 0 })}
+                    className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-2">Description (optional)</label>
+                <input
+                  type="text"
+                  value={discountForm.description}
+                  onChange={(e) => setDiscountForm({ ...discountForm, description: e.target.value })}
+                  placeholder="e.g., Holiday special discount"
+                  className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-stone-700 mb-2">Usage Limit</label>
+                  <input
+                    type="number"
+                    value={discountForm.usage_limit || ""}
+                    onChange={(e) => setDiscountForm({ ...discountForm, usage_limit: e.target.value ? parseInt(e.target.value) : null })}
+                    placeholder="Unlimited"
+                    className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-stone-700 mb-2">Min Order (AED)</label>
+                  <input
+                    type="number"
+                    value={discountForm.min_order_amount || ""}
+                    onChange={(e) => setDiscountForm({ ...discountForm, min_order_amount: e.target.value ? parseFloat(e.target.value) : null })}
+                    placeholder="None"
+                    className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-2">Expires On</label>
+                <input
+                  type="date"
+                  value={discountForm.valid_until}
+                  onChange={(e) => setDiscountForm({ ...discountForm, valid_until: e.target.value })}
+                  className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                />
+              </div>
+
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={discountForm.first_order_only}
+                  onChange={(e) => setDiscountForm({ ...discountForm, first_order_only: e.target.checked })}
+                  className="w-4 h-4 text-amber-600 rounded focus:ring-amber-500"
+                />
+                <span className="text-sm text-stone-700">First order only</span>
+              </label>
+            </div>
+
+            <div className="border-t border-stone-200 p-6 flex justify-end gap-3">
+              <Button variant="outline" onClick={() => { setShowDiscountModal(false); setEditingDiscount(null); }}>Cancel</Button>
+              <Button onClick={handleCreateDiscount} disabled={sending || !discountForm.code || !discountForm.value}>
+                {sending ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : <Plus className="h-4 w-4 mr-2" />}
+                {editingDiscount ? 'Update Discount' : 'Create Discount'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Referral Program Modal */}
+      {showReferralModal && referralProgram && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-lg w-full">
+            <div className="border-b border-stone-200 p-6 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-stone-900">Edit Referral Program</h2>
+              <Button variant="ghost" size="sm" onClick={() => setShowReferralModal(false)}>
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+            
+            <div className="p-6 space-y-4">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={referralProgram.is_active}
+                  onChange={(e) => setReferralProgram({ ...referralProgram, is_active: e.target.checked })}
+                  className="w-4 h-4 text-amber-600 rounded focus:ring-amber-500"
+                />
+                <span className="text-sm font-medium text-stone-700">Program Active</span>
+              </label>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-stone-700 mb-2">Referrer Reward (AED)</label>
+                  <input
+                    type="number"
+                    value={referralProgram.referrer_reward_value}
+                    onChange={(e) => setReferralProgram({ ...referralProgram, referrer_reward_value: parseFloat(e.target.value) || 0 })}
+                    className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-stone-700 mb-2">Referee Reward (AED)</label>
+                  <input
+                    type="number"
+                    value={referralProgram.referee_reward_value}
+                    onChange={(e) => setReferralProgram({ ...referralProgram, referee_reward_value: parseFloat(e.target.value) || 0 })}
+                    className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-2">Referrer Reward Description</label>
+                <input
+                  type="text"
+                  value={referralProgram.referrer_reward_description}
+                  onChange={(e) => setReferralProgram({ ...referralProgram, referrer_reward_description: e.target.value })}
+                  placeholder="e.g., AED 100 credit for each friend"
+                  className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-2">Referee Reward Description</label>
+                <input
+                  type="text"
+                  value={referralProgram.referee_reward_description}
+                  onChange={(e) => setReferralProgram({ ...referralProgram, referee_reward_description: e.target.value })}
+                  placeholder="e.g., AED 100 off your first order"
+                  className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-stone-700 mb-2">Min Purchase (AED)</label>
+                  <input
+                    type="number"
+                    value={referralProgram.min_purchase_amount || ""}
+                    onChange={(e) => setReferralProgram({ ...referralProgram, min_purchase_amount: e.target.value ? parseFloat(e.target.value) : undefined })}
+                    placeholder="None"
+                    className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-stone-700 mb-2">Reward Expires (days)</label>
+                  <input
+                    type="number"
+                    value={referralProgram.reward_expires_days}
+                    onChange={(e) => setReferralProgram({ ...referralProgram, reward_expires_days: parseInt(e.target.value) || 90 })}
+                    className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="border-t border-stone-200 p-6 flex justify-end gap-3">
+              <Button variant="outline" onClick={() => setShowReferralModal(false)}>Cancel</Button>
+              <Button onClick={handleUpdateReferralProgram} disabled={sending}>
+                {sending ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : <Check className="h-4 w-4 mr-2" />}
+                Save Changes
+              </Button>
+            </div>
+          </div>
         </div>
       )}
     </div>
