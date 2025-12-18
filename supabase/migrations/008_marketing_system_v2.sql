@@ -459,7 +459,7 @@ BEGIN
     -- Check first order only
     IF v_discount.first_order_only THEN
         SELECT COUNT(*) = 0 INTO v_first_order FROM public.orders 
-        WHERE profile_id = p_profile_id AND order_status IN ('completed', 'processing');
+        WHERE user_id = p_profile_id AND status IN ('delivered', 'processing', 'shipped');
         
         IF NOT v_first_order THEN
             RETURN QUERY SELECT FALSE, 0::DECIMAL, 'This discount is for first orders only'::TEXT, NULL::UUID;

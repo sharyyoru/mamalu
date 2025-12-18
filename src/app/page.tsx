@@ -119,10 +119,75 @@ const FoodDoodle3 = ({ className, style }: { className?: string; style?: React.C
   </svg>
 );
 
+// Pizza Slice Doodle
+const PizzaDoodle = ({ className, style }: { className?: string; style?: React.CSSProperties }) => (
+  <svg className={className} style={style} viewBox="0 0 80 80" fill="none">
+    <path d="M40 10L10 70H70L40 10Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <circle cx="30" cy="50" r="5" stroke="currentColor" strokeWidth="2"/>
+    <circle cx="50" cy="50" r="5" stroke="currentColor" strokeWidth="2"/>
+    <circle cx="40" cy="35" r="4" stroke="currentColor" strokeWidth="2"/>
+  </svg>
+);
+
+// Cupcake Doodle
+const CupcakeDoodle = ({ className, style }: { className?: string; style?: React.CSSProperties }) => (
+  <svg className={className} style={style} viewBox="0 0 60 70" fill="none">
+    <path d="M15 35H45L40 65H20L15 35Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M10 35C10 35 15 10 30 10C45 10 50 35 50 35" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+    <circle cx="30" cy="20" r="3" stroke="currentColor" strokeWidth="2"/>
+    <path d="M30 5V10" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+  </svg>
+);
+
+// Spoon Doodle
+const SpoonDoodle = ({ className, style }: { className?: string; style?: React.CSSProperties }) => (
+  <svg className={className} style={style} viewBox="0 0 30 80" fill="none">
+    <ellipse cx="15" cy="15" rx="12" ry="10" stroke="currentColor" strokeWidth="2"/>
+    <path d="M15 25V75" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+  </svg>
+);
+
+// Cookie Doodle
+const CookieDoodle = ({ className, style }: { className?: string; style?: React.CSSProperties }) => (
+  <svg className={className} style={style} viewBox="0 0 60 60" fill="none">
+    <circle cx="30" cy="30" r="25" stroke="currentColor" strokeWidth="2"/>
+    <circle cx="20" cy="20" r="3" fill="currentColor"/>
+    <circle cx="38" cy="25" r="3" fill="currentColor"/>
+    <circle cx="25" cy="38" r="3" fill="currentColor"/>
+    <circle cx="40" cy="40" r="2" fill="currentColor"/>
+    <circle cx="30" cy="30" r="2" fill="currentColor"/>
+  </svg>
+);
+
+// Chef Hat Doodle
+const ChefHatDoodle = ({ className, style }: { className?: string; style?: React.CSSProperties }) => (
+  <svg className={className} style={style} viewBox="0 0 60 60" fill="none">
+    <path d="M15 40H45V55H15V40Z" stroke="currentColor" strokeWidth="2"/>
+    <path d="M10 25C10 15 20 10 30 10C40 10 50 15 50 25C50 35 45 40 45 40H15C15 40 10 35 10 25Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+  </svg>
+);
+
+// Whisk Doodle
+const WhiskDoodle = ({ className, style }: { className?: string; style?: React.CSSProperties }) => (
+  <svg className={className} style={style} viewBox="0 0 40 80" fill="none">
+    <path d="M20 5V30" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+    <path d="M10 30C10 30 5 50 10 65C15 80 20 70 20 70" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+    <path d="M30 30C30 30 35 50 30 65C25 80 20 70 20 70" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+    <path d="M20 30C20 30 20 50 20 70" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+  </svg>
+);
+
 const SquiggleLine = ({ className, style }: { className?: string; style?: React.CSSProperties }) => (
   <svg className={className} style={style} viewBox="0 0 200 30" fill="none">
     <path d="M0 15C20 5 30 25 50 15C70 5 80 25 100 15C120 5 130 25 150 15C170 5 180 25 200 15" 
       stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+  </svg>
+);
+
+// Wavy Line
+const WavyLine = ({ className, style }: { className?: string; style?: React.CSSProperties }) => (
+  <svg className={className} style={style} viewBox="0 0 300 20" fill="none">
+    <path d="M0 10Q25 0 50 10T100 10T150 10T200 10T250 10T300 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
   </svg>
 );
 
@@ -155,11 +220,22 @@ export default function Home() {
       <section className="relative min-h-[100vh] flex items-center bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 overflow-hidden">
         {/* Animated Doodles Background */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          {/* Food Doodles */}
           <FoodDoodle1 className="absolute top-20 left-[5%] w-16 h-16 text-amber-300 animate-bounce" style={{ animationDuration: '3s' }} />
           <FoodDoodle2 className="absolute top-40 right-[10%] w-20 h-20 text-orange-300 animate-pulse" />
           <FoodDoodle3 className="absolute bottom-32 left-[15%] w-14 h-14 text-rose-300 animate-bounce" style={{ animationDuration: '2.5s' }} />
+          <PizzaDoodle className="absolute top-[15%] right-[20%] w-16 h-16 text-amber-400/60 animate-bounce" style={{ animationDuration: '3.5s' }} />
+          <CupcakeDoodle className="absolute bottom-[20%] right-[8%] w-14 h-16 text-pink-400/60 animate-pulse" />
+          <CookieDoodle className="absolute top-[60%] left-[8%] w-12 h-12 text-amber-500/50 animate-bounce" style={{ animationDuration: '4s' }} />
+          <ChefHatDoodle className="absolute top-[10%] left-[25%] w-12 h-12 text-orange-300/50 animate-pulse" style={{ animationDelay: '0.5s' }} />
+          <SpoonDoodle className="absolute bottom-[30%] left-[3%] w-8 h-20 text-rose-300/50 animate-bounce rotate-12" style={{ animationDuration: '3.2s' }} />
+          <WhiskDoodle className="absolute top-[30%] right-[5%] w-10 h-20 text-amber-300/50 animate-pulse -rotate-12" />
+          
+          {/* Squiggly Lines */}
           <SquiggleLine className="absolute top-1/4 left-0 w-48 text-amber-200 animate-pulse" />
           <SquiggleLine className="absolute bottom-1/4 right-0 w-48 text-orange-200 rotate-180 animate-pulse" style={{ animationDelay: '1s' }} />
+          <WavyLine className="absolute top-[45%] left-[10%] w-32 text-rose-200/60 animate-pulse" style={{ animationDelay: '0.5s' }} />
+          <WavyLine className="absolute bottom-[15%] right-[15%] w-40 text-amber-200/60 rotate-12 animate-pulse" style={{ animationDelay: '1.5s' }} />
           
           {/* Floating Blobs */}
           <div className="absolute top-20 left-10 w-40 h-40 bg-gradient-to-br from-amber-300/40 to-orange-300/40 rounded-full blur-3xl animate-pulse" />

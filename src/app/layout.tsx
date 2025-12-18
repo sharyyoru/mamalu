@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Header, Footer } from "@/components/layout";
+import { SocialSidebar } from "@/components/layout/SocialSidebar";
+import { LiveChat } from "@/components/layout/LiveChat";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -50,6 +52,12 @@ export default async function RootLayout({
         {!isAdminOrStudio && <Header />}
         <main className="flex-1">{children}</main>
         {!isAdminOrStudio && <Footer />}
+        {!isAdminOrStudio && (
+          <>
+            <SocialSidebar />
+            <LiveChat />
+          </>
+        )}
       </body>
     </html>
   );

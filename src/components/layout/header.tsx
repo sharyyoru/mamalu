@@ -4,10 +4,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 import { Menu, X, ShoppingBag, User, ChevronDown } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-const navigation = [
+const navigationLeft = [
   { name: "Home", href: "/" },
   { name: "Our Story", href: "/about" },
   { 
@@ -22,6 +21,9 @@ const navigation = [
     ],
   },
   { name: "Recipes", href: "/recipes" },
+];
+
+const navigationRight = [
   { name: "Shop", href: "/products" },
   {
     name: "Services",
@@ -35,69 +37,69 @@ const navigation = [
   { name: "Contact", href: "/contact" },
 ];
 
+const allNavigation = [...navigationLeft, ...navigationRight];
+
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const NavItem = ({ item }: { item: typeof navigationLeft[0] }) => (
+    <div className="relative group">
+      <Link
+        href={item.href}
+        className="flex items-center gap-1 text-sm font-medium text-stone-700 hover:text-amber-600 transition-colors py-2"
+      >
+        {item.name}
+        {item.children && <ChevronDown className="h-4 w-4 opacity-50 group-hover:opacity-100 transition-opacity" />}
+      </Link>
+      {item.children && (
+        <div className="absolute left-1/2 -translate-x-1/2 top-full pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+          <div className="bg-white rounded-xl shadow-xl border border-stone-100 py-3 min-w-[200px]">
+            {item.children.map((child) => (
+              <Link
+                key={child.name}
+                href={child.href}
+                className="block px-4 py-2.5 text-sm text-stone-600 hover:bg-amber-50 hover:text-amber-700 transition-colors"
+              >
+                {child.name}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80 border-b border-stone-100">
       <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-20 items-center justify-between">
-          {/* Logo */}
-          <div className="flex items-center">
-            <Link href="/" className="flex items-center gap-3">
-              <Image 
-                src="/graphics/mamalu-logo.avif" 
-                alt="Mamalu Kitchen" 
-                width={48} 
-                height={48}
-                className="h-12 w-auto"
-              />
-              <div className="hidden sm:block">
-                <span className="text-xl font-bold text-stone-900 tracking-tight">Mamalu</span>
-                <span className="text-xl font-light text-amber-600 tracking-tight"> Kitchen</span>
-              </div>
-            </Link>
-          </div>
-
-          {/* Desktop Navigation */}
-          <div className="hidden lg:flex lg:items-center lg:gap-x-6">
-            {navigation.map((item) => (
-              <div key={item.name} className="relative group">
-                <Link
-                  href={item.href}
-                  className="flex items-center gap-1 text-sm font-medium text-stone-700 hover:text-amber-600 transition-colors py-2"
-                >
-                  {item.name}
-                  {item.children && <ChevronDown className="h-4 w-4 opacity-50 group-hover:opacity-100 transition-opacity" />}
-                </Link>
-                {item.children && (
-                  <div className="absolute left-1/2 -translate-x-1/2 top-full pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
-                    <div className="bg-white rounded-xl shadow-xl border border-stone-100 py-3 min-w-[200px]">
-                      {item.children.map((child) => (
-                        <Link
-                          key={child.name}
-                          href={child.href}
-                          className="block px-4 py-2.5 text-sm text-stone-600 hover:bg-amber-50 hover:text-amber-700 transition-colors"
-                        >
-                          {child.name}
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
+        <div className="flex h-24 items-center justify-between">
+          {/* Left Navigation - Desktop */}
+          <div className="hidden lg:flex lg:items-center lg:gap-x-5 flex-1">
+            {navigationLeft.map((item) => (
+              <NavItem key={item.name} item={item} />
             ))}
           </div>
 
-          {/* Right Side Actions */}
-          <div className="flex items-center gap-3">
-            <Link 
-              href="/classes" 
-              className="hidden sm:inline-flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white px-4 py-2 rounded-full text-sm font-medium transition-all shadow-sm hover:shadow-md"
-            >
-              Book a Class
+          {/* Center Logo - Big & Prominent */}
+          <div className="flex items-center justify-center lg:flex-none">
+            <Link href="/" className="flex items-center justify-center transition-transform hover:scale-105">
+              <Image 
+                src="/graphics/mamalu-logo.avif" 
+                alt="Mamalu Kitchen" 
+                width={80} 
+                height={80}
+                className="h-16 w-auto lg:h-20"
+                priority
+              />
             </Link>
-            <Link href="/cart" className="relative p-2 hover:bg-stone-100 rounded-full transition-colors">
+          </div>
+
+          {/* Right Navigation - Desktop */}
+          <div className="hidden lg:flex lg:items-center lg:gap-x-5 flex-1 justify-end">
+            {navigationRight.map((item) => (
+              <NavItem key={item.name} item={item} />
+            ))}
+            <Link href="/cart" className="relative p-2 hover:bg-stone-100 rounded-full transition-colors ml-2">
               <ShoppingBag className="h-5 w-5 text-stone-700" />
               <span className="absolute top-0 right-0 h-4 w-4 rounded-full bg-amber-500 text-[10px] font-medium text-white flex items-center justify-center">
                 0
@@ -106,11 +108,19 @@ export function Header() {
             <Link href="/account" className="p-2 hover:bg-stone-100 rounded-full transition-colors">
               <User className="h-5 w-5 text-stone-700" />
             </Link>
+          </div>
 
-            {/* Mobile menu button */}
+          {/* Mobile Actions */}
+          <div className="flex items-center gap-3 lg:hidden">
+            <Link href="/cart" className="relative p-2 hover:bg-stone-100 rounded-full transition-colors">
+              <ShoppingBag className="h-5 w-5 text-stone-700" />
+              <span className="absolute top-0 right-0 h-4 w-4 rounded-full bg-amber-500 text-[10px] font-medium text-white flex items-center justify-center">
+                0
+              </span>
+            </Link>
             <button
               type="button"
-              className="lg:hidden p-2 hover:bg-stone-100 rounded-full transition-colors"
+              className="p-2 hover:bg-stone-100 rounded-full transition-colors"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
               {mobileMenuOpen ? (
@@ -130,7 +140,7 @@ export function Header() {
           )}
         >
           <div className="space-y-1 pt-4 border-t border-stone-100">
-            {navigation.map((item) => (
+            {allNavigation.map((item) => (
               <div key={item.name}>
                 <Link
                   href={item.href}
@@ -141,7 +151,7 @@ export function Header() {
                 </Link>
                 {item.children && (
                   <div className="pl-4 pb-2 space-y-1">
-                    {item.children.map((child) => (
+                    {item.children.map((child: { name: string; href: string }) => (
                       <Link
                         key={child.name}
                         href={child.href}
