@@ -136,7 +136,7 @@ export function LiveChat() {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 z-50 w-16 h-16 bg-gradient-to-r from-rose-500 to-rose-600 rounded-full shadow-2xl flex items-center justify-center text-white hover:from-rose-600 hover:to-rose-700 transition-all hover:scale-110 animate-bounce"
+        className="fixed bottom-6 right-6 z-50 w-16 h-16 bg-gradient-to-r from-[#ff8c6b] to-[#e67854] rounded-full shadow-2xl flex items-center justify-center text-white hover:from-[#e67854] hover:to-[#d4684a] transition-all hover:scale-110 animate-bounce"
         style={{ animationDuration: '2s' }}
       >
         <MessageCircle className="h-7 w-7" />
@@ -154,14 +154,14 @@ export function LiveChat() {
       }`}
     >
       {/* Header */}
-      <div className="bg-gradient-to-r from-rose-500 to-rose-600 p-4 flex items-center justify-between">
+      <div className="bg-gradient-to-r from-[#ff8c6b] to-[#e67854] p-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
             <MessageCircle className="h-5 w-5 text-white" />
           </div>
           <div>
             <h3 className="font-bold text-white">Mamalu Kitchen</h3>
-            <p className="text-rose-100 text-xs">We typically reply instantly</p>
+            <p className="text-white/80 text-xs">We typically reply instantly</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -183,7 +183,7 @@ export function LiveChat() {
       {!isMinimized && (
         <>
           {/* Messages */}
-          <div className="flex-1 h-[340px] overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-rose-50/50 to-white">
+          <div className="flex-1 h-[340px] overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-[#ff8c6b]/5 to-white">
             {showForm ? (
               <form onSubmit={handleSubmitInfo} className="space-y-3">
                 <p className="text-sm text-stone-600 mb-4">
@@ -194,7 +194,7 @@ export function LiveChat() {
                   placeholder="Your Name *"
                   value={userInfo.name}
                   onChange={(e) => setUserInfo({ ...userInfo, name: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-stone-200 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 outline-none text-sm"
+                  className="w-full px-4 py-2.5 rounded-xl border border-stone-200 focus:border-[#ff8c6b] focus:ring-2 focus:ring-[#ff8c6b]/20 outline-none text-sm"
                   required
                 />
                 <input
@@ -202,7 +202,7 @@ export function LiveChat() {
                   placeholder="Email Address *"
                   value={userInfo.email}
                   onChange={(e) => setUserInfo({ ...userInfo, email: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-stone-200 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 outline-none text-sm"
+                  className="w-full px-4 py-2.5 rounded-xl border border-stone-200 focus:border-[#ff8c6b] focus:ring-2 focus:ring-[#ff8c6b]/20 outline-none text-sm"
                   required
                 />
                 <input
@@ -210,12 +210,12 @@ export function LiveChat() {
                   placeholder="Phone Number (optional)"
                   value={userInfo.phone}
                   onChange={(e) => setUserInfo({ ...userInfo, phone: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-stone-200 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 outline-none text-sm"
+                  className="w-full px-4 py-2.5 rounded-xl border border-stone-200 focus:border-[#ff8c6b] focus:ring-2 focus:ring-[#ff8c6b]/20 outline-none text-sm"
                 />
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white"
+                  className="w-full bg-gradient-to-r from-[#ff8c6b] to-[#e67854] hover:from-[#e67854] hover:to-[#d4684a] text-white"
                 >
                   {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Start Chat"}
                 </Button>
@@ -230,12 +230,12 @@ export function LiveChat() {
                     <div
                       className={`max-w-[80%] p-3 rounded-2xl ${
                         msg.sender === "user"
-                          ? "bg-gradient-to-r from-rose-500 to-rose-600 text-white rounded-br-md"
+                          ? "bg-gradient-to-r from-[#ff8c6b] to-[#e67854] text-white rounded-br-md"
                           : "bg-white border border-stone-100 text-stone-700 rounded-bl-md shadow-sm"
                       }`}
                     >
                       <p className="text-sm">{msg.text}</p>
-                      <p className={`text-[10px] mt-1 ${msg.sender === "user" ? "text-rose-100" : "text-stone-400"}`}>
+                      <p className={`text-[10px] mt-1 ${msg.sender === "user" ? "text-white/80" : "text-stone-400"}`}>
                         {msg.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                       </p>
                     </div>
@@ -245,9 +245,9 @@ export function LiveChat() {
                   <div className="flex justify-start">
                     <div className="bg-white border border-stone-100 p-3 rounded-2xl rounded-bl-md shadow-sm">
                       <div className="flex gap-1">
-                        <span className="w-2 h-2 bg-rose-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                        <span className="w-2 h-2 bg-rose-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                        <span className="w-2 h-2 bg-rose-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                        <span className="w-2 h-2 bg-[#ff8c6b] rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                        <span className="w-2 h-2 bg-[#ff8c6b] rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                        <span className="w-2 h-2 bg-[#ff8c6b] rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                       </div>
                     </div>
                   </div>
@@ -267,12 +267,12 @@ export function LiveChat() {
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
-                  className="flex-1 px-4 py-2.5 rounded-xl border border-stone-200 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 outline-none text-sm"
+                  className="flex-1 px-4 py-2.5 rounded-xl border border-stone-200 focus:border-[#ff8c6b] focus:ring-2 focus:ring-[#ff8c6b]/20 outline-none text-sm"
                 />
                 <Button
                   onClick={handleSendMessage}
                   disabled={isLoading || !inputValue.trim()}
-                  className="bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white px-4"
+                  className="bg-gradient-to-r from-[#ff8c6b] to-[#e67854] hover:from-[#e67854] hover:to-[#d4684a] text-white px-4"
                 >
                   <Send className="h-4 w-4" />
                 </Button>

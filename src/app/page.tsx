@@ -28,7 +28,7 @@ const classTypes = [
     title: "Kids Classes",
     description: "Fun cooking adventures for little chefs aged 4-12",
     icon: Baby,
-    color: "from-pink-400 to-rose-500",
+    color: "from-[#ffa891] to-[#ff8c6b]",
     bgColor: "bg-pink-50",
     href: "/classes?type=kids",
     emoji: "👨‍🍳",
@@ -221,43 +221,43 @@ export default function Home() {
       <VideoPlayer isOpen={isVideoOpen} onClose={() => setIsVideoOpen(false)} />
       <div className="overflow-hidden">
       {/* Hero Section with Floating Elements */}
-      <section className="relative min-h-[100vh] flex items-center bg-gradient-to-br from-stone-50 via-rose-50/30 to-stone-100 overflow-hidden">
+      <section className="relative min-h-[100vh] flex items-center bg-gradient-to-br from-stone-50 via-[#ff8c6b]/5 to-stone-100 overflow-hidden">
         {/* Animated Doodles Background */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           {/* Food Doodles */}
-          <FoodDoodle1 className="absolute top-20 left-[5%] w-16 h-16 text-rose-200 animate-bounce" style={{ animationDuration: '3s' }} />
+          <FoodDoodle1 className="absolute top-20 left-[5%] w-16 h-16 text-[#ff8c6b]/30 animate-bounce" style={{ animationDuration: '3s' }} />
           <FoodDoodle2 className="absolute top-40 right-[10%] w-20 h-20 text-stone-300 animate-pulse" />
-          <FoodDoodle3 className="absolute bottom-32 left-[15%] w-14 h-14 text-rose-200 animate-bounce" style={{ animationDuration: '2.5s' }} />
+          <FoodDoodle3 className="absolute bottom-32 left-[15%] w-14 h-14 text-[#ff8c6b]/30 animate-bounce" style={{ animationDuration: '2.5s' }} />
           <PizzaDoodle className="absolute top-[15%] right-[20%] w-16 h-16 text-stone-300/60 animate-bounce" style={{ animationDuration: '3.5s' }} />
-          <CupcakeDoodle className="absolute bottom-[20%] right-[8%] w-14 h-16 text-rose-200/60 animate-pulse" />
+          <CupcakeDoodle className="absolute bottom-[20%] right-[8%] w-14 h-16 text-[#ff8c6b]/40 animate-pulse" />
           <CookieDoodle className="absolute top-[60%] left-[8%] w-12 h-12 text-stone-300/50 animate-bounce" style={{ animationDuration: '4s' }} />
-          <ChefHatDoodle className="absolute top-[10%] left-[25%] w-12 h-12 text-rose-200/50 animate-pulse" style={{ animationDelay: '0.5s' }} />
+          <ChefHatDoodle className="absolute top-[10%] left-[25%] w-12 h-12 text-[#ff8c6b]/30 animate-pulse" style={{ animationDelay: '0.5s' }} />
           <SpoonDoodle className="absolute bottom-[30%] left-[3%] w-8 h-20 text-stone-300/50 animate-bounce rotate-12" style={{ animationDuration: '3.2s' }} />
-          <WhiskDoodle className="absolute top-[30%] right-[5%] w-10 h-20 text-rose-200/50 animate-pulse -rotate-12" />
+          <WhiskDoodle className="absolute top-[30%] right-[5%] w-10 h-20 text-[#ff8c6b]/30 animate-pulse -rotate-12" />
           
           {/* Squiggly Lines */}
-          <SquiggleLine className="absolute top-1/4 left-0 w-48 text-rose-100 animate-pulse" />
+          <SquiggleLine className="absolute top-1/4 left-0 w-48 text-[#ff8c6b]/20 animate-pulse" />
           <SquiggleLine className="absolute bottom-1/4 right-0 w-48 text-stone-200 rotate-180 animate-pulse" style={{ animationDelay: '1s' }} />
-          <WavyLine className="absolute top-[45%] left-[10%] w-32 text-rose-100/60 animate-pulse" style={{ animationDelay: '0.5s' }} />
+          <WavyLine className="absolute top-[45%] left-[10%] w-32 text-[#ff8c6b]/20 animate-pulse" style={{ animationDelay: '0.5s' }} />
           <WavyLine className="absolute bottom-[15%] right-[15%] w-40 text-stone-200/60 rotate-12 animate-pulse" style={{ animationDelay: '1.5s' }} />
           
           {/* Floating Blobs */}
-          <div className="absolute top-20 left-10 w-40 h-40 bg-gradient-to-br from-rose-100/40 to-stone-200/40 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute bottom-20 right-10 w-56 h-56 bg-gradient-to-br from-rose-100/40 to-stone-200/40 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-          <div className="absolute top-1/2 left-1/4 w-32 h-32 bg-gradient-to-br from-stone-200/30 to-rose-100/30 rounded-full blur-2xl animate-bounce" style={{ animationDuration: '4s' }} />
+          <div className="absolute top-20 left-10 w-40 h-40 bg-gradient-to-br from-[#ff8c6b]/20 to-stone-200/40 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-20 right-10 w-56 h-56 bg-gradient-to-br from-[#ff8c6b]/20 to-stone-200/40 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+          <div className="absolute top-1/2 left-1/4 w-32 h-32 bg-gradient-to-br from-stone-200/30 to-[#ff8c6b]/20 rounded-full blur-2xl animate-bounce" style={{ animationDuration: '4s' }} />
         </div>
         
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 lg:py-20 w-full">
           {/* Hero Content */}
           <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm text-rose-600 px-5 py-2.5 rounded-full text-sm font-semibold mb-6 shadow-lg shadow-rose-500/10 animate-bounce" style={{ animationDuration: '2s' }}>
+            <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm text-[#ff8c6b] px-5 py-2.5 rounded-full text-sm font-semibold mb-6 shadow-lg shadow-[#ff8c6b]/10 animate-bounce" style={{ animationDuration: '2s' }}>
               <Sparkles className="h-4 w-4" />
               #FeedingFamilies Since 2020
             </div>
             
             <h1 className="text-4xl sm:text-5xl lg:text-7xl font-extrabold text-stone-900 tracking-tight leading-tight">
               Where Little Chefs
-              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-rose-500 via-rose-400 to-rose-600 animate-pulse">
+              <span className="block text-[#ff8c6b]">
                 Become Big Cooks
               </span>
             </h1>
@@ -270,7 +270,7 @@ export default function Home() {
 
           {/* Hero Buttons - Fixed Icon Placement */}
           <div className="flex flex-wrap justify-center gap-4 mb-12">
-            <Button size="lg" className="h-14 px-8 bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white shadow-xl shadow-rose-500/30 text-base font-semibold rounded-full" asChild>
+            <Button size="lg" className="h-14 px-8 bg-[#ff8c6b] hover:bg-[#e67854] text-white shadow-xl shadow-[#ff8c6b]/30 text-base font-semibold rounded-full" asChild>
               <Link href="/classes" className="flex items-center gap-3">
                 <Calendar className="h-5 w-5" />
                 <span>Book a Class</span>
@@ -279,7 +279,7 @@ export default function Home() {
             <Button 
               size="lg" 
               variant="outline" 
-              className="h-14 px-8 border-2 border-stone-300 hover:border-rose-500 hover:text-rose-600 bg-white/80 backdrop-blur-sm text-base font-semibold rounded-full"
+              className="h-14 px-8 border-2 border-stone-300 hover:border-[#ff8c6b] hover:text-[#ff8c6b] bg-white/80 backdrop-blur-sm text-base font-semibold rounded-full"
               onClick={() => setIsVideoOpen(true)}
             >
               <div className="flex items-center gap-3">
@@ -292,18 +292,18 @@ export default function Home() {
           {/* Stats Bar */}
           <div className="flex flex-wrap justify-center gap-6 lg:gap-12 mb-16 bg-white/60 backdrop-blur-sm rounded-2xl py-6 px-8 max-w-2xl mx-auto shadow-lg">
             <div className="text-center">
-              <div className="text-3xl lg:text-4xl font-extrabold text-rose-500">2000+</div>
+              <div className="text-3xl lg:text-4xl font-extrabold text-[#ff8c6b]">2000+</div>
               <div className="text-sm text-stone-500 font-medium">Happy Kids</div>
             </div>
             <div className="hidden sm:block w-px bg-stone-200" />
             <div className="text-center">
-              <div className="text-3xl lg:text-4xl font-extrabold text-rose-500">500+</div>
+              <div className="text-3xl lg:text-4xl font-extrabold text-[#ff8c6b]">500+</div>
               <div className="text-sm text-stone-500 font-medium">Classes Held</div>
             </div>
             <div className="hidden sm:block w-px bg-stone-200" />
             <div className="text-center">
-              <div className="text-3xl lg:text-4xl font-extrabold text-rose-500 flex items-center gap-1">
-                4.9 <Star className="h-6 w-6 text-rose-400 fill-rose-400" />
+              <div className="text-3xl lg:text-4xl font-extrabold text-[#ff8c6b] flex items-center gap-1">
+                4.9 <Star className="h-6 w-6 text-[#ff8c6b] fill-[#ff8c6b]" />
               </div>
               <div className="text-sm text-stone-500 font-medium">Rating</div>
             </div>
@@ -326,8 +326,8 @@ export default function Home() {
               </Link>
               <Link href="/classes?type=family" className="bg-white rounded-xl p-3 sm:p-4 shadow-lg hover:shadow-xl transition-all active:scale-95">
                 <div className="flex flex-col items-center text-center gap-2">
-                  <div className="w-12 h-12 rounded-xl bg-rose-100 flex items-center justify-center">
-                    <Users className="h-6 w-6 text-rose-500" />
+                  <div className="w-12 h-12 rounded-xl bg-[#ff8c6b]/10 flex items-center justify-center">
+                    <Users className="h-6 w-6 text-[#ff8c6b]" />
                   </div>
                   <div>
                     <div className="font-bold text-stone-900 text-sm">Family Classes</div>
@@ -449,14 +449,14 @@ export default function Home() {
             </Link>
 
             {/* Decorative circles around center */}
-            <div className="hidden lg:block absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full border-2 border-dashed border-rose-200 animate-spin" style={{ animationDuration: '30s' }} />
+            <div className="hidden lg:block absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full border-2 border-dashed border-[#ff8c6b]/30 animate-spin" style={{ animationDuration: '30s' }} />
             <div className="hidden lg:block absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[450px] h-[450px] rounded-full border border-stone-200" />
           </div>
         </div>
       </section>
 
       {/* Class Carousel Section */}
-      <section className="py-20 lg:py-28 bg-gradient-to-br from-rose-400 via-rose-500 to-rose-400 relative overflow-hidden">
+      <section className="py-20 lg:py-28 bg-gradient-to-br from-[#ff8c6b] via-[#e67854] to-[#ff8c6b] relative overflow-hidden">
         {/* Background Doodles */}
         <div className="absolute inset-0 pointer-events-none opacity-20">
           <FoodDoodle1 className="absolute top-10 left-20 w-24 h-24 text-white" />
@@ -494,7 +494,7 @@ export default function Home() {
             <div className="flex items-center justify-center gap-4 lg:gap-6 px-12 lg:px-16 overflow-hidden">
               {/* Previous Item */}
               <div className="hidden md:block w-32 h-32 lg:w-40 lg:h-40 rounded-full overflow-hidden opacity-60 flex-shrink-0 transition-all duration-500 shadow-lg border-4 border-white/30">
-                <div className="w-full h-full bg-gradient-to-br from-rose-200 to-rose-300 flex items-center justify-center">
+                <div className="w-full h-full bg-gradient-to-br from-[#ff8c6b]/30 to-[#ff8c6b]/50 flex items-center justify-center">
                   <span className="text-4xl">{classTypes[(currentSlide - 1 + classTypes.length) % classTypes.length]?.emoji || "🍳"}</span>
                 </div>
               </div>
@@ -502,7 +502,7 @@ export default function Home() {
               {/* Current Item */}
               <div className="relative flex-shrink-0 transition-all duration-500">
                 <div className="w-48 h-48 lg:w-64 lg:h-64 rounded-full overflow-hidden shadow-2xl border-4 border-white mx-auto">
-                  <div className="w-full h-full bg-gradient-to-br from-white to-rose-50 flex items-center justify-center">
+                  <div className="w-full h-full bg-gradient-to-br from-white to-[#ff8c6b]/10 flex items-center justify-center">
                     <span className="text-6xl lg:text-8xl">{classTypes[currentSlide % classTypes.length]?.emoji || "👨‍🍳"}</span>
                   </div>
                 </div>
@@ -512,10 +512,10 @@ export default function Home() {
                   <h3 className="text-xl lg:text-2xl font-bold text-white mb-2">
                     {carouselClasses[currentSlide]?.title}
                   </h3>
-                  <p className="text-rose-100 mb-4">{carouselClasses[currentSlide]?.date} • {carouselClasses[currentSlide]?.price}</p>
+                  <p className="text-white/80 mb-4">{carouselClasses[currentSlide]?.date} • {carouselClasses[currentSlide]?.price}</p>
                   
                   {/* Booking Button */}
-                  <Button size="lg" className="bg-white text-rose-600 hover:bg-rose-50 shadow-lg font-semibold rounded-full px-8" asChild>
+                  <Button size="lg" className="bg-white text-[#ff8c6b] hover:bg-[#ff8c6b]/10 shadow-lg font-semibold rounded-full px-8" asChild>
                     <Link href="/classes" className="flex items-center gap-2">
                       <Calendar className="h-5 w-5" />
                       Book Now
@@ -526,7 +526,7 @@ export default function Home() {
 
               {/* Next Item */}
               <div className="hidden md:block w-32 h-32 lg:w-40 lg:h-40 rounded-full overflow-hidden opacity-60 flex-shrink-0 transition-all duration-500 shadow-lg border-4 border-white/30">
-                <div className="w-full h-full bg-gradient-to-br from-rose-200 to-rose-300 flex items-center justify-center">
+                <div className="w-full h-full bg-gradient-to-br from-[#ff8c6b]/30 to-[#ff8c6b]/50 flex items-center justify-center">
                   <span className="text-4xl">{classTypes[(currentSlide + 1) % classTypes.length]?.emoji || "🍳"}</span>
                 </div>
               </div>
@@ -550,9 +550,9 @@ export default function Home() {
       </section>
 
       {/* Meet the Founder Section */}
-      <section className="py-16 lg:py-24 bg-gradient-to-br from-stone-50 to-rose-50/50 relative overflow-hidden">
+      <section className="py-16 lg:py-24 bg-gradient-to-br from-stone-50 to-[#ff8c6b]/10 relative overflow-hidden">
         {/* Doodles */}
-        <FoodDoodle1 className="absolute top-10 right-10 w-20 h-20 text-rose-100 animate-pulse" />
+        <FoodDoodle1 className="absolute top-10 right-10 w-20 h-20 text-[#ff8c6b]/20 animate-pulse" />
         <FoodDoodle3 className="absolute bottom-10 left-10 w-16 h-16 text-stone-200 animate-bounce" style={{ animationDuration: '3s' }} />
 
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 relative z-10">
@@ -567,17 +567,7 @@ export default function Home() {
                   className="object-cover object-top"
                   priority
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-stone-900/50 via-transparent to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-4">
-                  <div className="inline-flex items-center gap-2 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full">
-                    <Heart className="h-3 w-3 text-rose-500" />
-                    <span className="text-xs font-medium text-stone-700">Mom of 3 Boys</span>
-                  </div>
-                </div>
               </div>
-              {/* Decorative elements */}
-              <div className="absolute -top-2 -right-2 lg:-top-3 lg:-right-3 w-14 h-14 lg:w-16 lg:h-16 bg-amber-300 rounded-full opacity-20 animate-pulse" />
-              <div className="absolute -bottom-2 -left-2 lg:-bottom-3 lg:-left-3 w-16 h-16 lg:w-20 lg:h-20 bg-stone-300 rounded-full opacity-20 animate-pulse" style={{ animationDelay: '1s' }} />
             </div>
             
             {/* Content */}
@@ -637,17 +627,17 @@ export default function Home() {
             {testimonials.map((testimonial, idx) => (
               <div
                 key={idx}
-                className="p-8 rounded-3xl bg-gradient-to-br from-stone-50 to-rose-50/50 border border-stone-200 hover:shadow-xl transition-all hover:-translate-y-1"
+                className="p-8 rounded-3xl bg-gradient-to-br from-stone-50 to-[#ff8c6b]/10 border border-stone-200 hover:shadow-xl transition-all hover:-translate-y-1"
               >
                 <div className="flex gap-1 mb-4">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-5 w-5 fill-rose-400 text-rose-400" />
+                    <Star key={i} className="h-5 w-5 fill-[#ff8c6b] text-[#ff8c6b]" />
                   ))}
                 </div>
                 <p className="text-lg text-stone-700 mb-6">&quot;{testimonial.quote}&quot;</p>
                 <div>
                   <p className="font-bold text-stone-900">{testimonial.author}</p>
-                  <p className="text-rose-500 text-sm">{testimonial.role}</p>
+                  <p className="text-[#ff8c6b] text-sm">{testimonial.role}</p>
                 </div>
               </div>
             ))}

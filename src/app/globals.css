@@ -1,25 +1,37 @@
 @import "tailwindcss";
 
-/* Import Google Fonts - Poppins for modern, friendly feel */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+/* Import Google Fonts - Patrick Hand (similar to KG Seven Sixteen) */
+@import url('https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Poppins:wght@300;400;500;600;700;800&display=swap');
 
 :root {
   --background: #fafaf9;
   --foreground: #1c1917;
-  --font-poppins: 'Poppins', sans-serif;
+  --font-main: 'Patrick Hand', cursive;
+  --font-body: 'Poppins', sans-serif;
+  --color-peach: #ff8c6b;
+  --color-peach-light: #ffa891;
+  --color-peach-dark: #e67854;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-poppins);
+  --color-peach-500: #ff8c6b;
+  --color-peach-400: #ffa891;
+  --color-peach-600: #e67854;
+  --font-sans: var(--font-body);
+  --font-display: var(--font-main);
   --font-mono: var(--font-geist-mono);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-poppins), Arial, Helvetica, sans-serif;
+  font-family: var(--font-body), Arial, Helvetica, sans-serif;
+}
+
+h1, h2, h3, .font-display {
+  font-family: var(--font-main), cursive;
 }
 
 /* Custom scrollbar */
