@@ -165,10 +165,10 @@ export async function getProductCategories() {
 }
 
 // ============ CLASS QUERIES ============
-export async function getClasses(category?: string) {
-  const filter = category 
-    ? `*[_type == "cookingClass" && active == true && category == $category]`
-    : `*[_type == "cookingClass" && active == true]`;
+export async function getClasses(classType?: string) {
+  const filter = classType 
+    ? `*[_type == "cookingClass" && (isActive == true || !defined(isActive)) && classType == $classType]`
+    : `*[_type == "cookingClass" && (isActive == true || !defined(isActive))]`;
   
   return sanityClient.fetch(`
     ${filter} | order(startDate asc) {
@@ -190,7 +190,7 @@ export async function getClasses(category?: string) {
       featured,
       instructorId
     }
-  `, category ? { category } : {});
+  `, classType ? { classType } : {});
 }
 
 export async function getClassBySlug(slug: string) {

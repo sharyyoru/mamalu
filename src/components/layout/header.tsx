@@ -30,13 +30,14 @@ const navigationRight = [
   {
     name: "Services",
     href: "/services",
+    special: false,
     children: [
       { name: "Private Events", href: "/services/events" },
       { name: "Food Consultancy", href: "/services/consultancy" },
     ],
   },
-  { name: "Blog", href: "/blogs" },
-  { name: "Contact", href: "/contact" },
+  { name: "Blog", href: "/blogs", special: false },
+  { name: "Contact", href: "/contact", special: false },
 ];
 
 const allNavigation = [...navigationLeft, ...navigationRight];
@@ -176,43 +177,74 @@ export function Header() {
         {/* Mobile Navigation */}
         <div
           className={cn(
-            "lg:hidden overflow-hidden transition-all duration-300",
-            mobileMenuOpen ? "max-h-[80vh] pb-6" : "max-h-0"
+            "lg:hidden overflow-hidden transition-all duration-500 ease-in-out",
+            mobileMenuOpen ? "max-h-[80vh] pb-6 opacity-100" : "max-h-0 opacity-0"
           )}
         >
-          <div className="space-y-1 pt-4 border-t border-stone-100">
-            {allNavigation.map((item) => (
-              <div key={item.name}>
-                <Link
-                  href={item.href}
-                  className="flex items-center justify-between py-3 text-base font-medium text-stone-700 hover:text-[#ff8c6b]"
-                  onClick={() => !item.children && setMobileMenuOpen(false)}
-                >
-                  {item.name}
-                </Link>
-                {item.children && (
-                  <div className="pl-4 pb-2 space-y-1">
-                    {item.children.map((child: { name: string; href: string }) => (
-                      <Link
-                        key={child.name}
-                        href={child.href}
-                        className="block py-2 text-sm text-stone-500 hover:text-[#ff8c6b]"
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        {child.name}
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-            <div className="pt-4">
+          <div className="pt-4 border-t border-stone-100">
+            {/* Special Items - Classes & Shop */}
+            <div className="flex gap-3 mb-4">
               <Link 
                 href="/classes" 
-                className="flex items-center justify-center gap-2 bg-gradient-to-r from-[#ff8c6b] to-[#e67854] text-white px-4 py-3 rounded-xl text-sm font-medium w-full"
+                className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-[#ff8c6b] to-[#e67854] text-white px-4 py-3 rounded-xl text-sm font-semibold shadow-lg shadow-[#ff8c6b]/20 hover:shadow-xl transition-all"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                Book a Class
+                <GraduationCap className="h-4 w-4" />
+                Classes
+              </Link>
+              <Link 
+                href="/products" 
+                className="flex-1 flex items-center justify-center gap-2 bg-stone-900 text-white px-4 py-3 rounded-xl text-sm font-semibold shadow-lg hover:bg-stone-800 transition-all"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <Store className="h-4 w-4" />
+                Shop
+              </Link>
+            </div>
+
+            {/* Navigation Links */}
+            <div className="space-y-1 bg-stone-50 rounded-xl p-3">
+              {allNavigation.filter(item => !item.special).map((item, index) => (
+                <div 
+                  key={item.name}
+                  className="animate-fadeIn"
+                  style={{ animationDelay: `${index * 50}ms` }}
+                >
+                  <Link
+                    href={item.href}
+                    className="flex items-center justify-between py-3 px-3 text-base font-medium text-stone-700 hover:text-[#ff8c6b] hover:bg-white rounded-lg transition-all"
+                    onClick={() => !item.children && setMobileMenuOpen(false)}
+                  >
+                    {item.name}
+                    {item.children && <ChevronDown className="h-4 w-4 text-stone-400" />}
+                  </Link>
+                  {item.children && (
+                    <div className="pl-4 pb-2 space-y-1">
+                      {item.children.map((child: { name: string; href: string }) => (
+                        <Link
+                          key={child.name}
+                          href={child.href}
+                          className="block py-2 px-3 text-sm text-stone-500 hover:text-[#ff8c6b] hover:bg-white rounded-lg transition-all"
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          {child.name}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Bottom CTA */}
+            <div className="mt-4 p-4 bg-gradient-to-r from-[#ff8c6b]/10 to-[#e67854]/10 rounded-xl">
+              <p className="text-sm text-stone-600 mb-2">Ready to cook?</p>
+              <Link 
+                href="/classes" 
+                className="flex items-center justify-center gap-2 bg-[#ff8c6b] text-white px-4 py-3 rounded-full text-sm font-semibold w-full hover:bg-[#e67854] transition-colors"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Book a Class Today
               </Link>
             </div>
           </div>

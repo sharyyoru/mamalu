@@ -222,29 +222,29 @@ export default function Home() {
       <div className="overflow-hidden">
       {/* Hero Section with Floating Elements */}
       <section className="relative min-h-[100vh] flex items-center bg-gradient-to-br from-stone-50 via-[#ff8c6b]/5 to-stone-100 overflow-hidden">
-        {/* Animated Doodles Background */}
+        {/* Animated Doodles Background - Hidden or spaced on mobile */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {/* Food Doodles */}
-          <FoodDoodle1 className="absolute top-20 left-[5%] w-16 h-16 text-[#ff8c6b]/30 animate-bounce" style={{ animationDuration: '3s' }} />
-          <FoodDoodle2 className="absolute top-40 right-[10%] w-20 h-20 text-stone-300 animate-pulse" />
-          <FoodDoodle3 className="absolute bottom-32 left-[15%] w-14 h-14 text-[#ff8c6b]/30 animate-bounce" style={{ animationDuration: '2.5s' }} />
-          <PizzaDoodle className="absolute top-[15%] right-[20%] w-16 h-16 text-stone-300/60 animate-bounce" style={{ animationDuration: '3.5s' }} />
-          <CupcakeDoodle className="absolute bottom-[20%] right-[8%] w-14 h-16 text-[#ff8c6b]/40 animate-pulse" />
-          <CookieDoodle className="absolute top-[60%] left-[8%] w-12 h-12 text-stone-300/50 animate-bounce" style={{ animationDuration: '4s' }} />
-          <ChefHatDoodle className="absolute top-[10%] left-[25%] w-12 h-12 text-[#ff8c6b]/30 animate-pulse" style={{ animationDelay: '0.5s' }} />
-          <SpoonDoodle className="absolute bottom-[30%] left-[3%] w-8 h-20 text-stone-300/50 animate-bounce rotate-12" style={{ animationDuration: '3.2s' }} />
-          <WhiskDoodle className="absolute top-[30%] right-[5%] w-10 h-20 text-[#ff8c6b]/30 animate-pulse -rotate-12" />
+          {/* Food Doodles - Only show select ones on mobile, all on desktop */}
+          <FoodDoodle1 className="hidden sm:block absolute top-20 left-[5%] w-16 h-16 text-[#ff8c6b]/30 animate-bounce" style={{ animationDuration: '3s' }} />
+          <FoodDoodle2 className="absolute top-[8%] right-[5%] w-12 sm:w-20 h-12 sm:h-20 text-stone-300 animate-pulse" />
+          <FoodDoodle3 className="hidden sm:block absolute bottom-32 left-[15%] w-14 h-14 text-[#ff8c6b]/30 animate-bounce" style={{ animationDuration: '2.5s' }} />
+          <PizzaDoodle className="hidden lg:block absolute top-[15%] right-[20%] w-16 h-16 text-stone-300/60 animate-bounce" style={{ animationDuration: '3.5s' }} />
+          <CupcakeDoodle className="absolute bottom-[25%] right-[3%] sm:right-[8%] w-10 sm:w-14 h-12 sm:h-16 text-[#ff8c6b]/40 animate-pulse" />
+          <CookieDoodle className="hidden md:block absolute top-[60%] left-[8%] w-12 h-12 text-stone-300/50 animate-bounce" style={{ animationDuration: '4s' }} />
+          <ChefHatDoodle className="absolute top-[5%] sm:top-[10%] left-[10%] sm:left-[25%] w-10 sm:w-12 h-10 sm:h-12 text-[#ff8c6b]/30 animate-pulse" style={{ animationDelay: '0.5s' }} />
+          <SpoonDoodle className="hidden lg:block absolute bottom-[30%] left-[3%] w-8 h-20 text-stone-300/50 animate-bounce rotate-12" style={{ animationDuration: '3.2s' }} />
+          <WhiskDoodle className="hidden md:block absolute top-[30%] right-[5%] w-10 h-20 text-[#ff8c6b]/30 animate-pulse -rotate-12" />
           
-          {/* Squiggly Lines */}
-          <SquiggleLine className="absolute top-1/4 left-0 w-48 text-[#ff8c6b]/20 animate-pulse" />
-          <SquiggleLine className="absolute bottom-1/4 right-0 w-48 text-stone-200 rotate-180 animate-pulse" style={{ animationDelay: '1s' }} />
-          <WavyLine className="absolute top-[45%] left-[10%] w-32 text-[#ff8c6b]/20 animate-pulse" style={{ animationDelay: '0.5s' }} />
-          <WavyLine className="absolute bottom-[15%] right-[15%] w-40 text-stone-200/60 rotate-12 animate-pulse" style={{ animationDelay: '1.5s' }} />
+          {/* Squiggly Lines - Fewer on mobile, evenly spaced */}
+          <SquiggleLine className="hidden sm:block absolute top-[15%] left-0 w-32 lg:w-48 text-[#ff8c6b]/20 animate-pulse" />
+          <SquiggleLine className="hidden sm:block absolute bottom-[10%] right-0 w-32 lg:w-48 text-stone-200 rotate-180 animate-pulse" style={{ animationDelay: '1s' }} />
+          <WavyLine className="hidden lg:block absolute top-[50%] left-[10%] w-32 text-[#ff8c6b]/20 animate-pulse" style={{ animationDelay: '0.5s' }} />
+          <WavyLine className="hidden lg:block absolute bottom-[35%] right-[15%] w-40 text-stone-200/60 rotate-12 animate-pulse" style={{ animationDelay: '1.5s' }} />
           
-          {/* Floating Blobs */}
-          <div className="absolute top-20 left-10 w-40 h-40 bg-gradient-to-br from-[#ff8c6b]/20 to-stone-200/40 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute bottom-20 right-10 w-56 h-56 bg-gradient-to-br from-[#ff8c6b]/20 to-stone-200/40 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-          <div className="absolute top-1/2 left-1/4 w-32 h-32 bg-gradient-to-br from-stone-200/30 to-[#ff8c6b]/20 rounded-full blur-2xl animate-bounce" style={{ animationDuration: '4s' }} />
+          {/* Floating Blobs - Smaller on mobile */}
+          <div className="absolute top-20 left-5 sm:left-10 w-24 sm:w-40 h-24 sm:h-40 bg-gradient-to-br from-[#ff8c6b]/15 to-stone-200/30 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-20 right-5 sm:right-10 w-32 sm:w-56 h-32 sm:h-56 bg-gradient-to-br from-[#ff8c6b]/15 to-stone-200/30 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+          <div className="hidden sm:block absolute top-1/2 left-1/4 w-32 h-32 bg-gradient-to-br from-stone-200/30 to-[#ff8c6b]/20 rounded-full blur-2xl animate-bounce" style={{ animationDuration: '4s' }} />
         </div>
         
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 lg:py-20 w-full">
