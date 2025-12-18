@@ -26,6 +26,7 @@
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "react-email": "^5.1.0",
+    "react-email-editor": "^1.7.11",
     "resend": "^6.6.0",
     "sanity": "^4.20.3",
     "stripe": "^20.0.0",

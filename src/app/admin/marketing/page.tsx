@@ -36,6 +36,17 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatPrice, formatDate } from "@/lib/utils";
+import dynamic from "next/dynamic";
+
+const EmailBuilder = dynamic(() => import("@/components/email-editor/EmailBuilder"), {
+  ssr: false,
+  loading: () => <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div className="bg-white rounded-xl p-8">
+      <div className="animate-spin h-8 w-8 border-4 border-amber-500 border-t-transparent rounded-full mx-auto" />
+      <p className="text-stone-600 mt-4">Loading Email Builder...</p>
+    </div>
+  </div>
+});
 
 interface Campaign {
   id: string;
@@ -128,91 +139,6 @@ const AUDIENCE_PRESETS = [
   { id: "never-purchased", name: "Never Purchased", icon: AlertCircle, filters: { frequencyTier: "never" } },
 ];
 
-const EMAIL_TEMPLATES = [
-  {
-    id: "welcome",
-    name: "Welcome Email",
-    subject: "Welcome to Mamalu Kitchen, {{first_name}}!",
-    preview: "We're excited to have you...",
-    html: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
-      <div style="text-align: center; margin-bottom: 30px;">
-        <h1 style="color: #d97706; margin: 0;">Welcome to Mamalu Kitchen!</h1>
-      </div>
-      <p style="color: #44403c; font-size: 16px; line-height: 1.6;">Hi {{first_name}},</p>
-      <p style="color: #44403c; font-size: 16px; line-height: 1.6;">Thank you for joining the Mamalu Kitchen family! We're thrilled to have you with us.</p>
-      <p style="color: #44403c; font-size: 16px; line-height: 1.6;">Explore our cooking classes, artisan products, and culinary experiences that await you.</p>
-      <div style="text-align: center; margin: 30px 0;">
-        <a href="https://mamalu.ae" style="background: #d97706; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold;">Explore Classes</a>
-      </div>
-      <p style="color: #78716c; font-size: 14px;">Best regards,<br>The Mamalu Kitchen Team</p>
-    </div>`
-  },
-  {
-    id: "birthday",
-    name: "Birthday Wishes",
-    subject: "Happy Birthday, {{first_name}}! 🎂 A Special Gift Inside",
-    preview: "Celebrate with a special discount...",
-    html: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);">
-      <div style="text-align: center; margin-bottom: 30px;">
-        <h1 style="color: #d97706; margin: 0; font-size: 32px;">🎂 Happy Birthday!</h1>
-      </div>
-      <div style="background: white; border-radius: 16px; padding: 30px; text-align: center;">
-        <p style="color: #44403c; font-size: 18px; line-height: 1.6;">Dear {{first_name}},</p>
-        <p style="color: #44403c; font-size: 16px; line-height: 1.6;">Wishing you a wonderful birthday filled with joy and delicious food!</p>
-        <div style="background: #fef3c7; border-radius: 12px; padding: 20px; margin: 20px 0;">
-          <p style="color: #92400e; font-size: 14px; margin: 0;">YOUR BIRTHDAY GIFT</p>
-          <p style="color: #d97706; font-size: 36px; font-weight: bold; margin: 10px 0;">20% OFF</p>
-          <p style="color: #78716c; font-size: 14px; margin: 0;">Use code: <strong>BIRTHDAY20</strong></p>
-        </div>
-        <a href="https://mamalu.ae" style="display: inline-block; background: #d97706; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold;">Shop Now</a>
-      </div>
-    </div>`
-  },
-  {
-    id: "winback",
-    name: "We Miss You",
-    subject: "We miss you, {{first_name}}! Come back for 15% off",
-    preview: "It's been a while since your last visit...",
-    html: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
-      <div style="text-align: center; margin-bottom: 30px;">
-        <h1 style="color: #44403c; margin: 0;">We Miss You! 💛</h1>
-      </div>
-      <p style="color: #44403c; font-size: 16px; line-height: 1.6;">Hi {{first_name}},</p>
-      <p style="color: #44403c; font-size: 16px; line-height: 1.6;">It's been a while since we've seen you at Mamalu Kitchen. We've been cooking up some exciting new classes and products that we think you'll love!</p>
-      <div style="background: #f5f5f4; border-radius: 12px; padding: 20px; margin: 20px 0; text-align: center;">
-        <p style="color: #78716c; font-size: 14px; margin: 0;">WELCOME BACK OFFER</p>
-        <p style="color: #d97706; font-size: 32px; font-weight: bold; margin: 10px 0;">15% OFF</p>
-        <p style="color: #78716c; font-size: 14px; margin: 0;">Use code: <strong>COMEBACK15</strong></p>
-      </div>
-      <div style="text-align: center;">
-        <a href="https://mamalu.ae" style="display: inline-block; background: #d97706; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold;">See What's New</a>
-      </div>
-    </div>`
-  },
-  {
-    id: "vip",
-    name: "VIP Exclusive",
-    subject: "Exclusive VIP Access for {{first_name}}",
-    preview: "As one of our top customers...",
-    html: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background: linear-gradient(135deg, #1c1917 0%, #292524 100%);">
-      <div style="text-align: center; margin-bottom: 30px;">
-        <p style="color: #d97706; font-size: 14px; letter-spacing: 2px; margin: 0;">✨ VIP EXCLUSIVE ✨</p>
-        <h1 style="color: white; margin: 10px 0; font-size: 28px;">You're One of Our Best</h1>
-      </div>
-      <div style="background: #44403c; border-radius: 16px; padding: 30px;">
-        <p style="color: #e7e5e4; font-size: 16px; line-height: 1.6;">Dear {{first_name}},</p>
-        <p style="color: #e7e5e4; font-size: 16px; line-height: 1.6;">As a valued VIP customer with <strong style="color: #d97706;">{{total_spend}}</strong> in purchases, you've earned exclusive early access to our newest offerings.</p>
-        <div style="border: 1px solid #d97706; border-radius: 12px; padding: 20px; margin: 20px 0; text-align: center;">
-          <p style="color: #d97706; font-size: 24px; font-weight: bold; margin: 0;">25% OFF</p>
-          <p style="color: #a8a29e; font-size: 14px; margin: 5px 0 0 0;">VIP Members Only</p>
-        </div>
-        <div style="text-align: center;">
-          <a href="https://mamalu.ae" style="display: inline-block; background: #d97706; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold;">Shop VIP Collection</a>
-        </div>
-      </div>
-    </div>`
-  },
-];
 
 export default function MarketingPage() {
   const [tab, setTab] = useState<'campaigns' | 'discounts' | 'referrals'>('campaigns');
@@ -224,13 +150,12 @@ export default function MarketingPage() {
   const [showReferralModal, setShowReferralModal] = useState(false);
   const [selectedAudience, setSelectedAudience] = useState(AUDIENCE_PRESETS[0]);
   const [audienceCount, setAudienceCount] = useState(0);
-  const [selectedTemplate, setSelectedTemplate] = useState(EMAIL_TEMPLATES[0]);
-  const [emailSubject, setEmailSubject] = useState(EMAIL_TEMPLATES[0].subject);
-  const [emailHtml, setEmailHtml] = useState(EMAIL_TEMPLATES[0].html);
+  const [emailSubject, setEmailSubject] = useState("");
+  const [emailHtml, setEmailHtml] = useState("");
+  const [emailDesign, setEmailDesign] = useState<object | null>(null);
   const [campaignName, setCampaignName] = useState("");
   const [testEmail, setTestEmail] = useState("");
   const [sending, setSending] = useState(false);
-  const [copiedVar, setCopiedVar] = useState<string | null>(null);
   const [referralProgram, setReferralProgram] = useState<ReferralProgram | null>(null);
   const [topReferrers, setTopReferrers] = useState<TopReferrer[]>([]);
   const [referralStats, setReferralStats] = useState({ total: 0, completed: 0, totalRevenue: 0 });
@@ -335,26 +260,6 @@ export default function MarketingPage() {
     }
   };
 
-  const copyVariable = (varName: string) => {
-    navigator.clipboard.writeText(`{{${varName}}}`);
-    setCopiedVar(varName);
-    setTimeout(() => setCopiedVar(null), 2000);
-  };
-
-  const insertVariable = (varName: string) => {
-    const variable = `{{${varName}}}`;
-    setEmailHtml(prev => prev + variable);
-  };
-
-  const handleTemplateChange = (templateId: string) => {
-    const template = EMAIL_TEMPLATES.find(t => t.id === templateId);
-    if (template) {
-      setSelectedTemplate(template);
-      setEmailSubject(template.subject);
-      setEmailHtml(template.html);
-    }
-  };
-
   const handleSendTest = async () => {
     if (!testEmail) return;
     setSending(true);
@@ -381,8 +286,11 @@ export default function MarketingPage() {
     setSending(false);
   };
 
-  const handleCreateCampaign = async () => {
-    if (!campaignName || !emailSubject) return;
+  const handleSaveEmailBuilder = async (design: object, html: string) => {
+    if (!campaignName || !emailSubject) {
+      alert("Please enter a campaign name and subject");
+      return;
+    }
     setSending(true);
     try {
       const res = await fetch("/api/admin/marketing/campaigns", {
@@ -392,7 +300,8 @@ export default function MarketingPage() {
           name: campaignName,
           type: "email",
           subject: emailSubject,
-          html_content: emailHtml,
+          html_content: html,
+          email_design: design,
           audience_filter: selectedAudience.filters,
           audience_name: selectedAudience.name,
         }),
@@ -402,6 +311,8 @@ export default function MarketingPage() {
         await fetchCampaigns();
         setShowCampaignModal(false);
         setCampaignName("");
+        setEmailSubject("");
+        setEmailDesign(null);
         alert("Campaign created successfully!");
       }
     } catch (error) {
@@ -735,170 +646,17 @@ export default function MarketingPage() {
         </div>
       )}
 
-      {/* Campaign Creation Modal */}
+      {/* Email Builder Modal */}
       {showCampaignModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b border-stone-200 p-6 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-stone-900">Create Email Campaign</h2>
-              <Button variant="ghost" size="sm" onClick={() => setShowCampaignModal(false)}>
-                <X className="h-5 w-5" />
-              </Button>
-            </div>
-            
-            <div className="p-6 space-y-6">
-              {/* Campaign Name */}
-              <div>
-                <label className="block text-sm font-medium text-stone-700 mb-2">Campaign Name</label>
-                <input
-                  type="text"
-                  value={campaignName}
-                  onChange={(e) => setCampaignName(e.target.value)}
-                  placeholder="e.g., Holiday Sale 2024"
-                  className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
-                />
-              </div>
-
-              {/* Template Selection */}
-              <div>
-                <label className="block text-sm font-medium text-stone-700 mb-2">Email Template</label>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {EMAIL_TEMPLATES.map((template) => (
-                    <button
-                      key={template.id}
-                      onClick={() => handleTemplateChange(template.id)}
-                      className={`p-3 border rounded-lg text-left transition-all ${
-                        selectedTemplate.id === template.id 
-                          ? 'border-amber-500 bg-amber-50 ring-2 ring-amber-500' 
-                          : 'border-stone-200 hover:border-amber-300'
-                      }`}
-                    >
-                      <p className="font-medium text-stone-900 text-sm">{template.name}</p>
-                      <p className="text-xs text-stone-500 mt-1 truncate">{template.preview}</p>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Audience Selection */}
-              <div>
-                <label className="block text-sm font-medium text-stone-700 mb-2">
-                  <Filter className="h-4 w-4 inline mr-1" />
-                  Target Audience
-                </label>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {AUDIENCE_PRESETS.map((audience) => {
-                    const Icon = audience.icon;
-                    return (
-                      <button
-                        key={audience.id}
-                        onClick={() => setSelectedAudience(audience)}
-                        className={`p-3 border rounded-lg text-left transition-all flex items-center gap-3 ${
-                          selectedAudience.id === audience.id 
-                            ? 'border-amber-500 bg-amber-50 ring-2 ring-amber-500' 
-                            : 'border-stone-200 hover:border-amber-300'
-                        }`}
-                      >
-                        <Icon className="h-5 w-5 text-amber-600" />
-                        <div>
-                          <p className="font-medium text-stone-900 text-sm">{audience.name}</p>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-                <p className="mt-2 text-sm text-stone-500">
-                  <Users className="h-4 w-4 inline mr-1" />
-                  Estimated recipients: <strong>{audienceCount.toLocaleString()}</strong>
-                </p>
-              </div>
-
-              {/* Customer Variables */}
-              <div>
-                <label className="block text-sm font-medium text-stone-700 mb-2">
-                  <Sparkles className="h-4 w-4 inline mr-1" />
-                  Customer Variables (click to copy)
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {CUSTOMER_VARIABLES.map((variable) => (
-                    <button
-                      key={variable.name}
-                      onClick={() => copyVariable(variable.name)}
-                      className="px-3 py-1.5 bg-stone-100 hover:bg-stone-200 rounded-full text-sm flex items-center gap-2 transition-colors"
-                    >
-                      <code className="text-amber-600">{`{{${variable.name}}}`}</code>
-                      {copiedVar === variable.name ? (
-                        <Check className="h-3 w-3 text-green-600" />
-                      ) : (
-                        <Copy className="h-3 w-3 text-stone-400" />
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Email Subject */}
-              <div>
-                <label className="block text-sm font-medium text-stone-700 mb-2">Email Subject</label>
-                <input
-                  type="text"
-                  value={emailSubject}
-                  onChange={(e) => setEmailSubject(e.target.value)}
-                  placeholder="Enter email subject..."
-                  className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
-                />
-              </div>
-
-              {/* Email Content */}
-              <div>
-                <label className="block text-sm font-medium text-stone-700 mb-2">Email Content (HTML)</label>
-                <textarea
-                  value={emailHtml}
-                  onChange={(e) => setEmailHtml(e.target.value)}
-                  rows={12}
-                  className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 font-mono text-sm"
-                />
-              </div>
-
-              {/* Preview */}
-              <div>
-                <label className="block text-sm font-medium text-stone-700 mb-2">
-                  <Eye className="h-4 w-4 inline mr-1" />
-                  Preview
-                </label>
-                <div className="border border-stone-200 rounded-lg p-4 bg-stone-50">
-                  <div 
-                    className="bg-white rounded-lg shadow-sm"
-                    dangerouslySetInnerHTML={{ __html: emailHtml }}
-                  />
-                </div>
-              </div>
-
-              {/* Test Email */}
-              <div className="flex gap-3">
-                <input
-                  type="email"
-                  value={testEmail}
-                  onChange={(e) => setTestEmail(e.target.value)}
-                  placeholder="Enter email to send test..."
-                  className="flex-1 px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
-                />
-                <Button variant="outline" onClick={handleSendTest} disabled={sending || !testEmail}>
-                  <Send className="h-4 w-4 mr-2" />
-                  Send Test
-                </Button>
-              </div>
-            </div>
-
-            <div className="sticky bottom-0 bg-white border-t border-stone-200 p-6 flex justify-end gap-3">
-              <Button variant="outline" onClick={() => setShowCampaignModal(false)}>Cancel</Button>
-              <Button onClick={handleCreateCampaign} disabled={sending || !campaignName || !emailSubject}>
-                {sending ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : <Plus className="h-4 w-4 mr-2" />}
-                Create Campaign
-              </Button>
-            </div>
-          </div>
-        </div>
+        <EmailBuilder
+          onSave={handleSaveEmailBuilder}
+          onClose={() => setShowCampaignModal(false)}
+          initialDesign={emailDesign || undefined}
+          campaignName={campaignName}
+          onCampaignNameChange={setCampaignName}
+          subject={emailSubject}
+          onSubjectChange={setEmailSubject}
+        />
       )}
 
       {/* Discount Modal */}
