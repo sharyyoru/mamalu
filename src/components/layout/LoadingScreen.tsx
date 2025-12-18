@@ -34,25 +34,25 @@ export default function LoadingScreen() {
 
   return (
     <div
-      className={`fixed inset-0 z-[200] bg-gradient-to-br from-stone-50 via-amber-50/30 to-stone-100 flex flex-col items-center justify-center transition-opacity duration-500 ${
+      className={`fixed inset-0 z-[200] bg-gradient-to-br from-stone-50 via-rose-50/30 to-stone-100 flex flex-col items-center justify-center transition-opacity duration-500 ${
         progress >= 100 ? "opacity-0 pointer-events-none" : "opacity-100"
       }`}
     >
       {/* Animated Logo */}
       <div className="relative mb-8">
         {/* Outer ring */}
-        <div className="w-32 h-32 rounded-full border-4 border-amber-100 animate-pulse" />
+        <div className="w-32 h-32 rounded-full border-4 border-rose-100 animate-pulse" />
         
         {/* Spinning ring */}
         <div 
-          className="absolute inset-0 w-32 h-32 rounded-full border-4 border-transparent border-t-amber-500 animate-spin"
+          className="absolute inset-0 w-32 h-32 rounded-full border-4 border-transparent border-t-rose-500 animate-spin"
           style={{ animationDuration: '1s' }}
         />
         
         {/* Inner circle with chef hat icon */}
         <div className="absolute inset-4 bg-white rounded-full shadow-lg flex items-center justify-center">
           <svg 
-            className="w-12 h-12 text-amber-500 animate-bounce" 
+            className="w-12 h-12 text-rose-500 animate-bounce" 
             style={{ animationDuration: '1.5s' }}
             fill="none" 
             viewBox="0 0 24 24" 
@@ -77,7 +77,7 @@ export default function LoadingScreen() {
       {/* Progress bar */}
       <div className="w-48 h-1.5 bg-stone-200 rounded-full overflow-hidden">
         <div
-          className="h-full bg-gradient-to-r from-amber-400 to-amber-600 rounded-full transition-all duration-200"
+          className="h-full bg-gradient-to-r from-rose-400 to-rose-600 rounded-full transition-all duration-200"
           style={{ width: `${Math.min(progress, 100)}%` }}
         />
       </div>

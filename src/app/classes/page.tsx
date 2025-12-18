@@ -34,7 +34,7 @@ interface CookingClass {
 const categories = [
   { id: "all", label: "All Classes", icon: BookOpen, color: "bg-stone-100 text-stone-700 hover:bg-stone-200" },
   { id: "kids", label: "Kids Classes", icon: Baby, color: "bg-pink-100 text-pink-700 hover:bg-pink-200" },
-  { id: "family", label: "Family Classes", icon: Users, color: "bg-amber-100 text-amber-700 hover:bg-amber-200" },
+  { id: "family", label: "Family Classes", icon: Users, color: "bg-rose-100 text-rose-700 hover:bg-rose-200" },
   { id: "birthday", label: "Birthday Parties", icon: Cake, color: "bg-violet-100 text-violet-700 hover:bg-violet-200" },
   { id: "adults", label: "Adult Classes", icon: ChefHat, color: "bg-emerald-100 text-emerald-700 hover:bg-emerald-200" },
 ];
@@ -51,7 +51,7 @@ export default async function ClassesPage({
   return (
     <div>
       {/* Hero */}
-      <section className="bg-gradient-to-br from-stone-50 via-amber-50/30 to-stone-100 py-16">
+      <section className="bg-gradient-to-br from-stone-50 via-rose-50/30 to-stone-100 py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto text-center">
             <h1 className="text-4xl sm:text-5xl font-bold text-stone-900">
@@ -75,7 +75,7 @@ export default async function ClassesPage({
                   className={`
                     flex items-center gap-2 px-4 py-2.5 rounded-full font-medium text-sm transition-all
                     ${isSelected 
-                      ? "bg-amber-500 text-white shadow-lg shadow-amber-500/30 scale-105" 
+                      ? "bg-rose-500 text-white shadow-lg shadow-rose-500/30 scale-105" 
                       : cat.color}
                   `}
                 >
@@ -98,7 +98,7 @@ export default async function ClassesPage({
                   key={cls._id}
                   className="group overflow-hidden hover:shadow-lg transition-shadow flex flex-col"
                 >
-                  <div className="aspect-video bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center relative overflow-hidden">
+                  <div className="aspect-video bg-gradient-to-br from-rose-100 to-rose-200 flex items-center justify-center relative overflow-hidden">
                     {cls.mainImage ? (
                       <Image
                         src={urlFor(cls.mainImage).width(600).height(340).url()}
@@ -107,7 +107,7 @@ export default async function ClassesPage({
                         className="object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                     ) : (
-                      <BookOpen className="h-12 w-12 text-amber-600/30" />
+                      <BookOpen className="h-12 w-12 text-rose-500/30" />
                     )}
                   </div>
                   <CardContent className="p-6 flex-1">
@@ -119,7 +119,7 @@ export default async function ClassesPage({
                         </Badge>
                       )}
                     </div>
-                    <h3 className="text-xl font-semibold text-stone-900 mb-2 group-hover:text-amber-600 transition-colors">
+                    <h3 className="text-xl font-semibold text-stone-900 mb-2 group-hover:text-rose-500 transition-colors">
                       {cls.title}
                     </h3>
                     <p className="text-stone-600 text-sm mb-4">
@@ -145,7 +145,7 @@ export default async function ClassesPage({
                   </CardContent>
                   <CardFooter className="p-6 pt-0 flex items-center justify-between">
                     <div>
-                      <div className="text-lg font-bold text-amber-600">
+                      <div className="text-lg font-bold text-rose-500">
                         {formatPrice(cls.fullPrice)}
                       </div>
                       {cls.numberOfSessions > 1 && (

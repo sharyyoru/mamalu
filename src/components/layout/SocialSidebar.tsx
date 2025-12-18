@@ -18,7 +18,7 @@ export function SocialSidebar() {
       {/* Toggle Button */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="absolute -right-8 top-1/2 -translate-y-1/2 w-8 h-16 bg-gradient-to-r from-amber-500 to-orange-500 rounded-r-lg flex items-center justify-center text-white shadow-lg hover:from-amber-600 hover:to-orange-600 transition-all"
+        className="absolute -right-8 top-1/2 -translate-y-1/2 w-8 h-16 bg-gradient-to-r from-rose-500 to-rose-600 rounded-r-lg flex items-center justify-center text-white shadow-lg hover:from-rose-600 hover:to-rose-700 transition-all"
       >
         {isExpanded ? <ChevronLeft className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
       </button>
@@ -49,8 +49,8 @@ export function SocialSidebar() {
       </div>
 
       {/* Animated Decorative Elements */}
-      <div className="absolute -left-2 top-0 w-4 h-4 bg-amber-300 rounded-full animate-bounce opacity-60" style={{ animationDelay: '0s', animationDuration: '2s' }} />
-      <div className="absolute -left-1 bottom-0 w-3 h-3 bg-orange-300 rounded-full animate-bounce opacity-60" style={{ animationDelay: '0.5s', animationDuration: '2.5s' }} />
+      <div className="absolute -left-2 top-0 w-4 h-4 bg-rose-300 rounded-full animate-bounce opacity-60" style={{ animationDelay: '0s', animationDuration: '2s' }} />
+      <div className="absolute -left-1 bottom-0 w-3 h-3 bg-rose-200 rounded-full animate-bounce opacity-60" style={{ animationDelay: '0.5s', animationDuration: '2.5s' }} />
     </div>
   );
 }
