@@ -91,6 +91,40 @@ export const homePage = defineType({
       ],
     }),
     defineField({
+      name: "classCategories",
+      title: "Class Categories",
+      type: "array",
+      description: "Categories shown in the floating boxes on homepage",
+      of: [
+        {
+          type: "object",
+          fields: [
+            { name: "id", title: "Category ID", type: "string", description: "kids, family, birthday, adults" },
+            { name: "title", title: "Title", type: "string" },
+            { name: "subtitle", title: "Subtitle", type: "string" },
+            { name: "image", title: "Image", type: "image", options: { hotspot: true } },
+            { name: "badge", title: "Badge Text", type: "string" },
+            { name: "badgeColor", title: "Badge Color", type: "string", description: "pink, amber, violet, emerald" },
+          ],
+          preview: {
+            select: { title: "title", subtitle: "subtitle" },
+          },
+        },
+      ],
+    }),
+    defineField({
+      name: "founderSection",
+      title: "Founder Section",
+      type: "object",
+      fields: [
+        { name: "name", title: "Name", type: "string" },
+        { name: "tagline", title: "Tagline", type: "string" },
+        { name: "image", title: "Image", type: "image", options: { hotspot: true } },
+        { name: "description", title: "Description", type: "array", of: [{ type: "block" }] },
+        { name: "quote", title: "Quote", type: "text" },
+      ],
+    }),
+    defineField({
       name: "ctaTitle",
       title: "CTA Section Title",
       type: "string",

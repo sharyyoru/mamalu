@@ -50,7 +50,7 @@ export const cookingClass = defineType({
     }),
     defineField({
       name: "classType",
-      title: "Class Type",
+      title: "Class Format",
       type: "string",
       options: {
         list: [
@@ -58,6 +58,21 @@ export const cookingClass = defineType({
           { title: "Online", value: "online" },
           { title: "Private", value: "private" },
           { title: "Corporate", value: "corporate" },
+        ],
+      },
+      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: "category",
+      title: "Category",
+      type: "string",
+      description: "The target audience category for this class",
+      options: {
+        list: [
+          { title: "Kids Classes", value: "kids" },
+          { title: "Family Classes", value: "family" },
+          { title: "Birthday Parties", value: "birthday" },
+          { title: "Adult Classes", value: "adults" },
         ],
       },
       validation: (Rule) => Rule.required(),

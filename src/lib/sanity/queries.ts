@@ -165,15 +165,20 @@ export async function getProductCategories() {
 }
 
 // ============ CLASS QUERIES ============
-export async function getClasses() {
+export async function getClasses(category?: string) {
+  const filter = category 
+    ? `*[_type == "cookingClass" && active == true && category == $category]`
+    : `*[_type == "cookingClass" && active == true]`;
+  
   return sanityClient.fetch(`
-    *[_type == "cookingClass" && active == true] | order(startDate asc) {
+    ${filter} | order(startDate asc) {
       _id,
       title,
       slug,
       description,
       mainImage,
       classType,
+      category,
       numberOfSessions,
       sessionDuration,
       pricePerSession,
@@ -185,7 +190,7 @@ export async function getClasses() {
       featured,
       instructorId
     }
-  `);
+  `, category ? { category } : {});
 }
 
 export async function getClassBySlug(slug: string) {
@@ -295,6 +300,8 @@ export async function getHomePage() {
       featuresSubtitle,
       features,
       stats,
+      classCategories,
+      founderSection,
       ctaTitle,
       ctaSubtitle,
       ctaButtons

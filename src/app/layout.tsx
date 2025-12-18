@@ -4,6 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { Header, Footer } from "@/components/layout";
 import { SocialSidebar } from "@/components/layout/SocialSidebar";
 import { LiveChat } from "@/components/layout/LiveChat";
+import LoadingScreen from "@/components/layout/LoadingScreen";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -49,6 +50,7 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
       >
+        {!isAdminOrStudio && <LoadingScreen />}
         {!isAdminOrStudio && <Header />}
         <main className="flex-1">{children}</main>
         {!isAdminOrStudio && <Footer />}

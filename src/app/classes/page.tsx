@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, Users, BookOpen, ArrowRight } from "lucide-react";
+import { Calendar, Clock, Users, BookOpen, ArrowRight, Baby, Cake, ChefHat } from "lucide-react";
 import { formatPrice, formatDate } from "@/lib/utils";
 import { getClasses } from "@/lib/sanity/queries";
 import { urlFor } from "@/lib/sanity/client";
@@ -22,6 +22,7 @@ interface CookingClass {
   description: string;
   mainImage?: { asset: { _ref: string }; alt?: string };
   classType: string;
+  category?: string;
   numberOfSessions: number;
   pricePerSession: number;
   fullPrice: number;
@@ -30,22 +31,59 @@ interface CookingClass {
   instructorId?: string;
 }
 
-export default async function ClassesPage() {
-  const classes: CookingClass[] = await getClasses() || [];
+const categories = [
+  { id: "all", label: "All Classes", icon: BookOpen, color: "bg-stone-100 text-stone-700 hover:bg-stone-200" },
+  { id: "kids", label: "Kids Classes", icon: Baby, color: "bg-pink-100 text-pink-700 hover:bg-pink-200" },
+  { id: "family", label: "Family Classes", icon: Users, color: "bg-amber-100 text-amber-700 hover:bg-amber-200" },
+  { id: "birthday", label: "Birthday Parties", icon: Cake, color: "bg-violet-100 text-violet-700 hover:bg-violet-200" },
+  { id: "adults", label: "Adult Classes", icon: ChefHat, color: "bg-emerald-100 text-emerald-700 hover:bg-emerald-200" },
+];
+
+export default async function ClassesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ type?: string }>;
+}) {
+  const params = await searchParams;
+  const selectedCategory = params.type || "all";
+  const classes: CookingClass[] = await getClasses(selectedCategory === "all" ? undefined : selectedCategory) || [];
 
   return (
     <div>
       {/* Hero */}
-      <section className="bg-gradient-to-br from-amber-50 to-stone-100 py-20">
+      <section className="bg-gradient-to-br from-stone-50 via-amber-50/30 to-stone-100 py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto text-center">
             <h1 className="text-4xl sm:text-5xl font-bold text-stone-900">
               Cooking Classes
             </h1>
-            <p className="mt-6 text-lg text-stone-600">
+            <p className="mt-4 text-lg text-stone-600">
               Learn authentic recipes and techniques from our expert chefs.
               Available in-person, online, or private sessions.
             </p>
+          </div>
+
+          {/* Category Filter */}
+          <div className="mt-10 flex flex-wrap justify-center gap-3">
+            {categories.map((cat) => {
+              const Icon = cat.icon;
+              const isSelected = selectedCategory === cat.id;
+              return (
+                <Link
+                  key={cat.id}
+                  href={cat.id === "all" ? "/classes" : `/classes?type=${cat.id}`}
+                  className={`
+                    flex items-center gap-2 px-4 py-2.5 rounded-full font-medium text-sm transition-all
+                    ${isSelected 
+                      ? "bg-amber-500 text-white shadow-lg shadow-amber-500/30 scale-105" 
+                      : cat.color}
+                  `}
+                >
+                  <Icon className="h-4 w-4" />
+                  {cat.label}
+                </Link>
+              );
+            })}
           </div>
         </div>
       </section>
