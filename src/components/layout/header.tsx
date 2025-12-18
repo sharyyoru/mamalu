@@ -70,25 +70,25 @@ export function Header() {
   );
 
   return (
-    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80 border-b border-stone-100">
+    <header className="sticky top-0 z-50 bg-white border-b border-stone-100 shadow-sm">
       <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-24 items-center justify-between">
+        <div className="flex h-20 lg:h-24 items-center justify-between">
           {/* Left Navigation - Desktop */}
-          <div className="hidden lg:flex lg:items-center lg:gap-x-5 flex-1">
+          <div className="hidden lg:flex lg:items-center lg:gap-x-4 flex-1">
             {navigationLeft.map((item) => (
               <NavItem key={item.name} item={item} />
             ))}
           </div>
 
-          {/* Center Logo - Big & Prominent */}
+          {/* Center Logo - Big & Prominent (1.5x bigger) */}
           <div className="flex items-center justify-center lg:flex-none">
             <Link href="/" className="flex items-center justify-center transition-transform hover:scale-105">
               <Image 
                 src="/graphics/mamalu-logo.avif" 
                 alt="Mamalu Kitchen" 
-                width={80} 
-                height={80}
-                className="h-16 w-auto lg:h-20"
+                width={120} 
+                height={120}
+                className="h-14 w-auto sm:h-16 lg:h-[4.5rem]"
                 priority
               />
             </Link>

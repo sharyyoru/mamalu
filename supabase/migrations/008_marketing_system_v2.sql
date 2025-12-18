@@ -456,15 +456,20 @@ BEGIN
         RETURN;
     END IF;
     
-    -- Check first order only
+    -- Check first order only (skip if orders table doesn't exist yet)
     IF v_discount.first_order_only THEN
-        SELECT COUNT(*) = 0 INTO v_first_order FROM public.orders 
-        WHERE user_id = p_profile_id AND status IN ('delivered', 'processing', 'shipped');
-        
-        IF NOT v_first_order THEN
-            RETURN QUERY SELECT FALSE, 0::DECIMAL, 'This discount is for first orders only'::TEXT, NULL::UUID;
-            RETURN;
-        END IF;
+        BEGIN
+            SELECT COUNT(*) = 0 INTO v_first_order FROM public.orders 
+            WHERE user_id = p_profile_id;
+            
+            IF NOT v_first_order THEN
+                RETURN QUERY SELECT FALSE, 0::DECIMAL, 'This discount is for first orders only'::TEXT, NULL::UUID;
+                RETURN;
+            END IF;
+        EXCEPTION WHEN undefined_table OR undefined_column THEN
+            -- Orders table doesn't exist yet, allow the discount
+            v_first_order := TRUE;
+        END;
     END IF;
     
     -- Calculate discount

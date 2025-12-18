@@ -300,10 +300,59 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Floating Class Type Boxes - Like Screenshot 4 */}
-          <div className="relative h-[500px] lg:h-[600px] max-w-5xl mx-auto">
+          {/* Floating Class Type Boxes - Mobile-first grid, Desktop floating */}
+          <div className="relative lg:h-[550px] max-w-5xl mx-auto">
+            {/* Mobile: Grid Layout */}
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:hidden mb-8">
+              <Link href="/classes?type=kids" className="bg-white rounded-xl p-3 sm:p-4 shadow-lg hover:shadow-xl transition-all active:scale-95">
+                <div className="flex flex-col items-center text-center gap-2">
+                  <div className="w-12 h-12 rounded-xl bg-pink-100 flex items-center justify-center">
+                    <Baby className="h-6 w-6 text-pink-500" />
+                  </div>
+                  <div>
+                    <div className="font-bold text-stone-900 text-sm">Kids Classes</div>
+                    <div className="text-xs text-stone-500">Ages 4-12</div>
+                  </div>
+                </div>
+              </Link>
+              <Link href="/classes?type=family" className="bg-white rounded-xl p-3 sm:p-4 shadow-lg hover:shadow-xl transition-all active:scale-95">
+                <div className="flex flex-col items-center text-center gap-2">
+                  <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center">
+                    <Users className="h-6 w-6 text-amber-500" />
+                  </div>
+                  <div>
+                    <div className="font-bold text-stone-900 text-sm">Family Classes</div>
+                    <div className="text-xs text-stone-500">Cook Together</div>
+                  </div>
+                </div>
+              </Link>
+              <Link href="/classes?type=birthday" className="bg-white rounded-xl p-3 sm:p-4 shadow-lg hover:shadow-xl transition-all active:scale-95">
+                <div className="flex flex-col items-center text-center gap-2">
+                  <div className="w-12 h-12 rounded-xl bg-violet-100 flex items-center justify-center">
+                    <Cake className="h-6 w-6 text-violet-500" />
+                  </div>
+                  <div>
+                    <div className="font-bold text-stone-900 text-sm">Birthday Parties</div>
+                    <div className="text-xs text-stone-500">Celebrate!</div>
+                  </div>
+                </div>
+              </Link>
+              <Link href="/classes?type=adults" className="bg-white rounded-xl p-3 sm:p-4 shadow-lg hover:shadow-xl transition-all active:scale-95">
+                <div className="flex flex-col items-center text-center gap-2">
+                  <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center">
+                    <ChefHat className="h-6 w-6 text-emerald-500" />
+                  </div>
+                  <div>
+                    <div className="font-bold text-stone-900 text-sm">Adult Classes</div>
+                    <div className="text-xs text-stone-500">Level Up</div>
+                  </div>
+                </div>
+              </Link>
+            </div>
+
+            {/* Desktop: Floating Layout */}
             {/* Central Image */}
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 lg:w-80 lg:h-80 rounded-full overflow-hidden shadow-2xl border-4 border-white z-10">
+            <div className="hidden lg:block absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 rounded-full overflow-hidden shadow-2xl border-4 border-white z-10">
               <Image
                 src="/images/founder-lama.jpg"
                 alt="Kids cooking"
@@ -313,8 +362,8 @@ export default function Home() {
               />
             </div>
 
-            {/* Floating Info Boxes */}
-            <Link href="/classes?type=kids" className="absolute top-0 left-0 lg:left-10 bg-white rounded-2xl p-4 lg:p-5 shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 z-20 group animate-bounce" style={{ animationDuration: '3s' }}>
+            {/* Floating Info Boxes - Desktop only */}
+            <Link href="/classes?type=kids" className="hidden lg:block absolute top-0 left-10 bg-white rounded-2xl p-5 shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 z-20 group animate-bounce" style={{ animationDuration: '3s' }}>
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-xl bg-pink-100 flex items-center justify-center">
                   <Baby className="h-6 w-6 text-pink-500" />
@@ -326,7 +375,7 @@ export default function Home() {
               </div>
             </Link>
 
-            <Link href="/classes?type=family" className="absolute top-0 right-0 lg:right-10 bg-white rounded-2xl p-4 lg:p-5 shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 z-20 group animate-bounce" style={{ animationDuration: '3.5s', animationDelay: '0.5s' }}>
+            <Link href="/classes?type=family" className="hidden lg:block absolute top-0 right-10 bg-white rounded-2xl p-5 shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 z-20 group animate-bounce" style={{ animationDuration: '3.5s', animationDelay: '0.5s' }}>
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center">
                   <Users className="h-6 w-6 text-amber-500" />
@@ -338,7 +387,7 @@ export default function Home() {
               </div>
             </Link>
 
-            <Link href="/classes?type=birthday" className="absolute bottom-10 left-0 lg:left-5 bg-white rounded-2xl p-4 lg:p-5 shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 z-20 group animate-bounce" style={{ animationDuration: '4s', animationDelay: '1s' }}>
+            <Link href="/classes?type=birthday" className="hidden lg:block absolute bottom-10 left-5 bg-white rounded-2xl p-5 shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 z-20 group animate-bounce" style={{ animationDuration: '4s', animationDelay: '1s' }}>
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-xl bg-violet-100 flex items-center justify-center">
                   <Cake className="h-6 w-6 text-violet-500" />
@@ -350,7 +399,7 @@ export default function Home() {
               </div>
             </Link>
 
-            <Link href="/classes?type=adults" className="absolute bottom-10 right-0 lg:right-5 bg-white rounded-2xl p-4 lg:p-5 shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 z-20 group animate-bounce" style={{ animationDuration: '3.2s', animationDelay: '1.5s' }}>
+            <Link href="/classes?type=adults" className="hidden lg:block absolute bottom-10 right-5 bg-white rounded-2xl p-5 shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 z-20 group animate-bounce" style={{ animationDuration: '3.2s', animationDelay: '1.5s' }}>
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center">
                   <ChefHat className="h-6 w-6 text-emerald-500" />
@@ -470,10 +519,10 @@ export default function Home() {
         <FoodDoodle3 className="absolute bottom-10 left-10 w-16 h-16 text-orange-200 animate-bounce" style={{ animationDuration: '3s' }} />
 
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            {/* Image */}
-            <div className="relative">
-              <div className="relative aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+            {/* Image - 60% smaller */}
+            <div className="relative max-w-xs sm:max-w-sm mx-auto lg:mx-0">
+              <div className="relative aspect-[4/5] rounded-2xl lg:rounded-3xl overflow-hidden shadow-xl lg:shadow-2xl">
                 <Image
                   src="/images/founder-lama.jpg"
                   alt="Lama - Founder of Mamalu Kitchen"
@@ -482,16 +531,16 @@ export default function Home() {
                   priority
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-stone-900/60 via-transparent to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-8">
-                  <div className="inline-flex items-center gap-2 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full">
-                    <Heart className="h-4 w-4 text-rose-500" />
-                    <span className="text-sm font-medium text-stone-700">Mom of 3 Boys</span>
+                <div className="absolute bottom-0 left-0 right-0 p-4 lg:p-6">
+                  <div className="inline-flex items-center gap-2 bg-white/90 backdrop-blur-sm px-3 py-1.5 lg:px-4 lg:py-2 rounded-full">
+                    <Heart className="h-3 w-3 lg:h-4 lg:w-4 text-rose-500" />
+                    <span className="text-xs lg:text-sm font-medium text-stone-700">Mom of 3 Boys</span>
                   </div>
                 </div>
               </div>
               {/* Decorative elements */}
-              <div className="absolute -top-4 -right-4 w-24 h-24 bg-amber-400 rounded-full opacity-20 animate-pulse" />
-              <div className="absolute -bottom-4 -left-4 w-32 h-32 bg-rose-400 rounded-full opacity-20 animate-pulse" style={{ animationDelay: '1s' }} />
+              <div className="absolute -top-2 -right-2 lg:-top-4 lg:-right-4 w-16 h-16 lg:w-20 lg:h-20 bg-amber-400 rounded-full opacity-20 animate-pulse" />
+              <div className="absolute -bottom-2 -left-2 lg:-bottom-4 lg:-left-4 w-20 h-20 lg:w-24 lg:h-24 bg-rose-400 rounded-full opacity-20 animate-pulse" style={{ animationDelay: '1s' }} />
             </div>
             
             {/* Content */}
