@@ -12,6 +12,7 @@ const navigationLeft = [
   { 
     name: "Classes", 
     href: "/classes",
+    special: true,
     children: [
       { name: "Kids Classes", href: "/classes?type=kids" },
       { name: "Family Classes", href: "/classes?type=family" },
@@ -24,7 +25,7 @@ const navigationLeft = [
 ];
 
 const navigationRight = [
-  { name: "Shop", href: "/products" },
+  { name: "Shop", href: "/products", special: true },
   {
     name: "Services",
     href: "/services",
@@ -42,14 +43,19 @@ const allNavigation = [...navigationLeft, ...navigationRight];
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const NavItem = ({ item }: { item: typeof navigationLeft[0] }) => (
+  const NavItem = ({ item }: { item: { name: string; href: string; special?: boolean; children?: { name: string; href: string }[] } }) => (
     <div className="relative group">
       <Link
         href={item.href}
-        className="flex items-center gap-1 text-sm font-medium text-stone-700 hover:text-amber-600 transition-colors py-2"
+        className={cn(
+          "flex items-center gap-1 text-sm font-medium transition-all py-2",
+          item.special 
+            ? "bg-[#ff8c6b] text-white px-4 rounded-full hover:bg-[#e67854] shadow-md hover:shadow-lg" 
+            : "text-stone-700 hover:text-[#ff8c6b]"
+        )}
       >
         {item.name}
-        {item.children && <ChevronDown className="h-4 w-4 opacity-50 group-hover:opacity-100 transition-opacity" />}
+        {item.children && <ChevronDown className={cn("h-4 w-4 opacity-50 group-hover:opacity-100 transition-opacity", item.special && "text-white")} />}
       </Link>
       {item.children && (
         <div className="absolute left-1/2 -translate-x-1/2 top-full pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
@@ -58,7 +64,7 @@ export function Header() {
               <Link
                 key={child.name}
                 href={child.href}
-                className="block px-4 py-2.5 text-sm text-stone-600 hover:bg-amber-50 hover:text-amber-700 transition-colors"
+                className="block px-4 py-2.5 text-sm text-stone-600 hover:bg-[#ff8c6b]/10 hover:text-[#ff8c6b] transition-colors"
               >
                 {child.name}
               </Link>
@@ -101,7 +107,7 @@ export function Header() {
             ))}
             <Link href="/cart" className="relative p-2 hover:bg-stone-100 rounded-full transition-colors ml-2">
               <ShoppingBag className="h-5 w-5 text-stone-700" />
-              <span className="absolute top-0 right-0 h-4 w-4 rounded-full bg-amber-500 text-[10px] font-medium text-white flex items-center justify-center">
+              <span className="absolute top-0 right-0 h-4 w-4 rounded-full bg-[#ff8c6b] text-[10px] font-medium text-white flex items-center justify-center">
                 0
               </span>
             </Link>
@@ -114,7 +120,7 @@ export function Header() {
           <div className="flex items-center gap-3 lg:hidden">
             <Link href="/cart" className="relative p-2 hover:bg-stone-100 rounded-full transition-colors">
               <ShoppingBag className="h-5 w-5 text-stone-700" />
-              <span className="absolute top-0 right-0 h-4 w-4 rounded-full bg-amber-500 text-[10px] font-medium text-white flex items-center justify-center">
+              <span className="absolute top-0 right-0 h-4 w-4 rounded-full bg-[#ff8c6b] text-[10px] font-medium text-white flex items-center justify-center">
                 0
               </span>
             </Link>
@@ -144,7 +150,7 @@ export function Header() {
               <div key={item.name}>
                 <Link
                   href={item.href}
-                  className="flex items-center justify-between py-3 text-base font-medium text-stone-700 hover:text-amber-600"
+                  className="flex items-center justify-between py-3 text-base font-medium text-stone-700 hover:text-[#ff8c6b]"
                   onClick={() => !item.children && setMobileMenuOpen(false)}
                 >
                   {item.name}
@@ -155,7 +161,7 @@ export function Header() {
                       <Link
                         key={child.name}
                         href={child.href}
-                        className="block py-2 text-sm text-stone-500 hover:text-amber-600"
+                        className="block py-2 text-sm text-stone-500 hover:text-[#ff8c6b]"
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         {child.name}
@@ -168,7 +174,7 @@ export function Header() {
             <div className="pt-4">
               <Link 
                 href="/classes" 
-                className="flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-3 rounded-xl text-sm font-medium w-full"
+                className="flex items-center justify-center gap-2 bg-gradient-to-r from-[#ff8c6b] to-[#e67854] text-white px-4 py-3 rounded-xl text-sm font-medium w-full"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Book a Class

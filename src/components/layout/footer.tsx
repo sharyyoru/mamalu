@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { ChefHat, Instagram, Facebook, Twitter, Youtube } from "lucide-react";
+import Image from "next/image";
+import { Instagram, Facebook, Twitter, Youtube } from "lucide-react";
 
 const footerLinks = {
   explore: [
@@ -37,8 +38,14 @@ export function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8">
           {/* Brand */}
           <div className="col-span-2 md:col-span-4 lg:col-span-1">
-            <Link href="/" className="flex items-center gap-2">
-              <ChefHat className="h-8 w-8 text-amber-500" />
+            <Link href="/" className="flex items-center gap-3">
+              <Image 
+                src="/graphics/mamalu-logo.avif" 
+                alt="Mamalu Kitchen" 
+                width={50} 
+                height={50}
+                className="h-12 w-auto"
+              />
               <span className="text-xl font-bold text-white">Mamalu</span>
             </Link>
             <p className="mt-4 text-sm text-stone-400 max-w-xs">
@@ -50,7 +57,7 @@ export function Footer() {
                 <a
                   key={social.name}
                   href={social.href}
-                  className="text-stone-400 hover:text-amber-500 transition-colors"
+                  className="text-stone-400 hover:text-[#ff8c6b] transition-colors"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -69,7 +76,7 @@ export function Footer() {
                 <li key={link.name}>
                   <Link
                     href={link.href}
-                    className="text-sm hover:text-amber-500 transition-colors"
+                    className="text-sm hover:text-[#ff8c6b] transition-colors"
                   >
                     {link.name}
                   </Link>
@@ -86,7 +93,7 @@ export function Footer() {
                 <li key={link.name}>
                   <Link
                     href={link.href}
-                    className="text-sm hover:text-amber-500 transition-colors"
+                    className="text-sm hover:text-[#ff8c6b] transition-colors"
                   >
                     {link.name}
                   </Link>
@@ -103,7 +110,7 @@ export function Footer() {
                 <li key={link.name}>
                   <Link
                     href={link.href}
-                    className="text-sm hover:text-amber-500 transition-colors"
+                    className="text-sm hover:text-[#ff8c6b] transition-colors"
                   >
                     {link.name}
                   </Link>
@@ -120,7 +127,7 @@ export function Footer() {
                 <li key={link.name}>
                   <Link
                     href={link.href}
-                    className="text-sm hover:text-amber-500 transition-colors"
+                    className="text-sm hover:text-[#ff8c6b] transition-colors"
                   >
                     {link.name}
                   </Link>

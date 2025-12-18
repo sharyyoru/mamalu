@@ -39,8 +39,8 @@ const classTypes = [
     title: "Family Classes",
     description: "Cook together, bond together - memories that last forever",
     icon: Users,
-    color: "from-amber-200 to-stone-300",
-    bgColor: "bg-amber-50",
+    color: "from-[#ff8c6b]/30 to-stone-300",
+    bgColor: "bg-[#ff8c6b]/5",
     href: "/classes?type=family",
     emoji: "👨‍👩‍👧‍👦",
     image: "/images/class-family.jpg",
@@ -469,7 +469,7 @@ export default function Home() {
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4">
               Upcoming Classes
             </h2>
-            <p className="text-lg text-amber-100">
+            <p className="text-lg text-white/80">
               Grab your spot before they fill up!
             </p>
           </div>
@@ -572,7 +572,7 @@ export default function Home() {
             
             {/* Content */}
             <div className="text-center lg:text-left max-w-lg">
-              <div className="inline-flex items-center gap-2 bg-amber-100 text-amber-700 px-4 py-2 rounded-full text-sm font-medium mb-4">
+              <div className="inline-flex items-center gap-2 bg-[#ff8c6b]/10 text-[#ff8c6b] px-4 py-2 rounded-full text-sm font-medium mb-4">
                 <Sparkles className="h-4 w-4" />
                 Meet Our Founder
               </div>
@@ -596,7 +596,7 @@ export default function Home() {
                 </p>
               </div>
               <div className="mt-6 flex flex-wrap gap-4 justify-center lg:justify-start">
-                <Button size="lg" className="rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-lg" asChild>
+                <Button size="lg" className="rounded-full bg-gradient-to-r from-[#ff8c6b] to-[#e67854] hover:from-[#e67854] hover:to-[#d4684a] text-white shadow-lg" asChild>
                   <Link href="/about" className="flex items-center gap-2">
                     <span>Read Our Story</span>
                     <ArrowRight className="h-5 w-5" />
@@ -610,7 +610,7 @@ export default function Home() {
 
       {/* Testimonials */}
       <section className="py-20 lg:py-28 bg-white relative overflow-hidden">
-        <SquiggleLine className="absolute top-0 left-0 w-full text-amber-100" />
+        <SquiggleLine className="absolute top-0 left-0 w-full text-[#ff8c6b]/20" />
         <SquiggleLine className="absolute bottom-0 right-0 w-full text-stone-100 rotate-180" />
 
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
@@ -661,7 +661,7 @@ export default function Home() {
             Join thousands of happy families who have discovered the joy of cooking together at Mamalu Kitchen!
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <Button size="lg" className="h-14 px-8 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white rounded-full text-base font-semibold shadow-xl shadow-amber-500/30" asChild>
+            <Button size="lg" className="h-14 px-8 bg-gradient-to-r from-[#ff8c6b] to-[#e67854] hover:from-[#e67854] hover:to-[#d4684a] text-white rounded-full text-base font-semibold shadow-xl shadow-[#ff8c6b]/30" asChild>
               <Link href="/classes" className="flex items-center gap-3">
                 <Calendar className="h-5 w-5" />
                 <span>Browse Classes</span>
