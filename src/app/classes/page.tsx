@@ -32,11 +32,11 @@ interface CookingClass {
 }
 
 const categories = [
-  { id: "all", label: "All Classes", icon: BookOpen, color: "bg-stone-100 text-stone-700 hover:bg-stone-200" },
-  { id: "kids", label: "Kids Classes", icon: Baby, color: "bg-pink-100 text-pink-700 hover:bg-pink-200" },
-  { id: "family", label: "Family Classes", icon: Users, color: "bg-rose-100 text-rose-700 hover:bg-rose-200" },
-  { id: "birthday", label: "Birthday Parties", icon: Cake, color: "bg-violet-100 text-violet-700 hover:bg-violet-200" },
-  { id: "adults", label: "Adult Classes", icon: ChefHat, color: "bg-emerald-100 text-emerald-700 hover:bg-emerald-200" },
+  { id: "all", label: "All Classes", icon: BookOpen },
+  { id: "kids", label: "Kids Classes", icon: Baby },
+  { id: "family", label: "Family Classes", icon: Users },
+  { id: "birthday", label: "Birthday Parties", icon: Cake },
+  { id: "adults", label: "Adult Classes", icon: ChefHat },
 ];
 
 export default async function ClassesPage({
@@ -73,10 +73,10 @@ export default async function ClassesPage({
                   key={cat.id}
                   href={cat.id === "all" ? "/classes" : `/classes?type=${cat.id}`}
                   className={`
-                    flex items-center gap-2 px-4 py-2.5 rounded-full font-medium text-sm transition-all
+                    flex items-center gap-2 px-4 py-2.5 rounded-full font-medium text-sm transition-all border
                     ${isSelected 
-                      ? "bg-rose-500 text-white shadow-lg shadow-rose-500/30 scale-105" 
-                      : cat.color}
+                      ? "bg-stone-900 text-white border-stone-900 shadow-lg" 
+                      : "bg-stone-50 text-stone-700 border-stone-200 hover:bg-stone-100 hover:border-stone-300"}
                   `}
                 >
                   <Icon className="h-4 w-4" />

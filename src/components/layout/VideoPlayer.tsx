@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { X } from "lucide-react";
+import { X, RotateCcw, Play } from "lucide-react";
 
 interface VideoPlayerProps {
   isOpen: boolean;
@@ -10,12 +10,15 @@ interface VideoPlayerProps {
 
 export default function VideoPlayer({ isOpen, onClose }: VideoPlayerProps) {
   const [isLoaded, setIsLoaded] = useState(false);
+  const [videoEnded, setVideoEnded] = useState(false);
+  const [videoKey, setVideoKey] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
       setIsLoaded(true);
+      setVideoEnded(false);
     } else {
       document.body.style.overflow = "";
     }
@@ -35,6 +38,11 @@ export default function VideoPlayer({ isOpen, onClose }: VideoPlayerProps) {
     return () => window.removeEventListener("keydown", handleEscape);
   }, [isOpen, onClose]);
 
+  const handleReplay = () => {
+    setVideoEnded(false);
+    setVideoKey(prev => prev + 1);
+  };
+
   return (
     <>
       {/* Backdrop */}
@@ -48,7 +56,7 @@ export default function VideoPlayer({ isOpen, onClose }: VideoPlayerProps) {
       {/* Video Panel - Slides from left */}
       <div
         ref={containerRef}
-        className={`fixed top-0 left-0 h-full w-full md:w-[500px] lg:w-[550px] bg-white z-[101] shadow-2xl transform transition-transform duration-500 ease-out ${
+        className={`fixed top-0 left-0 h-full w-full md:w-[500px] lg:w-[550px] bg-white z-[101] shadow-2xl transform transition-transform duration-500 ease-out flex flex-col ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -71,21 +79,45 @@ export default function VideoPlayer({ isOpen, onClose }: VideoPlayerProps) {
         <div className="flex-1 overflow-y-auto p-4">
           {isLoaded && (
             <div className="relative w-full" style={{ minHeight: "600px" }}>
-              {/* Instagram Embed */}
+              {/* Instagram Embed with autoplay */}
               <iframe
-                src="https://www.instagram.com/p/DRCZwxAieXW/embed/"
+                key={videoKey}
+                src="https://www.instagram.com/p/DRCZwxAieXW/embed/?autoplay=1"
                 className="w-full border-0 rounded-xl overflow-hidden"
-                style={{ height: "700px", maxHeight: "calc(100vh - 150px)" }}
+                style={{ height: "700px", maxHeight: "calc(100vh - 200px)" }}
                 allowFullScreen
                 allow="autoplay; encrypted-media"
                 title="Mamalu Kitchen Story"
               />
+              
+              {/* Replay Overlay */}
+              {videoEnded && (
+                <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center rounded-xl">
+                  <button
+                    onClick={handleReplay}
+                    className="w-20 h-20 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-all hover:scale-110 mb-4"
+                  >
+                    <RotateCcw className="h-10 w-10 text-white" />
+                  </button>
+                  <p className="text-white font-semibold">Watch Again</p>
+                </div>
+              )}
             </div>
           )}
         </div>
 
-        {/* Footer with CTA */}
-        <div className="p-4 border-t border-stone-100 bg-stone-50">
+        {/* Footer with CTA and Replay */}
+        <div className="p-4 border-t border-stone-100 bg-stone-50 space-y-3">
+          {/* Replay Button */}
+          <button
+            onClick={handleReplay}
+            className="flex items-center justify-center gap-2 w-full py-3 bg-stone-100 hover:bg-stone-200 text-stone-700 font-semibold rounded-full transition-colors"
+          >
+            <RotateCcw className="w-4 h-4" />
+            Replay Video
+          </button>
+          
+          {/* Instagram Follow Button */}
           <a
             href="https://www.instagram.com/mamalukitchen/"
             target="_blank"

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 
 export default function LoadingScreen() {
   const [isLoading, setIsLoading] = useState(true);
@@ -49,22 +50,17 @@ export default function LoadingScreen() {
           style={{ animationDuration: '1s' }}
         />
         
-        {/* Inner circle with chef hat icon */}
-        <div className="absolute inset-4 bg-white rounded-full shadow-lg flex items-center justify-center">
-          <svg 
-            className="w-12 h-12 text-rose-500 animate-bounce" 
+        {/* Inner circle with Mamalu logo */}
+        <div className="absolute inset-4 bg-white rounded-full shadow-lg flex items-center justify-center overflow-hidden">
+          <Image 
+            src="/graphics/mamalu-logo.avif"
+            alt="Mamalu Kitchen"
+            width={60}
+            height={60}
+            className="animate-bounce object-contain"
             style={{ animationDuration: '1.5s' }}
-            fill="none" 
-            viewBox="0 0 24 24" 
-            stroke="currentColor"
-          >
-            <path 
-              strokeLinecap="round" 
-              strokeLinejoin="round" 
-              strokeWidth={1.5} 
-              d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" 
-            />
-          </svg>
+            priority
+          />
         </div>
       </div>
 

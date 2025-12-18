@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -11,27 +12,34 @@ import {
   Trash2,
   ArrowRight,
   ShoppingCart,
+  Loader2,
 } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 
-// Placeholder cart items
-const initialCartItems = [
-  {
-    id: "1",
-    title: "Premium Za'atar Blend",
-    price: 45,
-    quantity: 2,
-  },
-  {
-    id: "2",
-    title: "Authentic Harissa Paste",
-    price: 35,
-    quantity: 1,
-  },
-];
+interface CartItem {
+  id: string;
+  title: string;
+  price: number;
+  quantity: number;
+  imageUrl?: string;
+}
 
 export default function CartPage() {
-  const [cartItems, setCartItems] = useState(initialCartItems);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Load cart from localStorage on mount
+  useEffect(() => {
+    const savedCart = localStorage.getItem("mamalu_cart");
+    if (savedCart) {
+      setCartItems(JSON.parse(savedCart));
+    }
+  }, []);
+
+  // Save cart to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem("mamalu_cart", JSON.stringify(cartItems));
+  }, [cartItems]);
 
   const updateQuantity = (id: string, delta: number) => {
     setCartItems((items) =>
@@ -55,6 +63,34 @@ export default function CartPage() {
   );
   const shipping = subtotal > 200 ? 0 : 25;
   const total = subtotal + shipping;
+
+  const handleCheckout = async () => {
+    if (cartItems.length === 0) return;
+    
+    setIsLoading(true);
+    try {
+      const response = await fetch("/api/payments/checkout-products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items: cartItems }),
+      });
+
+      const data = await response.json();
+      
+      if (data.url) {
+        // Clear cart on successful checkout initiation
+        localStorage.setItem("mamalu_cart", JSON.stringify([]));
+        window.location.href = data.url;
+      } else {
+        alert("Failed to create checkout session");
+      }
+    } catch (error) {
+      console.error("Checkout error:", error);
+      alert("Something went wrong. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="py-12 bg-stone-50 min-h-[60vh]">
@@ -144,9 +180,23 @@ export default function CartPage() {
                       <span>{formatPrice(total)}</span>
                     </div>
                   </div>
-                  <Button className="w-full" size="lg">
-                    Proceed to Checkout
-                    <ArrowRight className="h-4 w-4 ml-2" />
+                  <Button 
+                    className="w-full" 
+                    size="lg" 
+                    onClick={handleCheckout}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        Proceed to Checkout
+                        <ArrowRight className="h-4 w-4 ml-2" />
+                      </>
+                    )}
                   </Button>
                   <Link
                     href="/products"

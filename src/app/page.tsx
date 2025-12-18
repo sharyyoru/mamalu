@@ -373,19 +373,18 @@ export default function Home() {
 
             {/* Floating Info Boxes with Images - Desktop only - Enhanced UI */}
             <Link href="/classes?type=kids" className="hidden lg:block absolute top-0 left-10 group z-20">
-              <div className="relative bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 hover:scale-105 border-2 border-transparent hover:border-pink-300">
-                <div className="absolute top-2 right-2 z-10 bg-pink-500 text-white text-xs font-bold px-2 py-1 rounded-full">Popular</div>
+              <div className="relative bg-stone-50 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 hover:scale-105 border border-stone-200 hover:border-stone-400">
                 <div className="w-48 h-32 relative">
                   <Image src="/images/kids-classes.png" alt="Kids Classes" fill className="object-cover group-hover:scale-110 transition-transform duration-500" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
                 </div>
-                <div className="p-4 bg-gradient-to-r from-pink-50 to-white">
+                <div className="p-4 bg-stone-50">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-lg">👶</span>
                     <div className="font-bold text-stone-900">Kids Classes</div>
                   </div>
                   <div className="text-sm text-stone-500">Ages 4-12</div>
-                  <div className="mt-2 text-xs font-semibold text-pink-600 flex items-center gap-1">
+                  <div className="mt-2 text-xs font-semibold text-stone-800 flex items-center gap-1">
                     Book Now <ArrowRight className="h-3 w-3" />
                   </div>
                 </div>
@@ -393,19 +392,18 @@ export default function Home() {
             </Link>
 
             <Link href="/classes?type=family" className="hidden lg:block absolute top-0 right-10 group z-20">
-              <div className="relative bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 hover:scale-105 border-2 border-transparent hover:border-rose-300">
-                <div className="absolute top-2 right-2 z-10 bg-rose-500 text-white text-xs font-bold px-2 py-1 rounded-full">Fun!</div>
+              <div className="relative bg-stone-50 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 hover:scale-105 border border-stone-200 hover:border-stone-400">
                 <div className="w-48 h-32 relative">
                   <Image src="/images/family-classes.png" alt="Family Classes" fill className="object-cover group-hover:scale-110 transition-transform duration-500" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
                 </div>
-                <div className="p-4 bg-gradient-to-r from-rose-50 to-white">
+                <div className="p-4 bg-stone-50">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-lg">👨‍👩‍👧</span>
                     <div className="font-bold text-stone-900">Family Classes</div>
                   </div>
                   <div className="text-sm text-stone-500">Cook Together</div>
-                  <div className="mt-2 text-xs font-semibold text-rose-600 flex items-center gap-1">
+                  <div className="mt-2 text-xs font-semibold text-stone-800 flex items-center gap-1">
                     Book Now <ArrowRight className="h-3 w-3" />
                   </div>
                 </div>
@@ -413,19 +411,18 @@ export default function Home() {
             </Link>
 
             <Link href="/classes?type=birthday" className="hidden lg:block absolute bottom-10 left-5 group z-20">
-              <div className="relative bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 hover:scale-105 border-2 border-transparent hover:border-violet-300">
-                <div className="absolute top-2 right-2 z-10 bg-violet-500 text-white text-xs font-bold px-2 py-1 rounded-full">🎉 Party!</div>
+              <div className="relative bg-stone-50 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 hover:scale-105 border border-stone-200 hover:border-stone-400">
                 <div className="w-48 h-32 relative">
                   <Image src="/images/birthday-parties.png" alt="Birthday Parties" fill className="object-cover group-hover:scale-110 transition-transform duration-500" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
                 </div>
-                <div className="p-4 bg-gradient-to-r from-violet-50 to-white">
+                <div className="p-4 bg-stone-50">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-lg">🎂</span>
                     <div className="font-bold text-stone-900">Birthday Parties</div>
                   </div>
                   <div className="text-sm text-stone-500">Celebrate!</div>
-                  <div className="mt-2 text-xs font-semibold text-violet-600 flex items-center gap-1">
+                  <div className="mt-2 text-xs font-semibold text-stone-800 flex items-center gap-1">
                     Book Now <ArrowRight className="h-3 w-3" />
                   </div>
                 </div>
@@ -433,19 +430,18 @@ export default function Home() {
             </Link>
 
             <Link href="/classes?type=adults" className="hidden lg:block absolute bottom-10 right-5 group z-20">
-              <div className="relative bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 hover:scale-105 border-2 border-transparent hover:border-emerald-300">
-                <div className="absolute top-2 right-2 z-10 bg-emerald-500 text-white text-xs font-bold px-2 py-1 rounded-full">New</div>
+              <div className="relative bg-stone-50 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 hover:scale-105 border border-stone-200 hover:border-stone-400">
                 <div className="w-48 h-32 relative">
                   <Image src="/images/adult-classes.png" alt="Adult Classes" fill className="object-cover group-hover:scale-110 transition-transform duration-500" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
                 </div>
-                <div className="p-4 bg-gradient-to-r from-emerald-50 to-white">
+                <div className="p-4 bg-stone-50">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-lg">👨‍🍳</span>
                     <div className="font-bold text-stone-900">Adult Classes</div>
                   </div>
                   <div className="text-sm text-stone-500">Master Skills</div>
-                  <div className="mt-2 text-xs font-semibold text-emerald-600 flex items-center gap-1">
+                  <div className="mt-2 text-xs font-semibold text-stone-800 flex items-center gap-1">
                     Book Now <ArrowRight className="h-3 w-3" />
                   </div>
                 </div>
