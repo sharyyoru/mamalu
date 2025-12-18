@@ -38,7 +38,7 @@ const classTypes = [
     title: "Family Classes",
     description: "Cook together, bond together - memories that last forever",
     icon: Users,
-    color: "from-amber-400 to-orange-500",
+    color: "from-amber-200 to-stone-300",
     bgColor: "bg-amber-50",
     href: "/classes?type=family",
     emoji: "👨‍👩‍👧‍👦",
@@ -217,30 +217,30 @@ export default function Home() {
   return (
     <div className="overflow-hidden">
       {/* Hero Section with Floating Elements */}
-      <section className="relative min-h-[100vh] flex items-center bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 overflow-hidden">
+      <section className="relative min-h-[100vh] flex items-center bg-gradient-to-br from-stone-50 via-amber-50/30 to-stone-100 overflow-hidden">
         {/* Animated Doodles Background */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           {/* Food Doodles */}
-          <FoodDoodle1 className="absolute top-20 left-[5%] w-16 h-16 text-amber-300 animate-bounce" style={{ animationDuration: '3s' }} />
-          <FoodDoodle2 className="absolute top-40 right-[10%] w-20 h-20 text-orange-300 animate-pulse" />
-          <FoodDoodle3 className="absolute bottom-32 left-[15%] w-14 h-14 text-rose-300 animate-bounce" style={{ animationDuration: '2.5s' }} />
-          <PizzaDoodle className="absolute top-[15%] right-[20%] w-16 h-16 text-amber-400/60 animate-bounce" style={{ animationDuration: '3.5s' }} />
-          <CupcakeDoodle className="absolute bottom-[20%] right-[8%] w-14 h-16 text-pink-400/60 animate-pulse" />
-          <CookieDoodle className="absolute top-[60%] left-[8%] w-12 h-12 text-amber-500/50 animate-bounce" style={{ animationDuration: '4s' }} />
-          <ChefHatDoodle className="absolute top-[10%] left-[25%] w-12 h-12 text-orange-300/50 animate-pulse" style={{ animationDelay: '0.5s' }} />
-          <SpoonDoodle className="absolute bottom-[30%] left-[3%] w-8 h-20 text-rose-300/50 animate-bounce rotate-12" style={{ animationDuration: '3.2s' }} />
-          <WhiskDoodle className="absolute top-[30%] right-[5%] w-10 h-20 text-amber-300/50 animate-pulse -rotate-12" />
+          <FoodDoodle1 className="absolute top-20 left-[5%] w-16 h-16 text-amber-200 animate-bounce" style={{ animationDuration: '3s' }} />
+          <FoodDoodle2 className="absolute top-40 right-[10%] w-20 h-20 text-stone-300 animate-pulse" />
+          <FoodDoodle3 className="absolute bottom-32 left-[15%] w-14 h-14 text-amber-200 animate-bounce" style={{ animationDuration: '2.5s' }} />
+          <PizzaDoodle className="absolute top-[15%] right-[20%] w-16 h-16 text-stone-300/60 animate-bounce" style={{ animationDuration: '3.5s' }} />
+          <CupcakeDoodle className="absolute bottom-[20%] right-[8%] w-14 h-16 text-amber-200/60 animate-pulse" />
+          <CookieDoodle className="absolute top-[60%] left-[8%] w-12 h-12 text-stone-300/50 animate-bounce" style={{ animationDuration: '4s' }} />
+          <ChefHatDoodle className="absolute top-[10%] left-[25%] w-12 h-12 text-amber-200/50 animate-pulse" style={{ animationDelay: '0.5s' }} />
+          <SpoonDoodle className="absolute bottom-[30%] left-[3%] w-8 h-20 text-stone-300/50 animate-bounce rotate-12" style={{ animationDuration: '3.2s' }} />
+          <WhiskDoodle className="absolute top-[30%] right-[5%] w-10 h-20 text-amber-200/50 animate-pulse -rotate-12" />
           
           {/* Squiggly Lines */}
-          <SquiggleLine className="absolute top-1/4 left-0 w-48 text-amber-200 animate-pulse" />
-          <SquiggleLine className="absolute bottom-1/4 right-0 w-48 text-orange-200 rotate-180 animate-pulse" style={{ animationDelay: '1s' }} />
-          <WavyLine className="absolute top-[45%] left-[10%] w-32 text-rose-200/60 animate-pulse" style={{ animationDelay: '0.5s' }} />
-          <WavyLine className="absolute bottom-[15%] right-[15%] w-40 text-amber-200/60 rotate-12 animate-pulse" style={{ animationDelay: '1.5s' }} />
+          <SquiggleLine className="absolute top-1/4 left-0 w-48 text-amber-100 animate-pulse" />
+          <SquiggleLine className="absolute bottom-1/4 right-0 w-48 text-stone-200 rotate-180 animate-pulse" style={{ animationDelay: '1s' }} />
+          <WavyLine className="absolute top-[45%] left-[10%] w-32 text-amber-100/60 animate-pulse" style={{ animationDelay: '0.5s' }} />
+          <WavyLine className="absolute bottom-[15%] right-[15%] w-40 text-stone-200/60 rotate-12 animate-pulse" style={{ animationDelay: '1.5s' }} />
           
           {/* Floating Blobs */}
-          <div className="absolute top-20 left-10 w-40 h-40 bg-gradient-to-br from-amber-300/40 to-orange-300/40 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute bottom-20 right-10 w-56 h-56 bg-gradient-to-br from-rose-300/40 to-pink-300/40 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-          <div className="absolute top-1/2 left-1/4 w-32 h-32 bg-gradient-to-br from-orange-300/30 to-amber-300/30 rounded-full blur-2xl animate-bounce" style={{ animationDuration: '4s' }} />
+          <div className="absolute top-20 left-10 w-40 h-40 bg-gradient-to-br from-amber-100/40 to-stone-200/40 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-20 right-10 w-56 h-56 bg-gradient-to-br from-amber-100/40 to-stone-200/40 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+          <div className="absolute top-1/2 left-1/4 w-32 h-32 bg-gradient-to-br from-stone-200/30 to-amber-100/30 rounded-full blur-2xl animate-bounce" style={{ animationDuration: '4s' }} />
         </div>
         
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 lg:py-20 w-full">
@@ -253,7 +253,7 @@ export default function Home() {
             
             <h1 className="text-4xl sm:text-5xl lg:text-7xl font-extrabold text-stone-900 tracking-tight leading-tight">
               Where Little Chefs
-              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 animate-pulse">
+              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-amber-600 via-amber-500 to-stone-500 animate-pulse">
                 Become Big Cooks
               </span>
             </h1>
@@ -266,7 +266,7 @@ export default function Home() {
 
           {/* Hero Buttons - Fixed Icon Placement */}
           <div className="flex flex-wrap justify-center gap-4 mb-12">
-            <Button size="lg" className="h-14 px-8 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-xl shadow-amber-500/30 text-base font-semibold rounded-full" asChild>
+            <Button size="lg" className="h-14 px-8 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-xl shadow-amber-500/30 text-base font-semibold rounded-full" asChild>
               <Link href="/classes" className="flex items-center gap-3">
                 <Calendar className="h-5 w-5" />
                 <span>Book a Class</span>
@@ -351,75 +351,67 @@ export default function Home() {
             </div>
 
             {/* Desktop: Floating Layout */}
-            {/* Central Image */}
+            {/* Central Image - Using center.png */}
             <div className="hidden lg:block absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 rounded-full overflow-hidden shadow-2xl border-4 border-white z-10">
               <Image
-                src="/images/founder-lama.jpg"
-                alt="Kids cooking"
+                src="/images/center.png"
+                alt="Mamalu Kitchen"
                 fill
-                className="object-cover"
+                className="object-cover object-top scale-125"
                 priority
               />
             </div>
 
-            {/* Floating Info Boxes - Desktop only */}
-            <Link href="/classes?type=kids" className="hidden lg:block absolute top-0 left-10 bg-white rounded-2xl p-5 shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 z-20 group animate-bounce" style={{ animationDuration: '3s' }}>
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-pink-100 flex items-center justify-center">
-                  <Baby className="h-6 w-6 text-pink-500" />
-                </div>
-                <div>
-                  <div className="font-bold text-stone-900">Kids Classes</div>
-                  <div className="text-sm text-stone-500">Ages 4-12</div>
-                </div>
+            {/* Floating Info Boxes with Images - Desktop only */}
+            <Link href="/classes?type=kids" className="hidden lg:block absolute top-0 left-10 bg-white rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 z-20 group animate-bounce" style={{ animationDuration: '3s' }}>
+              <div className="w-44 h-28 relative">
+                <Image src="/images/kids-classes.png" alt="Kids Classes" fill className="object-cover" />
+              </div>
+              <div className="p-3">
+                <div className="font-bold text-stone-900">Kids Classes</div>
+                <div className="text-sm text-stone-500">Ages 4-12</div>
               </div>
             </Link>
 
-            <Link href="/classes?type=family" className="hidden lg:block absolute top-0 right-10 bg-white rounded-2xl p-5 shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 z-20 group animate-bounce" style={{ animationDuration: '3.5s', animationDelay: '0.5s' }}>
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center">
-                  <Users className="h-6 w-6 text-amber-500" />
-                </div>
-                <div>
-                  <div className="font-bold text-stone-900">Family Classes</div>
-                  <div className="text-sm text-stone-500">Cook Together</div>
-                </div>
+            <Link href="/classes?type=family" className="hidden lg:block absolute top-0 right-10 bg-white rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 z-20 group animate-bounce" style={{ animationDuration: '3.5s', animationDelay: '0.5s' }}>
+              <div className="w-44 h-28 relative">
+                <Image src="/images/family-classes.png" alt="Family Classes" fill className="object-cover" />
+              </div>
+              <div className="p-3">
+                <div className="font-bold text-stone-900">Family Classes</div>
+                <div className="text-sm text-stone-500">Cook Together</div>
               </div>
             </Link>
 
-            <Link href="/classes?type=birthday" className="hidden lg:block absolute bottom-10 left-5 bg-white rounded-2xl p-5 shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 z-20 group animate-bounce" style={{ animationDuration: '4s', animationDelay: '1s' }}>
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-violet-100 flex items-center justify-center">
-                  <Cake className="h-6 w-6 text-violet-500" />
-                </div>
-                <div>
-                  <div className="font-bold text-stone-900">Birthday Parties</div>
-                  <div className="text-sm text-stone-500">Celebrate!</div>
-                </div>
+            <Link href="/classes?type=birthday" className="hidden lg:block absolute bottom-10 left-5 bg-white rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 z-20 group animate-bounce" style={{ animationDuration: '4s', animationDelay: '1s' }}>
+              <div className="w-44 h-28 relative">
+                <Image src="/images/birthday-parties.png" alt="Birthday Parties" fill className="object-cover" />
+              </div>
+              <div className="p-3">
+                <div className="font-bold text-stone-900">Birthday Parties</div>
+                <div className="text-sm text-stone-500">Celebrate!</div>
               </div>
             </Link>
 
-            <Link href="/classes?type=adults" className="hidden lg:block absolute bottom-10 right-5 bg-white rounded-2xl p-5 shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 z-20 group animate-bounce" style={{ animationDuration: '3.2s', animationDelay: '1.5s' }}>
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center">
-                  <ChefHat className="h-6 w-6 text-emerald-500" />
-                </div>
-                <div>
-                  <div className="font-bold text-stone-900">Adult Classes</div>
-                  <div className="text-sm text-stone-500">Master Skills</div>
-                </div>
+            <Link href="/classes?type=adults" className="hidden lg:block absolute bottom-10 right-5 bg-white rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 z-20 group animate-bounce" style={{ animationDuration: '3.2s', animationDelay: '1.5s' }}>
+              <div className="w-44 h-28 relative">
+                <Image src="/images/adult-classes.png" alt="Adult Classes" fill className="object-cover" />
+              </div>
+              <div className="p-3">
+                <div className="font-bold text-stone-900">Adult Classes</div>
+                <div className="text-sm text-stone-500">Master Skills</div>
               </div>
             </Link>
 
             {/* Decorative circles around center */}
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 lg:w-96 lg:h-96 rounded-full border-2 border-dashed border-amber-200 animate-spin" style={{ animationDuration: '30s' }} />
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 lg:w-[450px] lg:h-[450px] rounded-full border border-orange-100" />
+            <div className="hidden lg:block absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full border-2 border-dashed border-amber-200 animate-spin" style={{ animationDuration: '30s' }} />
+            <div className="hidden lg:block absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[450px] h-[450px] rounded-full border border-stone-200" />
           </div>
         </div>
       </section>
 
-      {/* Class Carousel Section - Like Screenshot 5 */}
-      <section className="py-20 lg:py-28 bg-gradient-to-br from-amber-500 via-orange-500 to-rose-500 relative overflow-hidden">
+      {/* Class Carousel Section */}
+      <section className="py-20 lg:py-28 bg-gradient-to-br from-amber-400 via-amber-500 to-stone-400 relative overflow-hidden">
         {/* Background Doodles */}
         <div className="absolute inset-0 pointer-events-none opacity-20">
           <FoodDoodle1 className="absolute top-10 left-20 w-24 h-24 text-white" />
@@ -513,46 +505,46 @@ export default function Home() {
       </section>
 
       {/* Meet the Founder Section */}
-      <section className="py-20 lg:py-28 bg-gradient-to-br from-stone-50 to-amber-50 relative overflow-hidden">
+      <section className="py-16 lg:py-24 bg-gradient-to-br from-stone-50 to-amber-50/50 relative overflow-hidden">
         {/* Doodles */}
-        <FoodDoodle1 className="absolute top-10 right-10 w-20 h-20 text-amber-200 animate-pulse" />
-        <FoodDoodle3 className="absolute bottom-10 left-10 w-16 h-16 text-orange-200 animate-bounce" style={{ animationDuration: '3s' }} />
+        <FoodDoodle1 className="absolute top-10 right-10 w-20 h-20 text-amber-100 animate-pulse" />
+        <FoodDoodle3 className="absolute bottom-10 left-10 w-16 h-16 text-stone-200 animate-bounce" style={{ animationDuration: '3s' }} />
 
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-            {/* Image - 60% smaller */}
-            <div className="relative max-w-xs sm:max-w-sm mx-auto lg:mx-0">
-              <div className="relative aspect-[4/5] rounded-2xl lg:rounded-3xl overflow-hidden shadow-xl lg:shadow-2xl">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="flex flex-col lg:flex-row gap-6 lg:gap-10 items-center justify-center">
+            {/* Image - Proper cropping to show full head */}
+            <div className="relative w-64 sm:w-72 lg:w-80 flex-shrink-0">
+              <div className="relative aspect-[3/4] rounded-2xl lg:rounded-3xl overflow-hidden shadow-xl lg:shadow-2xl">
                 <Image
                   src="/images/founder-lama.jpg"
                   alt="Lama - Founder of Mamalu Kitchen"
                   fill
-                  className="object-cover"
+                  className="object-cover object-top"
                   priority
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-stone-900/60 via-transparent to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-4 lg:p-6">
-                  <div className="inline-flex items-center gap-2 bg-white/90 backdrop-blur-sm px-3 py-1.5 lg:px-4 lg:py-2 rounded-full">
-                    <Heart className="h-3 w-3 lg:h-4 lg:w-4 text-rose-500" />
-                    <span className="text-xs lg:text-sm font-medium text-stone-700">Mom of 3 Boys</span>
+                <div className="absolute inset-0 bg-gradient-to-t from-stone-900/50 via-transparent to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-4">
+                  <div className="inline-flex items-center gap-2 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full">
+                    <Heart className="h-3 w-3 text-rose-500" />
+                    <span className="text-xs font-medium text-stone-700">Mom of 3 Boys</span>
                   </div>
                 </div>
               </div>
               {/* Decorative elements */}
-              <div className="absolute -top-2 -right-2 lg:-top-4 lg:-right-4 w-16 h-16 lg:w-20 lg:h-20 bg-amber-400 rounded-full opacity-20 animate-pulse" />
-              <div className="absolute -bottom-2 -left-2 lg:-bottom-4 lg:-left-4 w-20 h-20 lg:w-24 lg:h-24 bg-rose-400 rounded-full opacity-20 animate-pulse" style={{ animationDelay: '1s' }} />
+              <div className="absolute -top-2 -right-2 lg:-top-3 lg:-right-3 w-14 h-14 lg:w-16 lg:h-16 bg-amber-300 rounded-full opacity-20 animate-pulse" />
+              <div className="absolute -bottom-2 -left-2 lg:-bottom-3 lg:-left-3 w-16 h-16 lg:w-20 lg:h-20 bg-stone-300 rounded-full opacity-20 animate-pulse" style={{ animationDelay: '1s' }} />
             </div>
             
             {/* Content */}
-            <div>
-              <div className="inline-flex items-center gap-2 bg-amber-100 text-amber-700 px-4 py-2 rounded-full text-sm font-medium mb-6">
+            <div className="text-center lg:text-left max-w-lg">
+              <div className="inline-flex items-center gap-2 bg-amber-100 text-amber-700 px-4 py-2 rounded-full text-sm font-medium mb-4">
                 <Sparkles className="h-4 w-4" />
                 Meet Our Founder
               </div>
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-stone-900 mb-6">
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-stone-900 mb-4">
                 Hi, I&apos;m Lama! 👋
               </h2>
-              <div className="space-y-4 text-lg text-stone-600">
+              <div className="space-y-3 text-base lg:text-lg text-stone-600">
                 <p>
                   Mamalu Kitchen was born from my journey as a mom of three amazing boys 
                   and my passion for helping fellow families simplify their lives with 
@@ -563,13 +555,13 @@ export default function Home() {
                   a space where kids and parents can learn together, make memories, and 
                   discover the joy of creating delicious meals.
                 </p>
-                <p className="font-semibold text-stone-800 italic text-xl">
+                <p className="font-semibold text-stone-800 italic text-lg lg:text-xl">
                   &quot;My mission is simple: to create a cooking movement that brings 
                   families together, one recipe at a time.&quot;
                 </p>
               </div>
-              <div className="mt-8 flex flex-wrap gap-4">
-                <Button size="lg" className="rounded-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-lg" asChild>
+              <div className="mt-6 flex flex-wrap gap-4 justify-center lg:justify-start">
+                <Button size="lg" className="rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-lg" asChild>
                   <Link href="/about" className="flex items-center gap-2">
                     <span>Read Our Story</span>
                     <ArrowRight className="h-5 w-5" />
@@ -584,7 +576,7 @@ export default function Home() {
       {/* Testimonials */}
       <section className="py-20 lg:py-28 bg-white relative overflow-hidden">
         <SquiggleLine className="absolute top-0 left-0 w-full text-amber-100" />
-        <SquiggleLine className="absolute bottom-0 right-0 w-full text-orange-100 rotate-180" />
+        <SquiggleLine className="absolute bottom-0 right-0 w-full text-stone-100 rotate-180" />
 
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center mb-16">
@@ -600,7 +592,7 @@ export default function Home() {
             {testimonials.map((testimonial, idx) => (
               <div
                 key={idx}
-                className="p-8 rounded-3xl bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-100 hover:shadow-xl transition-all hover:-translate-y-1"
+                className="p-8 rounded-3xl bg-gradient-to-br from-stone-50 to-amber-50/50 border border-stone-200 hover:shadow-xl transition-all hover:-translate-y-1"
               >
                 <div className="flex gap-1 mb-4">
                   {[...Array(5)].map((_, i) => (
@@ -634,7 +626,7 @@ export default function Home() {
             Join thousands of happy families who have discovered the joy of cooking together at Mamalu Kitchen!
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <Button size="lg" className="h-14 px-8 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-full text-base font-semibold shadow-xl shadow-amber-500/30" asChild>
+            <Button size="lg" className="h-14 px-8 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white rounded-full text-base font-semibold shadow-xl shadow-amber-500/30" asChild>
               <Link href="/classes" className="flex items-center gap-3">
                 <Calendar className="h-5 w-5" />
                 <span>Browse Classes</span>
