@@ -2,17 +2,30 @@
  * Seed Eazy Freezy Products to Sanity
  * 
  * Run with: npx ts-node scripts/seed-eazy-freezy-products.ts
- * 
- * Note: You need to have SANITY_PROJECT_ID and SANITY_TOKEN env variables set
  */
 
 import { createClient } from '@sanity/client';
+import * as dotenv from 'dotenv';
+import * as path from 'path';
+
+// Load environment variables from .env.local
+dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
+
+const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID;
+const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET || 'production';
+
+if (!projectId) {
+  console.error('❌ Missing NEXT_PUBLIC_SANITY_PROJECT_ID in .env.local');
+  process.exit(1);
+}
+
+console.log(`📌 Using Sanity Project: ${projectId}, Dataset: ${dataset}\n`);
 
 const client = createClient({
-  projectId: process.env.SANITY_PROJECT_ID || 'your-project-id',
-  dataset: 'production',
+  projectId,
+  dataset,
   useCdn: false,
-  token: process.env.SANITY_TOKEN,
+  token: process.env.SANITY_API_TOKEN, // Optional: for write access
   apiVersion: '2024-01-01',
 });
 

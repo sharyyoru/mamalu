@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
-import { Menu, X, ShoppingBag, User, ChevronDown } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Menu, X, ShoppingBag, User, ChevronDown, GraduationCap, Store } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navigationLeft = [
@@ -13,6 +13,7 @@ const navigationLeft = [
     name: "Classes", 
     href: "/classes",
     special: true,
+    icon: GraduationCap,
     children: [
       { name: "Kids Classes", href: "/classes?type=kids" },
       { name: "Family Classes", href: "/classes?type=family" },
@@ -21,11 +22,11 @@ const navigationLeft = [
       { name: "All Classes", href: "/classes" },
     ],
   },
+  { name: "Shop", href: "/products", special: true, icon: Store },
   { name: "Recipes", href: "/recipes" },
 ];
 
 const navigationRight = [
-  { name: "Shop", href: "/products", special: true },
   {
     name: "Services",
     href: "/services",
@@ -42,18 +43,47 @@ const allNavigation = [...navigationLeft, ...navigationRight];
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
 
-  const NavItem = ({ item }: { item: { name: string; href: string; special?: boolean; children?: { name: string; href: string }[] } }) => (
+  // Load cart count from localStorage and listen for changes
+  useEffect(() => {
+    const updateCartCount = () => {
+      try {
+        const cart = JSON.parse(localStorage.getItem("mamalu_cart") || "[]");
+        const count = cart.reduce((sum: number, item: { quantity: number }) => sum + item.quantity, 0);
+        setCartCount(count);
+      } catch {
+        setCartCount(0);
+      }
+    };
+
+    updateCartCount();
+    window.addEventListener("storage", updateCartCount);
+    
+    // Custom event for same-tab updates
+    const handleCartUpdate = () => updateCartCount();
+    window.addEventListener("cartUpdated", handleCartUpdate);
+
+    return () => {
+      window.removeEventListener("storage", updateCartCount);
+      window.removeEventListener("cartUpdated", handleCartUpdate);
+    };
+  }, []);
+
+  const NavItem = ({ item }: { item: { name: string; href: string; special?: boolean; icon?: React.ComponentType<{ className?: string }>; children?: { name: string; href: string }[] } }) => {
+    const Icon = item.icon;
+    return (
     <div className="relative group">
       <Link
         href={item.href}
         className={cn(
-          "flex items-center gap-1 text-sm font-medium transition-all py-2",
+          "flex items-center gap-1.5 text-sm font-medium transition-all py-2",
           item.special 
             ? "bg-[#ff8c6b] text-white px-4 rounded-full hover:bg-[#e67854] shadow-md hover:shadow-lg" 
             : "text-stone-700 hover:text-[#ff8c6b]"
         )}
       >
+        {Icon && <Icon className="h-4 w-4" />}
         {item.name}
         {item.children && <ChevronDown className={cn("h-4 w-4 opacity-50 group-hover:opacity-100 transition-opacity", item.special && "text-white")} />}
       </Link>
@@ -74,6 +104,7 @@ export function Header() {
       )}
     </div>
   );
+  };
 
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-stone-100 shadow-sm">
@@ -107,9 +138,11 @@ export function Header() {
             ))}
             <Link href="/cart" className="relative p-2 hover:bg-stone-100 rounded-full transition-colors ml-2">
               <ShoppingBag className="h-5 w-5 text-stone-700" />
-              <span className="absolute top-0 right-0 h-4 w-4 rounded-full bg-[#ff8c6b] text-[10px] font-medium text-white flex items-center justify-center">
-                0
-              </span>
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-[#ff8c6b] text-[10px] font-bold text-white flex items-center justify-center animate-pulse">
+                  {cartCount > 99 ? "99+" : cartCount}
+                </span>
+              )}
             </Link>
             <Link href="/account" className="p-2 hover:bg-stone-100 rounded-full transition-colors">
               <User className="h-5 w-5 text-stone-700" />
@@ -120,9 +153,11 @@ export function Header() {
           <div className="flex items-center gap-3 lg:hidden">
             <Link href="/cart" className="relative p-2 hover:bg-stone-100 rounded-full transition-colors">
               <ShoppingBag className="h-5 w-5 text-stone-700" />
-              <span className="absolute top-0 right-0 h-4 w-4 rounded-full bg-[#ff8c6b] text-[10px] font-medium text-white flex items-center justify-center">
-                0
-              </span>
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-[#ff8c6b] text-[10px] font-bold text-white flex items-center justify-center">
+                  {cartCount > 99 ? "99+" : cartCount}
+                </span>
+              )}
             </Link>
             <button
               type="button"
