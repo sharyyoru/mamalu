@@ -136,7 +136,7 @@ export function GlobalSearch() {
         onClick={() => setIsOpen(true)}
         className="flex items-center gap-3 w-full px-5 py-3 rounded-2xl bg-stone-100 hover:bg-stone-200 border border-stone-200 hover:border-stone-300 transition-all group shadow-sm"
       >
-        <Search className="h-5 w-5 text-stone-400 group-hover:text-[#ff8c6b] transition-colors" />
+        <Search className="h-5 w-5 text-stone-400 group-hover:text-stone-900 transition-colors" />
         <span className="text-sm text-stone-400 flex-1 text-left">Search classes, products...</span>
       </button>
 
@@ -160,7 +160,7 @@ export function GlobalSearch() {
             {/* Search Header */}
             <div className="relative border-b border-stone-200/50">
               <div className="flex items-center px-6 py-4">
-                <Search className="h-5 w-5 text-[#ff8c6b] mr-3" />
+                <Search className="h-5 w-5 text-stone-900 mr-3" />
                 <input
                   ref={inputRef}
                   type="text"
@@ -169,7 +169,7 @@ export function GlobalSearch() {
                   onChange={(e) => setQuery(e.target.value)}
                   className="flex-1 bg-transparent text-lg text-stone-900 placeholder:text-stone-400 focus:outline-none"
                 />
-                {isLoading && <Loader2 className="h-5 w-5 text-[#ff8c6b] animate-spin mr-2" />}
+                {isLoading && <Loader2 className="h-5 w-5 text-stone-900 animate-spin mr-2" />}
                 {query && !isLoading && (
                   <button
                     onClick={() => setQuery("")}
@@ -198,7 +198,7 @@ export function GlobalSearch() {
                     className={cn(
                       "px-4 py-1.5 rounded-full text-sm font-medium transition-all whitespace-nowrap",
                       activeFilter === filter.id
-                        ? "bg-[#ff8c6b] text-white shadow-md"
+                        ? "bg-stone-900 text-white shadow-md"
                         : "bg-stone-100 text-stone-600 hover:bg-stone-200"
                     )}
                   >
@@ -212,8 +212,8 @@ export function GlobalSearch() {
             <div className="max-h-[60vh] overflow-y-auto">
               {!query ? (
                 <div className="p-8 text-center">
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-[#ff8c6b]/20 to-[#ffa891]/10 flex items-center justify-center">
-                    <Sparkles className="h-8 w-8 text-[#ff8c6b]" />
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-stone-200 to-stone-100 flex items-center justify-center">
+                    <Sparkles className="h-8 w-8 text-stone-900" />
                   </div>
                   <p className="text-stone-600 font-medium">Start typing to search</p>
                   <p className="text-sm text-stone-400 mt-1">Find classes, products, recipes, and more</p>
@@ -244,7 +244,7 @@ export function GlobalSearch() {
                                 setIsOpen(false);
                                 setQuery("");
                               }}
-                              className="flex items-center gap-4 p-3 rounded-xl hover:bg-[#ff8c6b]/5 transition-all group"
+                              className="flex items-center gap-4 p-3 rounded-xl hover:bg-stone-100 transition-all group"
                             >
                               {/* Image/Icon */}
                               <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 bg-stone-100">
@@ -266,7 +266,7 @@ export function GlobalSearch() {
                               {/* Content */}
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2">
-                                  <h4 className="font-medium text-stone-900 truncate group-hover:text-[#ff8c6b] transition-colors">
+                                  <h4 className="font-medium text-stone-900 truncate group-hover:text-stone-600 transition-colors">
                                     {result.title}
                                   </h4>
                                   <span className={cn("text-xs px-2 py-0.5 rounded-full", typeColors[result.type])}>
@@ -289,11 +289,11 @@ export function GlobalSearch() {
                               {/* Price or Arrow */}
                               <div className="flex-shrink-0">
                                 {result.price ? (
-                                  <span className="text-sm font-bold text-[#ff8c6b]">
+                                  <span className="text-sm font-bold text-stone-900">
                                     AED {result.price}
                                   </span>
                                 ) : (
-                                  <ArrowRight className="h-4 w-4 text-stone-300 group-hover:text-[#ff8c6b] transition-colors" />
+                                  <ArrowRight className="h-4 w-4 text-stone-300 group-hover:text-stone-900 transition-colors" />
                                 )}
                               </div>
                             </Link>
@@ -311,7 +311,7 @@ export function GlobalSearch() {
                         setIsOpen(false);
                         setQuery("");
                       }}
-                      className="flex items-center justify-center gap-2 p-3 mt-4 rounded-xl bg-stone-50 hover:bg-[#ff8c6b]/10 text-stone-600 hover:text-[#ff8c6b] transition-all font-medium"
+                      className="flex items-center justify-center gap-2 p-3 mt-4 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-600 hover:text-stone-900 transition-all font-medium"
                     >
                       View all {filteredResults.length} results
                       <ArrowRight className="h-4 w-4" />

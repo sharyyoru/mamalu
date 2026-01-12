@@ -141,7 +141,7 @@ export function Header() {
                     href={item.href}
                     className={cn(
                       "flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-all",
-                      "text-stone-700 hover:text-[#ff8c6b]",
+                      "text-stone-700 hover:text-stone-900",
                       "hover:bg-stone-100"
                     )}
                   >
@@ -171,9 +171,9 @@ export function Header() {
               href="/cart" 
               className="relative p-2.5 rounded-full hover:bg-stone-100 transition-all group"
             >
-              <ShoppingBag className="h-5 w-5 text-stone-700 group-hover:text-[#ff8c6b] transition-colors" />
+              <ShoppingBag className="h-5 w-5 text-stone-700 group-hover:text-stone-600 transition-colors" />
               {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-gradient-to-r from-[#ff8c6b] to-[#e67854] text-[10px] font-bold text-white flex items-center justify-center shadow-lg">
+                <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-gradient-to-r from-stone-800 to-stone-900 text-[10px] font-bold text-white flex items-center justify-center shadow-lg">
                   {cartCount > 99 ? "99+" : cartCount}
                 </span>
               )}
@@ -184,7 +184,7 @@ export function Header() {
               href="/account" 
               className="hidden sm:flex p-2.5 rounded-full hover:bg-stone-100 transition-all group"
             >
-              <User className="h-5 w-5 text-stone-700 group-hover:text-[#ff8c6b] transition-colors" />
+              <User className="h-5 w-5 text-stone-700 group-hover:text-stone-600 transition-colors" />
             </Link>
 
             {/* Mobile Menu Toggle */}
@@ -225,7 +225,7 @@ export function Header() {
                   <div className={cn("w-12 h-12 rounded-xl bg-gradient-to-br flex items-center justify-center mb-4 group-hover:scale-110 transition-transform", category.color)}>
                     <Icon className="h-6 w-6 text-white" />
                   </div>
-                  <h3 className="font-bold text-stone-900 mb-1 group-hover:text-[#ff8c6b] transition-colors">
+                  <h3 className="font-bold text-stone-900 mb-1 group-hover:text-stone-600 transition-colors">
                     {category.name}
                   </h3>
                   <p className="text-sm text-stone-500 line-clamp-2">
@@ -241,7 +241,7 @@ export function Header() {
             </p>
             <Link 
               href="/classes" 
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-[#ff8c6b] to-[#ffa891] text-white font-semibold text-sm hover:shadow-lg hover:shadow-[#ff8c6b]/25 transition-all"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-stone-800 to-stone-700 text-white font-semibold text-sm hover:shadow-lg hover:shadow-stone-900/20 transition-all"
             >
               <Calendar className="h-4 w-4" />
               View All Classes
@@ -268,7 +268,7 @@ export function Header() {
           <div className="grid grid-cols-3 gap-3">
             {primaryNavigation.map((item, idx) => {
               const Icon = item.icon;
-              const colors = ["from-[#ff8c6b] to-[#e67854]", "from-violet-500 to-purple-600", "from-emerald-500 to-teal-600"];
+              const colors = ["from-stone-800 to-stone-900", "from-violet-500 to-purple-600", "from-emerald-500 to-teal-600"];
               return (
                 <Link
                   key={item.name}
@@ -288,7 +288,7 @@ export function Header() {
           {/* Class Categories - Visual Grid */}
           <div className="bg-gradient-to-br from-stone-50 to-stone-100 rounded-3xl p-4">
             <h3 className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-4 flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-[#ff8c6b]" />
+              <Sparkles className="h-4 w-4 text-stone-900" />
               Quick Book a Class
             </h3>
             <div className="grid grid-cols-2 gap-3">
@@ -319,7 +319,7 @@ export function Header() {
                   href={item.href}
                   onClick={() => !item.children && setMobileMenuOpen(false)}
                   className={cn(
-                    "flex items-center justify-between py-4 px-5 text-stone-700 hover:text-[#ff8c6b] hover:bg-stone-50 transition-all",
+                    "flex items-center justify-between py-4 px-5 text-stone-700 hover:text-stone-900 hover:bg-stone-50 transition-all",
                     idx !== 0 && "border-t border-stone-100"
                   )}
                 >
@@ -333,7 +333,7 @@ export function Header() {
                         key={child.name}
                         href={child.href}
                         onClick={() => setMobileMenuOpen(false)}
-                        className="block py-2.5 text-sm text-stone-500 hover:text-[#ff8c6b] transition-all"
+                        className="block py-2.5 text-sm text-stone-500 hover:text-stone-900 transition-all"
                       >
                         {child.name}
                       </Link>

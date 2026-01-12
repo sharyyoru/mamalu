@@ -116,36 +116,44 @@ export default function Home() {
             <div className="absolute top-20 left-[10%] w-64 h-64 bg-gradient-to-br from-stone-200/40 to-transparent rounded-full blur-3xl animate-float" />
             <div className="absolute bottom-20 right-[10%] w-80 h-80 bg-gradient-to-br from-stone-300/30 to-transparent rounded-full blur-3xl animate-float-slow" />
             
-            {/* Animated Food Doodles */}
-            <svg className="absolute top-[10%] left-[5%] w-16 h-16 text-stone-300 animate-float opacity-60" viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="2">
+            {/* Animated Food Doodles - 10x bigger */}
+            <svg className="absolute top-[5%] left-[2%] w-[160px] h-[160px] text-stone-200 animate-float opacity-40" viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="1.5">
               <circle cx="50" cy="35" r="25" />
               <path d="M25 60 Q50 80 75 60" />
               <path d="M35 35 L35 25 M50 35 L50 20 M65 35 L65 25" />
             </svg>
-            <svg className="absolute top-[15%] right-[8%] w-14 h-14 text-stone-300 animate-bounce opacity-50" style={{animationDuration: '3s'}} viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg className="absolute top-[10%] right-[3%] w-[140px] h-[140px] text-stone-200 animate-bounce opacity-35" style={{animationDuration: '3s'}} viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="1.5">
               <ellipse cx="50" cy="60" rx="35" ry="20" />
               <path d="M20 55 Q50 30 80 55" />
               <circle cx="35" cy="50" r="5" fill="currentColor" />
               <circle cx="55" cy="45" r="4" fill="currentColor" />
               <circle cx="65" cy="55" r="5" fill="currentColor" />
             </svg>
-            <svg className="absolute bottom-[20%] left-[8%] w-12 h-12 text-stone-300 animate-pulse opacity-50" viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg className="absolute bottom-[15%] left-[5%] w-[120px] h-[120px] text-stone-200 animate-pulse opacity-35" viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="1.5">
               <rect x="25" y="30" width="50" height="40" rx="5" />
               <path d="M30 30 Q50 10 70 30" />
               <circle cx="50" cy="50" r="10" />
             </svg>
-            <svg className="absolute bottom-[30%] right-[12%] w-10 h-10 text-stone-300 animate-float opacity-40" style={{animationDelay: '1s'}} viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg className="absolute bottom-[25%] right-[8%] w-[100px] h-[100px] text-stone-200 animate-float opacity-30" style={{animationDelay: '1s'}} viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="1.5">
               <path d="M50 20 L50 80" />
               <ellipse cx="50" cy="20" rx="20" ry="10" />
             </svg>
-            <svg className="absolute top-[40%] left-[3%] w-8 h-8 text-stone-300 animate-bounce opacity-40" style={{animationDuration: '4s'}} viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg className="absolute top-[35%] left-[0%] w-[80px] h-[80px] text-stone-200 animate-bounce opacity-30" style={{animationDuration: '4s'}} viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="1.5">
               <circle cx="50" cy="50" r="30" />
               <path d="M30 50 L70 50 M50 30 L50 70" strokeDasharray="5 5" />
             </svg>
-            <svg className="absolute top-[60%] right-[5%] w-12 h-12 text-stone-300 animate-pulse opacity-50" style={{animationDelay: '2s'}} viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg className="absolute top-[55%] right-[2%] w-[120px] h-[120px] text-stone-200 animate-pulse opacity-35" style={{animationDelay: '2s'}} viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="1.5">
               <path d="M30 70 Q30 30 50 30 Q70 30 70 70" />
               <path d="M40 70 L40 85 M60 70 L60 85" />
               <line x1="35" y1="85" x2="65" y2="85" />
+            </svg>
+            <svg className="absolute top-[70%] left-[15%] w-[100px] h-[100px] text-stone-200 animate-float opacity-25" style={{animationDelay: '0.5s'}} viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M30 80 L50 20 L70 80 Z" />
+              <circle cx="50" cy="55" r="8" />
+            </svg>
+            <svg className="absolute top-[25%] left-[40%] w-[90px] h-[90px] text-stone-200 animate-bounce opacity-20" style={{animationDuration: '5s'}} viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <ellipse cx="50" cy="50" rx="30" ry="20" />
+              <path d="M25 50 Q50 70 75 50" />
             </svg>
           </div>
 
@@ -154,7 +162,7 @@ export default function Home() {
               {/* Left Content */}
               <div className="text-center lg:text-left">
                 <div className="inline-flex items-center gap-2 glass text-stone-700 px-5 py-2.5 rounded-full text-sm font-semibold mb-6 animate-float">
-                  <Sparkles className="h-4 w-4 text-[#ff8c6b]" />
+                  <Sparkles className="h-4 w-4 text-stone-900" />
                   #FeedingFamilies Since 2020
                 </div>
                 
@@ -186,7 +194,7 @@ export default function Home() {
                     onClick={() => setIsVideoOpen(true)}
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-r from-[#ff8c6b] to-[#ffa891] flex items-center justify-center">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-r from-stone-800 to-stone-700 flex items-center justify-center">
                         <Play className="h-4 w-4 text-white ml-0.5" />
                       </div>
                       Watch Our Story
@@ -200,7 +208,7 @@ export default function Home() {
                     <div key={idx} className="text-center lg:text-left">
                       <div className="text-3xl lg:text-4xl font-extrabold text-gradient flex items-center gap-1 justify-center lg:justify-start">
                         {stat.value}
-                        {stat.icon && <stat.icon className="h-6 w-6 fill-[#ff8c6b] text-[#ff8c6b]" />}
+                        {stat.icon && <stat.icon className="h-6 w-6 fill-stone-800 text-stone-800" />}
                       </div>
                       <div className="text-sm text-stone-500 font-medium">{stat.label}</div>
                     </div>
@@ -225,7 +233,7 @@ export default function Home() {
                             <Icon className="h-6 w-6 text-white" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <h3 className="font-bold text-stone-900 text-lg group-hover:text-[#ff8c6b] transition-colors">
+                            <h3 className="font-bold text-stone-900 text-lg group-hover:text-stone-600 transition-colors">
                               {classType.title}
                             </h3>
                             <p className="text-sm text-stone-500 mt-1 line-clamp-2">
@@ -233,7 +241,7 @@ export default function Home() {
                             </p>
                           </div>
                         </div>
-                        <div className="flex items-center justify-end mt-4 text-[#ff8c6b] font-medium text-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="flex items-center justify-end mt-4 text-stone-700 font-medium text-sm opacity-0 group-hover:opacity-100 transition-opacity">
                           Book Now <ChevronRight className="h-4 w-4 ml-1" />
                         </div>
                       </Link>
@@ -256,24 +264,24 @@ export default function Home() {
           <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-3 gap-4">
               <Link href="/classes" className="glass-card rounded-2xl p-6 text-center card-hover group">
-                <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-[#ff8c6b] to-[#e67854] flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-stone-800 to-stone-900 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
                   <Calendar className="h-7 w-7 text-white" />
                 </div>
-                <h3 className="mt-4 font-bold text-stone-900 group-hover:text-[#ff8c6b] transition-colors">Book a Class</h3>
+                <h3 className="mt-4 font-bold text-stone-900 group-hover:text-stone-600 transition-colors">Book a Class</h3>
                 <p className="text-sm text-stone-500 mt-1 hidden sm:block">Find your perfect class</p>
               </Link>
               <Link href="/products" className="glass-card rounded-2xl p-6 text-center card-hover group">
-                <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-stone-800 to-stone-900 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
                   <ShoppingBag className="h-7 w-7 text-white" />
                 </div>
-                <h3 className="mt-4 font-bold text-stone-900 group-hover:text-emerald-600 transition-colors">Shop Products</h3>
+                <h3 className="mt-4 font-bold text-stone-900 group-hover:text-stone-600 transition-colors">Shop Products</h3>
                 <p className="text-sm text-stone-500 mt-1 hidden sm:block">Premium ingredients</p>
               </Link>
               <Link href="/recipes" className="glass-card rounded-2xl p-6 text-center card-hover group">
-                <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-stone-800 to-stone-900 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
                   <BookOpen className="h-7 w-7 text-white" />
                 </div>
-                <h3 className="mt-4 font-bold text-stone-900 group-hover:text-violet-600 transition-colors">View Recipes</h3>
+                <h3 className="mt-4 font-bold text-stone-900 group-hover:text-stone-600 transition-colors">View Recipes</h3>
                 <p className="text-sm text-stone-500 mt-1 hidden sm:block">Free recipe collection</p>
               </Link>
             </div>
@@ -285,7 +293,7 @@ export default function Home() {
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
               <div className="inline-flex items-center gap-2 glass text-stone-700 px-4 py-2 rounded-full text-sm font-medium mb-4">
-                <Sparkles className="h-4 w-4 text-[#ff8c6b]" />
+                <Sparkles className="h-4 w-4 text-stone-900" />
                 Our Classes
               </div>
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-stone-900">
@@ -352,8 +360,8 @@ export default function Home() {
         {/* Meet the Founder Section */}
         <section className="py-20 lg:py-28 gradient-mesh relative overflow-hidden">
           <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute top-20 right-20 w-64 h-64 bg-gradient-to-br from-[#ff8c6b]/20 to-transparent rounded-full blur-3xl" />
-            <div className="absolute bottom-20 left-20 w-80 h-80 bg-gradient-to-br from-[#ffa891]/15 to-transparent rounded-full blur-3xl" />
+            <div className="absolute top-20 right-20 w-64 h-64 bg-gradient-to-br from-stone-300/30 to-transparent rounded-full blur-3xl" />
+            <div className="absolute bottom-20 left-20 w-80 h-80 bg-gradient-to-br from-stone-200/25 to-transparent rounded-full blur-3xl" />
           </div>
 
           <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 relative z-10">
@@ -372,7 +380,7 @@ export default function Home() {
                 {/* Floating Stats */}
                 <div className="absolute -bottom-6 -right-6 glass-card rounded-2xl p-4 shadow-xl hidden lg:block">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-r from-[#ff8c6b] to-[#ffa891] flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-r from-stone-800 to-stone-700 flex items-center justify-center">
                       <Heart className="h-5 w-5 text-white fill-white" />
                     </div>
                     <div>
@@ -386,7 +394,7 @@ export default function Home() {
               {/* Content */}
               <div className="order-1 lg:order-2 text-center lg:text-left">
                 <div className="inline-flex items-center gap-2 glass text-stone-700 px-4 py-2 rounded-full text-sm font-medium mb-6">
-                  <Sparkles className="h-4 w-4 text-[#ff8c6b]" />
+                  <Sparkles className="h-4 w-4 text-stone-900" />
                   Meet Our Founder
                 </div>
                 <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-stone-900 mb-6">
@@ -404,7 +412,7 @@ export default function Home() {
                     discover the joy of creating delicious meals.
                   </p>
                 </div>
-                <blockquote className="mt-6 p-6 glass-card rounded-2xl border-l-4 border-[#ff8c6b]">
+                <blockquote className="mt-6 p-6 glass-card rounded-2xl border-l-4 border-stone-800">
                   <p className="text-lg font-semibold text-stone-800 italic">
                     &quot;My mission is simple: to create a cooking movement that brings 
                     families together, one recipe at a time.&quot;
@@ -426,13 +434,13 @@ export default function Home() {
         {/* Testimonials Section */}
         <section className="py-20 lg:py-28 bg-gradient-to-br from-stone-900 via-stone-800 to-stone-900 relative overflow-hidden">
           <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#ff8c6b]/10 rounded-full blur-3xl" />
-            <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-[#ffa891]/5 rounded-full blur-3xl" />
+            <div className="absolute top-0 left-1/4 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
+            <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
           </div>
 
           <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 relative z-10">
             <div className="text-center mb-12">
-              <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm text-[#ffa891] px-4 py-2 rounded-full text-sm font-medium mb-4">
+              <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm font-medium mb-4">
                 <Heart className="h-4 w-4 fill-current" />
                 Testimonials
               </div>
@@ -444,12 +452,12 @@ export default function Home() {
             {/* Testimonial Card */}
             <div className="relative">
               <div className="glass-dark rounded-3xl p-8 sm:p-12">
-                <Quote className="h-12 w-12 text-[#ff8c6b]/30 mb-6" />
+                <Quote className="h-12 w-12 text-white/20 mb-6" />
                 <p className="text-xl sm:text-2xl text-white/90 font-medium leading-relaxed mb-8">
                   {testimonials[currentTestimonial].quote}
                 </p>
                 <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-full bg-gradient-to-r from-[#ff8c6b] to-[#ffa891] flex items-center justify-center text-white font-bold text-xl">
+                  <div className="w-14 h-14 rounded-full bg-gradient-to-r from-stone-600 to-stone-500 flex items-center justify-center text-white font-bold text-xl">
                     {testimonials[currentTestimonial].avatar}
                   </div>
                   <div>
@@ -458,7 +466,7 @@ export default function Home() {
                   </div>
                   <div className="ml-auto flex gap-1">
                     {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="h-5 w-5 text-[#ff8c6b] fill-[#ff8c6b]" />
+                      <Star key={i} className="h-5 w-5 text-amber-400 fill-amber-400" />
                     ))}
                   </div>
                 </div>
@@ -472,7 +480,7 @@ export default function Home() {
                     onClick={() => setCurrentTestimonial(idx)}
                     className={`w-2 h-2 rounded-full transition-all ${
                       idx === currentTestimonial 
-                        ? 'w-8 bg-[#ff8c6b]' 
+                        ? 'w-8 bg-white' 
                         : 'bg-white/30 hover:bg-white/50'
                     }`}
                   />
@@ -485,7 +493,7 @@ export default function Home() {
         {/* CTA Section */}
         <section className="py-20 lg:py-28 gradient-mesh relative overflow-hidden">
           <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-br from-[#ff8c6b]/10 to-transparent rounded-full blur-3xl" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-br from-stone-300/20 to-transparent rounded-full blur-3xl" />
           </div>
 
           <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center relative z-10">
