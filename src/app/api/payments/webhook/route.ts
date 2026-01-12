@@ -138,7 +138,7 @@ export async function POST(request: NextRequest) {
             // Find and update the payment link
             const { data: paymentLink } = await supabase
               .from("payment_links")
-              .select("id, single_use, use_count, max_uses")
+              .select("*")
               .eq("stripe_payment_link_id", stripePaymentLinkId)
               .single();
 
@@ -146,6 +146,9 @@ export async function POST(request: NextRequest) {
               const newUseCount = (paymentLink.use_count || 0) + 1;
               const shouldDeactivate = paymentLink.single_use || 
                 (paymentLink.max_uses && newUseCount >= paymentLink.max_uses);
+
+              // Generate QR code token for payment link
+              const qrCodeToken = crypto.randomUUID();
 
               await supabase
                 .from("payment_links")
@@ -157,6 +160,7 @@ export async function POST(request: NextRequest) {
                   customer_email: session.customer_email || undefined,
                   stripe_checkout_session_id: session.id,
                   stripe_payment_intent_id: session.payment_intent as string,
+                  qr_code_token: qrCodeToken,
                 })
                 .eq("id", paymentLink.id);
 
@@ -175,6 +179,66 @@ export async function POST(request: NextRequest) {
                   customer_email: session.customer_email,
                 },
               });
+
+              // Send confirmation email with QR codes
+              const customerEmail = session.customer_email || paymentLink.customer_email;
+              const numberOfPeople = paymentLink.number_of_people || 1;
+
+              if (customerEmail) {
+                try {
+                  let guestQRs: Array<{ guestNumber: number; guestName?: string; qrToken: string }> = [];
+
+                  // Create individual guest records if multiple people
+                  if (numberOfPeople > 1) {
+                    const guestsToInsert = [];
+                    for (let i = 1; i <= numberOfPeople; i++) {
+                      guestsToInsert.push({
+                        payment_link_id: paymentLink.id,
+                        guest_number: i,
+                        guest_name: i === 1 ? (paymentLink.customer_name || "Guest 1") : `Guest ${i}`,
+                      });
+                    }
+
+                    const { data: createdGuests } = await supabase
+                      .from("payment_link_guests")
+                      .insert(guestsToInsert)
+                      .select();
+
+                    if (createdGuests) {
+                      guestQRs = createdGuests.map(g => ({
+                        guestNumber: g.guest_number,
+                        guestName: g.guest_name,
+                        qrToken: g.qr_code_token,
+                      }));
+                    }
+                  }
+
+                  await sendBookingConfirmationEmail({
+                    bookingNumber: paymentLink.link_code,
+                    attendeeName: paymentLink.customer_name || "Guest",
+                    attendeeEmail: customerEmail,
+                    classTitle: paymentLink.title,
+                    classDate: "See confirmation details",
+                    classTime: "See confirmation details",
+                    location: "Mamalu Kitchen",
+                    sessionsBooked: 1,
+                    totalAmount: (session.amount_total || 0) / 100,
+                    numberOfGuests: numberOfPeople,
+                    qrToken: qrCodeToken,
+                    guestQRs: guestQRs.length > 0 ? guestQRs : undefined,
+                  });
+
+                  // Mark email as sent
+                  await supabase
+                    .from("payment_links")
+                    .update({ confirmation_email_sent_at: new Date().toISOString() })
+                    .eq("id", paymentLink.id);
+
+                  console.log(`Payment link confirmation email sent to ${customerEmail} (${numberOfPeople} people)`);
+                } catch (emailError) {
+                  console.error("Failed to send payment link confirmation email:", emailError);
+                }
+              }
             }
           }
         }

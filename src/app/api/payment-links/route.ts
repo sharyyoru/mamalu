@@ -61,6 +61,8 @@ export async function POST(request: NextRequest) {
       title,
       description,
       amount,
+      pricePerPerson,
+      numberOfPeople = 1,
       customerName,
       customerEmail,
       customerPhone,
@@ -117,7 +119,7 @@ export async function POST(request: NextRequest) {
       after_completion: {
         type: "hosted_confirmation",
         hosted_confirmation: {
-          custom_message: "Thank you for your payment! Your transaction has been completed successfully. A receipt has been sent to your email.",
+          custom_message: "Thank you for your payment! Your transaction has been completed successfully. A confirmation email with your QR codes will be sent shortly.",
         },
       },
       metadata: {
@@ -125,6 +127,7 @@ export async function POST(request: NextRequest) {
         link_code: linkCode,
         title,
         customer_email: customerEmail || "",
+        number_of_people: numberOfPeople.toString(),
       },
     });
 
@@ -134,6 +137,8 @@ export async function POST(request: NextRequest) {
       title,
       description: description || null,
       amount,
+      price_per_person: pricePerPerson || amount,
+      number_of_people: numberOfPeople,
       currency: "AED",
       customer_name: customerName || null,
       customer_email: customerEmail || null,

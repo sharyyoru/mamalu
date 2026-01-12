@@ -32,6 +32,8 @@ interface PaymentLink {
   title: string;
   description: string | null;
   amount: number;
+  price_per_person: number | null;
+  number_of_people: number;
   currency: string;
   customer_name: string | null;
   customer_email: string | null;
@@ -92,6 +94,7 @@ export default function AdminPaymentLinksPage() {
     title: "",
     description: "",
     amount: "",
+    numberOfPeople: 1,
     customerName: "",
     customerEmail: "",
     customerPhone: "",
@@ -140,13 +143,18 @@ export default function AdminPaymentLinksPage() {
 
     setActionLoading("create");
     try {
+      const pricePerPerson = parseFloat(newLink.amount);
+      const totalAmount = pricePerPerson * newLink.numberOfPeople;
+      
       const res = await fetch("/api/payment-links", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title: newLink.title,
           description: newLink.description || null,
-          amount: parseFloat(newLink.amount),
+          amount: totalAmount,
+          pricePerPerson,
+          numberOfPeople: newLink.numberOfPeople,
           customerName: newLink.customerName || null,
           customerEmail: newLink.customerEmail || null,
           customerPhone: newLink.customerPhone || null,
@@ -163,6 +171,7 @@ export default function AdminPaymentLinksPage() {
           title: "",
           description: "",
           amount: "",
+          numberOfPeople: 1,
           customerName: "",
           customerEmail: "",
           customerPhone: "",
@@ -710,6 +719,11 @@ export default function AdminPaymentLinksPage() {
                         <div className="font-medium text-stone-900">
                           {formatPrice(link.amount)}
                         </div>
+                        {(link.number_of_people || 1) > 1 && (
+                          <div className="text-xs text-stone-500">
+                            {link.number_of_people} people × {formatPrice(link.price_per_person || link.amount / link.number_of_people)}
+                          </div>
+                        )}
                         {link.paid_amount && link.paid_amount !== link.amount && (
                           <div className="text-xs text-green-600">
                             Paid: {formatPrice(link.paid_amount)}
@@ -852,7 +866,7 @@ export default function AdminPaymentLinksPage() {
 
               <div>
                 <label className="block text-sm font-medium text-stone-700 mb-1">
-                  Amount (AED) *
+                  Price Per Person (AED) *
                 </label>
                 <input
                   type="number"
@@ -865,6 +879,42 @@ export default function AdminPaymentLinksPage() {
                   placeholder="0.00"
                 />
               </div>
+
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-1">
+                  Number of People *
+                </label>
+                <select
+                  value={newLink.numberOfPeople}
+                  onChange={(e) =>
+                    setNewLink({ ...newLink, numberOfPeople: parseInt(e.target.value) })
+                  }
+                  className="w-full px-4 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                >
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
+                    <option key={num} value={num}>
+                      {num} {num === 1 ? "person" : "people"}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {newLink.amount && newLink.numberOfPeople > 1 && (
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-amber-800">Price per person:</span>
+                    <span className="font-medium text-amber-900">AED {parseFloat(newLink.amount).toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm mt-1">
+                    <span className="text-amber-800">Number of people:</span>
+                    <span className="font-medium text-amber-900">{newLink.numberOfPeople}</span>
+                  </div>
+                  <div className="flex justify-between text-sm mt-2 pt-2 border-t border-amber-300">
+                    <span className="text-amber-800 font-medium">Total amount:</span>
+                    <span className="font-bold text-amber-900">AED {(parseFloat(newLink.amount) * newLink.numberOfPeople).toFixed(2)}</span>
+                  </div>
+                </div>
+              )}
 
               <div>
                 <label className="block text-sm font-medium text-stone-700 mb-1">

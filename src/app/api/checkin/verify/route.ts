@@ -33,8 +33,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: "Database not configured" }, { status: 500 });
     }
 
-    // First, try to find a guest by QR token
-    const { data: guest } = await supabase
+    // First, try to find a booking guest by QR token
+    const { data: bookingGuest } = await supabase
       .from("booking_guests")
       .select(`
         *,
@@ -43,26 +43,52 @@ export async function POST(request: NextRequest) {
       .eq("qr_code_token", token)
       .single();
 
-    if (guest) {
-      // Guest-level check-in
-      return handleGuestCheckIn(supabase, guest, staffId, deviceInfo);
+    if (bookingGuest) {
+      // Guest-level check-in for bookings
+      return handleGuestCheckIn(supabase, bookingGuest, staffId, deviceInfo);
     }
 
-    // Fall back to booking-level check-in (for single-guest bookings)
-    const { data: booking, error: bookingError } = await supabase
+    // Try to find a payment link guest by QR token
+    const { data: paymentLinkGuest } = await supabase
+      .from("payment_link_guests")
+      .select(`
+        *,
+        payment_link:payment_links(*)
+      `)
+      .eq("qr_code_token", token)
+      .single();
+
+    if (paymentLinkGuest) {
+      // Guest-level check-in for payment links
+      return handlePaymentLinkGuestCheckIn(supabase, paymentLinkGuest, staffId, deviceInfo);
+    }
+
+    // Try booking-level check-in
+    const { data: booking } = await supabase
       .from("class_bookings")
       .select("*")
       .eq("qr_code_token", token)
       .single();
 
-    if (bookingError || !booking) {
-      return NextResponse.json({ 
-        success: false, 
-        error: "Invalid QR code - booking not found" 
-      }, { status: 404 });
+    if (booking) {
+      return handleBookingCheckIn(supabase, booking, staffId, deviceInfo);
     }
 
-    return handleBookingCheckIn(supabase, booking, staffId, deviceInfo);
+    // Try payment link check-in
+    const { data: paymentLink } = await supabase
+      .from("payment_links")
+      .select("*")
+      .eq("qr_code_token", token)
+      .single();
+
+    if (paymentLink) {
+      return handlePaymentLinkCheckIn(supabase, paymentLink, staffId, deviceInfo);
+    }
+
+    return NextResponse.json({ 
+      success: false, 
+      error: "Invalid QR code - not found" 
+    }, { status: 404 });
   } catch (error) {
     console.error("Check-in error:", error);
     return NextResponse.json({ success: false, error: "Check-in failed" }, { status: 500 });
@@ -253,6 +279,158 @@ async function handleBookingCheckIn(
       classId: booking.class_id,
       totalGuests: numberOfGuests,
       guestsCheckedIn: numberOfGuests,
+      checkedInAt: new Date().toISOString(),
+    }
+  });
+}
+
+async function handlePaymentLinkGuestCheckIn(
+  supabase: NonNullable<ReturnType<typeof createAdminClient>>,
+  guest: any,
+  staffId: string | null,
+  deviceInfo: string | null
+) {
+  const paymentLink = guest.payment_link;
+
+  // Check if payment link is paid
+  if (paymentLink.status !== "paid") {
+    return NextResponse.json({ 
+      success: false, 
+      error: `Payment link is ${paymentLink.status}. Only paid links can be checked in.`,
+      paymentLink: {
+        linkCode: paymentLink.link_code,
+        status: paymentLink.status,
+      }
+    }, { status: 400 });
+  }
+
+  // Check if guest already checked in
+  if (guest.checked_in_at) {
+    return NextResponse.json({ 
+      success: false, 
+      error: "This guest has already checked in",
+      alreadyCheckedIn: true,
+      guest: {
+        guestNumber: guest.guest_number,
+        guestName: guest.guest_name || `Guest ${guest.guest_number}`,
+        checkedInAt: guest.checked_in_at,
+      },
+      paymentLink: {
+        id: paymentLink.id,
+        linkCode: paymentLink.link_code,
+        title: paymentLink.title,
+      }
+    }, { status: 409 });
+  }
+
+  // Check in the guest
+  const { error: guestUpdateError } = await supabase
+    .from("payment_link_guests")
+    .update({
+      checked_in_at: new Date().toISOString(),
+      checked_in_by: staffId || null,
+    })
+    .eq("id", guest.id);
+
+  if (guestUpdateError) {
+    console.error("Payment link guest check-in error:", guestUpdateError);
+    return NextResponse.json({ success: false, error: "Failed to check in guest" }, { status: 500 });
+  }
+
+  // Update payment link's guests_checked_in count
+  await supabase.rpc("increment_payment_link_guests_checked_in", { link_id: paymentLink.id });
+
+  // Get all guests to check status
+  const { data: guestsData } = await supabase
+    .from("payment_link_guests")
+    .select("id, checked_in_at")
+    .eq("payment_link_id", paymentLink.id);
+
+  const checkedInCount = (guestsData?.filter(g => g.checked_in_at).length || 0) + 1;
+  const totalGuests = guestsData?.length || 1;
+
+  return NextResponse.json({
+    success: true,
+    message: `Guest ${guest.guest_number} checked in!`,
+    isGuestCheckIn: true,
+    isPaymentLink: true,
+    guest: {
+      id: guest.id,
+      guestNumber: guest.guest_number,
+      guestName: guest.guest_name || `Guest ${guest.guest_number}`,
+      checkedInAt: new Date().toISOString(),
+    },
+    paymentLink: {
+      id: paymentLink.id,
+      linkCode: paymentLink.link_code,
+      title: paymentLink.title,
+      totalGuests,
+      guestsCheckedIn: checkedInCount,
+    }
+  });
+}
+
+async function handlePaymentLinkCheckIn(
+  supabase: NonNullable<ReturnType<typeof createAdminClient>>,
+  paymentLink: any,
+  staffId: string | null,
+  deviceInfo: string | null
+) {
+  // Check if payment link is paid
+  if (paymentLink.status !== "paid") {
+    return NextResponse.json({ 
+      success: false, 
+      error: `Payment link is ${paymentLink.status}. Only paid links can be checked in.`,
+      paymentLink: {
+        linkCode: paymentLink.link_code,
+        status: paymentLink.status,
+      }
+    }, { status: 400 });
+  }
+
+  // Check if already fully checked in
+  const numberOfPeople = paymentLink.number_of_people || 1;
+  if (paymentLink.guests_checked_in >= numberOfPeople) {
+    return NextResponse.json({ 
+      success: false, 
+      error: "All guests have already checked in",
+      alreadyCheckedIn: true,
+      paymentLink: {
+        id: paymentLink.id,
+        linkCode: paymentLink.link_code,
+        title: paymentLink.title,
+        totalGuests: numberOfPeople,
+        guestsCheckedIn: paymentLink.guests_checked_in,
+      }
+    }, { status: 409 });
+  }
+
+  // Perform check-in (for single-person or legacy payment links)
+  const { error: updateError } = await supabase
+    .from("payment_links")
+    .update({
+      guests_checked_in: numberOfPeople,
+    })
+    .eq("id", paymentLink.id);
+
+  if (updateError) {
+    console.error("Payment link check-in update error:", updateError);
+    return NextResponse.json({ success: false, error: "Failed to check in" }, { status: 500 });
+  }
+
+  return NextResponse.json({
+    success: true,
+    message: numberOfPeople > 1 
+      ? `Check-in successful! (${numberOfPeople} guests)` 
+      : "Check-in successful!",
+    isPaymentLink: true,
+    paymentLink: {
+      id: paymentLink.id,
+      linkCode: paymentLink.link_code,
+      title: paymentLink.title,
+      customerName: paymentLink.customer_name,
+      totalGuests: numberOfPeople,
+      guestsCheckedIn: numberOfPeople,
       checkedInAt: new Date().toISOString(),
     }
   });
