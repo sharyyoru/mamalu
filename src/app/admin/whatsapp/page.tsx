@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { MessageSquare, AlertCircle, CheckCircle, Clock, TrendingUp } from "lucide-react";
+import { MessageSquare, AlertCircle, CheckCircle, Clock, TrendingUp, X, Loader2 } from "lucide-react";
 
 interface WhatsAppAccount {
   id: string;
@@ -31,6 +31,16 @@ export default function WhatsAppMonitoringPage() {
   const [flaggedMessages, setFlaggedMessages] = useState<FlaggedMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedAccount, setSelectedAccount] = useState<string | null>(null);
+  const [showConnectModal, setShowConnectModal] = useState(false);
+  const [connecting, setConnecting] = useState(false);
+  const [connectError, setConnectError] = useState<string | null>(null);
+  const [formData, setFormData] = useState({
+    phoneNumber: "",
+    businessAccountId: "",
+    whatsappBusinessAccountId: "",
+    accessToken: "",
+    displayName: "",
+  });
 
   useEffect(() => {
     fetchAccounts();
@@ -86,6 +96,42 @@ export default function WhatsAppMonitoringPage() {
     }
   };
 
+  const handleConnectAccount = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setConnecting(true);
+    setConnectError(null);
+
+    try {
+      const res = await fetch("/api/whatsapp/connect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to connect account");
+      }
+
+      // Success - close modal and refresh accounts
+      setShowConnectModal(false);
+      setFormData({
+        phoneNumber: "",
+        businessAccountId: "",
+        whatsappBusinessAccountId: "",
+        accessToken: "",
+        displayName: "",
+      });
+      fetchAccounts();
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to connect account";
+      setConnectError(errorMessage);
+    } finally {
+      setConnecting(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="p-8">
@@ -97,25 +143,148 @@ export default function WhatsAppMonitoringPage() {
     );
   }
 
+  const connectModal = showConnectModal && (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between p-4 border-b">
+          <h2 className="text-xl font-semibold">Connect WhatsApp Account</h2>
+          <button
+            onClick={() => setShowConnectModal(false)}
+            className="p-1 hover:bg-stone-100 rounded"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+        <form onSubmit={handleConnectAccount} className="p-4 space-y-4">
+          {connectError && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+              {connectError}
+            </div>
+          )}
+          
+          <div>
+            <label className="block text-sm font-medium text-stone-700 mb-1">
+              Display Name *
+            </label>
+            <input
+              type="text"
+              required
+              value={formData.displayName}
+              onChange={(e) => setFormData({ ...formData, displayName: e.target.value })}
+              placeholder="e.g., Main Support Line"
+              className="w-full px-3 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-stone-700 mb-1">
+              Phone Number *
+            </label>
+            <input
+              type="text"
+              required
+              value={formData.phoneNumber}
+              onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
+              placeholder="+971501234567"
+              className="w-full px-3 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-stone-700 mb-1">
+              Phone Number ID *
+            </label>
+            <input
+              type="text"
+              required
+              value={formData.businessAccountId}
+              onChange={(e) => setFormData({ ...formData, businessAccountId: e.target.value })}
+              placeholder="From Meta > WhatsApp > API Setup"
+              className="w-full px-3 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+            />
+            <p className="text-xs text-stone-500 mt-1">Find this in Meta for Developers → WhatsApp → API Setup</p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-stone-700 mb-1">
+              WhatsApp Business Account ID
+            </label>
+            <input
+              type="text"
+              value={formData.whatsappBusinessAccountId}
+              onChange={(e) => setFormData({ ...formData, whatsappBusinessAccountId: e.target.value })}
+              placeholder="Optional"
+              className="w-full px-3 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-stone-700 mb-1">
+              Access Token
+            </label>
+            <input
+              type="password"
+              value={formData.accessToken}
+              onChange={(e) => setFormData({ ...formData, accessToken: e.target.value })}
+              placeholder="Temporary or permanent token"
+              className="w-full px-3 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+            />
+            <p className="text-xs text-stone-500 mt-1">Generate from Meta for Developers → WhatsApp → API Setup</p>
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <button
+              type="button"
+              onClick={() => setShowConnectModal(false)}
+              className="flex-1 px-4 py-2 border border-stone-300 text-stone-700 rounded-lg hover:bg-stone-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={connecting}
+              className="flex-1 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {connecting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Connecting...
+                </>
+              ) : (
+                "Connect Account"
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+
   if (accounts.length === 0) {
     return (
-      <div className="p-8">
-        <h1 className="text-3xl font-bold mb-6">WhatsApp Monitoring</h1>
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-6">
-          <div className="flex items-start gap-4">
-            <MessageSquare className="h-8 w-8 text-amber-600 flex-shrink-0" />
-            <div>
-              <h2 className="text-xl font-semibold text-amber-900 mb-2">No WhatsApp Accounts Connected</h2>
-              <p className="text-amber-800 mb-4">
-                Connect your WhatsApp Business account to start monitoring messages for cash mentions.
-              </p>
-              <button className="bg-amber-600 text-white px-4 py-2 rounded-lg hover:bg-amber-700">
-                Connect WhatsApp Account
-              </button>
+      <>
+        <div className="p-8">
+          <h1 className="text-3xl font-bold mb-6">WhatsApp Monitoring</h1>
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-6">
+            <div className="flex items-start gap-4">
+              <MessageSquare className="h-8 w-8 text-amber-600 flex-shrink-0" />
+              <div>
+                <h2 className="text-xl font-semibold text-amber-900 mb-2">No WhatsApp Accounts Connected</h2>
+                <p className="text-amber-800 mb-4">
+                  Connect your WhatsApp Business account to start monitoring messages for cash mentions.
+                </p>
+                <button 
+                  onClick={() => setShowConnectModal(true)}
+                  className="bg-amber-600 text-white px-4 py-2 rounded-lg hover:bg-amber-700"
+                >
+                  Connect WhatsApp Account
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+        {connectModal}
+      </>
     );
   }
 
