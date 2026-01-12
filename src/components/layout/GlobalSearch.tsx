@@ -131,24 +131,21 @@ export function GlobalSearch() {
 
   return (
     <>
-      {/* Search Trigger Button */}
+      {/* Search Trigger Button - More Prominent */}
       <button
         onClick={() => setIsOpen(true)}
-        className="flex items-center gap-2 px-4 py-2.5 rounded-full glass hover:bg-white/90 transition-all group"
+        className="flex items-center gap-3 w-full px-5 py-3 rounded-2xl bg-stone-100 hover:bg-stone-200 border border-stone-200 hover:border-stone-300 transition-all group shadow-sm"
       >
-        <Search className="h-4 w-4 text-stone-500 group-hover:text-[#ff8c6b] transition-colors" />
-        <span className="text-sm text-stone-500 hidden sm:inline">Search...</span>
-        <kbd className="hidden md:inline-flex items-center gap-1 px-2 py-0.5 text-xs text-stone-400 bg-stone-100 rounded">
-          <span className="text-xs">⌘</span>K
-        </kbd>
+        <Search className="h-5 w-5 text-stone-400 group-hover:text-[#ff8c6b] transition-colors" />
+        <span className="text-sm text-stone-400 flex-1 text-left">Search classes, products...</span>
       </button>
 
-      {/* Search Modal */}
+      {/* Search Modal - Full Page Blackout */}
       {isOpen && (
         <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[10vh] px-4">
-          {/* Backdrop */}
+          {/* Dark Backdrop - Blacks out entire page */}
           <div 
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/70 backdrop-blur-md"
             onClick={() => {
               setIsOpen(false);
               setQuery("");

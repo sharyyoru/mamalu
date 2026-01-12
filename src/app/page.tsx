@@ -28,7 +28,7 @@ const classTypes = [
     title: "Kids Classes",
     description: "Fun cooking adventures for little chefs aged 4-12",
     icon: Baby,
-    color: "from-pink-500 to-rose-500",
+    color: "from-stone-800 to-stone-900",
     href: "/classes?type=kids",
     emoji: "👶",
     image: "/images/kids-classes.png",
@@ -38,7 +38,7 @@ const classTypes = [
     title: "Family Classes",
     description: "Cook together, bond together - memories that last forever",
     icon: Users,
-    color: "from-[#ff8c6b] to-[#ffa891]",
+    color: "from-stone-800 to-stone-900",
     href: "/classes?type=family",
     emoji: "👨‍👩‍👧",
     image: "/images/family-classes.png",
@@ -48,7 +48,7 @@ const classTypes = [
     title: "Birthday Parties",
     description: "Celebrate with a unique cooking party experience",
     icon: Cake,
-    color: "from-violet-500 to-purple-600",
+    color: "from-stone-800 to-stone-900",
     href: "/classes?type=birthday",
     emoji: "🎂",
     image: "/images/birthday-parties.png",
@@ -58,7 +58,7 @@ const classTypes = [
     title: "Adult Classes",
     description: "Master new cuisines and techniques with expert guidance",
     icon: ChefHat,
-    color: "from-emerald-500 to-teal-600",
+    color: "from-stone-800 to-stone-900",
     href: "/classes?type=adults",
     emoji: "👨‍🍳",
     image: "/images/adult-classes.png",
@@ -109,28 +109,57 @@ export default function Home() {
       
       <div className="overflow-hidden">
         {/* Hero Section */}
-        <section className="relative min-h-[90vh] flex items-center gradient-mesh overflow-hidden">
-          {/* Animated Background Elements */}
+        <section className="relative min-h-[90vh] flex items-center bg-gradient-to-br from-stone-50 via-white to-stone-100 overflow-hidden">
+          {/* Animated Food Doodles Background */}
           <div className="absolute inset-0 pointer-events-none overflow-hidden">
-            <div className="absolute top-20 left-[10%] w-64 h-64 bg-gradient-to-br from-[#ff8c6b]/20 to-transparent rounded-full blur-3xl animate-float" />
-            <div className="absolute bottom-20 right-[10%] w-80 h-80 bg-gradient-to-br from-[#ffa891]/15 to-transparent rounded-full blur-3xl animate-float-slow" />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-br from-[#ff8c6b]/5 to-transparent rounded-full blur-3xl" />
+            {/* Soft gradient blobs */}
+            <div className="absolute top-20 left-[10%] w-64 h-64 bg-gradient-to-br from-stone-200/40 to-transparent rounded-full blur-3xl animate-float" />
+            <div className="absolute bottom-20 right-[10%] w-80 h-80 bg-gradient-to-br from-stone-300/30 to-transparent rounded-full blur-3xl animate-float-slow" />
+            
+            {/* Animated Food Doodles */}
+            <svg className="absolute top-[10%] left-[5%] w-16 h-16 text-stone-300 animate-float opacity-60" viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="50" cy="35" r="25" />
+              <path d="M25 60 Q50 80 75 60" />
+              <path d="M35 35 L35 25 M50 35 L50 20 M65 35 L65 25" />
+            </svg>
+            <svg className="absolute top-[15%] right-[8%] w-14 h-14 text-stone-300 animate-bounce opacity-50" style={{animationDuration: '3s'}} viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="2">
+              <ellipse cx="50" cy="60" rx="35" ry="20" />
+              <path d="M20 55 Q50 30 80 55" />
+              <circle cx="35" cy="50" r="5" fill="currentColor" />
+              <circle cx="55" cy="45" r="4" fill="currentColor" />
+              <circle cx="65" cy="55" r="5" fill="currentColor" />
+            </svg>
+            <svg className="absolute bottom-[20%] left-[8%] w-12 h-12 text-stone-300 animate-pulse opacity-50" viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="25" y="30" width="50" height="40" rx="5" />
+              <path d="M30 30 Q50 10 70 30" />
+              <circle cx="50" cy="50" r="10" />
+            </svg>
+            <svg className="absolute bottom-[30%] right-[12%] w-10 h-10 text-stone-300 animate-float opacity-40" style={{animationDelay: '1s'}} viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M50 20 L50 80" />
+              <ellipse cx="50" cy="20" rx="20" ry="10" />
+            </svg>
+            <svg className="absolute top-[40%] left-[3%] w-8 h-8 text-stone-300 animate-bounce opacity-40" style={{animationDuration: '4s'}} viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="50" cy="50" r="30" />
+              <path d="M30 50 L70 50 M50 30 L50 70" strokeDasharray="5 5" />
+            </svg>
+            <svg className="absolute top-[60%] right-[5%] w-12 h-12 text-stone-300 animate-pulse opacity-50" style={{animationDelay: '2s'}} viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M30 70 Q30 30 50 30 Q70 30 70 70" />
+              <path d="M40 70 L40 85 M60 70 L60 85" />
+              <line x1="35" y1="85" x2="65" y2="85" />
+            </svg>
           </div>
 
           <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 lg:py-24 w-full">
             <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
               {/* Left Content */}
               <div className="text-center lg:text-left">
-                <div className="inline-flex items-center gap-2 glass-peach text-[#ff8c6b] px-5 py-2.5 rounded-full text-sm font-semibold mb-6 animate-float">
-                  <Sparkles className="h-4 w-4" />
+                <div className="inline-flex items-center gap-2 glass text-stone-700 px-5 py-2.5 rounded-full text-sm font-semibold mb-6 animate-float">
+                  <Sparkles className="h-4 w-4 text-[#ff8c6b]" />
                   #FeedingFamilies Since 2020
                 </div>
                 
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-extrabold text-stone-900 tracking-tight leading-[1.1]">
-                  Where Little Chefs
-                  <span className="block text-gradient mt-2">
-                    Become Big Cooks
-                  </span>
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-stone-900 tracking-tight leading-[1.15]">
+                  Where Little Chefs <span className="text-gradient">Become Big Cooks</span>
                 </h1>
                 
                 <p className="mt-6 text-lg lg:text-xl text-stone-600 max-w-xl mx-auto lg:mx-0">
@@ -255,8 +284,8 @@ export default function Home() {
         <section className="py-20 lg:py-28">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
-              <div className="inline-flex items-center gap-2 glass-peach text-[#ff8c6b] px-4 py-2 rounded-full text-sm font-medium mb-4">
-                <Sparkles className="h-4 w-4" />
+              <div className="inline-flex items-center gap-2 glass text-stone-700 px-4 py-2 rounded-full text-sm font-medium mb-4">
+                <Sparkles className="h-4 w-4 text-[#ff8c6b]" />
                 Our Classes
               </div>
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-stone-900">
@@ -356,8 +385,8 @@ export default function Home() {
 
               {/* Content */}
               <div className="order-1 lg:order-2 text-center lg:text-left">
-                <div className="inline-flex items-center gap-2 glass-peach text-[#ff8c6b] px-4 py-2 rounded-full text-sm font-medium mb-6">
-                  <Sparkles className="h-4 w-4" />
+                <div className="inline-flex items-center gap-2 glass text-stone-700 px-4 py-2 rounded-full text-sm font-medium mb-6">
+                  <Sparkles className="h-4 w-4 text-[#ff8c6b]" />
                   Meet Our Founder
                 </div>
                 <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-stone-900 mb-6">
