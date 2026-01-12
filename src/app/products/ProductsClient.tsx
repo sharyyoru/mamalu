@@ -170,12 +170,12 @@ export default function ProductsClient({
   );
 
   return (
-    <section className="py-12 bg-white">
+    <section className="py-12">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Desktop Sidebar */}
           <div className="hidden lg:block w-64 flex-shrink-0">
-            <div className="sticky top-28">
+            <div className="sticky top-28 glass-card rounded-2xl p-6">
               <Sidebar />
             </div>
           </div>
@@ -186,18 +186,18 @@ export default function ProductsClient({
             <div className="flex flex-col sm:flex-row gap-4 mb-6">
               {/* Search */}
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-stone-400" />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#ff8c6b]" />
                 <Input
                   type="text"
                   placeholder="Search products..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 pr-10 h-12 border-stone-200 focus:border-[#ff8c6b] focus:ring-[#ff8c6b]"
+                  className="pl-12 pr-12 h-14 glass border-0 rounded-full focus:ring-2 focus:ring-[#ff8c6b]/30 text-base"
                 />
                 {searchQuery && (
                   <button
                     onClick={() => setSearchQuery("")}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600"
                   >
                     <X className="h-5 w-5" />
                   </button>
@@ -207,7 +207,7 @@ export default function ProductsClient({
               {/* Mobile Filter Button */}
               <Button
                 variant="outline"
-                className="lg:hidden flex items-center gap-2"
+                className="lg:hidden flex items-center gap-2 glass border-0 rounded-full h-14 px-6"
                 onClick={() => setShowMobileFilters(true)}
               >
                 <SlidersHorizontal className="h-5 w-5" />
@@ -257,77 +257,89 @@ export default function ProductsClient({
             {/* Product Grid */}
             {filteredAndSortedProducts.length > 0 ? (
               <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                {filteredAndSortedProducts.map((product) => (
-                  <Card
+                {filteredAndSortedProducts.map((product, idx) => (
+                  <div
                     key={product._id}
-                    className="group overflow-hidden hover:shadow-lg transition-shadow"
+                    className="group glass-card rounded-2xl overflow-hidden card-hover"
+                    style={{ animationDelay: `${idx * 50}ms` }}
                   >
-                    <div className="aspect-square bg-gradient-to-br from-[#ff8c6b]/20 to-[#ff8c6b]/30 flex items-center justify-center relative overflow-hidden">
+                    <div className="aspect-square relative overflow-hidden">
                       {product.imageUrl ? (
                         <Image
                           src={product.imageUrl}
                           alt={product.images?.[0]?.alt || product.title}
                           fill
-                          className="object-cover group-hover:scale-105 transition-transform duration-300"
+                          className="object-cover group-hover:scale-110 transition-transform duration-500"
                         />
                       ) : (
-                        <ShoppingBag className="h-12 w-12 text-[#ff8c6b]/30" />
+                        <div className="w-full h-full bg-gradient-to-br from-[#ff8c6b]/20 to-[#ffa891]/30 flex items-center justify-center">
+                          <ShoppingBag className="h-16 w-16 text-[#ff8c6b]/40" />
+                        </div>
                       )}
                       {!product.inStock && (
-                        <div className="absolute top-2 right-2">
-                          <Badge variant="destructive" className="text-xs">Sold Out</Badge>
+                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                          <span className="px-4 py-2 rounded-full bg-stone-900 text-white text-sm font-semibold">
+                            Sold Out
+                          </span>
                         </div>
                       )}
                       {product.compareAtPrice && product.compareAtPrice > product.price && (
-                        <div className="absolute top-2 left-2">
-                          <Badge className="bg-[#ff8c6b] text-white text-xs">Sale</Badge>
+                        <div className="absolute top-3 left-3">
+                          <span className="px-3 py-1.5 rounded-full text-xs font-semibold bg-gradient-to-r from-red-500 to-rose-500 text-white shadow-lg">
+                            Sale
+                          </span>
                         </div>
                       )}
                       {/* Quick Add Button */}
                       <button
-                        onClick={() => addToCart(product)}
-                        className="absolute bottom-2 right-2 w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-[#ff8c6b] hover:text-white"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          addToCart(product);
+                        }}
+                        className="absolute bottom-3 right-3 w-12 h-12 bg-white rounded-full shadow-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-gradient-to-r hover:from-[#ff8c6b] hover:to-[#ffa891] hover:text-white hover:scale-110"
                         disabled={!product.inStock}
                       >
                         <ShoppingCart className="h-5 w-5" />
                       </button>
                     </div>
-                    <CardContent className="p-3 sm:p-4">
-                      <h3 className="font-semibold text-stone-900 text-sm sm:text-base mb-1 group-hover:text-[#ff8c6b] transition-colors line-clamp-1">
+                    <div className="p-4 sm:p-5">
+                      <h3 className="font-bold text-stone-900 text-sm sm:text-base mb-2 group-hover:text-[#ff8c6b] transition-colors line-clamp-1">
                         {product.title}
                       </h3>
-                      <div className="flex items-center justify-between mt-2">
-                        <div className="flex items-center gap-2">
-                          <span className="text-base sm:text-lg font-bold text-[#ff8c6b]">
-                            {formatPrice(product.price)}
+                      <div className="flex items-center gap-2 mb-4">
+                        <span className="text-lg sm:text-xl font-bold text-gradient">
+                          {formatPrice(product.price)}
+                        </span>
+                        {product.compareAtPrice && product.compareAtPrice > product.price && (
+                          <span className="text-xs sm:text-sm text-stone-400 line-through">
+                            {formatPrice(product.compareAtPrice)}
                           </span>
-                          {product.compareAtPrice && product.compareAtPrice > product.price && (
-                            <span className="text-xs sm:text-sm text-stone-400 line-through">
-                              {formatPrice(product.compareAtPrice)}
-                            </span>
-                          )}
-                        </div>
+                        )}
                       </div>
                       <Button
-                        onClick={() => addToCart(product)}
-                        className="w-full mt-3 bg-[#ff8c6b] hover:bg-[#e67854] text-white text-sm"
-                        size="sm"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          addToCart(product);
+                        }}
+                        className="w-full gradient-peach-glow text-white text-sm rounded-full h-11"
                         disabled={!product.inStock}
                       >
                         <ShoppingCart className="h-4 w-4 mr-2" />
                         Add to Cart
                       </Button>
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </div>
                 ))}
               </div>
             ) : (
-              <div className="text-center py-12">
-                <ShoppingBag className="h-16 w-16 text-stone-300 mx-auto mb-4" />
-                <p className="text-stone-500">No products found.</p>
+              <div className="text-center py-20">
+                <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-[#ff8c6b]/20 to-[#ffa891]/10 flex items-center justify-center">
+                  <ShoppingBag className="h-10 w-10 text-[#ff8c6b]" />
+                </div>
+                <h2 className="text-xl font-bold text-stone-900 mb-2">No products found</h2>
+                <p className="text-stone-500 mb-6">Try adjusting your search or filters</p>
                 <Button
-                  variant="outline"
-                  className="mt-4"
+                  className="glass rounded-full px-6"
                   onClick={() => {
                     setActiveCategory("all");
                     setSearchQuery("");
