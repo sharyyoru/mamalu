@@ -32,7 +32,8 @@
     "resend": "^6.6.0",
     "sanity": "^4.20.3",
     "stripe": "^20.0.0",
-    "tailwind-merge": "^3.4.0"
+    "tailwind-merge": "^3.4.0",
+    "twilio": "^5.11.2"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

@@ -1,9 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAuth } from "@/lib/auth/api-auth";
+import { isTwilioConfigured, TWILIO_WHATSAPP_NUMBER } from "@/lib/twilio/client";
 
 /**
- * POST: Connect a WhatsApp Business account
+ * GET: Check Twilio configuration status
+ */
+export async function GET(request: NextRequest) {
+  const authResult = await requireAuth(request, ["super_admin"]);
+  if (authResult instanceof NextResponse) {
+    return authResult;
+  }
+
+  const configured = isTwilioConfigured();
+  
+  return NextResponse.json({
+    configured,
+    whatsappNumber: configured ? TWILIO_WHATSAPP_NUMBER : null,
+    webhookUrl: `${process.env.NEXT_PUBLIC_APP_URL || "https://yourdomain.com"}/api/webhooks/twilio-whatsapp`,
+  });
+}
+
+/**
+ * POST: Connect/activate WhatsApp monitoring with Twilio
  */
 export async function POST(request: NextRequest) {
   // Verify user is super admin
@@ -15,18 +34,11 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const {
-      phoneNumber,
-      businessAccountId,
-      whatsappBusinessAccountId,
-      accessToken,
-      displayName,
-      profilePictureUrl,
-    } = body;
+    const { displayName } = body;
 
-    if (!phoneNumber || !businessAccountId) {
+    if (!isTwilioConfigured()) {
       return NextResponse.json(
-        { error: "phoneNumber and businessAccountId are required" },
+        { error: "Twilio is not configured. Please set TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, and TWILIO_WHATSAPP_NUMBER in environment variables." },
         { status: 400 }
       );
     }
@@ -36,21 +48,36 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Database not configured" }, { status: 500 });
     }
 
-    // Generate webhook verify token
-    const webhookVerifyToken = `mamalu_${user.id}_${Date.now()}`;
-
     // Check if account already exists
     const { data: existingAccount } = await supabase
       .from("whatsapp_accounts")
       .select("id")
-      .eq("phone_number", phoneNumber)
+      .eq("phone_number", TWILIO_WHATSAPP_NUMBER)
       .single();
 
     if (existingAccount) {
-      return NextResponse.json(
-        { error: "This WhatsApp account is already connected" },
-        { status: 409 }
-      );
+      // Update existing account
+      const { data: account, error } = await supabase
+        .from("whatsapp_accounts")
+        .update({
+          status: "active",
+          display_name: displayName || "Twilio WhatsApp",
+          provider: "twilio",
+        })
+        .eq("id", existingAccount.id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Update account error:", error);
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
+
+      return NextResponse.json({
+        success: true,
+        account,
+        webhookUrl: `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/twilio-whatsapp`,
+      });
     }
 
     // Create new WhatsApp account
@@ -58,13 +85,10 @@ export async function POST(request: NextRequest) {
       .from("whatsapp_accounts")
       .insert({
         super_admin_id: user.id,
-        phone_number: phoneNumber,
-        business_account_id: businessAccountId,
-        whatsapp_business_account_id: whatsappBusinessAccountId || null,
-        access_token: accessToken || null,
-        webhook_verify_token: webhookVerifyToken,
-        display_name: displayName || null,
-        profile_picture_url: profilePictureUrl || null,
+        phone_number: TWILIO_WHATSAPP_NUMBER,
+        business_account_id: process.env.TWILIO_ACCOUNT_SID || "twilio",
+        display_name: displayName || "Twilio WhatsApp",
+        provider: "twilio",
         status: "active",
       })
       .select()
@@ -78,8 +102,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       account,
-      webhookUrl: `${process.env.NEXT_PUBLIC_APP_URL || "https://yourdomain.com"}/api/webhooks/whatsapp`,
-      webhookVerifyToken,
+      webhookUrl: `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/twilio-whatsapp`,
     });
   } catch (error: any) {
     console.error("Connect account error:", error);

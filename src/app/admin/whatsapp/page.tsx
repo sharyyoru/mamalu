@@ -35,16 +35,30 @@ export default function WhatsAppMonitoringPage() {
   const [connecting, setConnecting] = useState(false);
   const [connectError, setConnectError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
-    phoneNumber: "",
-    businessAccountId: "",
-    whatsappBusinessAccountId: "",
-    accessToken: "",
     displayName: "",
   });
+  const [twilioConfig, setTwilioConfig] = useState<{
+    configured: boolean;
+    whatsappNumber: string | null;
+    webhookUrl: string;
+  } | null>(null);
 
   useEffect(() => {
     fetchAccounts();
+    checkTwilioConfig();
   }, []);
+
+  const checkTwilioConfig = async () => {
+    try {
+      const res = await fetch("/api/whatsapp/connect");
+      if (res.ok) {
+        const data = await res.json();
+        setTwilioConfig(data);
+      }
+    } catch (error) {
+      console.error("Failed to check Twilio config:", error);
+    }
+  };
 
   useEffect(() => {
     if (selectedAccount) {
@@ -105,7 +119,7 @@ export default function WhatsAppMonitoringPage() {
       const res = await fetch("/api/whatsapp/connect", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ displayName: formData.displayName }),
       });
 
       const data = await res.json();
@@ -116,13 +130,7 @@ export default function WhatsAppMonitoringPage() {
 
       // Success - close modal and refresh accounts
       setShowConnectModal(false);
-      setFormData({
-        phoneNumber: "",
-        businessAccountId: "",
-        whatsappBusinessAccountId: "",
-        accessToken: "",
-        displayName: "",
-      });
+      setFormData({ displayName: "" });
       fetchAccounts();
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "Failed to connect account";
@@ -161,76 +169,45 @@ export default function WhatsAppMonitoringPage() {
               {connectError}
             </div>
           )}
-          
-          <div>
-            <label className="block text-sm font-medium text-stone-700 mb-1">
-              Display Name *
-            </label>
-            <input
-              type="text"
-              required
-              value={formData.displayName}
-              onChange={(e) => setFormData({ ...formData, displayName: e.target.value })}
-              placeholder="e.g., Main Support Line"
-              className="w-full px-3 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
-            />
-          </div>
 
-          <div>
-            <label className="block text-sm font-medium text-stone-700 mb-1">
-              Phone Number *
-            </label>
-            <input
-              type="text"
-              required
-              value={formData.phoneNumber}
-              onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
-              placeholder="+971501234567"
-              className="w-full px-3 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
-            />
-          </div>
+          {!twilioConfig?.configured ? (
+            <div className="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded">
+              <p className="font-medium">Twilio not configured</p>
+              <p className="text-sm mt-1">Please add the following environment variables:</p>
+              <ul className="text-sm mt-2 list-disc list-inside">
+                <li>TWILIO_ACCOUNT_SID</li>
+                <li>TWILIO_AUTH_TOKEN</li>
+                <li>TWILIO_WHATSAPP_NUMBER</li>
+              </ul>
+            </div>
+          ) : (
+            <>
+              <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded">
+                <p className="font-medium">Twilio Connected</p>
+                <p className="text-sm mt-1">WhatsApp Number: {twilioConfig.whatsappNumber}</p>
+              </div>
 
-          <div>
-            <label className="block text-sm font-medium text-stone-700 mb-1">
-              Phone Number ID *
-            </label>
-            <input
-              type="text"
-              required
-              value={formData.businessAccountId}
-              onChange={(e) => setFormData({ ...formData, businessAccountId: e.target.value })}
-              placeholder="From Meta > WhatsApp > API Setup"
-              className="w-full px-3 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
-            />
-            <p className="text-xs text-stone-500 mt-1">Find this in Meta for Developers → WhatsApp → API Setup</p>
-          </div>
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-1">
+                  Display Name *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={formData.displayName}
+                  onChange={(e) => setFormData({ ...formData, displayName: e.target.value })}
+                  placeholder="e.g., Mamalu Kitchen Support"
+                  className="w-full px-3 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                />
+              </div>
 
-          <div>
-            <label className="block text-sm font-medium text-stone-700 mb-1">
-              WhatsApp Business Account ID
-            </label>
-            <input
-              type="text"
-              value={formData.whatsappBusinessAccountId}
-              onChange={(e) => setFormData({ ...formData, whatsappBusinessAccountId: e.target.value })}
-              placeholder="Optional"
-              className="w-full px-3 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-stone-700 mb-1">
-              Access Token
-            </label>
-            <input
-              type="password"
-              value={formData.accessToken}
-              onChange={(e) => setFormData({ ...formData, accessToken: e.target.value })}
-              placeholder="Temporary or permanent token"
-              className="w-full px-3 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
-            />
-            <p className="text-xs text-stone-500 mt-1">Generate from Meta for Developers → WhatsApp → API Setup</p>
-          </div>
+              <div className="bg-stone-50 border border-stone-200 rounded-lg p-3">
+                <p className="text-sm font-medium text-stone-700">Webhook URL</p>
+                <p className="text-xs text-stone-600 mt-1 break-all font-mono">{twilioConfig.webhookUrl}</p>
+                <p className="text-xs text-stone-500 mt-2">Add this URL in Twilio Console → Messaging → WhatsApp Sandbox Settings</p>
+              </div>
+            </>
+          )}
 
           <div className="flex gap-3 pt-4">
             <button
@@ -242,7 +219,7 @@ export default function WhatsAppMonitoringPage() {
             </button>
             <button
               type="submit"
-              disabled={connecting}
+              disabled={connecting || !twilioConfig?.configured}
               className="flex-1 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {connecting ? (
@@ -251,7 +228,7 @@ export default function WhatsAppMonitoringPage() {
                   Connecting...
                 </>
               ) : (
-                "Connect Account"
+                "Activate Monitoring"
               )}
             </button>
           </div>
