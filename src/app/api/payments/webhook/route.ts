@@ -71,9 +71,37 @@ export async function POST(request: NextRequest) {
             .eq("id", bookingId)
             .single();
 
-          // Send confirmation email with QR code
+          // Send confirmation email with QR code(s)
           if (confirmedBooking && confirmedBooking.attendee_email) {
             try {
+              const numberOfGuests = confirmedBooking.number_of_guests || 1;
+              let guestQRs: Array<{ guestNumber: number; guestName?: string; qrToken: string }> = [];
+
+              // Create individual guest records if multiple guests
+              if (numberOfGuests > 1) {
+                const guestsToInsert = [];
+                for (let i = 1; i <= numberOfGuests; i++) {
+                  guestsToInsert.push({
+                    booking_id: bookingId,
+                    guest_number: i,
+                    guest_name: i === 1 ? confirmedBooking.attendee_name : `Guest ${i}`,
+                  });
+                }
+
+                const { data: createdGuests } = await supabase
+                  .from("booking_guests")
+                  .insert(guestsToInsert)
+                  .select();
+
+                if (createdGuests) {
+                  guestQRs = createdGuests.map(g => ({
+                    guestNumber: g.guest_number,
+                    guestName: g.guest_name,
+                    qrToken: g.qr_code_token,
+                  }));
+                }
+              }
+
               await sendBookingConfirmationEmail({
                 bookingNumber: confirmedBooking.booking_number,
                 attendeeName: confirmedBooking.attendee_name,
@@ -84,7 +112,9 @@ export async function POST(request: NextRequest) {
                 location: confirmedBooking.location || "Mamalu Kitchen",
                 sessionsBooked: confirmedBooking.sessions_booked || 1,
                 totalAmount: confirmedBooking.total_amount,
+                numberOfGuests,
                 qrToken: confirmedBooking.qr_code_token,
+                guestQRs: guestQRs.length > 0 ? guestQRs : undefined,
               });
 
               // Mark email as sent
@@ -93,7 +123,7 @@ export async function POST(request: NextRequest) {
                 .update({ confirmation_email_sent_at: new Date().toISOString() })
                 .eq("id", bookingId);
 
-              console.log(`Confirmation email sent for booking ${confirmedBooking.booking_number}`);
+              console.log(`Confirmation email sent for booking ${confirmedBooking.booking_number} (${numberOfGuests} guests)`);
             } catch (emailError) {
               console.error("Failed to send confirmation email:", emailError);
             }

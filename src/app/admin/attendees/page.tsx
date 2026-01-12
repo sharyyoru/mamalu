@@ -17,6 +17,8 @@ interface Booking {
   paid_at: string | null;
   checked_in_at: string | null;
   created_at: string;
+  number_of_guests: number;
+  guests_checked_in: number;
 }
 
 interface ClassOption {
@@ -96,14 +98,17 @@ export default function AttendeesPage() {
   });
 
   const stats = {
-    total: filteredBookings.length,
+    totalBookings: filteredBookings.length,
     confirmed: filteredBookings.filter(b => b.status === "confirmed").length,
-    checkedIn: filteredBookings.filter(b => b.checked_in_at).length,
     pending: filteredBookings.filter(b => b.status === "pending").length,
+    // Headcount stats
+    totalGuests: filteredBookings.reduce((sum, b) => sum + (b.number_of_guests || 1), 0),
+    guestsCheckedIn: filteredBookings.reduce((sum, b) => sum + (b.guests_checked_in || 0), 0),
+    bookingsFullyCheckedIn: filteredBookings.filter(b => b.checked_in_at).length,
   };
 
-  const checkInRate = stats.confirmed > 0 
-    ? Math.round((stats.checkedIn / stats.confirmed) * 100) 
+  const checkInRate = stats.totalGuests > 0 
+    ? Math.round((stats.guestsCheckedIn / stats.totalGuests) * 100) 
     : 0;
 
   if (loading) {
@@ -148,13 +153,30 @@ export default function AttendeesPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
         <div className="bg-white rounded-lg shadow p-4">
           <div className="flex items-center justify-between mb-2">
             <span className="text-stone-600 text-sm">Total Bookings</span>
             <Users className="h-5 w-5 text-blue-600" />
           </div>
-          <div className="text-2xl font-bold">{stats.total}</div>
+          <div className="text-2xl font-bold">{stats.totalBookings}</div>
+        </div>
+        <div className="bg-white rounded-lg shadow p-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-stone-600 text-sm">Total Guests</span>
+            <Users className="h-5 w-5 text-purple-600" />
+          </div>
+          <div className="text-2xl font-bold text-purple-600">{stats.totalGuests}</div>
+        </div>
+        <div className="bg-white rounded-lg shadow p-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-stone-600 text-sm">Guests Checked In</span>
+            <TrendingUp className="h-5 w-5 text-amber-600" />
+          </div>
+          <div className="text-2xl font-bold text-amber-600">
+            {stats.guestsCheckedIn}
+            <span className="text-sm font-normal text-stone-500 ml-2">({checkInRate}%)</span>
+          </div>
         </div>
         <div className="bg-white rounded-lg shadow p-4">
           <div className="flex items-center justify-between mb-2">
@@ -162,16 +184,6 @@ export default function AttendeesPage() {
             <CheckCircle className="h-5 w-5 text-green-600" />
           </div>
           <div className="text-2xl font-bold text-green-600">{stats.confirmed}</div>
-        </div>
-        <div className="bg-white rounded-lg shadow p-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-stone-600 text-sm">Checked In</span>
-            <TrendingUp className="h-5 w-5 text-amber-600" />
-          </div>
-          <div className="text-2xl font-bold text-amber-600">
-            {stats.checkedIn}
-            <span className="text-sm font-normal text-stone-500 ml-2">({checkInRate}%)</span>
-          </div>
         </div>
         <div className="bg-white rounded-lg shadow p-4">
           <div className="flex items-center justify-between mb-2">
@@ -242,7 +254,7 @@ export default function AttendeesPage() {
                 <th className="text-left px-4 py-3 text-sm font-semibold text-stone-700">Attendee</th>
                 <th className="text-left px-4 py-3 text-sm font-semibold text-stone-700">Booking #</th>
                 <th className="text-left px-4 py-3 text-sm font-semibold text-stone-700">Class</th>
-                <th className="text-left px-4 py-3 text-sm font-semibold text-stone-700">Sessions</th>
+                <th className="text-left px-4 py-3 text-sm font-semibold text-stone-700">Guests</th>
                 <th className="text-left px-4 py-3 text-sm font-semibold text-stone-700">Status</th>
                 <th className="text-left px-4 py-3 text-sm font-semibold text-stone-700">Check-In</th>
               </tr>
@@ -270,7 +282,21 @@ export default function AttendeesPage() {
                       <span className="text-sm">{booking.class_title}</span>
                     </td>
                     <td className="px-4 py-3">
-                      <span className="text-sm">{booking.sessions_booked}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium">
+                          {booking.guests_checked_in || 0}/{booking.number_of_guests || 1}
+                        </span>
+                        {(booking.number_of_guests || 1) > 1 && (
+                          <div className="w-16 h-2 bg-stone-200 rounded-full overflow-hidden">
+                            <div 
+                              className="h-full bg-green-500 rounded-full transition-all"
+                              style={{ 
+                                width: `${((booking.guests_checked_in || 0) / (booking.number_of_guests || 1)) * 100}%` 
+                              }}
+                            />
+                          </div>
+                        )}
+                      </div>
                     </td>
                     <td className="px-4 py-3">
                       <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${

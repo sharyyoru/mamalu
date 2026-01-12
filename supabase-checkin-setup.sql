@@ -8,16 +8,60 @@ ALTER TABLE class_bookings
 ADD COLUMN IF NOT EXISTS qr_code_token UUID DEFAULT gen_random_uuid(),
 ADD COLUMN IF NOT EXISTS checked_in_at TIMESTAMPTZ,
 ADD COLUMN IF NOT EXISTS checked_in_by UUID REFERENCES profiles(id),
-ADD COLUMN IF NOT EXISTS confirmation_email_sent_at TIMESTAMPTZ;
+ADD COLUMN IF NOT EXISTS confirmation_email_sent_at TIMESTAMPTZ,
+ADD COLUMN IF NOT EXISTS guests_checked_in INT DEFAULT 0;
 
 -- 2. Create index for fast QR code lookups
 CREATE INDEX IF NOT EXISTS idx_class_bookings_qr_token ON class_bookings(qr_code_token);
 CREATE INDEX IF NOT EXISTS idx_class_bookings_checked_in ON class_bookings(checked_in_at);
 
--- 3. Create check-in logs table for audit trail
+-- 3. Create booking_guests table for individual guest QR codes
+CREATE TABLE IF NOT EXISTS booking_guests (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  booking_id UUID NOT NULL REFERENCES class_bookings(id) ON DELETE CASCADE,
+  guest_number INT NOT NULL,
+  guest_name VARCHAR(255),
+  qr_code_token UUID UNIQUE DEFAULT gen_random_uuid(),
+  checked_in_at TIMESTAMPTZ,
+  checked_in_by UUID REFERENCES profiles(id),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(booking_id, guest_number)
+);
+
+-- 4. Create indexes for booking_guests
+CREATE INDEX IF NOT EXISTS idx_booking_guests_booking ON booking_guests(booking_id);
+CREATE INDEX IF NOT EXISTS idx_booking_guests_qr_token ON booking_guests(qr_code_token);
+CREATE INDEX IF NOT EXISTS idx_booking_guests_checked_in ON booking_guests(checked_in_at);
+
+-- 5. Enable RLS on booking_guests
+ALTER TABLE booking_guests ENABLE ROW LEVEL SECURITY;
+
+-- 6. RLS Policies for booking_guests
+CREATE POLICY "Staff can view all guests" ON booking_guests
+  FOR SELECT TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM profiles 
+      WHERE id = auth.uid() 
+      AND role IN ('staff', 'admin', 'super_admin')
+    )
+  );
+
+CREATE POLICY "Staff can manage guests" ON booking_guests
+  FOR ALL TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM profiles 
+      WHERE id = auth.uid() 
+      AND role IN ('staff', 'admin', 'super_admin')
+    )
+  );
+
+-- 7. Create check-in logs table for audit trail
 CREATE TABLE IF NOT EXISTS booking_checkins (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   booking_id UUID NOT NULL REFERENCES class_bookings(id) ON DELETE CASCADE,
+  guest_id UUID REFERENCES booking_guests(id) ON DELETE CASCADE,
   checked_in_at TIMESTAMPTZ DEFAULT NOW(),
   checked_in_by UUID REFERENCES profiles(id),
   check_in_method VARCHAR(20) DEFAULT 'qr_scan' CHECK (check_in_method IN ('qr_scan', 'manual', 'auto')),
@@ -151,9 +195,23 @@ BEGIN
 END;
 $$;
 
--- 9. Grant execute permissions
+-- 9. Function to increment guests_checked_in counter
+CREATE OR REPLACE FUNCTION increment_guests_checked_in(booking_id UUID)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  UPDATE class_bookings
+  SET guests_checked_in = COALESCE(guests_checked_in, 0) + 1
+  WHERE id = booking_id;
+END;
+$$;
+
+-- 10. Grant execute permissions
 GRANT EXECUTE ON FUNCTION check_in_booking TO authenticated;
 GRANT EXECUTE ON FUNCTION get_class_attendance_stats TO authenticated;
+GRANT EXECUTE ON FUNCTION increment_guests_checked_in TO authenticated;
 
 -- =====================================================
 -- VERIFICATION QUERIES

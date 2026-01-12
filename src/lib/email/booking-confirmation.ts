@@ -3,6 +3,12 @@ import { generateBookingQRCode } from "@/lib/qrcode/generate";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
+interface GuestQR {
+  guestNumber: number;
+  guestName?: string;
+  qrToken: string;
+}
+
 interface BookingDetails {
   bookingNumber: string;
   attendeeName: string;
@@ -13,11 +19,14 @@ interface BookingDetails {
   location: string;
   sessionsBooked: number;
   totalAmount: number;
-  qrToken: string;
+  numberOfGuests: number;
+  qrToken: string; // Main booking QR (for single guest)
+  guestQRs?: GuestQR[]; // Individual guest QRs (for multiple guests)
 }
 
 /**
- * Send booking confirmation email with QR code
+ * Send booking confirmation email with QR code(s)
+ * For multiple guests, generates individual QR codes for each guest
  */
 export async function sendBookingConfirmationEmail(booking: BookingDetails): Promise<{ success: boolean; error?: string }> {
   if (!resend) {
@@ -26,26 +35,54 @@ export async function sendBookingConfirmationEmail(booking: BookingDetails): Pro
   }
 
   try {
-    // Generate QR code as base64 data URL
-    const qrCodeDataUrl = await generateBookingQRCode(booking.qrToken);
-    
-    // Extract base64 data from data URL
-    const qrCodeBase64 = qrCodeDataUrl.replace(/^data:image\/png;base64,/, "");
+    const numberOfGuests = booking.numberOfGuests || 1;
+    const attachments: Array<{ filename: string; content: string; contentType: string }> = [];
+    const qrCodeDataUrls: Array<{ guestNumber: number; guestName: string; dataUrl: string }> = [];
 
-    const emailHtml = generateEmailHtml(booking, qrCodeDataUrl);
+    if (numberOfGuests > 1 && booking.guestQRs && booking.guestQRs.length > 0) {
+      // Generate QR codes for each guest
+      for (const guest of booking.guestQRs) {
+        const qrDataUrl = await generateBookingQRCode(guest.qrToken);
+        const qrBase64 = qrDataUrl.replace(/^data:image\/png;base64,/, "");
+        
+        qrCodeDataUrls.push({
+          guestNumber: guest.guestNumber,
+          guestName: guest.guestName || `Guest ${guest.guestNumber}`,
+          dataUrl: qrDataUrl,
+        });
+
+        attachments.push({
+          filename: `guest-${guest.guestNumber}-qr-${booking.bookingNumber}.png`,
+          content: qrBase64,
+          contentType: "image/png",
+        });
+      }
+    } else {
+      // Single guest - use main booking QR
+      const qrCodeDataUrl = await generateBookingQRCode(booking.qrToken);
+      const qrCodeBase64 = qrCodeDataUrl.replace(/^data:image\/png;base64,/, "");
+      
+      qrCodeDataUrls.push({
+        guestNumber: 1,
+        guestName: booking.attendeeName,
+        dataUrl: qrCodeDataUrl,
+      });
+
+      attachments.push({
+        filename: `booking-qr-${booking.bookingNumber}.png`,
+        content: qrCodeBase64,
+        contentType: "image/png",
+      });
+    }
+
+    const emailHtml = generateEmailHtml(booking, qrCodeDataUrls);
 
     const { error } = await resend.emails.send({
       from: process.env.EMAIL_FROM || "Mamalu Kitchen <noreply@mamalu.ae>",
       to: booking.attendeeEmail,
       subject: `Booking Confirmed - ${booking.classTitle} | Mamalu Kitchen`,
       html: emailHtml,
-      attachments: [
-        {
-          filename: `booking-qr-${booking.bookingNumber}.png`,
-          content: qrCodeBase64,
-          contentType: "image/png",
-        },
-      ],
+      attachments,
     });
 
     if (error) {
@@ -61,7 +98,24 @@ export async function sendBookingConfirmationEmail(booking: BookingDetails): Pro
   }
 }
 
-function generateEmailHtml(booking: BookingDetails, qrCodeDataUrl: string): string {
+interface QRCodeInfo {
+  guestNumber: number;
+  guestName: string;
+  dataUrl: string;
+}
+
+function generateEmailHtml(booking: BookingDetails, qrCodes: QRCodeInfo[]): string {
+  const numberOfGuests = booking.numberOfGuests || 1;
+  const isMultipleGuests = qrCodes.length > 1;
+
+  const qrCodesHtml = qrCodes.map((qr, index) => `
+    <div style="background-color: #ffffff; padding: 15px; display: inline-block; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin: 10px; vertical-align: top;">
+      <p style="color: #1c1917; font-weight: 600; margin: 0 0 10px 0; font-size: 14px;">${qr.guestName}</p>
+      <img src="${qr.dataUrl}" alt="Check-in QR Code for ${qr.guestName}" style="width: 150px; height: 150px; display: block;" />
+      <p style="color: #78716c; margin: 10px 0 0 0; font-size: 11px;">Guest ${qr.guestNumber} of ${qrCodes.length}</p>
+    </div>
+  `).join("");
+
   return `
 <!DOCTYPE html>
 <html>
@@ -122,6 +176,10 @@ function generateEmailHtml(booking: BookingDetails, qrCodeDataUrl: string): stri
             <td style="color: #1c1917;">${booking.location}</td>
           </tr>
           <tr>
+            <td style="color: #78716c;">Number of Guests:</td>
+            <td style="color: #1c1917; font-weight: 600;">${numberOfGuests}</td>
+          </tr>
+          <tr>
             <td style="color: #78716c;">Sessions:</td>
             <td style="color: #1c1917;">${booking.sessionsBooked}</td>
           </tr>
@@ -136,15 +194,19 @@ function generateEmailHtml(booking: BookingDetails, qrCodeDataUrl: string): stri
     <!-- QR Code Section -->
     <tr>
       <td style="padding: 20px 30px 30px; text-align: center; background-color: #fef3c7;">
-        <h3 style="color: #92400e; margin: 0 0 15px 0; font-size: 18px;">Your Check-In QR Code</h3>
+        <h3 style="color: #92400e; margin: 0 0 15px 0; font-size: 18px;">
+          ${isMultipleGuests ? `Check-In QR Codes (${qrCodes.length} Guests)` : "Your Check-In QR Code"}
+        </h3>
         <p style="color: #a16207; margin: 0 0 20px 0; font-size: 14px;">
-          Present this QR code when you arrive for quick check-in
+          ${isMultipleGuests 
+            ? "Each guest must present their own QR code for entry" 
+            : "Present this QR code when you arrive for quick check-in"}
         </p>
-        <div style="background-color: #ffffff; padding: 20px; display: inline-block; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-          <img src="${qrCodeDataUrl}" alt="Check-in QR Code" style="width: 200px; height: 200px; display: block;" />
+        <div style="text-align: center;">
+          ${qrCodesHtml}
         </div>
         <p style="color: #78716c; margin: 15px 0 0 0; font-size: 12px;">
-          QR code is also attached to this email for offline access
+          QR codes are also attached to this email for offline access
         </p>
       </td>
     </tr>
