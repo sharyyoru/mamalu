@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { sendBookingConfirmationEmail } from "@/lib/email/booking-confirmation";
 import Stripe from "stripe";
 
 export async function POST(request: NextRequest) {
@@ -62,6 +63,41 @@ export async function POST(request: NextRequest) {
               customer_email: session.customer_email,
             },
           });
+
+          // Fetch updated booking for email
+          const { data: confirmedBooking } = await supabase
+            .from("class_bookings")
+            .select("*")
+            .eq("id", bookingId)
+            .single();
+
+          // Send confirmation email with QR code
+          if (confirmedBooking && confirmedBooking.attendee_email) {
+            try {
+              await sendBookingConfirmationEmail({
+                bookingNumber: confirmedBooking.booking_number,
+                attendeeName: confirmedBooking.attendee_name,
+                attendeeEmail: confirmedBooking.attendee_email,
+                classTitle: confirmedBooking.class_title,
+                classDate: confirmedBooking.class_date || "TBD",
+                classTime: confirmedBooking.class_time || "TBD",
+                location: confirmedBooking.location || "Mamalu Kitchen",
+                sessionsBooked: confirmedBooking.sessions_booked || 1,
+                totalAmount: confirmedBooking.total_amount,
+                qrToken: confirmedBooking.qr_code_token,
+              });
+
+              // Mark email as sent
+              await supabase
+                .from("class_bookings")
+                .update({ confirmation_email_sent_at: new Date().toISOString() })
+                .eq("id", bookingId);
+
+              console.log(`Confirmation email sent for booking ${confirmedBooking.booking_number}`);
+            } catch (emailError) {
+              console.error("Failed to send confirmation email:", emailError);
+            }
+          }
         }
 
         // Handle custom payment link payments

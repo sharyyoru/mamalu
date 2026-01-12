@@ -23,6 +23,8 @@ import {
   FileText,
   Link as LinkIcon,
   Phone,
+  ScanLine,
+  ClipboardList,
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -46,6 +48,8 @@ const navigation = [
     { name: "Maintenance", href: "/admin/rentals/maintenance" },
   ]},
   { name: "Bookings", href: "/admin/bookings", icon: Ticket },
+  { name: "Event Scanner", href: "/admin/scanner", icon: ScanLine },
+  { name: "Attendees", href: "/admin/attendees", icon: ClipboardList },
   { name: "Invoices", href: "/admin/invoices", icon: FileText },
   { name: "Payment Links", href: "/admin/payment-links", icon: LinkIcon },
   { name: "WhatsApp Monitor", href: "/admin/whatsapp", icon: Phone, superAdminOnly: true },
