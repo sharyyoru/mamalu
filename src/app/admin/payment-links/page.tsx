@@ -26,6 +26,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatPrice, formatDate } from "@/lib/utils";
 
+interface Extra {
+  name: string;
+  price: number;
+  quantity: number;
+}
+
 interface PaymentLink {
   id: string;
   link_code: string;
@@ -34,6 +40,8 @@ interface PaymentLink {
   amount: number;
   price_per_person: number | null;
   number_of_people: number;
+  extras: Extra[];
+  extras_total: number;
   currency: string;
   customer_name: string | null;
   customer_email: string | null;
@@ -95,12 +103,22 @@ export default function AdminPaymentLinksPage() {
     description: "",
     amount: "",
     numberOfPeople: 1,
+    extras: [] as Extra[],
     customerName: "",
     customerEmail: "",
     customerPhone: "",
     singleUse: true,
     notes: "",
   });
+
+  // Available extras options
+  const [availableExtras] = useState<{name: string, price: number}[]>([
+    { name: "Table Setup", price: 50 },
+    { name: "Apron (per person)", price: 25 },
+    { name: "Mug (per person)", price: 30 },
+    { name: "Recipe Book", price: 75 },
+    { name: "Additional Ingredients", price: 100 },
+  ]);
 
   const fetchPaymentLinks = async () => {
     try {
@@ -144,7 +162,11 @@ export default function AdminPaymentLinksPage() {
     setActionLoading("create");
     try {
       const pricePerPerson = parseFloat(newLink.amount);
-      const totalAmount = pricePerPerson * newLink.numberOfPeople;
+      const baseTotalAmount = pricePerPerson * newLink.numberOfPeople;
+      
+      // Calculate extras total
+      const extrasTotal = newLink.extras.reduce((sum, extra) => sum + (extra.price * extra.quantity), 0);
+      const totalAmount = baseTotalAmount + extrasTotal;
       
       const res = await fetch("/api/payment-links", {
         method: "POST",
@@ -155,6 +177,7 @@ export default function AdminPaymentLinksPage() {
           amount: totalAmount,
           pricePerPerson,
           numberOfPeople: newLink.numberOfPeople,
+          extras: newLink.extras,
           customerName: newLink.customerName || null,
           customerEmail: newLink.customerEmail || null,
           customerPhone: newLink.customerPhone || null,
@@ -172,6 +195,7 @@ export default function AdminPaymentLinksPage() {
           description: "",
           amount: "",
           numberOfPeople: 1,
+          extras: [] as Extra[],
           customerName: "",
           customerEmail: "",
           customerPhone: "",
@@ -884,22 +908,76 @@ export default function AdminPaymentLinksPage() {
                 <label className="block text-sm font-medium text-stone-700 mb-1">
                   Number of People *
                 </label>
-                <select
+                <input
+                  type="number"
+                  min="1"
+                  max="40"
                   value={newLink.numberOfPeople}
                   onChange={(e) =>
-                    setNewLink({ ...newLink, numberOfPeople: parseInt(e.target.value) })
+                    setNewLink({ ...newLink, numberOfPeople: parseInt(e.target.value) || 1 })
                   }
                   className="w-full px-4 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
-                >
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-                    <option key={num} value={num}>
-                      {num} {num === 1 ? "person" : "people"}
-                    </option>
-                  ))}
-                </select>
+                  placeholder="Number of people (1-40)"
+                />
               </div>
 
-              {newLink.amount && newLink.numberOfPeople > 1 && (
+              <div className="border-t pt-4">
+                <label className="block text-sm font-medium text-stone-700 mb-3">
+                  Extras (Optional)
+                </label>
+                <div className="space-y-2">
+                  {availableExtras.map((extra, index) => {
+                    const existingExtra = newLink.extras.find(e => e.name === extra.name);
+                    return (
+                      <div key={index} className="flex items-center gap-3 p-2 border border-stone-200 rounded-lg">
+                        <input
+                          type="checkbox"
+                          id={`extra-${index}`}
+                          checked={!!existingExtra}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setNewLink({
+                                ...newLink,
+                                extras: [...newLink.extras, { name: extra.name, price: extra.price, quantity: 1 }]
+                              });
+                            } else {
+                              setNewLink({
+                                ...newLink,
+                                extras: newLink.extras.filter(e => e.name !== extra.name)
+                              });
+                            }
+                          }}
+                          className="h-4 w-4 text-amber-600"
+                        />
+                        <label htmlFor={`extra-${index}`} className="flex-1 text-sm text-stone-700">
+                          {extra.name} - AED {extra.price.toFixed(2)}
+                        </label>
+                        {existingExtra && (
+                          <input
+                            type="number"
+                            min="1"
+                            max="100"
+                            value={existingExtra.quantity}
+                            onChange={(e) => {
+                              const qty = parseInt(e.target.value) || 1;
+                              setNewLink({
+                                ...newLink,
+                                extras: newLink.extras.map(ex => 
+                                  ex.name === extra.name ? { ...ex, quantity: qty } : ex
+                                )
+                              });
+                            }}
+                            className="w-20 px-2 py-1 border border-stone-300 rounded text-sm"
+                            placeholder="Qty"
+                          />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {newLink.amount && (
                 <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
                   <div className="flex justify-between text-sm">
                     <span className="text-amber-800">Price per person:</span>
@@ -909,9 +987,24 @@ export default function AdminPaymentLinksPage() {
                     <span className="text-amber-800">Number of people:</span>
                     <span className="font-medium text-amber-900">{newLink.numberOfPeople}</span>
                   </div>
+                  <div className="flex justify-between text-sm mt-1">
+                    <span className="text-amber-800">Subtotal:</span>
+                    <span className="font-medium text-amber-900">AED {(parseFloat(newLink.amount) * newLink.numberOfPeople).toFixed(2)}</span>
+                  </div>
+                  {newLink.extras.length > 0 && (
+                    <>
+                      <div className="flex justify-between text-sm mt-1">
+                        <span className="text-amber-800">Extras:</span>
+                        <span className="font-medium text-amber-900">AED {newLink.extras.reduce((sum, extra) => sum + (extra.price * extra.quantity), 0).toFixed(2)}</span>
+                      </div>
+                    </>
+                  )}
                   <div className="flex justify-between text-sm mt-2 pt-2 border-t border-amber-300">
                     <span className="text-amber-800 font-medium">Total amount:</span>
-                    <span className="font-bold text-amber-900">AED {(parseFloat(newLink.amount) * newLink.numberOfPeople).toFixed(2)}</span>
+                    <span className="font-bold text-amber-900">AED {(
+                      (parseFloat(newLink.amount) * newLink.numberOfPeople) +
+                      newLink.extras.reduce((sum, extra) => sum + (extra.price * extra.quantity), 0)
+                    ).toFixed(2)}</span>
                   </div>
                 </div>
               )}
