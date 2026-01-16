@@ -111,14 +111,8 @@ export default function AdminPaymentLinksPage() {
     notes: "",
   });
 
-  // Available extras options
-  const [availableExtras] = useState<{name: string, price: number}[]>([
-    { name: "Table Setup", price: 50 },
-    { name: "Apron (per person)", price: 25 },
-    { name: "Mug (per person)", price: 30 },
-    { name: "Recipe Book", price: 75 },
-    { name: "Additional Ingredients", price: 100 },
-  ]);
+  // Available extras options (fetched from database)
+  const [availableExtras, setAvailableExtras] = useState<{id: string, name: string, price: number}[]>([]);
 
   const fetchPaymentLinks = async () => {
     try {
@@ -138,9 +132,31 @@ export default function AdminPaymentLinksPage() {
     }
   };
 
+  const fetchAvailableExtras = async () => {
+    try {
+      const res = await fetch("/api/admin/payment-extras?activeOnly=true");
+      if (res.ok) {
+        const data = await res.json();
+        setAvailableExtras(
+          (data.extras || []).map((e: any) => ({
+            id: e.id,
+            name: e.name,
+            price: e.price,
+          }))
+        );
+      }
+    } catch (error) {
+      console.error("Failed to fetch available extras:", error);
+    }
+  };
+
   useEffect(() => {
     fetchPaymentLinks();
   }, [statusFilter]);
+
+  useEffect(() => {
+    fetchAvailableExtras();
+  }, []);
 
   const filteredLinks = paymentLinks.filter((link) => {
     if (!searchQuery) return true;
