@@ -63,6 +63,7 @@ export async function POST(request: NextRequest) {
       amount,
       pricePerPerson,
       numberOfPeople = 1,
+      extras = [],
       customerName,
       customerEmail,
       customerPhone,
@@ -81,6 +82,11 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Calculate extras total
+    const extrasTotal = extras.reduce((sum: number, extra: any) => {
+      return sum + (extra.price * (extra.quantity || 1));
+    }, 0);
 
     const supabase = createAdminClient();
     if (!supabase) {
@@ -139,6 +145,8 @@ export async function POST(request: NextRequest) {
       amount,
       price_per_person: pricePerPerson || amount,
       number_of_people: numberOfPeople,
+      extras: extras || [],
+      extras_total: extrasTotal,
       currency: "AED",
       customer_name: customerName || null,
       customer_email: customerEmail || null,

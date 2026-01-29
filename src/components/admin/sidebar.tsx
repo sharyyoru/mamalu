@@ -26,6 +26,7 @@ import {
   ScanLine,
   ClipboardList,
   PieChart,
+  DollarSign,
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -53,6 +54,7 @@ const navigation = [
   { name: "Attendees", href: "/admin/attendees", icon: ClipboardList },
   { name: "Invoices", href: "/admin/invoices", icon: FileText },
   { name: "Payment Links", href: "/admin/payment-links", icon: LinkIcon },
+  { name: "Payment Extras", href: "/admin/payment-extras", icon: DollarSign },
   { name: "WhatsApp Monitor", href: "/admin/whatsapp", icon: Phone, superAdminOnly: true },
   { name: "Orders", href: "/admin/orders", icon: ShoppingBag },
   { name: "Memberships", href: "/admin/memberships", icon: CreditCard },
