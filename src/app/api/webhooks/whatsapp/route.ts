@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { analyzeMessage } from "@/lib/whatsapp/ai-flagging";
+import { processWhatsAppMessage, sendWhatsAppMessage } from "@/lib/whatsapp/bot";
 
 /**
  * WhatsApp Webhook Endpoint
@@ -73,7 +74,7 @@ async function processMessages(value: any, supabase: any) {
   const phoneNumberId = metadata.phone_number_id;
   const { data: account } = await supabase
     .from("whatsapp_accounts")
-    .select("id, super_admin_id")
+    .select("id, super_admin_id, access_token, bot_enabled")
     .eq("business_account_id", phoneNumberId)
     .single();
 
@@ -98,10 +99,21 @@ async function processMessages(value: any, supabase: any) {
       let messageText = "";
       let mediaUrl = null;
       let mediaMimeType = null;
+      let interactiveResponse = null;
 
       switch (messageType) {
         case "text":
           messageText = message.text?.body || "";
+          break;
+        case "interactive":
+          // Handle button/list responses
+          if (message.interactive?.type === "button_reply") {
+            interactiveResponse = message.interactive.button_reply?.id;
+            messageText = message.interactive.button_reply?.title || "";
+          } else if (message.interactive?.type === "list_reply") {
+            interactiveResponse = message.interactive.list_reply?.id;
+            messageText = message.interactive.list_reply?.title || "";
+          }
           break;
         case "image":
           messageText = message.image?.caption || "";
@@ -173,9 +185,44 @@ async function processMessages(value: any, supabase: any) {
           });
 
           console.log(`Message flagged: ${messageId} - ${flagResult.flagType} (${flagResult.confidence})`);
+        }
+      }
 
-          // TODO: Send notification to super admin
-          // await sendNotificationToSuperAdmin(account.super_admin_id, flagResult);
+      // Process bot response if bot is enabled
+      if (account.bot_enabled !== false && account.access_token) {
+        try {
+          const botInput = interactiveResponse || messageText;
+          const botMessageType = interactiveResponse ? "interactive" : messageType;
+          
+          const botResponse = await processWhatsAppMessage(
+            fromNumber,
+            botInput,
+            botMessageType
+          );
+
+          // Send bot response
+          await sendWhatsAppMessage(
+            phoneNumberId,
+            account.access_token,
+            fromNumber,
+            botResponse
+          );
+
+          // Store outbound message
+          await supabase.from("whatsapp_messages").insert({
+            account_id: account.id,
+            message_id: `bot_${Date.now()}`,
+            from_number: metadata.display_phone_number,
+            to_number: fromNumber,
+            message_text: botResponse.message,
+            message_type: botResponse.buttons ? "interactive" : "text",
+            direction: "outbound",
+            status: "sent",
+            timestamp: new Date().toISOString(),
+            metadata: { bot_response: true, buttons: botResponse.buttons },
+          });
+        } catch (botError) {
+          console.error("Bot response error:", botError);
         }
       }
 
