@@ -783,73 +783,105 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
 
             {/* Step 2: Customization/Add-ons (when extras available) */}
             {!isWalkin && hasExtras && step === 2 && (
-              <div className="space-y-6">
+              <div className="space-y-8">
                 <div>
                   <h2 className="text-2xl font-bold text-stone-900">Customize Your Experience</h2>
                   <p className="text-stone-500 mt-1">Add extras to make your event even more special (optional)</p>
                 </div>
 
-                <div className="grid gap-4">
-                  {availableExtras.map((extra) => {
-                    const Icon = extra.icon;
-                    const isSelected = selectedExtras[extra.id] > 0;
-                    const qty = selectedExtras[extra.id] || 0;
-                    const isPerPerson = ["extra_favors", "extra_course", "wine_pairing", "certificates"].includes(extra.id);
-                    
-                    return (
-                      <Card
-                        key={extra.id}
-                        className={`transition-all ${isSelected ? "ring-2 ring-stone-900 shadow-lg" : "hover:shadow-md"}`}
-                      >
-                        <CardContent className="p-4">
-                          <div className="flex items-center gap-4">
-                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${isSelected ? "bg-stone-900 text-white" : "bg-stone-100 text-stone-600"}`}>
-                              <Icon className="h-6 w-6" />
-                            </div>
-                            <div className="flex-1">
-                              <h4 className="font-semibold text-stone-900">{extra.name}</h4>
-                              <p className="text-sm text-stone-500">{extra.description}</p>
-                              <p className="text-sm font-medium text-stone-700 mt-1">
-                                AED {extra.price}{isPerPerson ? "/person" : ""}
-                              </p>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              {isSelected ? (
-                                <div className="flex items-center gap-2">
-                                  <Button
-                                    size="icon"
-                                    variant="outline"
-                                    className="h-8 w-8"
-                                    onClick={() => updateExtraQuantity(extra.id, -1)}
-                                  >
-                                    <Minus className="h-4 w-4" />
-                                  </Button>
-                                  <span className="w-8 text-center font-bold">{qty}</span>
-                                  <Button
-                                    size="icon"
-                                    variant="outline"
-                                    className="h-8 w-8"
-                                    onClick={() => updateExtraQuantity(extra.id, 1)}
-                                  >
-                                    <Plus className="h-4 w-4" />
-                                  </Button>
+                {/* Group extras by category */}
+                {(() => {
+                  const categoryLabels: Record<string, string> = {
+                    custom: "🎨 Customized Items",
+                    cake: "🎂 Birthday Cakes",
+                    decor: "🎈 Decorations",
+                    goodie_bags: "🎁 Goodie Bags",
+                    snacks: "🍕 Additional Snacks",
+                    drinks: "🥤 Drinks",
+                  };
+                  
+                  const categoryOrder = ["custom", "cake", "decor", "goodie_bags", "snacks", "drinks"];
+                  const groupedExtras = categoryOrder
+                    .map(cat => ({
+                      category: cat,
+                      label: categoryLabels[cat] || cat,
+                      items: availableExtras.filter(e => e.category === cat)
+                    }))
+                    .filter(group => group.items.length > 0);
+
+                  return groupedExtras.map((group) => (
+                    <div key={group.category} className="space-y-3">
+                      <h3 className="text-lg font-bold text-stone-800 border-b border-stone-200 pb-2">
+                        {group.label}
+                      </h3>
+                      <div className="grid gap-3">
+                        {group.items.map((extra) => {
+                          const Icon = extra.icon;
+                          const isSelected = selectedExtras[extra.id] > 0;
+                          const qty = selectedExtras[extra.id] || 0;
+                          const isPerPerson = ["extra_favors", "extra_course", "wine_pairing", "certificates"].includes(extra.id);
+                          
+                          return (
+                            <Card
+                              key={extra.id}
+                              className={`transition-all ${isSelected ? "ring-2 ring-stone-900 shadow-lg" : "hover:shadow-md"}`}
+                            >
+                              <CardContent className="p-4">
+                                <div className="flex items-center gap-4">
+                                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isSelected ? "bg-stone-900 text-white" : "bg-stone-100 text-stone-600"}`}>
+                                    <Icon className="h-5 w-5" />
+                                  </div>
+                                  <div className="flex-1">
+                                    <h4 className="font-semibold text-stone-900">{extra.name}</h4>
+                                    <p className="text-sm text-stone-500">{extra.description}</p>
+                                  </div>
+                                  <div className="text-right">
+                                    <p className="font-bold text-stone-900">
+                                      AED {extra.price}
+                                    </p>
+                                    {isPerPerson && <p className="text-xs text-stone-500">per person</p>}
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    {isSelected ? (
+                                      <div className="flex items-center gap-2">
+                                        <Button
+                                          size="icon"
+                                          variant="outline"
+                                          className="h-8 w-8"
+                                          onClick={() => updateExtraQuantity(extra.id, -1)}
+                                        >
+                                          <Minus className="h-4 w-4" />
+                                        </Button>
+                                        <span className="w-6 text-center font-bold">{qty}</span>
+                                        <Button
+                                          size="icon"
+                                          variant="outline"
+                                          className="h-8 w-8"
+                                          onClick={() => updateExtraQuantity(extra.id, 1)}
+                                        >
+                                          <Plus className="h-4 w-4" />
+                                        </Button>
+                                      </div>
+                                    ) : (
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => toggleExtra(extra.id)}
+                                      >
+                                        <Plus className="h-4 w-4 mr-1" />
+                                        Add
+                                      </Button>
+                                    )}
+                                  </div>
                                 </div>
-                              ) : (
-                                <Button
-                                  variant="outline"
-                                  onClick={() => toggleExtra(extra.id)}
-                                >
-                                  <Plus className="h-4 w-4 mr-1" />
-                                  Add
-                                </Button>
-                              )}
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-                </div>
+                              </CardContent>
+                            </Card>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ));
+                })()}
 
                 <div className="flex justify-between">
                   <Button variant="outline" onClick={() => setStep(1)}>
