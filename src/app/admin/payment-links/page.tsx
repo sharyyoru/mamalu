@@ -47,6 +47,7 @@ interface PaymentLink {
   customer_email: string | null;
   customer_phone: string | null;
   stripe_payment_link_url: string | null;
+  stripe_payment_intent_id: string | null;
   status: string;
   single_use: boolean;
   max_uses: number | null;
@@ -433,21 +434,22 @@ export default function AdminPaymentLinksPage() {
     // Table
     const tableData = links.map(link => [
       link.link_code,
-      link.title.length > 20 ? link.title.substring(0, 20) + "..." : link.title,
+      link.title.length > 18 ? link.title.substring(0, 18) + "..." : link.title,
       link.customer_name || "—",
       `AED ${link.amount.toLocaleString()}`,
       link.status.charAt(0).toUpperCase() + link.status.slice(1),
       link.paid_at ? new Date(link.paid_at).toLocaleDateString() : "—",
+      link.stripe_payment_intent_id ? link.stripe_payment_intent_id.replace('pi_', '').substring(0, 12) : "—",
       link.creator?.full_name?.split(" ")[0] || link.creator?.email?.split("@")[0] || "—"
     ]);
 
     autoTable(doc, {
       startY: cardY + cardHeight + 10,
-      head: [["Code", "Description", "Customer", "Amount", "Status", "Paid", "By"]],
+      head: [["Code", "Description", "Customer", "Amount", "Status", "Paid", "Stripe Txn", "By"]],
       body: tableData,
       styles: { 
-        fontSize: 8, 
-        cellPadding: 4,
+        fontSize: 7, 
+        cellPadding: 3,
         font: "helvetica",
         textColor: [50, 50, 93],
       },
@@ -455,19 +457,20 @@ export default function AdminPaymentLinksPage() {
         fillColor: [stripeBlurple[0], stripeBlurple[1], stripeBlurple[2]], 
         textColor: 255,
         fontStyle: "bold",
-        fontSize: 8,
+        fontSize: 7,
       },
       alternateRowStyles: { 
         fillColor: [stripeLight[0], stripeLight[1], stripeLight[2]] 
       },
       columnStyles: {
-        0: { cellWidth: 24, fontStyle: "bold" },
-        1: { cellWidth: 38 },
-        2: { cellWidth: 28 },
-        3: { cellWidth: 24, halign: "right" },
-        4: { cellWidth: 18 },
-        5: { cellWidth: 22 },
-        6: { cellWidth: 22 },
+        0: { cellWidth: 22, fontStyle: "bold" },
+        1: { cellWidth: 32 },
+        2: { cellWidth: 24 },
+        3: { cellWidth: 20, halign: "right" },
+        4: { cellWidth: 16 },
+        5: { cellWidth: 20 },
+        6: { cellWidth: 26, fontStyle: "bold", textColor: [99, 91, 255] },
+        7: { cellWidth: 18 },
       },
       didParseCell: (data) => {
         // Color code status
