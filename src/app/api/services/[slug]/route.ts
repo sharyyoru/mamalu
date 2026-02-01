@@ -13,19 +13,32 @@ export async function GET(
       return NextResponse.json({ error: "Database not configured" }, { status: 500 });
     }
 
+    // Get service first
     const { data: service, error } = await supabase
       .from("services")
-      .select(`
-        *,
-        packages:service_packages(*)
-      `)
+      .select("*")
       .eq("slug", slug)
       .eq("is_active", true)
       .single();
 
-    if (error || !service) {
+    if (error) {
+      console.error("Service query error:", error);
+      return NextResponse.json({ error: "Service not found", details: error.message }, { status: 404 });
+    }
+
+    if (!service) {
       return NextResponse.json({ error: "Service not found" }, { status: 404 });
     }
+
+    // Get packages separately
+    const { data: packages } = await supabase
+      .from("service_packages")
+      .select("*")
+      .eq("service_id", service.id)
+      .eq("is_active", true)
+      .order("display_order", { ascending: true });
+
+    service.packages = packages || [];
 
     // Get menu items separately if it's a walk-in service
     let menuItems: any[] = [];

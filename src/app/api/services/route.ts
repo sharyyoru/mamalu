@@ -12,13 +12,10 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get("category");
     const serviceType = searchParams.get("type");
 
+    // First, just get services without relations to debug
     let query = supabase
       .from("services")
-      .select(`
-        *,
-        packages:service_packages(*),
-        menu_items(*)
-      `)
+      .select("*")
       .eq("is_active", true)
       .order("display_order", { ascending: true });
 
@@ -37,15 +34,29 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    // Get packages for each service
+    const servicesWithPackages = await Promise.all(
+      (services || []).map(async (service: any) => {
+        const { data: packages } = await supabase
+          .from("service_packages")
+          .select("*")
+          .eq("service_id", service.id)
+          .eq("is_active", true)
+          .order("display_order", { ascending: true });
+        
+        return { ...service, packages: packages || [] };
+      })
+    );
+
     // Group by category for easier frontend consumption
     const grouped = {
-      kids: services?.filter(s => s.category === "kids") || [],
-      adults: services?.filter(s => s.category === "adults") || [],
-      walkin: services?.filter(s => s.category === "walkin") || [],
+      kids: servicesWithPackages.filter(s => s.category === "kids") || [],
+      adults: servicesWithPackages.filter(s => s.category === "adults") || [],
+      walkin: servicesWithPackages.filter(s => s.category === "walkin") || [],
     };
 
     return NextResponse.json({ 
-      services: services || [],
+      services: servicesWithPackages,
       grouped,
     });
   } catch (error: any) {
