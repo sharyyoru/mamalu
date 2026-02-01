@@ -28,6 +28,7 @@ import {
   PieChart,
   DollarSign,
   TrendingUp,
+  Clock,
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -56,6 +57,7 @@ const navigation = [
   { name: "Invoices", href: "/admin/invoices", icon: FileText },
   { name: "Payment Links", href: "/admin/payment-links", icon: LinkIcon },
   { name: "Payment Extras", href: "/admin/payment-extras", icon: DollarSign },
+  { name: "Payment Tracking", href: "/admin/payment-tracking", icon: Clock },
   { name: "WhatsApp Monitor", href: "/admin/whatsapp", icon: Phone, superAdminOnly: true },
   { name: "Orders", href: "/admin/orders", icon: ShoppingBag },
   { name: "Memberships", href: "/admin/memberships", icon: CreditCard },

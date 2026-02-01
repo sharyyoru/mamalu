@@ -85,34 +85,59 @@ interface ExtraItem {
   category: string;
 }
 
-// Add-ons/Extras for different service types
+// Corporate Menu Options (from PDF)
+const corporateMenus = [
+  { id: "spirit_of_thailand", name: "Spirit of Thailand", price: 300, dishes: ["Shrimp summer rolls", "Thai green chicken curry", "Coconut steamed rice"] },
+  { id: "la_cucina_italiana", name: "La Cucina Italiana", price: 425, dishes: ["Pasta from scratch with pomodoro or alfredo sauce", "Margherita pizza", "Chicken milanese", "Classic tiramisu"] },
+  { id: "the_mexican_table", name: "The Mexican Table", price: 450, dishes: ["Mexican corn salad", "Tortillas from scratch", "Pulled Mexican chicken or beef", "Guacamole", "Churros with chocolate sauce"] },
+  { id: "the_art_of_sushi", name: "The Art Of Sushi", price: 450, dishes: ["Miso soup", "Tempura shrimp maki roll", "Spicy tuna handroll", "Salmon avocado roll"] },
+  { id: "pan_asian_feast", name: "Pan Asian Feast", price: 475, dishes: ["Ramen with shoyu tare with egg noodles from scratch", "Beef yakitori skewers", "Mushroom gyoza", "Coconut and pandan sago pudding"] },
+  { id: "le_petit_menu", name: "Le Petit Menu", price: 500, dishes: ["French onion tart tatin", "Steak frites (Seared steak with triple cooked fries)", "Le chocolate mousse with olive oil and fleur de sel"] },
+  { id: "umami_house", name: "Umami House", price: 550, dishes: ["Shrimp papaya salad", "Tempura platter", "Chicken katsu curry or teriyaki rib eye donburi bowl with cucumber salad"] },
+  { id: "mystery_box", name: "Mystery Box Challenge", price: 550, dishes: ["Each team gets assigned random ingredients and are tasked with creating the best dish with guidance from our chef - like Chopped!"] },
+];
+
+// Add-ons/Extras for different service types (from PDFs)
 const serviceExtras: Record<string, ExtraItem[]> = {
   birthday_deck: [
-    { id: "photo_package", name: "Professional Photography", description: "1 hour of professional photos + edited digital album", price: 350, icon: Camera, category: "media" },
-    { id: "video_package", name: "Video Highlights", description: "3-minute highlight reel of the party", price: 500, icon: Camera, category: "media" },
-    { id: "extra_decorations", name: "Premium Decorations", description: "Balloon arch, themed backdrop & table setup", price: 250, icon: PartyPopper, category: "decor" },
-    { id: "custom_cake", name: "Custom Themed Cake", description: "Upgrade to a custom designed cake", price: 200, icon: Cake, category: "food" },
-    { id: "extra_favors", name: "Deluxe Party Favors", description: "Premium goodie bags for all guests", price: 15, icon: Gift, category: "gifts" },
-    { id: "extra_hour", name: "Extra Hour", description: "Extend your party by 1 hour", price: 400, icon: Clock, category: "time" },
-    { id: "face_painting", name: "Face Painting", description: "Professional face painter for 1 hour", price: 300, icon: Sparkles, category: "entertainment" },
-    { id: "music_dj", name: "Kids DJ", description: "Fun music and games host", price: 450, icon: Music, category: "entertainment" },
+    // Custom items from PDF
+    { id: "custom_apron", name: "Custom Apron with Name", description: "Personalized Mamalu apron with your name", price: 80, icon: Gift, category: "custom" },
+    { id: "custom_chef_hat", name: "Custom Chef Hat", description: "Personalized chef hat with your name", price: 60, icon: Gift, category: "custom" },
+    { id: "balloons", name: "Balloon Bundle", description: "2 bunches of 7 balloons (any color)", price: 260, icon: PartyPopper, category: "decor" },
+    { id: "custom_cake_10", name: "Custom Cake (up to 10 people)", description: "Beautiful custom designed cake", price: 300, icon: Cake, category: "food" },
+    { id: "custom_cake_20", name: "Custom Cake (up to 20 people)", description: "Beautiful custom designed cake", price: 700, icon: Cake, category: "food" },
+    { id: "custom_cake_30", name: "Custom Cake (up to 30 people)", description: "Beautiful custom designed cake", price: 900, icon: Cake, category: "food" },
+    { id: "custom_cake_40", name: "Custom Cake (up to 40 people)", description: "Beautiful custom designed cake", price: 1000, icon: Cake, category: "food" },
+    { id: "custom_mug", name: "Custom Mug", description: "Personalized mug with any design", price: 45, icon: Gift, category: "custom" },
+    { id: "custom_spatula", name: "Custom Spatula", description: "Personalized cooking spatula", price: 50, icon: Utensils, category: "custom" },
+    // Additional snacks & drinks
+    { id: "mini_pizzas", name: "Mini Pizzas", description: "12 pieces of delicious mini pizzas", price: 50, icon: Utensils, category: "snacks" },
+    { id: "chicken_tenders", name: "Chicken Tenders", description: "12 pieces of crispy chicken tenders", price: 60, icon: Utensils, category: "snacks" },
+    { id: "mini_burgers", name: "Mini Burgers", description: "6 pieces of mini burgers", price: 70, icon: Utensils, category: "snacks" },
+    { id: "musakhan_rolls", name: "Musakhan Rolls", description: "12 pieces of musakhan rolls", price: 50, icon: Utensils, category: "snacks" },
+    { id: "soft_drinks", name: "Soft Drinks", description: "Per piece", price: 15, icon: Utensils, category: "drinks" },
+    { id: "juice", name: "Fresh Juice", description: "Per piece", price: 8, icon: Utensils, category: "drinks" },
   ],
   corporate_deck: [
-    { id: "photo_package", name: "Event Photography", description: "Full event coverage + digital album", price: 800, icon: Camera, category: "media" },
-    { id: "video_package", name: "Professional Video", description: "Full event video with editing", price: 1500, icon: Camera, category: "media" },
-    { id: "branding", name: "Custom Branding Package", description: "Branded aprons, certificates & signage", price: 500, icon: Sparkles, category: "branding" },
-    { id: "extra_course", name: "Additional Course", description: "Add another dish to the menu", price: 35, icon: Utensils, category: "food" },
-    { id: "wine_pairing", name: "Beverage Pairing", description: "Premium mocktails/juices pairing", price: 25, icon: Utensils, category: "food" },
-    { id: "certificates", name: "Framed Certificates", description: "Premium framed completion certificates", price: 20, icon: Gift, category: "gifts" },
-    { id: "extra_hour", name: "Extra Hour", description: "Extend your event by 1 hour", price: 600, icon: Clock, category: "time" },
+    // Custom items from PDF
+    { id: "custom_apron", name: "Custom Apron with Name", description: "Personalized Mamalu apron with your name", price: 80, icon: Gift, category: "custom" },
+    { id: "custom_chef_hat", name: "Custom Chef Hat", description: "Personalized chef hat with your name", price: 60, icon: Gift, category: "custom" },
+    { id: "balloons", name: "Balloon Bundle", description: "2 bunches of 7 balloons (any color)", price: 260, icon: PartyPopper, category: "decor" },
+    { id: "custom_cake_10", name: "Custom Cake (up to 10 people)", description: "Beautiful custom designed cake", price: 300, icon: Cake, category: "food" },
+    { id: "custom_cake_20", name: "Custom Cake (up to 20 people)", description: "Beautiful custom designed cake", price: 700, icon: Cake, category: "food" },
+    { id: "custom_cake_30", name: "Custom Cake (up to 30 people)", description: "Beautiful custom designed cake", price: 900, icon: Cake, category: "food" },
+    { id: "custom_cake_40", name: "Custom Cake (up to 40 people)", description: "Beautiful custom designed cake", price: 1000, icon: Cake, category: "food" },
+    { id: "custom_mug", name: "Custom Mug", description: "Personalized mug with any design", price: 45, icon: Gift, category: "custom" },
+    { id: "custom_spatula", name: "Custom Spatula", description: "Personalized cooking spatula", price: 50, icon: Utensils, category: "custom" },
+    // Additional snacks & drinks
+    { id: "mini_pizzas", name: "Mini Pizzas", description: "12 pieces of delicious mini pizzas", price: 50, icon: Utensils, category: "snacks" },
+    { id: "chicken_tenders", name: "Chicken Tenders", description: "12 pieces of crispy chicken tenders", price: 60, icon: Utensils, category: "snacks" },
+    { id: "mini_burgers", name: "Mini Burgers", description: "6 pieces of mini burgers", price: 70, icon: Utensils, category: "snacks" },
+    { id: "musakhan_rolls", name: "Musakhan Rolls", description: "12 pieces of musakhan rolls", price: 50, icon: Utensils, category: "snacks" },
+    { id: "soft_drinks", name: "Soft Drinks", description: "Per piece", price: 15, icon: Utensils, category: "drinks" },
+    { id: "juice", name: "Fresh Juice", description: "Per piece", price: 8, icon: Utensils, category: "drinks" },
   ],
-  nanny_class: [
-    { id: "recipe_book", name: "Premium Recipe Book", description: "Hardcover recipe collection", price: 75, icon: Utensils, category: "materials" },
-    { id: "apron_kit", name: "Professional Apron Kit", description: "Chef apron + tools set", price: 120, icon: Gift, category: "materials" },
-    { id: "extra_session", name: "Extra Private Session", description: "1-on-1 follow-up session", price: 200, icon: Clock, category: "time" },
-    { id: "meal_plan", name: "Custom Meal Plan", description: "4-week personalized meal plan", price: 150, icon: Utensils, category: "materials" },
-    { id: "video_access", name: "Video Library Access", description: "1-year access to recipe videos", price: 100, icon: Camera, category: "media" },
-  ],
+  nanny_class: [],
   walkin_menu: [],
 };
 
@@ -126,9 +151,13 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
   
   // Booking state
   const [selectedPackage, setSelectedPackage] = useState<ServicePackage | null>(null);
-  const [guestCount, setGuestCount] = useState(1);
+  const [selectedMenu, setSelectedMenu] = useState<typeof corporateMenus[0] | null>(null);
+  const [guestCount, setGuestCount] = useState(6); // Corporate min is 6
   const [cart, setCart] = useState<CartItem[]>([]);
   const [selectedExtras, setSelectedExtras] = useState<Record<string, number>>({});
+  
+  // For corporate - determines if we use menu-based pricing
+  const isCorporate = service?.service_type === "corporate_deck";
   const [eventDate, setEventDate] = useState("");
   const [eventTime, setEventTime] = useState("");
   const [customerName, setCustomerName] = useState("");
@@ -235,6 +264,11 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
       return cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
     }
     
+    // Corporate uses menu-based pricing
+    if (isCorporate && selectedMenu) {
+      return selectedMenu.price * guestCount;
+    }
+    
     if (!selectedPackage) return 0;
     
     // If price_per_person is set, calculate based on guests
@@ -248,6 +282,11 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
   const calculateTotal = () => {
     return calculateBaseAmount() + calculateExtrasTotal();
   };
+  
+  // Calculate deposit (50%) and balance for corporate bookings
+  const totalAmount = calculateTotal();
+  const depositAmount = isCorporate ? Math.ceil(totalAmount * 0.5) : totalAmount;
+  const balanceAmount = isCorporate ? totalAmount - depositAmount : 0;
 
   const handleSubmit = async () => {
     if (!service) return;
@@ -267,6 +306,10 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
           isPerPerson: ["extra_favors", "extra_course", "wine_pairing", "certificates"].includes(e.id),
         }));
 
+      // Determine if this is a deposit payment (corporate) or full payment
+      const isDepositPayment = isCorporate;
+      const paymentAmount = isDepositPayment ? Math.ceil(totalAmount * 0.5) : totalAmount;
+
       const res = await fetch("/api/services/book", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -276,6 +319,10 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
           serviceType: service.service_type,
           serviceName: service.name,
           packageName: selectedPackage?.name,
+          // Corporate menu selection
+          menuId: selectedMenu?.id || null,
+          menuName: selectedMenu?.name || null,
+          menuPrice: selectedMenu?.price || null,
           customerName,
           customerEmail,
           customerPhone,
@@ -288,6 +335,10 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
           baseAmount: calculateBaseAmount(),
           extrasAmount: calculateExtrasTotal(),
           totalAmount,
+          // Split payment info for corporate
+          isDepositPayment,
+          depositAmount: isDepositPayment ? paymentAmount : null,
+          balanceAmount: isDepositPayment ? totalAmount - paymentAmount : null,
           specialRequests,
         }),
       });
@@ -404,8 +455,81 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
               </div>
             )}
 
-            {/* Step 1: Package Selection (Non-walkin) */}
-            {!isWalkin && step === 1 && (
+            {/* Step 1: Menu Selection (Corporate) */}
+            {isCorporate && step === 1 && (
+              <div className="space-y-6">
+                <div>
+                  <h2 className="text-2xl font-bold text-stone-900">Choose Your Menu</h2>
+                  <p className="text-stone-500 mt-1">2-hour hands-on cooking experience with professional chefs</p>
+                  <p className="text-sm text-stone-400 mt-2">Min: 6 guests • Max: 35 guests</p>
+                </div>
+
+                <div className="grid gap-4">
+                  {corporateMenus.map((menu) => (
+                    <Card
+                      key={menu.id}
+                      className={`cursor-pointer transition-all ${
+                        selectedMenu?.id === menu.id
+                          ? "ring-2 ring-stone-900 shadow-lg"
+                          : "hover:shadow-md"
+                      }`}
+                      onClick={() => setSelectedMenu(menu)}
+                    >
+                      <CardContent className="p-6">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <h3 className="text-lg font-bold text-stone-900">{menu.name}</h3>
+                              {menu.id === "spirit_of_thailand" && (
+                                <Badge className="bg-green-100 text-green-700 border-0">Best Value</Badge>
+                              )}
+                              {menu.id === "mystery_box" && (
+                                <Badge className="bg-purple-100 text-purple-700 border-0">
+                                  <Sparkles className="h-3 w-3 mr-1" />
+                                  Challenge
+                                </Badge>
+                              )}
+                            </div>
+                            
+                            <div className="mt-3 space-y-1">
+                              {menu.dishes.map((dish, idx) => (
+                                <div key={idx} className="flex items-center gap-2 text-sm text-stone-600">
+                                  <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
+                                  <span>{dish}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                          
+                          <div className="text-right ml-4">
+                            <div className="text-2xl font-bold text-stone-900">
+                              AED {menu.price}
+                            </div>
+                            <div className="text-sm text-stone-500">per person</div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+
+                {selectedMenu && (
+                  <div className="flex justify-end">
+                    <Button
+                      size="lg"
+                      className="bg-stone-900 hover:bg-stone-800"
+                      onClick={() => setStep(2)}
+                    >
+                      Continue
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Step 1: Package Selection (Non-walkin, non-corporate) */}
+            {!isWalkin && !isCorporate && step === 1 && (
               <div className="space-y-6">
                 <h2 className="text-2xl font-bold text-stone-900">Select Your Package</h2>
                 
@@ -905,7 +1029,82 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
                 <CardContent className="p-6">
                   <h3 className="text-lg font-bold text-stone-900 mb-4">Order Summary</h3>
                   
-                  {!isWalkin && selectedPackage && (
+                  {/* Corporate Menu Summary */}
+                  {isCorporate && selectedMenu && (
+                    <div className="space-y-3">
+                      <div className="flex justify-between">
+                        <span className="text-stone-600">{selectedMenu.name}</span>
+                        <span className="font-medium">AED {selectedMenu.price}/person</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-stone-500">Guests</span>
+                        <span className="text-stone-600">{guestCount}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-stone-500">Menu Subtotal</span>
+                        <span className="text-stone-600">AED {(selectedMenu.price * guestCount).toLocaleString()}</span>
+                      </div>
+                      {eventDate && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-stone-500">Date</span>
+                          <span className="text-stone-600">{new Date(eventDate).toLocaleDateString()}</span>
+                        </div>
+                      )}
+                      
+                      {/* Show selected extras */}
+                      {Object.keys(selectedExtras).length > 0 && (
+                        <>
+                          <div className="border-t border-stone-100 pt-3 mt-3">
+                            <p className="text-xs text-stone-500 uppercase tracking-wide mb-2">Add-ons</p>
+                            {availableExtras
+                              .filter((e) => selectedExtras[e.id])
+                              .map((extra) => {
+                                const qty = selectedExtras[extra.id];
+                                const total = extra.price * qty;
+                                return (
+                                  <div key={extra.id} className="flex justify-between text-sm py-1">
+                                    <span className="text-stone-600">
+                                      {extra.name} {qty > 1 ? `×${qty}` : ""}
+                                    </span>
+                                    <span className="font-medium text-stone-700">
+                                      AED {total.toLocaleString()}
+                                    </span>
+                                  </div>
+                                );
+                              })}
+                          </div>
+                        </>
+                      )}
+                      
+                      <div className="border-t border-stone-200 pt-3 mt-3">
+                        <div className="flex justify-between text-lg font-bold">
+                          <span>Total</span>
+                          <span>AED {totalAmount.toLocaleString()}</span>
+                        </div>
+                      </div>
+                      
+                      {/* 50% Deposit Notice */}
+                      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mt-4">
+                        <p className="text-sm font-semibold text-amber-800 mb-2">Payment Policy</p>
+                        <div className="space-y-1 text-sm text-amber-700">
+                          <div className="flex justify-between">
+                            <span>50% Deposit (due now)</span>
+                            <span className="font-bold">AED {depositAmount.toLocaleString()}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Balance (48h before event)</span>
+                            <span>AED {balanceAmount.toLocaleString()}</span>
+                          </div>
+                        </div>
+                        <p className="text-xs text-amber-600 mt-2">
+                          Final attendee numbers must be confirmed 48 hours prior. Goodie bag orders must be confirmed 5 days before.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Non-corporate package summary */}
+                  {!isWalkin && !isCorporate && selectedPackage && (
                     <div className="space-y-3">
                       <div className="flex justify-between">
                         <span className="text-stone-600">{selectedPackage.name}</span>

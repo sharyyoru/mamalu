@@ -147,6 +147,25 @@ CREATE TABLE IF NOT EXISTS public.service_bookings (
     special_requests TEXT,
     internal_notes TEXT,
     
+    -- Corporate menu selection
+    menu_id TEXT,
+    menu_name TEXT,
+    menu_price DECIMAL(10,2),
+    
+    -- Split payment tracking (for corporate 50% deposit)
+    is_deposit_payment BOOLEAN DEFAULT FALSE,
+    deposit_amount DECIMAL(10,2),
+    balance_amount DECIMAL(10,2),
+    deposit_paid BOOLEAN DEFAULT FALSE,
+    deposit_paid_at TIMESTAMPTZ,
+    balance_paid BOOLEAN DEFAULT FALSE,
+    balance_paid_at TIMESTAMPTZ,
+    balance_payment_link TEXT,
+    balance_stripe_session_id TEXT,
+    payment_status TEXT DEFAULT 'pending', -- pending, deposit_pending, deposit_paid, balance_pending, fully_paid
+    balance_due_date DATE, -- 48 hours before event
+    balance_reminder_sent BOOLEAN DEFAULT FALSE,
+    
     -- Tracking
     created_by UUID REFERENCES public.profiles(id),
     created_at TIMESTAMPTZ DEFAULT NOW(),

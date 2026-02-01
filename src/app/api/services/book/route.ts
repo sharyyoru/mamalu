@@ -16,6 +16,10 @@ export async function POST(request: NextRequest) {
       serviceType,
       serviceName,
       packageName,
+      // Corporate menu
+      menuId,
+      menuName,
+      menuPrice,
       customerName,
       customerEmail,
       customerPhone,
@@ -28,6 +32,10 @@ export async function POST(request: NextRequest) {
       baseAmount,
       extrasAmount,
       totalAmount,
+      // Split payment info
+      isDepositPayment,
+      depositAmount,
+      balanceAmount,
       specialRequests,
       userId,
       createdBy,
@@ -40,6 +48,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Determine payment amount (deposit for corporate, full for others)
+    const paymentAmount = isDepositPayment ? depositAmount : totalAmount;
+    const paymentStatus = isDepositPayment ? "deposit_pending" : "pending";
+
     // Create booking record
     const bookingData = {
       service_id: serviceId || null,
@@ -47,6 +59,10 @@ export async function POST(request: NextRequest) {
       service_type: serviceType,
       service_name: serviceName,
       package_name: packageName || null,
+      // Corporate menu info
+      menu_id: menuId || null,
+      menu_name: menuName || null,
+      menu_price: menuPrice || null,
       customer_name: customerName,
       customer_email: customerEmail,
       customer_phone: customerPhone || null,
@@ -59,6 +75,13 @@ export async function POST(request: NextRequest) {
       base_amount: baseAmount || totalAmount,
       extras_amount: extrasAmount || 0,
       total_amount: totalAmount,
+      // Split payment tracking
+      is_deposit_payment: isDepositPayment || false,
+      deposit_amount: depositAmount || null,
+      balance_amount: balanceAmount || null,
+      deposit_paid: false,
+      balance_paid: false,
+      payment_status: paymentStatus,
       special_requests: specialRequests || null,
       user_id: userId || null,
       created_by: createdBy || null,
@@ -77,19 +100,28 @@ export async function POST(request: NextRequest) {
     }
 
     // Create Stripe checkout session
+    const productName = menuName 
+      ? `${serviceName} - ${menuName}` 
+      : (packageName ? `${serviceName} - ${packageName}` : serviceName);
+    
+    const productDescription = isDepositPayment
+      ? `50% Deposit for ${guestCount} guest(s)${eventDate ? ` on ${eventDate}` : ""} - Balance of AED ${balanceAmount} due 48 hours before event`
+      : `Booking for ${guestCount} guest(s)${eventDate ? ` on ${eventDate}` : ""}`;
+
     const product = await stripe.products.create({
-      name: packageName ? `${serviceName} - ${packageName}` : serviceName,
-      description: `Booking for ${guestCount} guest(s)${eventDate ? ` on ${eventDate}` : ""}`,
+      name: isDepositPayment ? `${productName} (50% Deposit)` : productName,
+      description: productDescription,
       metadata: {
         booking_id: booking.id,
         service_type: serviceType,
         booking_number: booking.booking_number,
+        is_deposit: isDepositPayment ? "true" : "false",
       },
     });
 
     const price = await stripe.prices.create({
       product: product.id,
-      unit_amount: Math.round(totalAmount * 100),
+      unit_amount: Math.round(paymentAmount * 100), // Use paymentAmount (deposit or full)
       currency: "aed",
     });
 
