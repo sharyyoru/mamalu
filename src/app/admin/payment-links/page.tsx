@@ -57,6 +57,8 @@ interface PaymentLink {
   notes: string | null;
   created_at: string;
   created_by: string | null;
+  stripe_payment_intent_id: string | null;
+  stripe_checkout_session_id: string | null;
   creator: {
     id: string;
     full_name: string | null;
@@ -438,12 +440,13 @@ export default function AdminPaymentLinksPage() {
       `AED ${link.amount.toLocaleString()}`,
       link.status.charAt(0).toUpperCase() + link.status.slice(1),
       link.paid_at ? new Date(link.paid_at).toLocaleDateString() : "—",
+      link.stripe_payment_intent_id ? link.stripe_payment_intent_id.replace("pi_", "").substring(0, 12) : "—",
       link.creator?.full_name?.split(" ")[0] || link.creator?.email?.split("@")[0] || "—"
     ]);
 
     autoTable(doc, {
       startY: cardY + cardHeight + 10,
-      head: [["Code", "Description", "Customer", "Amount", "Status", "Paid", "By"]],
+      head: [["Code", "Description", "Customer", "Amount", "Status", "Paid", "Stripe ID", "By"]],
       body: tableData,
       styles: { 
         fontSize: 8, 
@@ -461,13 +464,14 @@ export default function AdminPaymentLinksPage() {
         fillColor: [stripeLight[0], stripeLight[1], stripeLight[2]] 
       },
       columnStyles: {
-        0: { cellWidth: 24, fontStyle: "bold" },
-        1: { cellWidth: 38 },
-        2: { cellWidth: 28 },
-        3: { cellWidth: 24, halign: "right" },
-        4: { cellWidth: 18 },
-        5: { cellWidth: 22 },
-        6: { cellWidth: 22 },
+        0: { cellWidth: 22, fontStyle: "bold" },
+        1: { cellWidth: 32 },
+        2: { cellWidth: 24 },
+        3: { cellWidth: 22, halign: "right" },
+        4: { cellWidth: 16 },
+        5: { cellWidth: 20 },
+        6: { cellWidth: 28, fontSize: 7 },
+        7: { cellWidth: 18 },
       },
       didParseCell: (data) => {
         // Color code status
