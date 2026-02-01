@@ -176,8 +176,8 @@ export async function GET(request: NextRequest) {
     // Format service type names
     const formatServiceType = (type: string) => {
       const names: Record<string, string> = {
-        birthday_deck: "Birthday Deck",
-        corporate_deck: "Corporate Deck",
+        birthday_deck: "Birthdays",
+        corporate_deck: "Corporate",
         nanny_class: "Nanny Class",
         walkin_menu: "Walk-in Menu",
       };

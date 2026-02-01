@@ -20,7 +20,7 @@ const primaryNavigation = [
 
 const serviceCategories = [
   { 
-    name: "Birthday Deck", 
+    name: "Birthdays", 
     href: "/book/birthday-deck", 
     emoji: "🎂",
     icon: Cake,
@@ -29,7 +29,7 @@ const serviceCategories = [
     color: "from-pink-500 to-rose-500"
   },
   { 
-    name: "Corporate Deck", 
+    name: "Corporate", 
     href: "/book/corporate-deck", 
     emoji: "�",
     icon: Users,

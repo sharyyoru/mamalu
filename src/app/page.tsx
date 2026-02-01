@@ -25,7 +25,7 @@ import {
 const serviceTypes = [
   {
     id: "birthday",
-    title: "Birthday Deck",
+    title: "Birthdays",
     category: "Kids",
     description: "Fun cooking birthday parties for kids",
     icon: Cake,
@@ -36,7 +36,7 @@ const serviceTypes = [
   },
   {
     id: "corporate",
-    title: "Corporate Deck",
+    title: "Corporate",
     category: "Adults",
     description: "Team building culinary experiences for companies",
     icon: Users,

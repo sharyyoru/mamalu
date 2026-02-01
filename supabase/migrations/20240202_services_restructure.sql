@@ -1,7 +1,7 @@
 -- ===========================================
 -- MAMALU KITCHEN - SERVICES RESTRUCTURE
--- Kids: Birthday Deck
--- Adults: Corporate Deck, Nanny Class
+-- Kids: Birthdays
+-- Adults: Corporate, Nanny Class
 -- Walk-in Menu
 -- ===========================================
 
@@ -298,16 +298,16 @@ CREATE TRIGGER set_service_booking_number BEFORE INSERT ON public.service_bookin
 -- ===========================================
 INSERT INTO public.services (name, slug, category, service_type, description, short_description, menu_pdf_url, base_price, min_guests, max_guests, duration_minutes, display_order, features) VALUES
 -- Kids Services
-('Birthday Deck', 'birthday-deck', 'kids', 'birthday_deck', 
- 'Make your child''s birthday unforgettable with a hands-on cooking party! Our Birthday Deck experience includes cooking activities, decorations, and delicious food prepared by the kids themselves.',
+('Birthdays', 'birthday-deck', 'kids', 'birthday_deck', 
+ 'Make your child''s birthday unforgettable with a hands-on cooking party! Our Birthdays experience includes cooking activities, decorations, and delicious food prepared by the kids themselves.',
  'Fun cooking birthday parties for kids',
  '/menus/Birthday New .pdf',
  1500, 8, 25, 180, 1,
  '["Private venue", "Dedicated party host", "Cooking activities", "Party decorations", "Photo opportunities", "Take-home treats"]'::jsonb),
 
 -- Adults Services  
-('Corporate Deck', 'corporate-deck', 'adults', 'corporate_deck',
- 'Team building through cooking! Our Corporate Deck offers unique culinary experiences for companies looking to strengthen their teams while having fun.',
+('Corporate', 'corporate-deck', 'adults', 'corporate_deck',
+ 'Team building through cooking! Our Corporate offers unique culinary experiences for companies looking to strengthen their teams while having fun.',
  'Team building cooking experiences',
  '/menus/Corporate deck  New .pdf',
  3000, 10, 50, 240, 1,
@@ -338,7 +338,7 @@ ON CONFLICT (slug) DO UPDATE SET
 -- SEED DATA: Service Packages
 -- ===========================================
 
--- Birthday Deck Packages
+-- Birthdays Packages
 INSERT INTO public.service_packages (service_id, name, description, price, price_per_person, min_guests, max_guests, duration_minutes, includes, is_popular, display_order)
 SELECT 
     s.id,
@@ -387,7 +387,7 @@ SELECT
 FROM public.services s WHERE s.slug = 'birthday-deck'
 ON CONFLICT DO NOTHING;
 
--- Corporate Deck Packages
+-- Corporate Packages
 INSERT INTO public.service_packages (service_id, name, description, price, price_per_person, min_guests, max_guests, duration_minutes, includes, is_popular, display_order)
 SELECT 
     s.id,

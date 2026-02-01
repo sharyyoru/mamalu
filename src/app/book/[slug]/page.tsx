@@ -120,7 +120,7 @@ const nannyMenus = [
   { id: "healthy_desserts", name: "Healthy Desserts", price: 1200, dishes: ["Sweet potato brownies", "3 ingredient chocolate cake", "Protein chocolate chip cookies", "Date walnut cake"] },
 ];
 
-// Birthday Deck Menu Packages (from PDF)
+// Birthdays Menu Packages (from PDF)
 const birthdayMenus = [
   { id: "texas_roadhouse", name: "Texas Roadhouse", price: 275, dishes: ["Baked BBQ wings", "Skillet Mac & Cheese", "Mississippi mud pie"] },
   { id: "little_italy", name: "Little Italy", price: 250, dishes: ["Pasta from scratch", "Pomodoro sauce", "Margherita pizza", "Fudgy brownies"] },
