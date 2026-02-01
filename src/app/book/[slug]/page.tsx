@@ -20,6 +20,13 @@ import {
   Plus,
   ShoppingCart,
   Loader2,
+  Sparkles,
+  Camera,
+  Gift,
+  Cake,
+  PartyPopper,
+  Utensils,
+  Music,
 } from "lucide-react";
 
 interface ServicePackage {
@@ -69,6 +76,46 @@ interface CartItem {
   quantity: number;
 }
 
+interface ExtraItem {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  icon: any;
+  category: string;
+}
+
+// Add-ons/Extras for different service types
+const serviceExtras: Record<string, ExtraItem[]> = {
+  birthday_deck: [
+    { id: "photo_package", name: "Professional Photography", description: "1 hour of professional photos + edited digital album", price: 350, icon: Camera, category: "media" },
+    { id: "video_package", name: "Video Highlights", description: "3-minute highlight reel of the party", price: 500, icon: Camera, category: "media" },
+    { id: "extra_decorations", name: "Premium Decorations", description: "Balloon arch, themed backdrop & table setup", price: 250, icon: PartyPopper, category: "decor" },
+    { id: "custom_cake", name: "Custom Themed Cake", description: "Upgrade to a custom designed cake", price: 200, icon: Cake, category: "food" },
+    { id: "extra_favors", name: "Deluxe Party Favors", description: "Premium goodie bags for all guests", price: 15, icon: Gift, category: "gifts" },
+    { id: "extra_hour", name: "Extra Hour", description: "Extend your party by 1 hour", price: 400, icon: Clock, category: "time" },
+    { id: "face_painting", name: "Face Painting", description: "Professional face painter for 1 hour", price: 300, icon: Sparkles, category: "entertainment" },
+    { id: "music_dj", name: "Kids DJ", description: "Fun music and games host", price: 450, icon: Music, category: "entertainment" },
+  ],
+  corporate_deck: [
+    { id: "photo_package", name: "Event Photography", description: "Full event coverage + digital album", price: 800, icon: Camera, category: "media" },
+    { id: "video_package", name: "Professional Video", description: "Full event video with editing", price: 1500, icon: Camera, category: "media" },
+    { id: "branding", name: "Custom Branding Package", description: "Branded aprons, certificates & signage", price: 500, icon: Sparkles, category: "branding" },
+    { id: "extra_course", name: "Additional Course", description: "Add another dish to the menu", price: 35, icon: Utensils, category: "food" },
+    { id: "wine_pairing", name: "Beverage Pairing", description: "Premium mocktails/juices pairing", price: 25, icon: Utensils, category: "food" },
+    { id: "certificates", name: "Framed Certificates", description: "Premium framed completion certificates", price: 20, icon: Gift, category: "gifts" },
+    { id: "extra_hour", name: "Extra Hour", description: "Extend your event by 1 hour", price: 600, icon: Clock, category: "time" },
+  ],
+  nanny_class: [
+    { id: "recipe_book", name: "Premium Recipe Book", description: "Hardcover recipe collection", price: 75, icon: Utensils, category: "materials" },
+    { id: "apron_kit", name: "Professional Apron Kit", description: "Chef apron + tools set", price: 120, icon: Gift, category: "materials" },
+    { id: "extra_session", name: "Extra Private Session", description: "1-on-1 follow-up session", price: 200, icon: Clock, category: "time" },
+    { id: "meal_plan", name: "Custom Meal Plan", description: "4-week personalized meal plan", price: 150, icon: Utensils, category: "materials" },
+    { id: "video_access", name: "Video Library Access", description: "1-year access to recipe videos", price: 100, icon: Camera, category: "media" },
+  ],
+  walkin_menu: [],
+};
+
 export default function ServiceBookingPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
   const router = useRouter();
@@ -81,6 +128,7 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
   const [selectedPackage, setSelectedPackage] = useState<ServicePackage | null>(null);
   const [guestCount, setGuestCount] = useState(1);
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [selectedExtras, setSelectedExtras] = useState<Record<string, number>>({});
   const [eventDate, setEventDate] = useState("");
   const [eventTime, setEventTime] = useState("");
   const [customerName, setCustomerName] = useState("");
@@ -89,6 +137,10 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
   const [companyName, setCompanyName] = useState("");
   const [specialRequests, setSpecialRequests] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  // Get available extras for current service
+  const availableExtras = service ? (serviceExtras[service.service_type] || []) : [];
+  const hasExtras = availableExtras.length > 0;
 
   useEffect(() => {
     fetchService();
@@ -146,7 +198,39 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
     return cart.find((i) => i.id === itemId)?.quantity || 0;
   };
 
-  const calculateTotal = () => {
+  // Extras management
+  const toggleExtra = (extraId: string) => {
+    setSelectedExtras((prev) => {
+      if (prev[extraId]) {
+        const { [extraId]: _, ...rest } = prev;
+        return rest;
+      }
+      return { ...prev, [extraId]: 1 };
+    });
+  };
+
+  const updateExtraQuantity = (extraId: string, delta: number) => {
+    setSelectedExtras((prev) => {
+      const current = prev[extraId] || 0;
+      const newQty = Math.max(0, current + delta);
+      if (newQty === 0) {
+        const { [extraId]: _, ...rest } = prev;
+        return rest;
+      }
+      return { ...prev, [extraId]: newQty };
+    });
+  };
+
+  const calculateExtrasTotal = () => {
+    return availableExtras.reduce((sum, extra) => {
+      const qty = selectedExtras[extra.id] || 0;
+      // Per-person extras (like extra_favors, extra_course, etc.)
+      const isPerPerson = ["extra_favors", "extra_course", "wine_pairing", "certificates"].includes(extra.id);
+      return sum + (extra.price * qty * (isPerPerson ? guestCount : 1));
+    }, 0);
+  };
+
+  const calculateBaseAmount = () => {
     if (isWalkin) {
       return cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
     }
@@ -161,6 +245,10 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
     return selectedPackage.price;
   };
 
+  const calculateTotal = () => {
+    return calculateBaseAmount() + calculateExtrasTotal();
+  };
+
   const handleSubmit = async () => {
     if (!service) return;
     
@@ -168,6 +256,17 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
     try {
       const totalAmount = calculateTotal();
       
+      // Format extras for submission
+      const extrasData = availableExtras
+        .filter((e) => selectedExtras[e.id])
+        .map((e) => ({
+          id: e.id,
+          name: e.name,
+          price: e.price,
+          quantity: selectedExtras[e.id],
+          isPerPerson: ["extra_favors", "extra_course", "wine_pairing", "certificates"].includes(e.id),
+        }));
+
       const res = await fetch("/api/services/book", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -185,7 +284,9 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
           eventTime: eventTime || null,
           guestCount,
           items: isWalkin ? cart : [],
-          baseAmount: totalAmount,
+          extras: extrasData,
+          baseAmount: calculateBaseAmount(),
+          extrasAmount: calculateExtrasTotal(),
           totalAmount,
           specialRequests,
         }),
@@ -276,24 +377,30 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
           <div className="lg:col-span-2 space-y-8">
             {/* Step Indicator */}
             {!isWalkin && (
-              <div className="flex items-center gap-4">
-                {[1, 2, 3].map((s) => (
-                  <div key={s} className="flex items-center gap-2">
-                    <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                        step >= s
-                          ? "bg-stone-900 text-white"
-                          : "bg-stone-200 text-stone-500"
-                      }`}
-                    >
-                      {step > s ? <Check className="h-4 w-4" /> : s}
+              <div className="flex items-center gap-2 flex-wrap">
+                {(hasExtras ? [1, 2, 3, 4] : [1, 2, 3]).map((s) => {
+                  const stepLabels = hasExtras 
+                    ? { 1: "Package", 2: "Customize", 3: "Details", 4: "Confirm" }
+                    : { 1: "Package", 2: "Details", 3: "Confirm" };
+                  const maxStep = hasExtras ? 4 : 3;
+                  return (
+                    <div key={s} className="flex items-center gap-2">
+                      <div
+                        className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                          step >= s
+                            ? "bg-stone-900 text-white"
+                            : "bg-stone-200 text-stone-500"
+                        }`}
+                      >
+                        {step > s ? <Check className="h-4 w-4" /> : s}
+                      </div>
+                      <span className={`text-sm hidden sm:inline ${step >= s ? "text-stone-900" : "text-stone-400"}`}>
+                        {stepLabels[s as keyof typeof stepLabels]}
+                      </span>
+                      {s < maxStep && <div className="w-4 sm:w-8 h-0.5 bg-stone-200" />}
                     </div>
-                    <span className={`text-sm ${step >= s ? "text-stone-900" : "text-stone-400"}`}>
-                      {s === 1 ? "Package" : s === 2 ? "Details" : "Confirm"}
-                    </span>
-                    {s < 3 && <div className="w-8 h-0.5 bg-stone-200" />}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
 
@@ -384,8 +491,95 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
               </div>
             )}
 
-            {/* Step 2: Event Details (Non-walkin) */}
-            {!isWalkin && step === 2 && (
+            {/* Step 2: Customization/Add-ons (when extras available) */}
+            {!isWalkin && hasExtras && step === 2 && (
+              <div className="space-y-6">
+                <div>
+                  <h2 className="text-2xl font-bold text-stone-900">Customize Your Experience</h2>
+                  <p className="text-stone-500 mt-1">Add extras to make your event even more special (optional)</p>
+                </div>
+
+                <div className="grid gap-4">
+                  {availableExtras.map((extra) => {
+                    const Icon = extra.icon;
+                    const isSelected = selectedExtras[extra.id] > 0;
+                    const qty = selectedExtras[extra.id] || 0;
+                    const isPerPerson = ["extra_favors", "extra_course", "wine_pairing", "certificates"].includes(extra.id);
+                    
+                    return (
+                      <Card
+                        key={extra.id}
+                        className={`transition-all ${isSelected ? "ring-2 ring-stone-900 shadow-lg" : "hover:shadow-md"}`}
+                      >
+                        <CardContent className="p-4">
+                          <div className="flex items-center gap-4">
+                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${isSelected ? "bg-stone-900 text-white" : "bg-stone-100 text-stone-600"}`}>
+                              <Icon className="h-6 w-6" />
+                            </div>
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-stone-900">{extra.name}</h4>
+                              <p className="text-sm text-stone-500">{extra.description}</p>
+                              <p className="text-sm font-medium text-stone-700 mt-1">
+                                AED {extra.price}{isPerPerson ? "/person" : ""}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {isSelected ? (
+                                <div className="flex items-center gap-2">
+                                  <Button
+                                    size="icon"
+                                    variant="outline"
+                                    className="h-8 w-8"
+                                    onClick={() => updateExtraQuantity(extra.id, -1)}
+                                  >
+                                    <Minus className="h-4 w-4" />
+                                  </Button>
+                                  <span className="w-8 text-center font-bold">{qty}</span>
+                                  <Button
+                                    size="icon"
+                                    variant="outline"
+                                    className="h-8 w-8"
+                                    onClick={() => updateExtraQuantity(extra.id, 1)}
+                                  >
+                                    <Plus className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              ) : (
+                                <Button
+                                  variant="outline"
+                                  onClick={() => toggleExtra(extra.id)}
+                                >
+                                  <Plus className="h-4 w-4 mr-1" />
+                                  Add
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+
+                <div className="flex justify-between">
+                  <Button variant="outline" onClick={() => setStep(1)}>
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Back
+                  </Button>
+                  <Button
+                    size="lg"
+                    className="bg-stone-900 hover:bg-stone-800"
+                    onClick={() => setStep(3)}
+                  >
+                    {Object.keys(selectedExtras).length > 0 ? "Continue with Extras" : "Skip Extras"}
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 2/3: Event Details (Non-walkin) */}
+            {!isWalkin && step === (hasExtras ? 3 : 2) && (
               <div className="space-y-6">
                 <h2 className="text-2xl font-bold text-stone-900">Event Details</h2>
                 
@@ -474,14 +668,14 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
                 </Card>
 
                 <div className="flex justify-between">
-                  <Button variant="outline" onClick={() => setStep(1)}>
+                  <Button variant="outline" onClick={() => setStep(hasExtras ? 2 : 1)}>
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     Back
                   </Button>
                   <Button
                     size="lg"
                     className="bg-stone-900 hover:bg-stone-800"
-                    onClick={() => setStep(3)}
+                    onClick={() => setStep(hasExtras ? 4 : 3)}
                   >
                     Continue
                     <ArrowRight className="ml-2 h-4 w-4" />
@@ -490,8 +684,8 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
               </div>
             )}
 
-            {/* Step 3: Contact Details (Non-walkin) */}
-            {!isWalkin && step === 3 && (
+            {/* Step 3/4: Contact Details (Non-walkin) */}
+            {!isWalkin && step === (hasExtras ? 4 : 3) && (
               <div className="space-y-6">
                 <h2 className="text-2xl font-bold text-stone-900">Your Details</h2>
                 
@@ -558,7 +752,7 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
                 </Card>
 
                 <div className="flex justify-between">
-                  <Button variant="outline" onClick={() => setStep(2)}>
+                  <Button variant="outline" onClick={() => setStep(hasExtras ? 3 : 2)}>
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     Back
                   </Button>
@@ -712,26 +906,56 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
                   <h3 className="text-lg font-bold text-stone-900 mb-4">Order Summary</h3>
                   
                   {!isWalkin && selectedPackage && (
-                    <div className="space-y-4">
+                    <div className="space-y-3">
                       <div className="flex justify-between">
                         <span className="text-stone-600">{selectedPackage.name}</span>
-                        <span className="font-medium">AED {selectedPackage.price.toLocaleString()}</span>
+                        <span className="font-medium">AED {calculateBaseAmount().toLocaleString()}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-stone-600">Guests</span>
-                        <span className="font-medium">{guestCount}</span>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-stone-500">Guests</span>
+                        <span className="text-stone-600">{guestCount}</span>
                       </div>
                       {eventDate && (
-                        <div className="flex justify-between">
-                          <span className="text-stone-600">Date</span>
-                          <span className="font-medium">{new Date(eventDate).toLocaleDateString()}</span>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-stone-500">Date</span>
+                          <span className="text-stone-600">{new Date(eventDate).toLocaleDateString()}</span>
                         </div>
                       )}
                       {eventTime && (
-                        <div className="flex justify-between">
-                          <span className="text-stone-600">Time</span>
-                          <span className="font-medium">{eventTime}</span>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-stone-500">Time</span>
+                          <span className="text-stone-600">{eventTime}</span>
                         </div>
+                      )}
+                      
+                      {/* Show selected extras */}
+                      {Object.keys(selectedExtras).length > 0 && (
+                        <>
+                          <div className="border-t border-stone-100 pt-3 mt-3">
+                            <p className="text-xs text-stone-500 uppercase tracking-wide mb-2">Add-ons</p>
+                            {availableExtras
+                              .filter((e) => selectedExtras[e.id])
+                              .map((extra) => {
+                                const qty = selectedExtras[extra.id];
+                                const isPerPerson = ["extra_favors", "extra_course", "wine_pairing", "certificates"].includes(extra.id);
+                                const total = extra.price * qty * (isPerPerson ? guestCount : 1);
+                                return (
+                                  <div key={extra.id} className="flex justify-between text-sm py-1">
+                                    <span className="text-stone-600">
+                                      {extra.name} {qty > 1 ? `×${qty}` : ""} {isPerPerson ? `(×${guestCount})` : ""}
+                                    </span>
+                                    <span className="font-medium text-stone-700">
+                                      AED {total.toLocaleString()}
+                                    </span>
+                                  </div>
+                                );
+                              })}
+                          </div>
+                          <div className="flex justify-between text-sm pt-2 border-t border-stone-100">
+                            <span className="text-stone-500">Extras Subtotal</span>
+                            <span className="font-medium text-stone-700">AED {calculateExtrasTotal().toLocaleString()}</span>
+                          </div>
+                        </>
                       )}
                     </div>
                   )}

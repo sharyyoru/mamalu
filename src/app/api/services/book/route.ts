@@ -93,11 +93,14 @@ export async function POST(request: NextRequest) {
       currency: "aed",
     });
 
+    // Use production URL, fallback to NEXT_PUBLIC_URL, then localhost
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_URL || "https://mamalu.vercel.app";
+    
     const checkoutSession = await stripe.checkout.sessions.create({
       line_items: [{ price: price.id, quantity: 1 }],
       mode: "payment",
-      success_url: `${process.env.NEXT_PUBLIC_URL || "http://localhost:3000"}/booking/success?booking=${booking.booking_number}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_URL || "http://localhost:3000"}/book?cancelled=true`,
+      success_url: `${baseUrl}/booking/success?booking=${booking.booking_number}`,
+      cancel_url: `${baseUrl}/book?cancelled=true`,
       customer_email: customerEmail,
       metadata: {
         booking_id: booking.id,

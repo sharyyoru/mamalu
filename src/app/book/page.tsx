@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,10 @@ import {
   FileText,
   Check,
   Crown,
+  XCircle,
+  RefreshCw,
+  Phone,
+  MessageCircle,
 } from "lucide-react";
 
 interface ServicePackage {
@@ -69,13 +74,22 @@ const categoryBg: Record<string, string> = {
 };
 
 export default function BookPage() {
+  const searchParams = useSearchParams();
+  const isCancelled = searchParams.get("cancelled") === "true";
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [showCancelledModal, setShowCancelledModal] = useState(isCancelled);
 
   useEffect(() => {
     fetchServices();
   }, []);
+
+  useEffect(() => {
+    if (isCancelled) {
+      setShowCancelledModal(true);
+    }
+  }, [isCancelled]);
 
   const fetchServices = async () => {
     try {
@@ -118,6 +132,54 @@ export default function BookPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-stone-50 to-white">
+      {/* Cancelled Booking Modal */}
+      {showCancelledModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 text-center animate-in fade-in zoom-in duration-300">
+            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center">
+              <XCircle className="h-10 w-10 text-amber-600" />
+            </div>
+            <h2 className="text-2xl font-bold text-stone-900 mb-3">
+              Booking Cancelled
+            </h2>
+            <p className="text-stone-600 mb-6">
+              No worries! Your payment was not processed. You can start a new booking whenever you&apos;re ready, or contact us if you need any help.
+            </p>
+            <div className="space-y-3">
+              <Button
+                onClick={() => setShowCancelledModal(false)}
+                className="w-full bg-stone-900 hover:bg-stone-800 text-white rounded-full h-12"
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Browse Services
+              </Button>
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  className="flex-1 rounded-full h-12"
+                  asChild
+                >
+                  <a href="https://wa.me/971XXXXXXXXX" target="_blank" rel="noopener noreferrer">
+                    <MessageCircle className="h-4 w-4 mr-2" />
+                    WhatsApp
+                  </a>
+                </Button>
+                <Button
+                  variant="outline"
+                  className="flex-1 rounded-full h-12"
+                  asChild
+                >
+                  <Link href="/contact">
+                    <Phone className="h-4 w-4 mr-2" />
+                    Contact Us
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Hero Section */}
       <section className="relative py-16 lg:py-24 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-stone-900 via-stone-800 to-stone-900" />
