@@ -10,46 +10,50 @@ import { GlobalSearch } from "./GlobalSearch";
 const primaryNavigation = [
   { name: "Home", href: "/", icon: Home },
   { 
-    name: "Classes", 
-    href: "/classes",
-    icon: GraduationCap,
+    name: "Book", 
+    href: "/book",
+    icon: Calendar,
     hasMegaMenu: true,
   },
   { name: "Shop", href: "/products", icon: Store },
 ];
 
-const classCategories = [
+const serviceCategories = [
   { 
-    name: "Kids Classes", 
-    href: "/classes?type=kids", 
-    emoji: "👶",
-    icon: Baby,
-    description: "Fun cooking adventures for little chefs aged 4-12",
+    name: "Birthday Deck", 
+    href: "/book/birthday-deck", 
+    emoji: "🎂",
+    icon: Cake,
+    category: "Kids",
+    description: "Fun cooking birthday parties for kids",
     color: "from-pink-500 to-rose-500"
   },
   { 
-    name: "Family Classes", 
-    href: "/classes?type=family", 
-    emoji: "👨‍👩‍👧",
+    name: "Corporate Deck", 
+    href: "/book/corporate-deck", 
+    emoji: "�",
     icon: Users,
-    description: "Cook together, bond together - memories that last forever",
-    color: "from-amber-500 to-orange-500"
+    category: "Adults",
+    description: "Team building culinary experiences",
+    color: "from-indigo-500 to-purple-600"
   },
   { 
-    name: "Birthday Parties", 
-    href: "/classes?type=birthday", 
-    emoji: "🎂",
-    icon: Cake,
-    description: "Celebrate with a unique cooking party experience",
-    color: "from-violet-500 to-purple-600"
-  },
-  { 
-    name: "Adult Classes", 
-    href: "/classes?type=adults", 
-    emoji: "👨‍🍳",
+    name: "Nanny Class", 
+    href: "/book/nanny-class", 
+    emoji: "👨‍�",
     icon: ChefHat,
-    description: "Master new cuisines and techniques with expert guidance",
+    category: "Adults",
+    description: "Professional cooking training for caregivers",
     color: "from-emerald-500 to-teal-600"
+  },
+  { 
+    name: "Walk-in Menu", 
+    href: "/book/walkin-menu", 
+    emoji: "☕",
+    icon: Baby,
+    category: "Dine",
+    description: "Fresh, healthy meals ready to enjoy",
+    color: "from-amber-500 to-orange-500"
   },
 ];
 
@@ -214,7 +218,7 @@ export function Header() {
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
           <div className="grid grid-cols-4 gap-6">
-            {classCategories.map((category) => {
+            {serviceCategories.map((category) => {
               const Icon = category.icon;
               return (
                 <Link
@@ -237,14 +241,14 @@ export function Header() {
           </div>
           <div className="mt-6 pt-6 border-t border-stone-100 flex items-center justify-between">
             <p className="text-sm text-stone-500">
-              Can&apos;t decide? Browse all our classes and find the perfect fit.
+              Can&apos;t decide? Browse all our services and find the perfect experience.
             </p>
             <Link 
-              href="/classes" 
+              href="/book" 
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-stone-800 to-stone-700 text-white font-semibold text-sm hover:shadow-lg hover:shadow-stone-900/20 transition-all"
             >
               <Calendar className="h-4 w-4" />
-              View All Classes
+              View All Services
               <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
@@ -289,10 +293,10 @@ export function Header() {
           <div className="bg-gradient-to-br from-stone-50 to-stone-100 rounded-3xl p-4">
             <h3 className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-4 flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-stone-900" />
-              Quick Book a Class
+              Quick Book
             </h3>
             <div className="grid grid-cols-2 gap-3">
-              {classCategories.map((category) => {
+              {serviceCategories.map((category) => {
                 const Icon = category.icon;
                 return (
                   <Link

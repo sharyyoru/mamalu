@@ -1,0 +1,128 @@
+import { NextRequest, NextResponse } from "next/server";
+import { stripe } from "@/lib/stripe/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+
+export async function POST(request: NextRequest) {
+  try {
+    const supabase = createAdminClient();
+    if (!supabase) {
+      return NextResponse.json({ error: "Database not configured" }, { status: 500 });
+    }
+
+    const body = await request.json();
+    const {
+      serviceId,
+      packageId,
+      serviceType,
+      serviceName,
+      packageName,
+      customerName,
+      customerEmail,
+      customerPhone,
+      companyName,
+      eventDate,
+      eventTime,
+      guestCount,
+      items,
+      extras,
+      baseAmount,
+      extrasAmount,
+      totalAmount,
+      specialRequests,
+      userId,
+      createdBy,
+    } = body;
+
+    if (!serviceName || !customerName || !customerEmail || !totalAmount) {
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 }
+      );
+    }
+
+    // Create booking record
+    const bookingData = {
+      service_id: serviceId || null,
+      package_id: packageId || null,
+      service_type: serviceType,
+      service_name: serviceName,
+      package_name: packageName || null,
+      customer_name: customerName,
+      customer_email: customerEmail,
+      customer_phone: customerPhone || null,
+      company_name: companyName || null,
+      event_date: eventDate || null,
+      event_time: eventTime || null,
+      guest_count: guestCount || 1,
+      items: items || [],
+      extras: extras || [],
+      base_amount: baseAmount || totalAmount,
+      extras_amount: extrasAmount || 0,
+      total_amount: totalAmount,
+      special_requests: specialRequests || null,
+      user_id: userId || null,
+      created_by: createdBy || null,
+      status: "pending",
+    };
+
+    const { data: booking, error: bookingError } = await supabase
+      .from("service_bookings")
+      .insert(bookingData)
+      .select()
+      .single();
+
+    if (bookingError) {
+      console.error("Create booking error:", bookingError);
+      return NextResponse.json({ error: bookingError.message }, { status: 500 });
+    }
+
+    // Create Stripe checkout session
+    const product = await stripe.products.create({
+      name: packageName ? `${serviceName} - ${packageName}` : serviceName,
+      description: `Booking for ${guestCount} guest(s)${eventDate ? ` on ${eventDate}` : ""}`,
+      metadata: {
+        booking_id: booking.id,
+        service_type: serviceType,
+        booking_number: booking.booking_number,
+      },
+    });
+
+    const price = await stripe.prices.create({
+      product: product.id,
+      unit_amount: Math.round(totalAmount * 100),
+      currency: "aed",
+    });
+
+    const checkoutSession = await stripe.checkout.sessions.create({
+      line_items: [{ price: price.id, quantity: 1 }],
+      mode: "payment",
+      success_url: `${process.env.NEXT_PUBLIC_URL || "http://localhost:3000"}/booking/success?booking=${booking.booking_number}`,
+      cancel_url: `${process.env.NEXT_PUBLIC_URL || "http://localhost:3000"}/book?cancelled=true`,
+      customer_email: customerEmail,
+      metadata: {
+        booking_id: booking.id,
+        booking_number: booking.booking_number,
+        service_type: serviceType,
+        type: "service_booking",
+      },
+    });
+
+    // Update booking with Stripe session ID
+    await supabase
+      .from("service_bookings")
+      .update({ stripe_checkout_session_id: checkoutSession.id })
+      .eq("id", booking.id);
+
+    return NextResponse.json({
+      success: true,
+      booking,
+      checkoutUrl: checkoutSession.url,
+    });
+  } catch (error: any) {
+    console.error("Book service error:", error);
+    return NextResponse.json(
+      { error: error.message || "Failed to create booking" },
+      { status: 500 }
+    );
+  }
+}

@@ -22,46 +22,50 @@ import {
   Heart,
 } from "lucide-react";
 
-const classTypes = [
-  {
-    id: "kids",
-    title: "Kids Classes",
-    description: "Fun cooking adventures for little chefs aged 4-12",
-    icon: Baby,
-    color: "from-stone-800 to-stone-900",
-    href: "/classes?type=kids",
-    emoji: "👶",
-    image: "/images/kids-classes.png",
-  },
-  {
-    id: "family",
-    title: "Family Classes",
-    description: "Cook together, bond together - memories that last forever",
-    icon: Users,
-    color: "from-stone-800 to-stone-900",
-    href: "/classes?type=family",
-    emoji: "👨‍👩‍👧",
-    image: "/images/family-classes.png",
-  },
+const serviceTypes = [
   {
     id: "birthday",
-    title: "Birthday Parties",
-    description: "Celebrate with a unique cooking party experience",
+    title: "Birthday Deck",
+    category: "Kids",
+    description: "Fun cooking birthday parties for kids",
     icon: Cake,
-    color: "from-stone-800 to-stone-900",
-    href: "/classes?type=birthday",
+    color: "from-pink-500 to-rose-500",
+    href: "/book/birthday-deck",
     emoji: "🎂",
     image: "/images/birthday-parties.png",
   },
   {
-    id: "adults",
-    title: "Adult Classes",
-    description: "Master new cuisines and techniques with expert guidance",
-    icon: ChefHat,
-    color: "from-stone-800 to-stone-900",
-    href: "/classes?type=adults",
-    emoji: "👨‍🍳",
+    id: "corporate",
+    title: "Corporate Deck",
+    category: "Adults",
+    description: "Team building culinary experiences for companies",
+    icon: Users,
+    color: "from-indigo-500 to-purple-600",
+    href: "/book/corporate-deck",
+    emoji: "�",
     image: "/images/adult-classes.png",
+  },
+  {
+    id: "nanny",
+    title: "Nanny Class",
+    category: "Adults",
+    description: "Professional cooking training for caregivers",
+    icon: ChefHat,
+    color: "from-emerald-500 to-teal-600",
+    href: "/book/nanny-class",
+    emoji: "👨‍�",
+    image: "/images/family-classes.png",
+  },
+  {
+    id: "walkin",
+    title: "Walk-in Menu",
+    category: "Dine",
+    description: "Fresh, healthy meals ready to enjoy on-site",
+    icon: Baby,
+    color: "from-amber-500 to-orange-500",
+    href: "/book/walkin-menu",
+    emoji: "☕",
+    image: "/images/kids-classes.png",
   },
 ];
 
@@ -219,7 +223,7 @@ export default function Home() {
               {/* Right Content - Class Cards */}
               <div className="relative">
                 <div className="grid grid-cols-2 gap-4">
-                  {classTypes.map((classType, idx) => {
+                  {serviceTypes.map((classType, idx) => {
                     const Icon = classType.icon;
                     return (
                       <Link
@@ -305,7 +309,7 @@ export default function Home() {
             </div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {classTypes.map((classType, idx) => {
+              {serviceTypes.map((classType, idx) => {
                 const Icon = classType.icon;
                 return (
                   <Link

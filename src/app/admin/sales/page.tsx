@@ -1,0 +1,443 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  RefreshCw,
+  TrendingUp,
+  DollarSign,
+  Users,
+  Calendar,
+  Award,
+  Cake,
+  Briefcase,
+  ChefHat,
+  Coffee,
+  ArrowUp,
+  ArrowDown,
+  Download,
+} from "lucide-react";
+
+interface SalesData {
+  period: { from: string; to: string };
+  summary: {
+    totalRevenue: number;
+    serviceRevenue: number;
+    classRevenue: number;
+    paymentLinkRevenue: number;
+    totalBookings: number;
+    serviceBookings: number;
+    classBookings: number;
+    paymentLinks: number;
+    totalGuests: number;
+  };
+  serviceSales: Array<{
+    type: string;
+    name: string;
+    count: number;
+    revenue: number;
+    guests: number;
+    items: Array<{ name: string; count: number; revenue: number }>;
+  }>;
+  bestSellers: Array<{
+    name: string;
+    type: string;
+    typeName: string;
+    count: number;
+    revenue: number;
+  }>;
+  dailyData: Array<{ date: string; revenue: number; bookings: number }>;
+}
+
+const serviceIcons: Record<string, any> = {
+  birthday_deck: Cake,
+  corporate_deck: Briefcase,
+  nanny_class: ChefHat,
+  walkin_menu: Coffee,
+};
+
+const serviceColors: Record<string, string> = {
+  birthday_deck: "bg-pink-100 text-pink-700",
+  corporate_deck: "bg-indigo-100 text-indigo-700",
+  nanny_class: "bg-emerald-100 text-emerald-700",
+  walkin_menu: "bg-amber-100 text-amber-700",
+};
+
+export default function AdminSalesPage() {
+  const [salesData, setSalesData] = useState<SalesData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [period, setPeriod] = useState("month");
+
+  useEffect(() => {
+    fetchSalesData();
+  }, [period]);
+
+  const fetchSalesData = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(`/api/admin/sales-report?period=${period}`);
+      if (res.ok) {
+        const data = await res.json();
+        setSalesData(data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch sales data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatCurrency = (amount: number) => {
+    return `AED ${amount.toLocaleString()}`;
+  };
+
+  const formatDate = (dateStr: string) => {
+    return new Date(dateStr).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    });
+  };
+
+  const exportToCSV = () => {
+    if (!salesData) return;
+
+    const rows = [
+      ["Service Type", "Package/Item", "Bookings", "Revenue", "Guests"],
+      ...salesData.serviceSales.flatMap((service) =>
+        service.items.map((item) => [
+          service.name,
+          item.name,
+          item.count.toString(),
+          item.revenue.toString(),
+          "",
+        ])
+      ),
+    ];
+
+    const csvContent = rows.map((row) => row.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `sales-report-${period}-${new Date().toISOString().split("T")[0]}.csv`;
+    a.click();
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <RefreshCw className="h-8 w-8 animate-spin text-stone-400" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-stone-900">Sales Report</h1>
+          <p className="text-stone-500 mt-1">
+            Track revenue, bookings, and best sellers across all services
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <select
+            value={period}
+            onChange={(e) => setPeriod(e.target.value)}
+            className="px-4 py-2 border border-stone-200 rounded-lg bg-white"
+          >
+            <option value="week">Last 7 Days</option>
+            <option value="month">Last 30 Days</option>
+            <option value="quarter">Last 3 Months</option>
+            <option value="year">Last Year</option>
+          </select>
+          <Button variant="outline" onClick={exportToCSV}>
+            <Download className="h-4 w-4 mr-2" />
+            Export CSV
+          </Button>
+          <Button variant="outline" onClick={fetchSalesData}>
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh
+          </Button>
+        </div>
+      </div>
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-stone-500">Total Revenue</p>
+                <p className="text-3xl font-bold text-stone-900 mt-1">
+                  {formatCurrency(salesData?.summary.totalRevenue || 0)}
+                </p>
+              </div>
+              <div className="p-3 bg-green-100 rounded-xl">
+                <DollarSign className="h-6 w-6 text-green-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-stone-500">Total Bookings</p>
+                <p className="text-3xl font-bold text-stone-900 mt-1">
+                  {salesData?.summary.totalBookings || 0}
+                </p>
+              </div>
+              <div className="p-3 bg-blue-100 rounded-xl">
+                <Calendar className="h-6 w-6 text-blue-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-stone-500">Total Guests</p>
+                <p className="text-3xl font-bold text-stone-900 mt-1">
+                  {salesData?.summary.totalGuests || 0}
+                </p>
+              </div>
+              <div className="p-3 bg-purple-100 rounded-xl">
+                <Users className="h-6 w-6 text-purple-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-stone-500">Avg Order Value</p>
+                <p className="text-3xl font-bold text-stone-900 mt-1">
+                  {formatCurrency(
+                    salesData?.summary.totalBookings
+                      ? salesData.summary.totalRevenue / salesData.summary.totalBookings
+                      : 0
+                  )}
+                </p>
+              </div>
+              <div className="p-3 bg-amber-100 rounded-xl">
+                <TrendingUp className="h-6 w-6 text-amber-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid lg:grid-cols-3 gap-6">
+        {/* Best Sellers */}
+        <Card className="lg:col-span-1">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Award className="h-5 w-5 text-amber-500" />
+              Best Sellers
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {salesData?.bestSellers.slice(0, 5).map((item, idx) => {
+                const Icon = serviceIcons[item.type] || Calendar;
+                return (
+                  <div
+                    key={idx}
+                    className="flex items-center gap-4 p-3 bg-stone-50 rounded-lg"
+                  >
+                    <div className="flex items-center justify-center w-8 h-8 bg-amber-100 text-amber-700 rounded-full font-bold text-sm">
+                      #{idx + 1}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-stone-900 truncate">
+                        {item.name}
+                      </p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge className={serviceColors[item.type] || "bg-stone-100 text-stone-700"}>
+                          <Icon className="h-3 w-3 mr-1" />
+                          {item.typeName}
+                        </Badge>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold text-stone-900">{item.count}</p>
+                      <p className="text-xs text-stone-500">orders</p>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {(!salesData?.bestSellers || salesData.bestSellers.length === 0) && (
+                <p className="text-stone-500 text-center py-4">
+                  No sales data yet
+                </p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Sales by Service Type */}
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle>Sales by Service Type</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid md:grid-cols-2 gap-4">
+              {salesData?.serviceSales.map((service) => {
+                const Icon = serviceIcons[service.type] || Calendar;
+                return (
+                  <div
+                    key={service.type}
+                    className="p-4 border border-stone-200 rounded-xl"
+                  >
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className={`p-2 rounded-lg ${serviceColors[service.type] || "bg-stone-100"}`}>
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-stone-900">{service.name}</h4>
+                        <p className="text-sm text-stone-500">
+                          {service.count} bookings • {service.guests} guests
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-2xl font-bold text-stone-900">
+                        {formatCurrency(service.revenue)}
+                      </span>
+                    </div>
+
+                    {service.items.length > 0 && (
+                      <div className="space-y-2 pt-3 border-t border-stone-100">
+                        <p className="text-xs text-stone-500 uppercase tracking-wide">
+                          Top Packages/Items
+                        </p>
+                        {service.items.slice(0, 3).map((item, idx) => (
+                          <div key={idx} className="flex items-center justify-between text-sm">
+                            <span className="text-stone-600">{item.name}</span>
+                            <span className="font-medium text-stone-900">
+                              {item.count} ({formatCurrency(item.revenue)})
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+
+              {(!salesData?.serviceSales || salesData.serviceSales.length === 0) && (
+                <div className="col-span-2 text-center py-8 text-stone-500">
+                  No service sales data yet
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Revenue Trend */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Daily Revenue Trend</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {salesData?.dailyData && salesData.dailyData.length > 0 ? (
+            <div className="h-64 flex items-end gap-1">
+              {salesData.dailyData.map((day, idx) => {
+                const maxRevenue = Math.max(...salesData.dailyData.map((d) => d.revenue));
+                const height = maxRevenue > 0 ? (day.revenue / maxRevenue) * 100 : 0;
+                
+                return (
+                  <div
+                    key={day.date}
+                    className="flex-1 flex flex-col items-center gap-1"
+                  >
+                    <div
+                      className="w-full bg-gradient-to-t from-stone-800 to-stone-600 rounded-t hover:from-stone-700 hover:to-stone-500 transition-colors cursor-pointer group relative"
+                      style={{ height: `${Math.max(height, 4)}%` }}
+                      title={`${formatDate(day.date)}: ${formatCurrency(day.revenue)} (${day.bookings} bookings)`}
+                    >
+                      <div className="absolute -top-16 left-1/2 -translate-x-1/2 bg-stone-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                        {formatDate(day.date)}<br />
+                        {formatCurrency(day.revenue)}
+                      </div>
+                    </div>
+                    {idx % Math.ceil(salesData.dailyData.length / 7) === 0 && (
+                      <span className="text-xs text-stone-400">
+                        {formatDate(day.date)}
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="h-64 flex items-center justify-center text-stone-500">
+              No daily data available for this period
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Revenue Breakdown */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Revenue Breakdown</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid md:grid-cols-3 gap-4">
+            <div className="p-4 bg-stone-50 rounded-xl">
+              <div className="flex items-center gap-2 mb-2">
+                <Calendar className="h-4 w-4 text-stone-500" />
+                <span className="text-sm text-stone-500">Service Bookings</span>
+              </div>
+              <p className="text-2xl font-bold text-stone-900">
+                {formatCurrency(salesData?.summary.serviceRevenue || 0)}
+              </p>
+              <p className="text-sm text-stone-500">
+                {salesData?.summary.serviceBookings || 0} bookings
+              </p>
+            </div>
+            
+            <div className="p-4 bg-stone-50 rounded-xl">
+              <div className="flex items-center gap-2 mb-2">
+                <ChefHat className="h-4 w-4 text-stone-500" />
+                <span className="text-sm text-stone-500">Class Bookings</span>
+              </div>
+              <p className="text-2xl font-bold text-stone-900">
+                {formatCurrency(salesData?.summary.classRevenue || 0)}
+              </p>
+              <p className="text-sm text-stone-500">
+                {salesData?.summary.classBookings || 0} bookings
+              </p>
+            </div>
+            
+            <div className="p-4 bg-stone-50 rounded-xl">
+              <div className="flex items-center gap-2 mb-2">
+                <DollarSign className="h-4 w-4 text-stone-500" />
+                <span className="text-sm text-stone-500">Payment Links</span>
+              </div>
+              <p className="text-2xl font-bold text-stone-900">
+                {formatCurrency(salesData?.summary.paymentLinkRevenue || 0)}
+              </p>
+              <p className="text-sm text-stone-500">
+                {salesData?.summary.paymentLinks || 0} payments
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
