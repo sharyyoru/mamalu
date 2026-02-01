@@ -1,14 +1,10 @@
 @import "tailwindcss";
 
-/* Import Google Fonts - Patrick Hand (similar to KG Seven Sixteen) */
-/* Using display=swap for better cross-device font loading */
-@import url('https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Poppins:wght@300;400;500;600;700;800&display=swap');
-
 :root {
   --background: #fafaf9;
   --foreground: #1c1917;
-  --font-main: 'Patrick Hand', cursive;
-  --font-body: 'Poppins', sans-serif;
+  --font-main: var(--font-patrick-hand), 'Patrick Hand', cursive;
+  --font-body: var(--font-poppins), 'Poppins', sans-serif;
   --color-peach: #ff8c6b;
   --color-peach-light: #ffa891;
   --color-peach-dark: #e67854;
