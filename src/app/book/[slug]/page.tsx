@@ -97,17 +97,65 @@ const corporateMenus = [
   { id: "mystery_box", name: "Mystery Box Challenge", price: 550, dishes: ["Each team gets assigned random ingredients and are tasked with creating the best dish with guidance from our chef - like Chopped!"] },
 ];
 
+// Nanny Class Menu Options (from PDF - Mummy's Fabulous Helpers)
+// 1200 AED for 4 sessions, 1.5 hours each
+const nannyMenus = [
+  { id: "lebanese_1", name: "Lebanese Please 1", price: 1200, dishes: ["Mograhrabieh with chicken", "Molokhiyyeh", "Riz al dajaj"] },
+  { id: "lebanese_2", name: "Lebanese Please 2", price: 1200, dishes: ["Kibbeh B'laban", "Shish barak", "Kibbeh B'saniyeh"] },
+  { id: "kibbe_masterclass", name: "Kibbe Masterclass", price: 1200, dishes: ["Pumpkin kibbe", "Lentil kibbe", "Salmon kibbe", "Potato kibbe"] },
+  { id: "kafta_masterclass", name: "Kafta Masterclass", price: 1200, dishes: ["Kafta B'saniyeh", "Kafta B'tahini", "Dawood basha with vermicelli rice"] },
+  { id: "stews_for_you", name: "Stew's for You", price: 1200, dishes: ["Bamiyeh", "Bezelleh", "Loubieh", "Potato stew", "Vermicelli rice"] },
+  { id: "fishtastic", name: "Fishtastic", price: 1200, dishes: ["Samki harra", "Sayadieh (spiced fish with aromatic rice)", "Kibbeh samak"] },
+  { id: "roll_with_it", name: "Roll with It", price: 1200, dishes: ["Classic malfouf (stuffed cabbage rolls)", "Waraa Enab (stuffed vine leaves)"] },
+  { id: "family_friendly", name: "Family Friendly", price: 1200, dishes: ["Homemade lasagna", "Butter chicken with garlic butter naan", "Asian chicken stir fry noodles"] },
+  { id: "healthy_comfort", name: "Healthy Comfort Food", price: 1200, dishes: ["Pulled chicken tacos with guacamole", "Beef stroganoff", "Nut free pesto pasta"] },
+  { id: "asian_special", name: "Asian Special", price: 1200, dishes: ["Shrimp summer rolls", "Asian salmon with jasmine rice", "Asian honey glazed chicken"] },
+  { id: "modern_middleastern", name: "Modern Middleastern", price: 1200, dishes: ["Zataar chicken with sumak potatoes", "Musakhan rolls", "Freekeh salad"] },
+  { id: "dinner_party_starters", name: "Dinner Party Starters", price: 1200, dishes: ["Whole roasted cauliflower", "Crispy rice with tuna", "White fish carpaccia with yuzu ponzu sauce"] },
+  { id: "lunch_box_favourites", name: "Lunch Box Favourites", price: 1200, dishes: ["Oat crusted chicken tenders", "Pizza pinwheels", "Banana oat muffins", "Granola from scratch"] },
+  { id: "japanese_please", name: "Japanese Please", price: 1200, dishes: ["Mushroom gyoza", "Ramen with shoyu tare", "Chicken yakitori skewers"] },
+  { id: "thai_special", name: "Thai Special", price: 1200, dishes: ["Asian salad", "Chuck beef bao buns", "Thai green curry with shrimp", "Steamed rice"] },
+  { id: "dinner_party_tarts", name: "Dinner Party Tarts", price: 1200, dishes: ["Onion tart tatin", "Wild mushroom phyllo tart", "Goat cheese and tomato tart"] },
+  { id: "sushi_masterclass", name: "Sushi Masterclass", price: 1200, dishes: ["Salmon and avocado rolls", "Salmon nigiri", "California maki roll"] },
+  { id: "healthy_desserts", name: "Healthy Desserts", price: 1200, dishes: ["Sweet potato brownies", "3 ingredient chocolate cake", "Protein chocolate chip cookies", "Date walnut cake"] },
+];
+
+// Birthday Deck Menu Packages (from PDF)
+const birthdayMenus = [
+  { id: "texas_roadhouse", name: "Texas Roadhouse", price: 275, dishes: ["Baked BBQ wings", "Skillet Mac & Cheese", "Mississippi mud pie"] },
+  { id: "little_italy", name: "Little Italy", price: 250, dishes: ["Pasta from scratch", "Pomodoro sauce", "Margherita pizza", "Fudgy brownies"] },
+  { id: "funtastic", name: "Funtastic", price: 180, dishes: ["Mixed Berry babka", "Cheesy pizza bomb", "Chocolate chip marble cookies"] },
+  { id: "kung_fu_panda", name: "Kung Fu Panda", price: 275, dishes: ["California sushi rolls", "Chicken yakitori skewer", "Veggie stir-fried noodles", "Chocolate custard tart"] },
+  { id: "cupcake_masterclass", name: "Cupcake Masterclass", price: 275, dishes: ["Choose between: Vanilla, chocolate or red velvet cupcakes", "Learn piping skills and decorate to match the season"] },
+  { id: "dream_diner", name: "Dream Diner", price: 200, dishes: ["Mini cheesy garlic monkey bread", "Alfredo chicken lasagna rolls", "Oreo Sprinkle skillet cookie"] },
+  { id: "hola_amigos", name: "Hola Amigos", price: 250, dishes: ["Cheese and mushroom quesadillas", "Pulled chicken tacos", "Churros with chocolate sauce"] },
+  { id: "healthylicious", name: "Healthylicious", price: 225, dishes: ["Parmesan baked chicken tenders", "Sweet potato fries", "Double chocolate zucchini muffins"] },
+  { id: "dumpling_masterclass", name: "Dumpling Masterclass", price: 225, dishes: ["Pan fried mushroom dumplings", "Steamed chicken dumplings", "Chocolate dumplings"] },
+  { id: "pretzel_masterclass", name: "Pretzel Masterclass", price: 180, dishes: ["Pepperoni pizza pretzel", "Garlic and herb pretzel", "Cinnamon sugar pretzel"] },
+  { id: "mama_mia", name: "Mama Mia", price: 250, dishes: ["Bow tie pasta from scratch", "Creamy pink sauce", "Baked chicken milanese", "Chocolate chip biscotti"] },
+  { id: "cookie_masterclass", name: "Cookie Masterclass", price: 275, dishes: ["Herb and cheddar cookies", "Funfetti cookies", "Brownie crinkle cookies"] },
+];
+
 // Add-ons/Extras for different service types (from PDFs)
 const serviceExtras: Record<string, ExtraItem[]> = {
   birthday_deck: [
     // Custom items from PDF
     { id: "custom_apron", name: "Custom Apron with Name", description: "Personalized Mamalu apron with your name", price: 80, icon: Gift, category: "custom" },
     { id: "custom_chef_hat", name: "Custom Chef Hat", description: "Personalized chef hat with your name", price: 60, icon: Gift, category: "custom" },
+    // Birthday Cakes (from PDF)
+    { id: "custom_cake_10", name: "Birthday Cake (10 people)", description: "Custom designed birthday cake", price: 575, icon: Cake, category: "cake" },
+    { id: "custom_cake_20", name: "Birthday Cake (20 people)", description: "Custom designed birthday cake", price: 700, icon: Cake, category: "cake" },
+    { id: "custom_cake_30", name: "Birthday Cake (30 people)", description: "Custom designed birthday cake", price: 900, icon: Cake, category: "cake" },
+    { id: "custom_cake_40", name: "Birthday Cake (40 people)", description: "Custom designed birthday cake", price: 1000, icon: Cake, category: "cake" },
+    // Decorations
     { id: "balloons", name: "Balloon Bundle", description: "2 bunches of 7 balloons (any color)", price: 260, icon: PartyPopper, category: "decor" },
-    { id: "custom_cake_10", name: "Custom Cake (up to 10 people)", description: "Beautiful custom designed cake", price: 300, icon: Cake, category: "food" },
-    { id: "custom_cake_20", name: "Custom Cake (up to 20 people)", description: "Beautiful custom designed cake", price: 700, icon: Cake, category: "food" },
-    { id: "custom_cake_30", name: "Custom Cake (up to 30 people)", description: "Beautiful custom designed cake", price: 900, icon: Cake, category: "food" },
-    { id: "custom_cake_40", name: "Custom Cake (up to 40 people)", description: "Beautiful custom designed cake", price: 1000, icon: Cake, category: "food" },
+    { id: "table_setting_10", name: "Table Setting (10 people)", description: "Plates, cups, spoons, forks, knives, napkins, tablecloth in any theme/color", price: 300, icon: Utensils, category: "decor" },
+    { id: "table_setting_20", name: "Table Setting (20 people)", description: "Plates, cups, spoons, forks, knives, napkins, tablecloth in any theme/color", price: 400, icon: Utensils, category: "decor" },
+    { id: "table_setting_30", name: "Table Setting (30 people)", description: "Plates, cups, spoons, forks, knives, napkins, tablecloth in any theme/color", price: 500, icon: Utensils, category: "decor" },
+    // Goodie Bags
+    { id: "cupcake_goodie_bag", name: "Cupcake Goodie Bag", description: "Cupcake mix, whisk, cupcake tray, liners, sprinkles", price: 80, icon: Gift, category: "goodie_bags" },
+    { id: "pancake_goodie_bag", name: "Pancake Goodie Bag", description: "Pancake mix, whisk/spatula, mini pan, honey bottle, Nutella bottle", price: 80, icon: Gift, category: "goodie_bags" },
+    { id: "cookie_kit", name: "Cookie Kit", description: "Flour, sugar, vanilla essence, sprinkles, cookie cutters, recipe", price: 70, icon: Gift, category: "goodie_bags" },
     { id: "custom_mug", name: "Custom Mug", description: "Personalized mug with any design", price: 45, icon: Gift, category: "custom" },
     { id: "custom_spatula", name: "Custom Spatula", description: "Personalized cooking spatula", price: 50, icon: Utensils, category: "custom" },
     // Additional snacks & drinks
@@ -156,8 +204,11 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
   const [cart, setCart] = useState<CartItem[]>([]);
   const [selectedExtras, setSelectedExtras] = useState<Record<string, number>>({});
   
-  // For corporate - determines if we use menu-based pricing
+  // Service type detection for menu-based pricing
   const isCorporate = service?.service_type === "corporate_deck";
+  const isBirthday = service?.service_type === "birthday_deck";
+  const isNanny = service?.service_type === "nanny_class";
+  const hasMenuSelection = isCorporate || isBirthday || isNanny;
   const [eventDate, setEventDate] = useState("");
   const [eventTime, setEventTime] = useState("");
   const [customerName, setCustomerName] = useState("");
@@ -264,9 +315,14 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
       return cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
     }
     
-    // Corporate uses menu-based pricing
-    if (isCorporate && selectedMenu) {
+    // Corporate and Birthday use menu-based pricing (per person)
+    if ((isCorporate || isBirthday) && selectedMenu) {
       return selectedMenu.price * guestCount;
+    }
+    
+    // Nanny is flat rate per course (1200 AED for 4 sessions)
+    if (isNanny && selectedMenu) {
+      return 1200; // Fixed price for 4 sessions
     }
     
     if (!selectedPackage) return 0;
@@ -283,10 +339,11 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
     return calculateBaseAmount() + calculateExtrasTotal();
   };
   
-  // Calculate deposit (50%) and balance for corporate bookings
+  // Calculate deposit (50%) and balance for corporate and birthday bookings (as per PDF payment policy)
   const totalAmount = calculateTotal();
-  const depositAmount = isCorporate ? Math.ceil(totalAmount * 0.5) : totalAmount;
-  const balanceAmount = isCorporate ? totalAmount - depositAmount : 0;
+  const requiresDeposit = isCorporate || isBirthday;
+  const depositAmount = requiresDeposit ? Math.ceil(totalAmount * 0.5) : totalAmount;
+  const balanceAmount = requiresDeposit ? totalAmount - depositAmount : 0;
 
   const handleSubmit = async () => {
     if (!service) return;
@@ -306,8 +363,8 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
           isPerPerson: ["extra_favors", "extra_course", "wine_pairing", "certificates"].includes(e.id),
         }));
 
-      // Determine if this is a deposit payment (corporate) or full payment
-      const isDepositPayment = isCorporate;
+      // Determine if this is a deposit payment (corporate or birthday) or full payment
+      const isDepositPayment = isCorporate || isBirthday;
       const paymentAmount = isDepositPayment ? Math.ceil(totalAmount * 0.5) : totalAmount;
 
       const res = await fetch("/api/services/book", {
@@ -528,8 +585,117 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
               </div>
             )}
 
-            {/* Step 1: Package Selection (Non-walkin, non-corporate) */}
-            {!isWalkin && !isCorporate && step === 1 && (
+            {/* Step 1: Menu Selection (Birthday) */}
+            {isBirthday && step === 1 && (
+              <div className="space-y-6">
+                <div>
+                  <h2 className="text-2xl font-bold text-stone-900">Choose Your Menu Package</h2>
+                  <p className="text-stone-500 mt-1">2-hour private birthday cooking experience</p>
+                  <p className="text-sm text-stone-400 mt-2">Min: 6 guests • Max: 35 guests • Price per person</p>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  {birthdayMenus.map((menu) => (
+                    <Card
+                      key={menu.id}
+                      className={`cursor-pointer transition-all ${
+                        selectedMenu?.id === menu.id
+                          ? "ring-2 ring-stone-900 shadow-lg"
+                          : "hover:shadow-md"
+                      }`}
+                      onClick={() => setSelectedMenu(menu)}
+                    >
+                      <CardContent className="p-5">
+                        <div className="flex items-start justify-between mb-3">
+                          <h3 className="text-lg font-bold text-stone-900">{menu.name}</h3>
+                          <div className="text-right">
+                            <div className="text-xl font-bold text-stone-900">AED {menu.price}</div>
+                            <div className="text-xs text-stone-500">per person</div>
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          {menu.dishes.map((dish, idx) => (
+                            <div key={idx} className="flex items-center gap-2 text-sm text-stone-600">
+                              <Check className="h-3 w-3 text-green-500 flex-shrink-0" />
+                              <span>{dish}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+
+                {selectedMenu && (
+                  <div className="flex justify-end">
+                    <Button
+                      size="lg"
+                      className="bg-stone-900 hover:bg-stone-800"
+                      onClick={() => setStep(2)}
+                    >
+                      Continue
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Step 1: Menu Selection (Nanny Class) */}
+            {isNanny && step === 1 && (
+              <div className="space-y-6">
+                <div>
+                  <h2 className="text-2xl font-bold text-stone-900">Choose Your Menu</h2>
+                  <p className="text-stone-500 mt-1">Mummy&apos;s Fabulous Helpers - 4 sessions, 1.5 hours each</p>
+                  <p className="text-sm text-stone-400 mt-2">Every Monday and Tuesday at 11am</p>
+                  <div className="mt-3 p-3 bg-amber-50 rounded-lg">
+                    <p className="text-lg font-bold text-amber-800">AED 1,200 for 4 sessions</p>
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {nannyMenus.map((menu) => (
+                    <Card
+                      key={menu.id}
+                      className={`cursor-pointer transition-all ${
+                        selectedMenu?.id === menu.id
+                          ? "ring-2 ring-stone-900 shadow-lg"
+                          : "hover:shadow-md"
+                      }`}
+                      onClick={() => setSelectedMenu(menu)}
+                    >
+                      <CardContent className="p-4">
+                        <h3 className="font-bold text-stone-900 mb-2">{menu.name}</h3>
+                        <div className="space-y-1">
+                          {menu.dishes.map((dish, idx) => (
+                            <div key={idx} className="flex items-center gap-2 text-xs text-stone-600">
+                              <Check className="h-3 w-3 text-green-500 flex-shrink-0" />
+                              <span>{dish}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+
+                {selectedMenu && (
+                  <div className="flex justify-end">
+                    <Button
+                      size="lg"
+                      className="bg-stone-900 hover:bg-stone-800"
+                      onClick={() => setStep(2)}
+                    >
+                      Continue
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Step 1: Package Selection (Non-walkin, non-menu-based) */}
+            {!isWalkin && !hasMenuSelection && step === 1 && (
               <div className="space-y-6">
                 <h2 className="text-2xl font-bold text-stone-900">Select Your Package</h2>
                 
@@ -1029,20 +1195,26 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
                 <CardContent className="p-6">
                   <h3 className="text-lg font-bold text-stone-900 mb-4">Order Summary</h3>
                   
-                  {/* Corporate Menu Summary */}
-                  {isCorporate && selectedMenu && (
+                  {/* Menu-based booking summary (Corporate, Birthday, Nanny) */}
+                  {hasMenuSelection && selectedMenu && (
                     <div className="space-y-3">
                       <div className="flex justify-between">
                         <span className="text-stone-600">{selectedMenu.name}</span>
-                        <span className="font-medium">AED {selectedMenu.price}/person</span>
+                        <span className="font-medium">
+                          {isNanny ? "4 sessions" : `AED ${selectedMenu.price}/person`}
+                        </span>
                       </div>
+                      {!isNanny && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-stone-500">Guests</span>
+                          <span className="text-stone-600">{guestCount}</span>
+                        </div>
+                      )}
                       <div className="flex justify-between text-sm">
-                        <span className="text-stone-500">Guests</span>
-                        <span className="text-stone-600">{guestCount}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-stone-500">Menu Subtotal</span>
-                        <span className="text-stone-600">AED {(selectedMenu.price * guestCount).toLocaleString()}</span>
+                        <span className="text-stone-500">{isNanny ? "Course Fee" : "Menu Subtotal"}</span>
+                        <span className="text-stone-600">
+                          AED {isNanny ? "1,200" : (selectedMenu.price * guestCount).toLocaleString()}
+                        </span>
                       </div>
                       {eventDate && (
                         <div className="flex justify-between text-sm">
@@ -1083,28 +1255,40 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
                         </div>
                       </div>
                       
-                      {/* 50% Deposit Notice */}
-                      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mt-4">
-                        <p className="text-sm font-semibold text-amber-800 mb-2">Payment Policy</p>
-                        <div className="space-y-1 text-sm text-amber-700">
-                          <div className="flex justify-between">
-                            <span>50% Deposit (due now)</span>
-                            <span className="font-bold">AED {depositAmount.toLocaleString()}</span>
+                      {/* 50% Deposit Notice - for Corporate and Birthday */}
+                      {requiresDeposit && (
+                        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mt-4">
+                          <p className="text-sm font-semibold text-amber-800 mb-2">Payment Policy</p>
+                          <div className="space-y-1 text-sm text-amber-700">
+                            <div className="flex justify-between">
+                              <span>50% Deposit (due now)</span>
+                              <span className="font-bold">AED {depositAmount.toLocaleString()}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Balance (48h before event)</span>
+                              <span>AED {balanceAmount.toLocaleString()}</span>
+                            </div>
                           </div>
-                          <div className="flex justify-between">
-                            <span>Balance (48h before event)</span>
-                            <span>AED {balanceAmount.toLocaleString()}</span>
-                          </div>
+                          <p className="text-xs text-amber-600 mt-2">
+                            Final attendee numbers must be confirmed 48 hours prior. Goodie bag orders must be confirmed 5 days before.
+                          </p>
                         </div>
-                        <p className="text-xs text-amber-600 mt-2">
-                          Final attendee numbers must be confirmed 48 hours prior. Goodie bag orders must be confirmed 5 days before.
-                        </p>
-                      </div>
+                      )}
+                      
+                      {/* Nanny full payment */}
+                      {isNanny && (
+                        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mt-4">
+                          <p className="text-sm font-semibold text-green-800">Full Payment Required</p>
+                          <p className="text-xs text-green-600 mt-1">
+                            Payment secures your spot for 4 sessions (Mondays & Tuesdays at 11am)
+                          </p>
+                        </div>
+                      )}
                     </div>
                   )}
 
-                  {/* Non-corporate package summary */}
-                  {!isWalkin && !isCorporate && selectedPackage && (
+                  {/* Non-menu-based package summary */}
+                  {!isWalkin && !hasMenuSelection && selectedPackage && (
                     <div className="space-y-3">
                       <div className="flex justify-between">
                         <span className="text-stone-600">{selectedPackage.name}</span>
