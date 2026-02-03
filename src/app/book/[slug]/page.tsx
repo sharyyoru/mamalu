@@ -211,6 +211,9 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
   const hasMenuSelection = isCorporate || isBirthday || isNanny;
   const [eventDate, setEventDate] = useState("");
   const [eventTime, setEventTime] = useState("");
+  const [availableTimeSlots, setAvailableTimeSlots] = useState<string[]>([]);
+  const [blockedTimeSlots, setBlockedTimeSlots] = useState<string[]>([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
@@ -225,6 +228,39 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
   useEffect(() => {
     fetchService();
   }, [slug]);
+
+  // Fetch available time slots when date changes
+  useEffect(() => {
+    async function fetchAvailability() {
+      if (!eventDate) {
+        setAvailableTimeSlots([]);
+        setBlockedTimeSlots([]);
+        return;
+      }
+
+      setLoadingSlots(true);
+      setEventTime(""); // Reset selected time when date changes
+      
+      try {
+        const duration = selectedPackage?.duration_minutes || 120;
+        const res = await fetch(`/api/services/availability?date=${eventDate}&duration=${duration}`);
+        if (res.ok) {
+          const data = await res.json();
+          setAvailableTimeSlots(data.availableSlots || []);
+          setBlockedTimeSlots(data.blockedSlots || []);
+        }
+      } catch (error) {
+        console.error("Failed to fetch availability:", error);
+        // Fallback to all slots if API fails
+        setAvailableTimeSlots(["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"]);
+        setBlockedTimeSlots([]);
+      } finally {
+        setLoadingSlots(false);
+      }
+    }
+
+    fetchAvailability();
+  }, [eventDate, selectedPackage?.duration_minutes]);
 
   const fetchService = async () => {
     try {
@@ -953,23 +989,61 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
                       <div>
                         <label className="block text-sm font-medium text-stone-700 mb-2">
                           Preferred Time
+                          {loadingSlots && <span className="ml-2 text-xs text-stone-400">(Loading...)</span>}
                         </label>
-                        <select
-                          value={eventTime}
-                          onChange={(e) => setEventTime(e.target.value)}
-                          className="w-full px-4 py-3 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-500"
-                        >
-                          <option value="">Select time</option>
-                          <option value="09:00">9:00 AM</option>
-                          <option value="10:00">10:00 AM</option>
-                          <option value="11:00">11:00 AM</option>
-                          <option value="12:00">12:00 PM</option>
-                          <option value="13:00">1:00 PM</option>
-                          <option value="14:00">2:00 PM</option>
-                          <option value="15:00">3:00 PM</option>
-                          <option value="16:00">4:00 PM</option>
-                          <option value="17:00">5:00 PM</option>
-                        </select>
+                        {!eventDate ? (
+                          <p className="text-sm text-stone-500 py-3">Please select a date first</p>
+                        ) : loadingSlots ? (
+                          <div className="flex items-center gap-2 py-3">
+                            <Loader2 className="h-4 w-4 animate-spin text-stone-400" />
+                            <span className="text-sm text-stone-500">Checking availability...</span>
+                          </div>
+                        ) : availableTimeSlots.length === 0 ? (
+                          <p className="text-sm text-amber-600 py-3">No available time slots for this date. Please select another date.</p>
+                        ) : (
+                          <div className="space-y-3">
+                            <div className="grid grid-cols-3 gap-2">
+                              {["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"].map((time) => {
+                                const isAvailable = availableTimeSlots.includes(time);
+                                const isSelected = eventTime === time;
+                                const timeLabel = {
+                                  "09:00": "9:00 AM",
+                                  "10:00": "10:00 AM",
+                                  "11:00": "11:00 AM",
+                                  "12:00": "12:00 PM",
+                                  "13:00": "1:00 PM",
+                                  "14:00": "2:00 PM",
+                                  "15:00": "3:00 PM",
+                                  "16:00": "4:00 PM",
+                                  "17:00": "5:00 PM",
+                                }[time];
+                                
+                                return (
+                                  <button
+                                    key={time}
+                                    type="button"
+                                    disabled={!isAvailable}
+                                    onClick={() => setEventTime(time)}
+                                    className={`py-2 px-3 rounded-lg text-sm font-medium transition-all ${
+                                      isSelected
+                                        ? "bg-stone-900 text-white"
+                                        : isAvailable
+                                          ? "bg-stone-100 text-stone-700 hover:bg-stone-200"
+                                          : "bg-stone-50 text-stone-300 cursor-not-allowed line-through"
+                                    }`}
+                                  >
+                                    {timeLabel}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                            {blockedTimeSlots.length > 0 && (
+                              <p className="text-xs text-stone-400">
+                                * Crossed out times are unavailable due to existing bookings (includes 1-hour prep time between events)
+                              </p>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
 
