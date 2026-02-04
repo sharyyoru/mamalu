@@ -211,8 +211,9 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
   const hasMenuSelection = isCorporate || isBirthday || isNanny;
   const [eventDate, setEventDate] = useState("");
   const [eventTime, setEventTime] = useState("");
-  const [availableTimeSlots, setAvailableTimeSlots] = useState<string[]>([]);
-  const [blockedTimeSlots, setBlockedTimeSlots] = useState<string[]>([]);
+  const [allTimeSlots, setAllTimeSlots] = useState<{ start: string; end: string; duration: number; label: string }[]>([]);
+  const [availableTimeSlots, setAvailableTimeSlots] = useState<{ start: string; end: string; duration: number; label: string }[]>([]);
+  const [blockedTimeSlots, setBlockedTimeSlots] = useState<{ start: string; end: string; duration: number; label: string }[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
@@ -233,6 +234,7 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
   useEffect(() => {
     async function fetchAvailability() {
       if (!eventDate) {
+        setAllTimeSlots([]);
         setAvailableTimeSlots([]);
         setBlockedTimeSlots([]);
         return;
@@ -242,17 +244,17 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
       setEventTime(""); // Reset selected time when date changes
       
       try {
-        const duration = selectedPackage?.duration_minutes || 120;
-        const res = await fetch(`/api/services/availability?date=${eventDate}&duration=${duration}`);
+        const res = await fetch(`/api/services/availability?date=${eventDate}`);
         if (res.ok) {
           const data = await res.json();
+          setAllTimeSlots(data.allSlots || []);
           setAvailableTimeSlots(data.availableSlots || []);
           setBlockedTimeSlots(data.blockedSlots || []);
         }
       } catch (error) {
         console.error("Failed to fetch availability:", error);
-        // Fallback to all slots if API fails
-        setAvailableTimeSlots(["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"]);
+        setAllTimeSlots([]);
+        setAvailableTimeSlots([]);
         setBlockedTimeSlots([]);
       } finally {
         setLoadingSlots(false);
@@ -260,7 +262,7 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
     }
 
     fetchAvailability();
-  }, [eventDate, selectedPackage?.duration_minutes]);
+  }, [eventDate]);
 
   const fetchService = async () => {
     try {
@@ -998,33 +1000,24 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
                             <Loader2 className="h-4 w-4 animate-spin text-stone-400" />
                             <span className="text-sm text-stone-500">Checking availability...</span>
                           </div>
+                        ) : allTimeSlots.length === 0 ? (
+                          <p className="text-sm text-amber-600 py-3">No time slots available for this day. Please select another date.</p>
                         ) : availableTimeSlots.length === 0 ? (
-                          <p className="text-sm text-amber-600 py-3">No available time slots for this date. Please select another date.</p>
+                          <p className="text-sm text-amber-600 py-3">All time slots are booked for this date. Please select another date.</p>
                         ) : (
                           <div className="space-y-3">
-                            <div className="grid grid-cols-3 gap-2">
-                              {["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"].map((time) => {
-                                const isAvailable = availableTimeSlots.includes(time);
-                                const isSelected = eventTime === time;
-                                const timeLabel = {
-                                  "09:00": "9:00 AM",
-                                  "10:00": "10:00 AM",
-                                  "11:00": "11:00 AM",
-                                  "12:00": "12:00 PM",
-                                  "13:00": "1:00 PM",
-                                  "14:00": "2:00 PM",
-                                  "15:00": "3:00 PM",
-                                  "16:00": "4:00 PM",
-                                  "17:00": "5:00 PM",
-                                }[time];
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                              {allTimeSlots.map((slot) => {
+                                const isAvailable = availableTimeSlots.some(s => s.start === slot.start);
+                                const isSelected = eventTime === slot.start;
                                 
                                 return (
                                   <button
-                                    key={time}
+                                    key={slot.start}
                                     type="button"
                                     disabled={!isAvailable}
-                                    onClick={() => setEventTime(time)}
-                                    className={`py-2 px-3 rounded-lg text-sm font-medium transition-all ${
+                                    onClick={() => setEventTime(slot.start)}
+                                    className={`py-3 px-4 rounded-lg text-sm font-medium transition-all text-left ${
                                       isSelected
                                         ? "bg-stone-900 text-white"
                                         : isAvailable
@@ -1032,7 +1025,7 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
                                           : "bg-stone-50 text-stone-300 cursor-not-allowed line-through"
                                     }`}
                                   >
-                                    {timeLabel}
+                                    {slot.label}
                                   </button>
                                 );
                               })}
