@@ -78,6 +78,7 @@ export async function PATCH(
     if (body.customerPhone !== undefined) updateData.customer_phone = body.customerPhone;
     if (body.notes !== undefined) updateData.notes = body.notes;
     if (body.expiresAt !== undefined) updateData.expires_at = body.expiresAt;
+    if (body.leadId !== undefined) updateData.lead_id = body.leadId;
 
     // If marking as paid manually
     if (body.status === "paid" && !currentLink.paid_at) {

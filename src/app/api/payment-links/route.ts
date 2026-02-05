@@ -27,7 +27,8 @@ export async function GET(request: NextRequest) {
       .from("payment_links")
       .select(`
         *,
-        creator:created_by(id, full_name, email)
+        creator:created_by(id, full_name, email),
+        lead:lead_id(id, name, email, phone, company)
       `, { count: "exact" })
       .order("created_at", { ascending: false })
       .range(offset, offset + limit - 1);
@@ -87,6 +88,7 @@ export async function POST(request: NextRequest) {
       referenceId,
       notes,
       createdBy = user.id,
+      leadId,
     } = body;
 
     if (!title || !amount) {
@@ -175,6 +177,7 @@ export async function POST(request: NextRequest) {
       notes: notes || null,
       status: "active",
       created_by: createdBy || null,
+      lead_id: leadId || null,
     };
 
     const { data: paymentLink, error: insertError } = await supabase

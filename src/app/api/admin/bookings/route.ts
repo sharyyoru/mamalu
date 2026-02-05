@@ -150,6 +150,7 @@ export async function POST(request: NextRequest) {
       notes,
       createdBy,
       generatePaymentLink,
+      leadId,
     } = body;
 
     if (!serviceName || !customerName || !customerEmail || !totalAmount) {
@@ -190,6 +191,7 @@ export async function POST(request: NextRequest) {
       notes: notes || null,
       created_by: createdBy || null,
       status: "pending",
+      lead_id: leadId || null,
     };
 
     const { data: booking, error: bookingError } = await supabase

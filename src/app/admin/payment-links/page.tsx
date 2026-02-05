@@ -60,11 +60,29 @@ interface PaymentLink {
   notes: string | null;
   created_at: string;
   created_by: string | null;
+  lead_id: string | null;
   creator: {
     id: string;
     full_name: string | null;
     email: string | null;
   } | null;
+  lead: {
+    id: string;
+    name: string;
+    email: string | null;
+    phone: string | null;
+    company: string | null;
+  } | null;
+}
+
+interface LeadSearchResult {
+  id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  company: string | null;
+  status: string;
+  source: string;
 }
 
 export default function AdminPaymentLinksPage() {
@@ -88,6 +106,13 @@ export default function AdminPaymentLinksPage() {
   const [showUnpaidModal, setShowUnpaidModal] = useState(false);
   const [selectedLinkForUnpaid, setSelectedLinkForUnpaid] = useState<PaymentLink | null>(null);
   const [unpaidReason, setUnpaidReason] = useState("");
+  
+  // Lead assignment
+  const [showAssignLeadModal, setShowAssignLeadModal] = useState(false);
+  const [selectedLinkForAssign, setSelectedLinkForAssign] = useState<PaymentLink | null>(null);
+  const [leadSearchQuery, setLeadSearchQuery] = useState("");
+  const [leadSearchResults, setLeadSearchResults] = useState<LeadSearchResult[]>([]);
+  const [searchingLeads, setSearchingLeads] = useState(false);
   
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -328,6 +353,73 @@ export default function AdminPaymentLinksPage() {
     } catch (error) {
       console.error("Failed to mark as unpaid:", error);
       alert("Failed to mark as unpaid");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  // Lead assignment functions
+  const openAssignLeadModal = (link: PaymentLink) => {
+    setSelectedLinkForAssign(link);
+    setLeadSearchQuery("");
+    setLeadSearchResults([]);
+    setShowAssignLeadModal(true);
+  };
+
+  const searchLeads = async (query: string) => {
+    if (query.length < 2) {
+      setLeadSearchResults([]);
+      return;
+    }
+    
+    setSearchingLeads(true);
+    try {
+      const res = await fetch(`/api/leads/search?q=${encodeURIComponent(query)}&limit=10`);
+      if (res.ok) {
+        const data = await res.json();
+        setLeadSearchResults(data.leads || []);
+      }
+    } catch (error) {
+      console.error("Failed to search leads:", error);
+    } finally {
+      setSearchingLeads(false);
+    }
+  };
+
+  // Debounce lead search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (leadSearchQuery) {
+        searchLeads(leadSearchQuery);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [leadSearchQuery]);
+
+  const assignLeadToPaymentLink = async (leadId: string | null) => {
+    if (!selectedLinkForAssign) return;
+
+    setActionLoading(selectedLinkForAssign.id);
+    try {
+      const res = await fetch(`/api/payment-links/${selectedLinkForAssign.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ leadId }),
+      });
+      
+      if (res.ok) {
+        setShowAssignLeadModal(false);
+        setSelectedLinkForAssign(null);
+        setLeadSearchQuery("");
+        setLeadSearchResults([]);
+        fetchPaymentLinks();
+      } else {
+        const error = await res.json();
+        alert(error.error || "Failed to assign lead");
+      }
+    } catch (error) {
+      console.error("Failed to assign lead:", error);
+      alert("Failed to assign lead");
     } finally {
       setActionLoading(null);
     }
@@ -739,6 +831,9 @@ export default function AdminPaymentLinksPage() {
                     <th className="px-4 py-3 text-left text-sm font-medium text-stone-500">
                       Created By
                     </th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-stone-500">
+                      Lead
+                    </th>
                     <th className="px-4 py-3 text-right text-sm font-medium text-stone-500">
                       Actions
                     </th>
@@ -812,6 +907,28 @@ export default function AdminPaymentLinksPage() {
                           </div>
                         ) : (
                           <span className="text-stone-400 text-sm">—</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        {link.lead ? (
+                          <div>
+                            <div className="text-sm font-medium text-stone-900">
+                              {link.lead.name}
+                            </div>
+                            <div className="text-xs text-stone-500">
+                              {link.lead.email || link.lead.phone || link.lead.company}
+                            </div>
+                          </div>
+                        ) : (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => openAssignLeadModal(link)}
+                            className="text-amber-600 hover:text-amber-700 hover:bg-amber-50 -ml-2"
+                          >
+                            <Plus className="h-3 w-3 mr-1" />
+                            Assign Lead
+                          </Button>
                         )}
                       </td>
                       <td className="px-4 py-3 text-right">
@@ -1333,6 +1450,141 @@ export default function AdminPaymentLinksPage() {
                   <Download className="h-4 w-4 mr-2" />
                 )}
                 Export PDF
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Assign Lead Modal */}
+      {showAssignLeadModal && selectedLinkForAssign && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden">
+            <div className="p-6 border-b">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-bold text-stone-900">Assign Lead</h2>
+                  <p className="text-sm text-stone-500 mt-1">
+                    Link <span className="font-mono">{selectedLinkForAssign.link_code}</span> to a lead
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowAssignLeadModal(false);
+                    setSelectedLinkForAssign(null);
+                    setLeadSearchQuery("");
+                    setLeadSearchResults([]);
+                  }}
+                  className="text-stone-400 hover:text-stone-600"
+                >
+                  <XCircle className="h-6 w-6" />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-4">
+              {/* Search Input */}
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-1">
+                  Search for a lead
+                </label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" />
+                  <input
+                    type="text"
+                    value={leadSearchQuery}
+                    onChange={(e) => setLeadSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    placeholder="Search by name, email, phone, or company..."
+                    autoFocus
+                  />
+                  {searchingLeads && (
+                    <RefreshCw className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-amber-500 animate-spin" />
+                  )}
+                </div>
+              </div>
+
+              {/* Search Results */}
+              <div className="border border-stone-200 rounded-lg max-h-64 overflow-y-auto">
+                {leadSearchResults.length === 0 ? (
+                  <div className="p-4 text-center text-stone-500 text-sm">
+                    {leadSearchQuery.length < 2
+                      ? "Type at least 2 characters to search"
+                      : searchingLeads
+                      ? "Searching..."
+                      : "No leads found"}
+                  </div>
+                ) : (
+                  <div className="divide-y divide-stone-100">
+                    {leadSearchResults.map((lead) => (
+                      <button
+                        key={lead.id}
+                        onClick={() => assignLeadToPaymentLink(lead.id)}
+                        disabled={actionLoading === selectedLinkForAssign.id}
+                        className="w-full p-3 text-left hover:bg-amber-50 transition-colors flex items-center gap-3"
+                      >
+                        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white font-semibold flex-shrink-0">
+                          {lead.name?.charAt(0) || "?"}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-stone-900 truncate">
+                            {lead.name}
+                          </div>
+                          <div className="text-sm text-stone-500 truncate">
+                            {lead.email || lead.phone || lead.company || "No contact info"}
+                          </div>
+                        </div>
+                        <Badge className="flex-shrink-0 text-xs">
+                          {lead.status}
+                        </Badge>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Current Assignment */}
+              {selectedLinkForAssign.lead && (
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="h-8 w-8 rounded-full bg-amber-500 flex items-center justify-center text-white text-sm font-semibold">
+                        {selectedLinkForAssign.lead.name?.charAt(0) || "?"}
+                      </div>
+                      <div>
+                        <div className="font-medium text-amber-900">
+                          Currently assigned to: {selectedLinkForAssign.lead.name}
+                        </div>
+                        <div className="text-xs text-amber-700">
+                          {selectedLinkForAssign.lead.email || selectedLinkForAssign.lead.phone}
+                        </div>
+                      </div>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => assignLeadToPaymentLink(null)}
+                      disabled={actionLoading === selectedLinkForAssign.id}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="p-6 border-t bg-stone-50 flex gap-2 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowAssignLeadModal(false);
+                  setSelectedLinkForAssign(null);
+                  setLeadSearchQuery("");
+                  setLeadSearchResults([]);
+                }}
+              >
+                Cancel
               </Button>
             </div>
           </div>

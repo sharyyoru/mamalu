@@ -23,6 +23,12 @@ import {
   Clock,
   TrendingUp,
   UserCheck,
+  Link as LinkIcon,
+  Ticket,
+  RefreshCw,
+  Copy,
+  CheckCircle,
+  ExternalLink,
 } from "lucide-react";
 
 interface Lead {
@@ -127,6 +133,33 @@ export default function LeadDetailPage() {
     amount: "",
     payment_status: "paid",
     notes: "",
+  });
+
+  // Payment Link Modal State
+  const [showPaymentLinkModal, setShowPaymentLinkModal] = useState(false);
+  const [creatingPaymentLink, setCreatingPaymentLink] = useState(false);
+  const [newPaymentLink, setNewPaymentLink] = useState({
+    title: "",
+    amount: "",
+    numberOfPeople: 1,
+    description: "",
+    notes: "",
+  });
+  const [createdPaymentLinkUrl, setCreatedPaymentLinkUrl] = useState<string | null>(null);
+  const [copiedLink, setCopiedLink] = useState(false);
+
+  // Create Booking Modal State
+  const [showCreateBookingModal, setShowCreateBookingModal] = useState(false);
+  const [creatingBooking, setCreatingBooking] = useState(false);
+  const [bookingForm, setBookingForm] = useState({
+    serviceType: "birthday_deck",
+    serviceName: "Birthday Deck",
+    guestCount: 10,
+    eventDate: "",
+    eventTime: "",
+    specialRequests: "",
+    notes: "",
+    generatePaymentLink: true,
   });
 
   useEffect(() => {
@@ -251,6 +284,137 @@ export default function LeadDetailPage() {
     return s?.color || "bg-stone-100 text-stone-700";
   };
 
+  // Create Payment Link for this lead
+  const handleCreatePaymentLink = async () => {
+    if (!newPaymentLink.title || !newPaymentLink.amount) {
+      alert("Please fill in required fields");
+      return;
+    }
+
+    setCreatingPaymentLink(true);
+    try {
+      const totalAmount = parseFloat(newPaymentLink.amount) * newPaymentLink.numberOfPeople;
+      const res = await fetch("/api/payment-links", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: newPaymentLink.title,
+          description: newPaymentLink.description || null,
+          amount: totalAmount,
+          pricePerPerson: parseFloat(newPaymentLink.amount),
+          numberOfPeople: newPaymentLink.numberOfPeople,
+          customerName: lead?.name || null,
+          customerEmail: lead?.email || null,
+          customerPhone: lead?.phone || null,
+          notes: newPaymentLink.notes || null,
+          singleUse: true,
+          leadId: leadId,
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setCreatedPaymentLinkUrl(data.stripeUrl);
+        setNewPaymentLink({
+          title: "",
+          amount: "",
+          numberOfPeople: 1,
+          description: "",
+          notes: "",
+        });
+      } else {
+        const error = await res.json();
+        alert(error.error || "Failed to create payment link");
+      }
+    } catch (error) {
+      console.error("Failed to create payment link:", error);
+      alert("Failed to create payment link");
+    } finally {
+      setCreatingPaymentLink(false);
+    }
+  };
+
+  const copyPaymentLink = () => {
+    if (createdPaymentLinkUrl) {
+      navigator.clipboard.writeText(createdPaymentLinkUrl);
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2000);
+    }
+  };
+
+  // Create Booking for this lead
+  const handleCreateBooking = async () => {
+    if (!bookingForm.eventDate) {
+      alert("Please select an event date");
+      return;
+    }
+
+    setCreatingBooking(true);
+    try {
+      const basePrice = bookingForm.serviceType === "corporate_deck" ? 200 : 250;
+      const totalAmount = basePrice * bookingForm.guestCount;
+      const isDepositPayment = bookingForm.serviceType === "corporate_deck";
+      const depositAmount = isDepositPayment ? Math.ceil(totalAmount * 0.5) : totalAmount;
+
+      const res = await fetch("/api/admin/bookings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          serviceName: bookingForm.serviceName,
+          serviceType: bookingForm.serviceType,
+          customerName: lead?.name || "",
+          customerEmail: lead?.email || "",
+          customerPhone: lead?.phone || null,
+          companyName: lead?.company || null,
+          eventDate: bookingForm.eventDate || null,
+          eventTime: bookingForm.eventTime || null,
+          guestCount: bookingForm.guestCount,
+          extras: [],
+          baseAmount: totalAmount,
+          extrasAmount: 0,
+          totalAmount,
+          isDepositPayment,
+          depositAmount: isDepositPayment ? depositAmount : null,
+          balanceAmount: isDepositPayment ? totalAmount - depositAmount : null,
+          specialRequests: bookingForm.specialRequests || null,
+          notes: bookingForm.notes || null,
+          generatePaymentLink: bookingForm.generatePaymentLink,
+          leadId: leadId,
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.paymentLink?.stripeUrl) {
+          navigator.clipboard.writeText(data.paymentLink.stripeUrl);
+          alert(`Booking created! Payment link copied to clipboard:\n\n${data.paymentLink.stripeUrl}`);
+        } else {
+          alert("Booking created successfully!");
+        }
+        setShowCreateBookingModal(false);
+        setBookingForm({
+          serviceType: "birthday_deck",
+          serviceName: "Birthday Deck",
+          guestCount: 10,
+          eventDate: "",
+          eventTime: "",
+          specialRequests: "",
+          notes: "",
+          generatePaymentLink: true,
+        });
+        fetchLead();
+      } else {
+        const error = await res.json();
+        alert(error.error || "Failed to create booking");
+      }
+    } catch (error) {
+      console.error("Failed to create booking:", error);
+      alert("Failed to create booking");
+    } finally {
+      setCreatingBooking(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="p-8 flex items-center justify-center min-h-screen">
@@ -294,9 +458,28 @@ export default function LeadDetailPage() {
               </Button>
             </>
           ) : (
-            <Button onClick={() => setIsEditing(true)}>
-              <Edit3 className="h-4 w-4 mr-2" /> Edit Lead
-            </Button>
+            <>
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setShowPaymentLinkModal(true);
+                  setCreatedPaymentLinkUrl(null);
+                }}
+                className="border-amber-300 text-amber-700 hover:bg-amber-50"
+              >
+                <LinkIcon className="h-4 w-4 mr-2" /> Generate Payment Link
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={() => setShowCreateBookingModal(true)}
+                className="border-green-300 text-green-700 hover:bg-green-50"
+              >
+                <Ticket className="h-4 w-4 mr-2" /> Create Booking
+              </Button>
+              <Button onClick={() => setIsEditing(true)}>
+                <Edit3 className="h-4 w-4 mr-2" /> Edit Lead
+              </Button>
+            </>
           )}
         </div>
       </div>
@@ -799,6 +982,345 @@ export default function LeadDetailPage() {
           )}
         </div>
       </div>
+
+      {/* Generate Payment Link Modal */}
+      {showPaymentLinkModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
+            <div className="p-6 border-b bg-gradient-to-r from-amber-500 to-orange-500">
+              <div className="flex items-center justify-between">
+                <div className="text-white">
+                  <h2 className="text-xl font-bold">Generate Payment Link</h2>
+                  <p className="text-amber-100 text-sm mt-1">For {lead?.name}</p>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowPaymentLinkModal(false);
+                    setCreatedPaymentLinkUrl(null);
+                  }}
+                  className="text-white/80 hover:text-white"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+            </div>
+
+            {createdPaymentLinkUrl ? (
+              <div className="p-6 space-y-4">
+                <div className="text-center">
+                  <div className="h-16 w-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <CheckCircle className="h-8 w-8 text-green-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-stone-900">Payment Link Created!</h3>
+                  <p className="text-stone-500 text-sm mt-1">Share this link with your customer</p>
+                </div>
+
+                <div className="bg-stone-50 border border-stone-200 rounded-lg p-3">
+                  <p className="text-sm text-stone-600 font-mono break-all">{createdPaymentLinkUrl}</p>
+                </div>
+
+                <div className="flex gap-2">
+                  <Button onClick={copyPaymentLink} className="flex-1">
+                    {copiedLink ? (
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                    ) : (
+                      <Copy className="h-4 w-4 mr-2" />
+                    )}
+                    {copiedLink ? "Copied!" : "Copy Link"}
+                  </Button>
+                  <a href={createdPaymentLinkUrl} target="_blank" rel="noopener noreferrer">
+                    <Button variant="outline">
+                      <ExternalLink className="h-4 w-4" />
+                    </Button>
+                  </a>
+                </div>
+
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowPaymentLinkModal(false);
+                    setCreatedPaymentLinkUrl(null);
+                  }}
+                  className="w-full"
+                >
+                  Done
+                </Button>
+              </div>
+            ) : (
+              <>
+                <div className="p-6 space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-stone-700 mb-1">
+                      Title *
+                    </label>
+                    <input
+                      type="text"
+                      value={newPaymentLink.title}
+                      onChange={(e) => setNewPaymentLink({ ...newPaymentLink, title: e.target.value })}
+                      className="w-full px-4 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                      placeholder="e.g., Birthday Party Booking"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-stone-700 mb-1">
+                      Price Per Person (AED) *
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={newPaymentLink.amount}
+                      onChange={(e) => setNewPaymentLink({ ...newPaymentLink, amount: e.target.value })}
+                      className="w-full px-4 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                      placeholder="250.00"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-stone-700 mb-1">
+                      Number of People
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="40"
+                      value={newPaymentLink.numberOfPeople}
+                      onChange={(e) => setNewPaymentLink({ ...newPaymentLink, numberOfPeople: parseInt(e.target.value) || 1 })}
+                      className="w-full px-4 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-stone-700 mb-1">
+                      Description (Optional)
+                    </label>
+                    <textarea
+                      value={newPaymentLink.description}
+                      onChange={(e) => setNewPaymentLink({ ...newPaymentLink, description: e.target.value })}
+                      rows={2}
+                      className="w-full px-4 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                      placeholder="Additional details..."
+                    />
+                  </div>
+
+                  {newPaymentLink.amount && (
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-amber-800">Total Amount:</span>
+                        <span className="font-bold text-amber-900">
+                          AED {(parseFloat(newPaymentLink.amount || "0") * newPaymentLink.numberOfPeople).toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="bg-stone-50 rounded-lg p-3">
+                    <p className="text-xs text-stone-600">
+                      Customer: <span className="font-medium">{lead?.name}</span>
+                      {lead?.email && <> • {lead.email}</>}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="p-6 border-t bg-stone-50 flex gap-2 justify-end">
+                  <Button variant="outline" onClick={() => setShowPaymentLinkModal(false)}>
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleCreatePaymentLink}
+                    disabled={creatingPaymentLink || !newPaymentLink.title || !newPaymentLink.amount}
+                    className="bg-gradient-to-r from-amber-500 to-orange-500"
+                  >
+                    {creatingPaymentLink ? (
+                      <RefreshCw className="h-4 w-4 animate-spin mr-2" />
+                    ) : (
+                      <LinkIcon className="h-4 w-4 mr-2" />
+                    )}
+                    {creatingPaymentLink ? "Creating..." : "Create Payment Link"}
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Create Booking Modal */}
+      {showCreateBookingModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b bg-gradient-to-r from-green-500 to-emerald-500">
+              <div className="flex items-center justify-between">
+                <div className="text-white">
+                  <h2 className="text-xl font-bold">Create Booking</h2>
+                  <p className="text-green-100 text-sm mt-1">For {lead?.name}</p>
+                </div>
+                <button
+                  onClick={() => setShowCreateBookingModal(false)}
+                  className="text-white/80 hover:text-white"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-1">
+                  Service Type *
+                </label>
+                <select
+                  value={bookingForm.serviceType}
+                  onChange={(e) => {
+                    const type = e.target.value;
+                    const name = type === "birthday_deck" ? "Birthday Deck" : type === "corporate_deck" ? "Corporate Deck" : "Nanny Class";
+                    setBookingForm({ ...bookingForm, serviceType: type, serviceName: name });
+                  }}
+                  className="w-full px-4 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                >
+                  <option value="birthday_deck">Birthday Deck</option>
+                  <option value="corporate_deck">Corporate Deck</option>
+                  <option value="nanny_class">Nanny Class</option>
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-stone-700 mb-1">
+                    Event Date *
+                  </label>
+                  <input
+                    type="date"
+                    value={bookingForm.eventDate}
+                    onChange={(e) => setBookingForm({ ...bookingForm, eventDate: e.target.value })}
+                    className="w-full px-4 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-stone-700 mb-1">
+                    Event Time
+                  </label>
+                  <select
+                    value={bookingForm.eventTime}
+                    onChange={(e) => setBookingForm({ ...bookingForm, eventTime: e.target.value })}
+                    className="w-full px-4 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  >
+                    <option value="">Select time</option>
+                    <option value="10:00">10:00 AM - 12:30 PM</option>
+                    <option value="13:30">1:30 PM - 3:00 PM</option>
+                    <option value="16:00">4:00 PM - 5:30 PM</option>
+                    <option value="18:30">6:30 PM - 8:00 PM</option>
+                    <option value="21:00">9:00 PM - 10:30 PM</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-1">
+                  Number of Guests
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  max="40"
+                  value={bookingForm.guestCount}
+                  onChange={(e) => setBookingForm({ ...bookingForm, guestCount: parseInt(e.target.value) || 1 })}
+                  className="w-full px-4 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-1">
+                  Special Requests
+                </label>
+                <textarea
+                  value={bookingForm.specialRequests}
+                  onChange={(e) => setBookingForm({ ...bookingForm, specialRequests: e.target.value })}
+                  rows={2}
+                  className="w-full px-4 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  placeholder="Any special requests..."
+                />
+              </div>
+
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="generatePaymentLink"
+                  checked={bookingForm.generatePaymentLink}
+                  onChange={(e) => setBookingForm({ ...bookingForm, generatePaymentLink: e.target.checked })}
+                  className="h-4 w-4 text-green-600"
+                />
+                <label htmlFor="generatePaymentLink" className="text-sm text-stone-700">
+                  Generate payment link automatically
+                </label>
+              </div>
+
+              {/* Pricing Summary */}
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <h4 className="font-medium text-green-900 mb-2">Booking Summary</h4>
+                <div className="space-y-1 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-green-700">Service:</span>
+                    <span className="font-medium text-green-900">{bookingForm.serviceName}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-green-700">Guests:</span>
+                    <span className="font-medium text-green-900">{bookingForm.guestCount}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-green-700">Price per person:</span>
+                    <span className="font-medium text-green-900">
+                      AED {bookingForm.serviceType === "corporate_deck" ? "200" : "250"}
+                    </span>
+                  </div>
+                  <div className="border-t border-green-200 pt-1 mt-1">
+                    <div className="flex justify-between font-bold">
+                      <span className="text-green-800">Total:</span>
+                      <span className="text-green-900">
+                        AED {((bookingForm.serviceType === "corporate_deck" ? 200 : 250) * bookingForm.guestCount).toLocaleString()}
+                      </span>
+                    </div>
+                    {bookingForm.serviceType === "corporate_deck" && (
+                      <div className="flex justify-between text-xs text-green-600 mt-1">
+                        <span>50% Deposit Required:</span>
+                        <span>
+                          AED {Math.ceil((200 * bookingForm.guestCount) * 0.5).toLocaleString()}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-stone-50 rounded-lg p-3">
+                <p className="text-xs text-stone-600">
+                  Customer: <span className="font-medium">{lead?.name}</span>
+                  {lead?.email && <> • {lead.email}</>}
+                  {lead?.company && <> • {lead.company}</>}
+                </p>
+              </div>
+            </div>
+
+            <div className="p-6 border-t bg-stone-50 flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => setShowCreateBookingModal(false)}>
+                Cancel
+              </Button>
+              <Button
+                onClick={handleCreateBooking}
+                disabled={creatingBooking || !bookingForm.eventDate}
+                className="bg-gradient-to-r from-green-500 to-emerald-500"
+              >
+                {creatingBooking ? (
+                  <RefreshCw className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <Ticket className="h-4 w-4 mr-2" />
+                )}
+                {creatingBooking ? "Creating..." : "Create Booking"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
