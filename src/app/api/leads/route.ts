@@ -9,9 +9,12 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get("status");
     const source = searchParams.get("source");
     const search = searchParams.get("search");
+    const startDate = searchParams.get("startDate");
+    const endDate = searchParams.get("endDate");
     const limit = parseInt(searchParams.get("limit") || "100");
     const offset = parseInt(searchParams.get("offset") || "0");
 
+    // Build main query with filters
     let query = supabase
       .from("leads")
       .select("*", { count: "exact" })
@@ -27,14 +30,45 @@ export async function GET(request: NextRequest) {
     if (search) {
       query = query.or(`name.ilike.%${search}%,email.ilike.%${search}%,phone.ilike.%${search}%,company.ilike.%${search}%`);
     }
+    if (startDate) {
+      query = query.gte("created_at", startDate);
+    }
+    if (endDate) {
+      query = query.lte("created_at", `${endDate}T23:59:59`);
+    }
 
     const { data, error, count } = await query;
-
     if (error) throw error;
+
+    // Build stats query with same date filter but no pagination/status/source filter
+    let statsQuery = supabase.from("leads").select("source, status");
+    if (startDate) {
+      statsQuery = statsQuery.gte("created_at", startDate);
+    }
+    if (endDate) {
+      statsQuery = statsQuery.lte("created_at", `${endDate}T23:59:59`);
+    }
+    
+    const { data: allLeadsForStats, error: statsError } = await statsQuery;
+    
+    // Calculate stats from all leads (within date range)
+    const stats = {
+      total: allLeadsForStats?.length || 0,
+      bySource: {} as Record<string, number>,
+      byStatus: {} as Record<string, number>,
+    };
+    
+    if (allLeadsForStats) {
+      allLeadsForStats.forEach(lead => {
+        stats.bySource[lead.source] = (stats.bySource[lead.source] || 0) + 1;
+        stats.byStatus[lead.status] = (stats.byStatus[lead.status] || 0) + 1;
+      });
+    }
 
     return NextResponse.json({ 
       leads: data,
       total: count || 0,
+      stats,
       limit,
       offset 
     });

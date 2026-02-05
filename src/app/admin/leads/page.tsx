@@ -44,7 +44,12 @@ import {
   RefreshCw,
   X,
   Download,
-  Link2
+  Link2,
+  Loader2,
+  CalendarDays,
+  Building2,
+  User,
+  StickyNote
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -109,6 +114,27 @@ export default function LeadsPage() {
   const [matchingLeads, setMatchingLeads] = useState(false);
   const [matchResult, setMatchResult] = useState<{ matched: number; created: number; errors: string[] | null } | null>(null);
   
+  // Stats from API
+  const [stats, setStats] = useState<{ total: number; bySource: Record<string, number>; byStatus: Record<string, number> }>({ total: 0, bySource: {}, byStatus: {} });
+  
+  // Date filter
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  
+  // Add Lead Modal
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newLead, setNewLead] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    company: '',
+    lead_type: 'individual',
+    source: 'website',
+    status: 'new',
+    notes: '',
+  });
+  const [savingLead, setSavingLead] = useState(false);
+  
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
@@ -134,12 +160,15 @@ export default function LeadsPage() {
       if (selectedStatus !== 'all') params.set('status', selectedStatus);
       if (selectedSource !== 'all') params.set('source', selectedSource);
       if (debouncedSearch) params.set('search', debouncedSearch);
+      if (startDate) params.set('startDate', startDate);
+      if (endDate) params.set('endDate', endDate);
       
       const res = await fetch(`/api/leads?${params}`);
       if (res.ok) {
         const data = await res.json();
         setLeads(data.leads || []);
         setTotalCount(data.total || 0);
+        if (data.stats) setStats(data.stats);
       }
     } catch (error) {
       console.error('Failed to fetch leads:', error);
@@ -150,7 +179,51 @@ export default function LeadsPage() {
 
   useEffect(() => {
     fetchLeads();
-  }, [currentPage, selectedStatus, selectedSource, debouncedSearch]);
+  }, [currentPage, selectedStatus, selectedSource, debouncedSearch, startDate, endDate]);
+  
+  // Create new lead
+  const handleCreateLead = async () => {
+    if (!newLead.name) {
+      alert('Please enter a name');
+      return;
+    }
+    setSavingLead(true);
+    try {
+      const res = await fetch('/api/leads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newLead),
+      });
+      if (res.ok) {
+        setShowAddModal(false);
+        setNewLead({ name: '', email: '', phone: '', company: '', lead_type: 'individual', source: 'website', status: 'new', notes: '' });
+        fetchLeads();
+      } else {
+        const err = await res.json();
+        alert(err.error || 'Failed to create lead');
+      }
+    } catch (error) {
+      console.error('Failed to create lead:', error);
+    } finally {
+      setSavingLead(false);
+    }
+  };
+  
+  // Quick date filters
+  const setDateRange = (days: number) => {
+    const end = new Date();
+    const start = new Date();
+    start.setDate(end.getDate() - days);
+    setStartDate(start.toISOString().split('T')[0]);
+    setEndDate(end.toISOString().split('T')[0]);
+    setCurrentPage(1);
+  };
+  
+  const clearDateFilter = () => {
+    setStartDate('');
+    setEndDate('');
+    setCurrentPage(1);
+  };
 
   // Handle delete lead
   const handleDeleteLead = async (id: string) => {
@@ -165,16 +238,16 @@ export default function LeadsPage() {
     }
   };
 
-  // Calculate stats (use totalCount for total, leads.length for current page)
+  // Calculate stats from API stats (accurate counts)
   const displayedLeads = leads.length;
-  const newLeadsCount = leads.filter(l => l.status === 'new').length;
-  const wonLeadsCount = leads.filter(l => l.status === 'won').length;
-  const conversionRate = totalCount > 0 ? Math.round((wonLeadsCount / totalCount) * 100) : 0;
+  const newLeadsCount = stats.byStatus['new'] || 0;
+  const wonLeadsCount = (stats.byStatus['won'] || 0) + (stats.byStatus['sold_hot'] || 0) + (stats.byStatus['sold_cold'] || 0);
+  const conversionRate = stats.total > 0 ? Math.round((wonLeadsCount / stats.total) * 100) : 0;
 
-  // Source breakdown
+  // Source breakdown from API stats
   const sourceStats = leadSources.map(source => ({
     ...source,
-    count: leads.filter(l => l.source === source.id).length,
+    count: stats.bySource[source.id] || 0,
   }));
 
   // Leads are already filtered server-side, just use them directly
@@ -293,7 +366,7 @@ export default function LeadsPage() {
           </h1>
           <p className="text-stone-500 mt-1">Track and convert your prospects into customers</p>
         </div>
-        <Button className="bg-gradient-to-r from-stone-900 to-stone-700 hover:from-stone-800 hover:to-stone-600">
+        <Button onClick={() => setShowAddModal(true)} className="bg-gradient-to-r from-stone-900 to-stone-700 hover:from-stone-800 hover:to-stone-600">
           <Plus className="h-4 w-4 mr-2" />
           Add Lead
         </Button>
@@ -310,7 +383,7 @@ export default function LeadsPage() {
                 <Users className="h-5 w-5" />
               </div>
             </div>
-            <p className="text-3xl font-bold">{totalCount}</p>
+            <p className="text-3xl font-bold">{stats.total}</p>
             <p className="text-sm text-stone-400 mt-1">Total Leads</p>
           </div>
         </div>
@@ -365,15 +438,17 @@ export default function LeadsPage() {
           <div className="flex items-center justify-between mb-6">
             <h3 className="font-semibold text-stone-900">Lead Sources</h3>
             <div className="flex items-center gap-2">
-              <Badge variant="secondary">Last 30 days</Badge>
+              <Badge variant="secondary">
+                {startDate && endDate ? `${startDate} - ${endDate}` : 'All Time'}
+              </Badge>
             </div>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {sourceStats.slice(0, 8).map((source) => {
               const Icon = source.icon;
               return (
-                <div key={source.id} className="group cursor-pointer">
-                  <div className={`p-4 rounded-xl bg-gradient-to-br ${source.color} text-white transition-transform group-hover:scale-105`}>
+                <div key={source.id} className="group cursor-pointer" onClick={() => setSelectedSource(source.id)}>
+                  <div className={`p-4 rounded-xl bg-gradient-to-br ${source.color} text-white transition-transform group-hover:scale-105 ${selectedSource === source.id ? 'ring-2 ring-white ring-offset-2' : ''}`}>
                     <Icon className="h-6 w-6 mb-2" />
                     <p className="text-2xl font-bold">{source.count}</p>
                     <p className="text-sm opacity-80">{source.name}</p>
@@ -478,7 +553,7 @@ export default function LeadsPage() {
       </div>
 
       {/* Filters & Search */}
-      <div className="bg-white rounded-2xl border border-stone-200 shadow-sm p-4">
+      <div className="bg-white rounded-2xl border border-stone-200 shadow-sm p-4 space-y-4">
         <div className="flex flex-wrap gap-4 items-center">
           <div className="flex-1 min-w-[250px] relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" />
@@ -493,7 +568,7 @@ export default function LeadsPage() {
           
           <select 
             value={selectedSource}
-            onChange={(e) => setSelectedSource(e.target.value)}
+            onChange={(e) => { setSelectedSource(e.target.value); setCurrentPage(1); }}
             className="px-4 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
           >
             <option value="all">All Sources</option>
@@ -504,7 +579,7 @@ export default function LeadsPage() {
 
           <select 
             value={selectedStatus}
-            onChange={(e) => setSelectedStatus(e.target.value)}
+            onChange={(e) => { setSelectedStatus(e.target.value); setCurrentPage(1); }}
             className="px-4 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
           >
             <option value="all">All Statuses</option>
@@ -530,10 +605,43 @@ export default function LeadsPage() {
             </Button>
           </div>
         </div>
+        
+        {/* Date Filter */}
+        <div className="flex flex-wrap gap-2 items-center pt-2 border-t border-stone-100">
+          <CalendarDays className="h-4 w-4 text-stone-400" />
+          <span className="text-sm text-stone-500 mr-2">Date Range:</span>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => setDateRange(7)}>Last 7 Days</Button>
+            <Button variant="outline" size="sm" onClick={() => setDateRange(30)}>Last 30 Days</Button>
+            <Button variant="outline" size="sm" onClick={() => setDateRange(90)}>Last 90 Days</Button>
+          </div>
+          <div className="flex items-center gap-2 ml-2">
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => { setStartDate(e.target.value); setCurrentPage(1); }}
+              className="px-3 py-1.5 bg-stone-50 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+            />
+            <span className="text-stone-400">to</span>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => { setEndDate(e.target.value); setCurrentPage(1); }}
+              className="px-3 py-1.5 bg-stone-50 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+            />
+          </div>
+          {(startDate || endDate) && (
+            <Button variant="ghost" size="sm" onClick={clearDateFilter} className="text-stone-500">
+              <X className="h-4 w-4 mr-1" />
+              Clear
+            </Button>
+          )}
+        </div>
       </div>
 
-      {/* Leads List */}
-      <div className="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
+      {/* Leads List or Kanban */}
+      {viewMode === 'list' ? (
+      <div className="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden relative">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-stone-50 border-b border-stone-200">
@@ -665,15 +773,98 @@ export default function LeadsPage() {
             </div>
           </div>
         )}
+        
+        {/* Loading Overlay */}
+        {loading && (
+          <div className="absolute inset-0 bg-white/80 flex items-center justify-center z-10">
+            <div className="flex items-center gap-3">
+              <Loader2 className="h-6 w-6 animate-spin text-amber-500" />
+              <span className="text-stone-600">Loading leads...</span>
+            </div>
+          </div>
+        )}
       </div>
+      ) : (
+      /* Kanban View */
+      <div className="overflow-x-auto pb-4">
+        <div className="flex gap-4 min-w-max">
+          {leadStatuses.map((status) => {
+            const statusLeads = filteredLeads.filter(l => l.status === status.id);
+            const statusCount = stats.byStatus[status.id] || 0;
+            return (
+              <div key={status.id} className="w-80 flex-shrink-0 bg-stone-50 rounded-2xl">
+                <div className={`p-4 rounded-t-2xl ${status.color}`}>
+                  <div className="flex items-center justify-between text-white">
+                    <h3 className="font-semibold">{status.name}</h3>
+                    <Badge className="bg-white/20 text-white border-0">{statusCount}</Badge>
+                  </div>
+                </div>
+                <div className="p-3 space-y-3 max-h-[60vh] overflow-y-auto">
+                  {statusLeads.length === 0 ? (
+                    <div className="text-center py-8 text-stone-400 text-sm">
+                      No leads in this stage
+                    </div>
+                  ) : (
+                    statusLeads.slice(0, 100).map((lead) => {
+                      const SourceIcon = getSourceIcon(lead.source);
+                      return (
+                        <div
+                          key={lead.id}
+                          onClick={() => router.push(`/admin/leads/${lead.id}`)}
+                          className="bg-white rounded-xl p-4 shadow-sm border border-stone-200 hover:shadow-md hover:border-amber-300 transition-all cursor-pointer"
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white font-semibold flex-shrink-0">
+                              {lead.name?.charAt(0) || '?'}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-stone-900 truncate">{lead.name}</p>
+                              <p className="text-sm text-stone-500 truncate">{lead.email || lead.phone || 'No contact'}</p>
+                            </div>
+                          </div>
+                          <div className="mt-3 flex items-center justify-between">
+                            <div className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-gradient-to-r ${getSourceColor(lead.source)} text-white text-xs`}>
+                              <SourceIcon className="h-3 w-3" />
+                              {leadSources.find(s => s.id === lead.source)?.name || lead.source}
+                            </div>
+                            {lead.company && (
+                              <span className="text-xs text-stone-500 truncate max-w-[100px]">{lead.company}</span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                  {statusLeads.length > 100 && (
+                    <div className="text-center py-2 text-stone-500 text-sm">
+                      +{statusLeads.length - 100} more leads
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        
+        {/* Loading Overlay for Kanban */}
+        {loading && (
+          <div className="fixed inset-0 bg-white/60 flex items-center justify-center z-50 pointer-events-none">
+            <div className="flex items-center gap-3 bg-white rounded-xl px-6 py-4 shadow-lg">
+              <Loader2 className="h-6 w-6 animate-spin text-amber-500" />
+              <span className="text-stone-600">Loading leads...</span>
+            </div>
+          </div>
+        )}
+      </div>
+      )}
 
       {/* Pipeline Summary */}
       <div className="bg-white rounded-2xl border border-stone-200 shadow-sm p-6">
         <h3 className="font-semibold text-stone-900 mb-4">Pipeline Overview</h3>
         <div className="flex items-center gap-2">
           {leadStatuses.slice(0, -1).map((status, i) => {
-            const count = leads.filter(l => l.status === status.id).length;
-            const width = displayedLeads > 0 ? Math.max((count / displayedLeads) * 100, 5) : 5;
+            const count = stats.byStatus[status.id] || 0;
+            const width = stats.total > 0 ? Math.max((count / stats.total) * 100, 5) : 5;
             return (
               <div key={status.id} className="flex-1" style={{ flex: width }}>
                 <div className={`h-3 ${status.color} ${i === 0 ? 'rounded-l-full' : ''} ${i === leadStatuses.length - 2 ? 'rounded-r-full' : ''}`} />
@@ -686,6 +877,159 @@ export default function LeadsPage() {
           })}
         </div>
       </div>
+
+      {/* Add Lead Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-stone-200">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold text-stone-900">Add New Lead</h2>
+                <button onClick={() => setShowAddModal(false)} className="text-stone-400 hover:text-stone-600">
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-4">
+              {/* Name */}
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-1">
+                  <User className="h-4 w-4 inline mr-1" />
+                  Name *
+                </label>
+                <input
+                  type="text"
+                  value={newLead.name}
+                  onChange={(e) => setNewLead({ ...newLead, name: e.target.value })}
+                  className="w-full px-4 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  placeholder="Full name"
+                />
+              </div>
+
+              {/* Email */}
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-1">
+                  <Mail className="h-4 w-4 inline mr-1" />
+                  Email
+                </label>
+                <input
+                  type="email"
+                  value={newLead.email}
+                  onChange={(e) => setNewLead({ ...newLead, email: e.target.value })}
+                  className="w-full px-4 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  placeholder="email@example.com"
+                />
+              </div>
+
+              {/* Phone */}
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-1">
+                  <Phone className="h-4 w-4 inline mr-1" />
+                  Phone
+                </label>
+                <input
+                  type="tel"
+                  value={newLead.phone}
+                  onChange={(e) => setNewLead({ ...newLead, phone: e.target.value })}
+                  className="w-full px-4 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  placeholder="+971 50 123 4567"
+                />
+              </div>
+
+              {/* Company */}
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-1">
+                  <Building2 className="h-4 w-4 inline mr-1" />
+                  Company
+                </label>
+                <input
+                  type="text"
+                  value={newLead.company}
+                  onChange={(e) => setNewLead({ ...newLead, company: e.target.value })}
+                  className="w-full px-4 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  placeholder="Company name"
+                />
+              </div>
+
+              {/* Lead Type */}
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-1">Lead Type</label>
+                <select
+                  value={newLead.lead_type}
+                  onChange={(e) => setNewLead({ ...newLead, lead_type: e.target.value })}
+                  className="w-full px-4 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                >
+                  <option value="individual">Individual</option>
+                  <option value="corporate">Corporate</option>
+                  <option value="group">Group</option>
+                </select>
+              </div>
+
+              {/* Source */}
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-1">Source *</label>
+                <select
+                  value={newLead.source}
+                  onChange={(e) => setNewLead({ ...newLead, source: e.target.value })}
+                  className="w-full px-4 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                >
+                  {leadSources.map(source => (
+                    <option key={source.id} value={source.id}>{source.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Status */}
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-1">Status *</label>
+                <select
+                  value={newLead.status}
+                  onChange={(e) => setNewLead({ ...newLead, status: e.target.value })}
+                  className="w-full px-4 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                >
+                  {leadStatuses.map(status => (
+                    <option key={status.id} value={status.id}>{status.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Notes */}
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-1">
+                  <StickyNote className="h-4 w-4 inline mr-1" />
+                  Notes
+                </label>
+                <textarea
+                  value={newLead.notes}
+                  onChange={(e) => setNewLead({ ...newLead, notes: e.target.value })}
+                  rows={3}
+                  className="w-full px-4 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  placeholder="Additional notes about this lead..."
+                />
+              </div>
+            </div>
+
+            <div className="p-6 border-t border-stone-200 bg-stone-50 flex gap-3 justify-end">
+              <Button variant="outline" onClick={() => setShowAddModal(false)}>
+                Cancel
+              </Button>
+              <Button
+                onClick={handleCreateLead}
+                disabled={savingLead || !newLead.name}
+                className="bg-gradient-to-r from-stone-900 to-stone-700"
+              >
+                {savingLead ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <Plus className="h-4 w-4 mr-2" />
+                )}
+                {savingLead ? 'Creating...' : 'Create Lead'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
