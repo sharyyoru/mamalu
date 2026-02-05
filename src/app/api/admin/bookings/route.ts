@@ -281,6 +281,7 @@ export async function POST(request: NextRequest) {
           notes: notes || null,
           status: "active",
           created_by: createdBy || null,
+          lead_id: leadId || null,
         })
         .select()
         .single();
@@ -325,6 +326,7 @@ export async function POST(request: NextRequest) {
             sent_at: new Date().toISOString(),
             notes: notes || null,
             created_by: createdBy || null,
+            lead_id: leadId || null,
           })
           .select()
           .single();
