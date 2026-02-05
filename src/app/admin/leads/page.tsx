@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { 
   UserPlus,
@@ -35,12 +35,18 @@ import {
   ChevronDown,
   Eye,
   Edit3,
-  Trash2
+  Trash2,
+  Upload,
+  FileSpreadsheet,
+  RefreshCw,
+  X,
+  Download
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatPrice, formatDate } from "@/lib/utils";
+import * as XLSX from "xlsx";
 
 // Lead sources with icons
 const leadSources = [
@@ -64,136 +70,139 @@ const leadStatuses = [
   { id: 'lost', name: 'Lost', color: 'bg-red-500', bgLight: 'bg-red-100 text-red-700' },
 ];
 
-// Mock leads data
-const mockLeads = [
-  { 
-    id: '1', 
-    name: 'Sarah Al Maktoum', 
-    email: 'sarah@email.com', 
-    phone: '+971 50 123 4567',
-    source: 'instagram',
-    status: 'qualified',
-    value: 12500,
-    interest: 'Corporate cooking class',
-    assignedTo: 'Wilson',
-    createdAt: '2024-12-05',
-    lastContact: '2024-12-05',
-    notes: 'Interested in team building event for 30 people'
-  },
-  { 
-    id: '2', 
-    name: 'Ahmed Hassan', 
-    email: 'ahmed@company.ae', 
-    phone: '+971 55 987 6543',
-    source: 'website',
-    status: 'proposal',
-    value: 8500,
-    interest: 'Kitchen rental - Monthly',
-    assignedTo: 'Carlo',
-    createdAt: '2024-12-04',
-    lastContact: '2024-12-05',
-    notes: 'Food truck business, needs regular kitchen access'
-  },
-  { 
-    id: '3', 
-    name: 'Maria Santos', 
-    email: 'maria@gmail.com', 
-    phone: '+971 52 456 7890',
-    source: 'facebook',
-    status: 'new',
-    value: 2800,
-    interest: 'Baking masterclass',
-    assignedTo: null,
-    createdAt: '2024-12-05',
-    lastContact: null,
-    notes: ''
-  },
-  { 
-    id: '4', 
-    name: 'John Peterson', 
-    email: 'john.p@hotel.com', 
-    phone: '+971 54 321 0987',
-    source: 'referral',
-    status: 'negotiation',
-    value: 45000,
-    interest: 'Hotel staff training program',
-    assignedTo: 'Wilson',
-    createdAt: '2024-12-01',
-    lastContact: '2024-12-04',
-    notes: '6-month training contract discussion'
-  },
-  { 
-    id: '5', 
-    name: 'Fatima Khalid', 
-    email: 'fatima@startup.io', 
-    phone: '+971 56 789 0123',
-    source: 'whatsapp',
-    status: 'contacted',
-    value: 5200,
-    interest: 'Private cooking class',
-    assignedTo: 'Carlo',
-    createdAt: '2024-12-03',
-    lastContact: '2024-12-04',
-    notes: 'Birthday party for 12 guests'
-  },
-  { 
-    id: '6', 
-    name: 'David Chen', 
-    email: 'david@restaurant.ae', 
-    phone: '+971 58 234 5678',
-    source: 'phone',
-    status: 'won',
-    value: 18000,
-    interest: 'Kitchen rental - 3 months',
-    assignedTo: 'Wilson',
-    createdAt: '2024-11-28',
-    lastContact: '2024-12-02',
-    notes: 'Contract signed!'
-  },
-  { 
-    id: '7', 
-    name: 'Lisa Wong', 
-    email: 'lisa@email.com', 
-    phone: '+971 50 876 5432',
-    source: 'walkin',
-    status: 'lost',
-    value: 3500,
-    interest: 'Weekend cooking class',
-    assignedTo: 'Carlo',
-    createdAt: '2024-11-25',
-    lastContact: '2024-11-30',
-    notes: 'Price too high, went to competitor'
-  },
-];
+interface Lead {
+  id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  company: string | null;
+  lead_type: string | null;
+  source: string;
+  status: string;
+  interests: string[] | null;
+  budget_range: string | null;
+  notes: string | null;
+  assigned_to: string | null;
+  last_contacted_at: string | null;
+  created_at: string;
+}
 
 export default function LeadsPage() {
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSource, setSelectedSource] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [viewMode, setViewMode] = useState<'kanban' | 'list'>('list');
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadResult, setUploadResult] = useState<{ imported: number; errors: string[] | null } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Fetch leads from API
+  const fetchLeads = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch('/api/leads?limit=500');
+      if (res.ok) {
+        const data = await res.json();
+        setLeads(data.leads || []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch leads:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchLeads();
+  }, []);
 
   // Calculate stats
-  const totalLeads = mockLeads.length;
-  const totalValue = mockLeads.reduce((sum, lead) => sum + lead.value, 0);
-  const wonValue = mockLeads.filter(l => l.status === 'won').reduce((sum, lead) => sum + lead.value, 0);
-  const conversionRate = Math.round((mockLeads.filter(l => l.status === 'won').length / totalLeads) * 100);
-  const avgDealValue = Math.round(totalValue / totalLeads);
+  const totalLeads = leads.length;
+  const newLeads = leads.filter(l => l.status === 'new').length;
+  const wonLeads = leads.filter(l => l.status === 'won').length;
+  const conversionRate = totalLeads > 0 ? Math.round((wonLeads / totalLeads) * 100) : 0;
 
   // Source breakdown
   const sourceStats = leadSources.map(source => ({
     ...source,
-    count: mockLeads.filter(l => l.source === source.id).length,
-    value: mockLeads.filter(l => l.source === source.id).reduce((sum, l) => sum + l.value, 0),
+    count: leads.filter(l => l.source === source.id).length,
   }));
 
   // Filter leads
-  const filteredLeads = mockLeads.filter(lead => {
-    const matchesSearch = lead.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         lead.email.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredLeads = leads.filter(lead => {
+    const matchesSearch = lead.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         lead.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         lead.phone?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesSource = selectedSource === 'all' || lead.source === selectedSource;
     const matchesStatus = selectedStatus === 'all' || lead.status === selectedStatus;
     return matchesSearch && matchesSource && matchesStatus;
   });
+
+  // Handle Excel file upload
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    setUploadResult(null);
+
+    try {
+      const data = await file.arrayBuffer();
+      const workbook = XLSX.read(data);
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+      // Send to API
+      const res = await fetch('/api/leads/import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ leads: jsonData, clearExisting: false }),
+      });
+
+      const result = await res.json();
+      if (res.ok) {
+        setUploadResult({ imported: result.imported, errors: result.errors });
+        fetchLeads();
+      } else {
+        setUploadResult({ imported: 0, errors: [result.error] });
+      }
+    } catch (error: any) {
+      setUploadResult({ imported: 0, errors: [error.message] });
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  // Clear all leads
+  const clearAllLeads = async () => {
+    if (!confirm('Are you sure you want to delete ALL leads? This cannot be undone.')) return;
+    
+    try {
+      const res = await fetch('/api/leads/import', { method: 'DELETE' });
+      if (res.ok) {
+        fetchLeads();
+        setShowUploadModal(false);
+      }
+    } catch (error) {
+      console.error('Failed to clear leads:', error);
+    }
+  };
+
+  // Download template
+  const downloadTemplate = () => {
+    const template = [
+      { name: 'John Doe', email: 'john@example.com', phone: '+971501234567', company: 'ABC Corp', source: 'website', status: 'new', notes: 'Interested in cooking class' }
+    ];
+    const ws = XLSX.utils.json_to_sheet(template);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Leads');
+    XLSX.writeFile(wb, 'leads_template.xlsx');
+  };
 
   const getSourceIcon = (sourceId: string) => {
     const source = leadSources.find(s => s.id === sourceId);
@@ -226,7 +235,7 @@ export default function LeadsPage() {
         </Button>
       </div>
 
-      {/* Stats Cards - Edgy Design */}
+      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Total Leads */}
         <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-stone-900 to-stone-800 p-6 text-white hover:shadow-xl hover:shadow-stone-900/20 transition-all">
@@ -236,49 +245,37 @@ export default function LeadsPage() {
               <div className="p-2 rounded-xl bg-white/10">
                 <Users className="h-5 w-5" />
               </div>
-              <span className="flex items-center text-sm text-emerald-400">
-                <ArrowUpRight className="h-4 w-4 mr-1" />
-                +18%
-              </span>
             </div>
             <p className="text-3xl font-bold">{totalLeads}</p>
             <p className="text-sm text-stone-400 mt-1">Total Leads</p>
           </div>
         </div>
 
-        {/* Pipeline Value */}
-        <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-700 p-6 text-white hover:shadow-xl hover:shadow-emerald-600/20 transition-all">
+        {/* New Leads */}
+        <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 p-6 text-white hover:shadow-xl hover:shadow-blue-600/20 transition-all">
           <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-white/10 blur-2xl" />
           <div className="relative">
             <div className="flex items-center justify-between mb-3">
               <div className="p-2 rounded-xl bg-white/20">
-                <Target className="h-5 w-5" />
+                <UserPlus className="h-5 w-5" />
               </div>
-              <span className="flex items-center text-sm text-emerald-200">
-                <TrendingUp className="h-4 w-4 mr-1" />
-                Pipeline
-              </span>
             </div>
-            <p className="text-3xl font-bold">{formatPrice(totalValue)}</p>
-            <p className="text-sm text-emerald-200 mt-1">Total Pipeline</p>
+            <p className="text-3xl font-bold">{newLeads}</p>
+            <p className="text-sm text-blue-200 mt-1">New Leads</p>
           </div>
         </div>
 
-        {/* Won Revenue */}
-        <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 p-6 text-white hover:shadow-xl hover:shadow-amber-500/20 transition-all">
+        {/* Won Leads */}
+        <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 p-6 text-white hover:shadow-xl hover:shadow-green-500/20 transition-all">
           <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-white/10 blur-2xl" />
           <div className="relative">
             <div className="flex items-center justify-between mb-3">
               <div className="p-2 rounded-xl bg-white/20">
-                <DollarSign className="h-5 w-5" />
+                <CheckCircle className="h-5 w-5" />
               </div>
-              <span className="flex items-center text-sm text-green-200">
-                <CheckCircle className="h-4 w-4 mr-1" />
-                Won
-              </span>
             </div>
-            <p className="text-3xl font-bold">{formatPrice(wonValue)}</p>
-            <p className="text-sm text-amber-200 mt-1">Won Revenue</p>
+            <p className="text-3xl font-bold">{wonLeads}</p>
+            <p className="text-sm text-green-200 mt-1">Won / Converted</p>
           </div>
         </div>
 
@@ -290,10 +287,6 @@ export default function LeadsPage() {
               <div className="p-2 rounded-xl bg-white/20">
                 <Zap className="h-5 w-5" />
               </div>
-              <span className="flex items-center text-sm text-violet-200">
-                <Sparkles className="h-4 w-4 mr-1" />
-                Rate
-              </span>
             </div>
             <p className="text-3xl font-bold">{conversionRate}%</p>
             <p className="text-sm text-violet-200 mt-1">Conversion Rate</p>
@@ -321,50 +314,75 @@ export default function LeadsPage() {
                     <p className="text-2xl font-bold">{source.count}</p>
                     <p className="text-sm opacity-80">{source.name}</p>
                   </div>
-                  <p className="text-sm text-stone-500 mt-2 text-center">{formatPrice(source.value)}</p>
                 </div>
               );
             })}
           </div>
         </div>
 
-        {/* Revenue Calculator */}
+        {/* Import Leads */}
         <div className="bg-gradient-to-br from-stone-900 to-stone-800 rounded-2xl p-6 text-white">
           <div className="flex items-center gap-2 mb-6">
-            <BarChart3 className="h-5 w-5 text-amber-400" />
-            <h3 className="font-semibold">Revenue Calculator</h3>
+            <Upload className="h-5 w-5 text-amber-400" />
+            <h3 className="font-semibold">Import Leads</h3>
           </div>
           
           <div className="space-y-4">
-            <div className="p-4 bg-white/10 rounded-xl">
-              <p className="text-sm text-stone-400">Avg Deal Value</p>
-              <p className="text-2xl font-bold text-amber-400">{formatPrice(avgDealValue)}</p>
-            </div>
+            <p className="text-sm text-stone-400">
+              Upload your customer data from Excel or CSV files.
+            </p>
             
-            <div className="p-4 bg-white/10 rounded-xl">
-              <p className="text-sm text-stone-400">Potential Revenue</p>
-              <p className="text-2xl font-bold text-emerald-400">{formatPrice(totalValue - wonValue)}</p>
-              <p className="text-xs text-stone-500 mt-1">From active leads</p>
-            </div>
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileUpload}
+              accept=".xlsx,.xls,.csv"
+              className="hidden"
+            />
+            
+            <Button 
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              className="w-full bg-amber-500 hover:bg-amber-600 text-white"
+            >
+              {uploading ? (
+                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <FileSpreadsheet className="h-4 w-4 mr-2" />
+              )}
+              {uploading ? 'Uploading...' : 'Upload Excel File'}
+            </Button>
 
-            <div className="p-4 bg-white/10 rounded-xl">
-              <p className="text-sm text-stone-400">Projected Monthly</p>
-              <p className="text-2xl font-bold text-violet-400">{formatPrice(wonValue * 4)}</p>
-              <p className="text-xs text-stone-500 mt-1">Based on current rate</p>
-            </div>
+            <Button 
+              onClick={downloadTemplate}
+              variant="outline"
+              className="w-full border-white/20 text-white hover:bg-white/10"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Download Template
+            </Button>
+
+            {uploadResult && (
+              <div className={`p-3 rounded-lg ${uploadResult.errors ? 'bg-red-500/20' : 'bg-green-500/20'}`}>
+                <p className="text-sm">
+                  {uploadResult.imported > 0 ? `✓ Imported ${uploadResult.imported} leads` : 'Import failed'}
+                </p>
+                {uploadResult.errors?.map((err, i) => (
+                  <p key={i} className="text-xs text-red-300 mt-1">{err}</p>
+                ))}
+              </div>
+            )}
 
             <div className="pt-4 border-t border-white/10">
-              <div className="flex justify-between text-sm mb-2">
-                <span className="text-stone-400">Win Rate Target</span>
-                <span className="text-amber-400">30%</span>
-              </div>
-              <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full"
-                  style={{ width: `${Math.min(conversionRate / 30 * 100, 100)}%` }}
-                />
-              </div>
-              <p className="text-xs text-stone-500 mt-1">{conversionRate}% current / 30% target</p>
+              <Button 
+                onClick={clearAllLeads}
+                variant="ghost"
+                size="sm"
+                className="w-full text-red-400 hover:text-red-300 hover:bg-red-500/10"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Clear All Leads
+              </Button>
             </div>
           </div>
         </div>
@@ -433,10 +451,9 @@ export default function LeadsPage() {
               <tr>
                 <th className="text-left text-xs font-semibold text-stone-600 uppercase px-6 py-4">Lead</th>
                 <th className="text-left text-xs font-semibold text-stone-600 uppercase px-6 py-4">Source</th>
-                <th className="text-left text-xs font-semibold text-stone-600 uppercase px-6 py-4">Interest</th>
-                <th className="text-left text-xs font-semibold text-stone-600 uppercase px-6 py-4">Value</th>
+                <th className="text-left text-xs font-semibold text-stone-600 uppercase px-6 py-4">Company</th>
+                <th className="text-left text-xs font-semibold text-stone-600 uppercase px-6 py-4">Type</th>
                 <th className="text-left text-xs font-semibold text-stone-600 uppercase px-6 py-4">Status</th>
-                <th className="text-left text-xs font-semibold text-stone-600 uppercase px-6 py-4">Assigned</th>
                 <th className="text-left text-xs font-semibold text-stone-600 uppercase px-6 py-4">Last Contact</th>
                 <th className="text-left text-xs font-semibold text-stone-600 uppercase px-6 py-4"></th>
               </tr>
@@ -449,47 +466,35 @@ export default function LeadsPage() {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="h-10 w-10 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white font-semibold">
-                          {lead.name.charAt(0)}
+                          {lead.name?.charAt(0) || '?'}
                         </div>
                         <div>
                           <p className="font-medium text-stone-900">{lead.name}</p>
-                          <p className="text-sm text-stone-500">{lead.email}</p>
+                          <p className="text-sm text-stone-500">{lead.email || lead.phone || 'No contact'}</p>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gradient-to-r ${getSourceColor(lead.source)} text-white text-sm`}>
                         <SourceIcon className="h-4 w-4" />
-                        {leadSources.find(s => s.id === lead.source)?.name}
+                        {leadSources.find(s => s.id === lead.source)?.name || lead.source}
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <p className="text-sm text-stone-700 max-w-[200px] truncate">{lead.interest}</p>
+                      <p className="text-sm text-stone-700 max-w-[200px] truncate">{lead.company || '-'}</p>
                     </td>
                     <td className="px-6 py-4">
-                      <p className="font-semibold text-stone-900">{formatPrice(lead.value)}</p>
+                      <p className="text-sm text-stone-700">{lead.lead_type || '-'}</p>
                     </td>
                     <td className="px-6 py-4">
                       <Badge className={getStatusBadge(lead.status)}>
-                        {leadStatuses.find(s => s.id === lead.status)?.name}
+                        {leadStatuses.find(s => s.id === lead.status)?.name || lead.status}
                       </Badge>
-                    </td>
-                    <td className="px-6 py-4">
-                      {lead.assignedTo ? (
-                        <div className="flex items-center gap-2">
-                          <div className="h-6 w-6 rounded-full bg-stone-200 flex items-center justify-center text-xs font-medium">
-                            {lead.assignedTo.charAt(0)}
-                          </div>
-                          <span className="text-sm text-stone-600">{lead.assignedTo}</span>
-                        </div>
-                      ) : (
-                        <span className="text-sm text-stone-400">Unassigned</span>
-                      )}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-1 text-sm text-stone-500">
                         <Clock className="h-4 w-4" />
-                        {lead.lastContact ? formatDate(lead.lastContact) : 'Never'}
+                        {lead.last_contacted_at ? formatDate(lead.last_contacted_at) : 'Never'}
                       </div>
                     </td>
                     <td className="px-6 py-4">
@@ -526,8 +531,8 @@ export default function LeadsPage() {
         <h3 className="font-semibold text-stone-900 mb-4">Pipeline Overview</h3>
         <div className="flex items-center gap-2">
           {leadStatuses.slice(0, -1).map((status, i) => {
-            const count = mockLeads.filter(l => l.status === status.id).length;
-            const width = Math.max((count / totalLeads) * 100, 5);
+            const count = leads.filter(l => l.status === status.id).length;
+            const width = totalLeads > 0 ? Math.max((count / totalLeads) * 100, 5) : 5;
             return (
               <div key={status.id} className="flex-1" style={{ flex: width }}>
                 <div className={`h-3 ${status.color} ${i === 0 ? 'rounded-l-full' : ''} ${i === leadStatuses.length - 2 ? 'rounded-r-full' : ''}`} />
