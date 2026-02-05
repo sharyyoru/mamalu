@@ -18,6 +18,8 @@ import {
   Download,
   Calendar,
   FileText,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -69,6 +71,7 @@ export default function AdminPaymentLinksPage() {
   const [paymentLinks, setPaymentLinks] = useState<PaymentLink[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -85,6 +88,21 @@ export default function AdminPaymentLinksPage() {
   const [showUnpaidModal, setShowUnpaidModal] = useState(false);
   const [selectedLinkForUnpaid, setSelectedLinkForUnpaid] = useState<PaymentLink | null>(null);
   const [unpaidReason, setUnpaidReason] = useState("");
+  
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const pageSize = 100;
+  const totalPages = Math.ceil(totalCount / pageSize);
+
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      setCurrentPage(1);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   // Get current user on mount
   useEffect(() => {
@@ -119,12 +137,16 @@ export default function AdminPaymentLinksPage() {
     try {
       setLoading(true);
       const params = new URLSearchParams();
+      params.set('limit', pageSize.toString());
+      params.set('offset', ((currentPage - 1) * pageSize).toString());
       if (statusFilter !== "all") params.set("status", statusFilter);
+      if (debouncedSearch) params.set("search", debouncedSearch);
 
       const res = await fetch(`/api/payment-links?${params}`);
       if (res.ok) {
         const data = await res.json();
         setPaymentLinks(data.paymentLinks || []);
+        setTotalCount(data.total || 0);
       }
     } catch (error) {
       console.error("Failed to fetch payment links:", error);
@@ -153,22 +175,14 @@ export default function AdminPaymentLinksPage() {
 
   useEffect(() => {
     fetchPaymentLinks();
-  }, [statusFilter]);
+  }, [statusFilter, currentPage, debouncedSearch]);
 
   useEffect(() => {
     fetchAvailableExtras();
   }, []);
 
-  const filteredLinks = paymentLinks.filter((link) => {
-    if (!searchQuery) return true;
-    const query = searchQuery.toLowerCase();
-    return (
-      link.link_code.toLowerCase().includes(query) ||
-      link.title.toLowerCase().includes(query) ||
-      link.customer_name?.toLowerCase().includes(query) ||
-      link.customer_email?.toLowerCase().includes(query)
-    );
-  });
+  // Data is already filtered server-side
+  const filteredLinks = paymentLinks;
 
   const createPaymentLink = async () => {
     if (!newLink.title || !newLink.amount) {
@@ -868,6 +882,58 @@ export default function AdminPaymentLinksPage() {
                   ))}
                 </tbody>
               </table>
+            </div>
+          )}
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between px-4 py-4 border-t border-stone-200">
+              <div className="text-sm text-stone-500">
+                Showing {((currentPage - 1) * pageSize) + 1} - {Math.min(currentPage * pageSize, totalCount)} of {totalCount} payment links
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNum;
+                    if (totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (currentPage <= 3) {
+                      pageNum = i + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i;
+                    } else {
+                      pageNum = currentPage - 2 + i;
+                    }
+                    return (
+                      <Button
+                        key={pageNum}
+                        variant={currentPage === pageNum ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setCurrentPage(pageNum)}
+                        className="w-8"
+                      >
+                        {pageNum}
+                      </Button>
+                    );
+                  })}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           )}
         </CardContent>

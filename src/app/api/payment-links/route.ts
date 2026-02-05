@@ -19,27 +19,40 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
+    const search = searchParams.get("search");
+    const limit = parseInt(searchParams.get("limit") || "100");
+    const offset = parseInt(searchParams.get("offset") || "0");
 
     let query = supabase
       .from("payment_links")
       .select(`
         *,
         creator:created_by(id, full_name, email)
-      `)
-      .order("created_at", { ascending: false });
+      `, { count: "exact" })
+      .order("created_at", { ascending: false })
+      .range(offset, offset + limit - 1);
 
     if (status && status !== "all") {
       query = query.eq("status", status);
     }
 
-    const { data: paymentLinks, error } = await query;
+    if (search) {
+      query = query.or(`link_code.ilike.%${search}%,title.ilike.%${search}%,customer_name.ilike.%${search}%,customer_email.ilike.%${search}%,customer_phone.ilike.%${search}%`);
+    }
+
+    const { data: paymentLinks, error, count } = await query;
 
     if (error) {
       console.error("Fetch payment links error:", error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ paymentLinks: paymentLinks || [] });
+    return NextResponse.json({ 
+      paymentLinks: paymentLinks || [],
+      total: count || 0,
+      limit,
+      offset
+    });
   } catch (error) {
     console.error("Get payment links error:", error);
     return NextResponse.json({ error: "Failed to fetch payment links" }, { status: 500 });

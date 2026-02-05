@@ -34,6 +34,8 @@ import {
   PieChart,
   Sparkles,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Eye,
   Edit3,
   Trash2,
@@ -41,7 +43,8 @@ import {
   FileSpreadsheet,
   RefreshCw,
   X,
-  Download
+  Download,
+  Link2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -95,6 +98,7 @@ export default function LeadsPage() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [selectedSource, setSelectedSource] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [viewMode, setViewMode] = useState<'kanban' | 'list'>('list');
@@ -102,15 +106,40 @@ export default function LeadsPage() {
   const [uploading, setUploading] = useState(false);
   const [uploadResult, setUploadResult] = useState<{ imported: number; errors: string[] | null } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [matchingLeads, setMatchingLeads] = useState(false);
+  const [matchResult, setMatchResult] = useState<{ matched: number; created: number; errors: string[] | null } | null>(null);
+  
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const pageSize = 100;
+  const totalPages = Math.ceil(totalCount / pageSize);
 
-  // Fetch leads from API
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      setCurrentPage(1);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Fetch leads from API with pagination
   const fetchLeads = async () => {
     try {
       setLoading(true);
-      const res = await fetch('/api/leads?limit=500');
+      const params = new URLSearchParams();
+      params.set('limit', pageSize.toString());
+      params.set('offset', ((currentPage - 1) * pageSize).toString());
+      if (selectedStatus !== 'all') params.set('status', selectedStatus);
+      if (selectedSource !== 'all') params.set('source', selectedSource);
+      if (debouncedSearch) params.set('search', debouncedSearch);
+      
+      const res = await fetch(`/api/leads?${params}`);
       if (res.ok) {
         const data = await res.json();
         setLeads(data.leads || []);
+        setTotalCount(data.total || 0);
       }
     } catch (error) {
       console.error('Failed to fetch leads:', error);
@@ -121,7 +150,7 @@ export default function LeadsPage() {
 
   useEffect(() => {
     fetchLeads();
-  }, []);
+  }, [currentPage, selectedStatus, selectedSource, debouncedSearch]);
 
   // Handle delete lead
   const handleDeleteLead = async (id: string) => {
@@ -136,11 +165,11 @@ export default function LeadsPage() {
     }
   };
 
-  // Calculate stats
-  const totalLeads = leads.length;
-  const newLeads = leads.filter(l => l.status === 'new').length;
-  const wonLeads = leads.filter(l => l.status === 'won').length;
-  const conversionRate = totalLeads > 0 ? Math.round((wonLeads / totalLeads) * 100) : 0;
+  // Calculate stats (use totalCount for total, leads.length for current page)
+  const displayedLeads = leads.length;
+  const newLeadsCount = leads.filter(l => l.status === 'new').length;
+  const wonLeadsCount = leads.filter(l => l.status === 'won').length;
+  const conversionRate = totalCount > 0 ? Math.round((wonLeadsCount / totalCount) * 100) : 0;
 
   // Source breakdown
   const sourceStats = leadSources.map(source => ({
@@ -148,15 +177,8 @@ export default function LeadsPage() {
     count: leads.filter(l => l.source === source.id).length,
   }));
 
-  // Filter leads
-  const filteredLeads = leads.filter(lead => {
-    const matchesSearch = lead.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         lead.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         lead.phone?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesSource = selectedSource === 'all' || lead.source === selectedSource;
-    const matchesStatus = selectedStatus === 'all' || lead.status === selectedStatus;
-    return matchesSearch && matchesSource && matchesStatus;
-  });
+  // Leads are already filtered server-side, just use them directly
+  const filteredLeads = leads;
 
   // Handle Excel file upload
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -221,6 +243,31 @@ export default function LeadsPage() {
     XLSX.writeFile(wb, 'leads_template.xlsx');
   };
 
+  // Match payment links with leads
+  const matchPaymentLinks = async () => {
+    if (!confirm('This will create leads from payment links that don\'t match existing leads. Continue?')) return;
+    
+    try {
+      setMatchingLeads(true);
+      setMatchResult(null);
+      const res = await fetch('/api/leads/match-payment-links', { method: 'POST' });
+      if (res.ok) {
+        const data = await res.json();
+        setMatchResult({ matched: data.matched, created: data.created, errors: data.errors });
+        if (data.created > 0) {
+          fetchLeads(); // Refresh leads list
+        }
+      } else {
+        const error = await res.json();
+        alert(error.error || 'Failed to match payment links');
+      }
+    } catch (error) {
+      console.error('Failed to match payment links:', error);
+    } finally {
+      setMatchingLeads(false);
+    }
+  };
+
   const getSourceIcon = (sourceId: string) => {
     const source = leadSources.find(s => s.id === sourceId);
     return source ? source.icon : Globe;
@@ -263,7 +310,7 @@ export default function LeadsPage() {
                 <Users className="h-5 w-5" />
               </div>
             </div>
-            <p className="text-3xl font-bold">{totalLeads}</p>
+            <p className="text-3xl font-bold">{totalCount}</p>
             <p className="text-sm text-stone-400 mt-1">Total Leads</p>
           </div>
         </div>
@@ -277,7 +324,7 @@ export default function LeadsPage() {
                 <UserPlus className="h-5 w-5" />
               </div>
             </div>
-            <p className="text-3xl font-bold">{newLeads}</p>
+            <p className="text-3xl font-bold">{newLeadsCount}</p>
             <p className="text-sm text-blue-200 mt-1">New Leads</p>
           </div>
         </div>
@@ -291,7 +338,7 @@ export default function LeadsPage() {
                 <CheckCircle className="h-5 w-5" />
               </div>
             </div>
-            <p className="text-3xl font-bold">{wonLeads}</p>
+            <p className="text-3xl font-bold">{wonLeadsCount}</p>
             <p className="text-sm text-green-200 mt-1">Won / Converted</p>
           </div>
         </div>
@@ -378,6 +425,31 @@ export default function LeadsPage() {
               <Download className="h-4 w-4 mr-2" />
               Download Template
             </Button>
+
+            <Button 
+              onClick={matchPaymentLinks}
+              disabled={matchingLeads}
+              variant="outline"
+              className="w-full border-amber-400/30 text-amber-400 hover:bg-amber-500/10"
+            >
+              {matchingLeads ? (
+                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Link2 className="h-4 w-4 mr-2" />
+              )}
+              {matchingLeads ? 'Matching...' : 'Match Payment Links'}
+            </Button>
+
+            {matchResult && (
+              <div className={`p-3 rounded-lg ${matchResult.errors ? 'bg-amber-500/20' : 'bg-green-500/20'}`}>
+                <p className="text-sm">
+                  ✓ Matched {matchResult.matched}, Created {matchResult.created} leads
+                </p>
+                {matchResult.errors?.map((err, i) => (
+                  <p key={i} className="text-xs text-amber-300 mt-1">{err}</p>
+                ))}
+              </div>
+            )}
 
             {uploadResult && (
               <div className={`p-3 rounded-lg ${uploadResult.errors ? 'bg-red-500/20' : 'bg-green-500/20'}`}>
@@ -541,6 +613,58 @@ export default function LeadsPage() {
             <p className="text-sm text-stone-400 mt-1">Try adjusting your filters</p>
           </div>
         )}
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between px-6 py-4 border-t border-stone-200">
+            <div className="text-sm text-stone-500">
+              Showing {((currentPage - 1) * pageSize) + 1} - {Math.min(currentPage * pageSize, totalCount)} of {totalCount} leads
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <div className="flex items-center gap-1">
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pageNum;
+                  if (totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    pageNum = currentPage - 2 + i;
+                  }
+                  return (
+                    <Button
+                      key={pageNum}
+                      variant={currentPage === pageNum ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setCurrentPage(pageNum)}
+                      className="w-8"
+                    >
+                      {pageNum}
+                    </Button>
+                  );
+                })}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Pipeline Summary */}
@@ -549,7 +673,7 @@ export default function LeadsPage() {
         <div className="flex items-center gap-2">
           {leadStatuses.slice(0, -1).map((status, i) => {
             const count = leads.filter(l => l.status === status.id).length;
-            const width = totalLeads > 0 ? Math.max((count / totalLeads) * 100, 5) : 5;
+            const width = displayedLeads > 0 ? Math.max((count / displayedLeads) * 100, 5) : 5;
             return (
               <div key={status.id} className="flex-1" style={{ flex: width }}>
                 <div className={`h-3 ${status.color} ${i === 0 ? 'rounded-l-full' : ''} ${i === leadStatuses.length - 2 ? 'rounded-r-full' : ''}`} />

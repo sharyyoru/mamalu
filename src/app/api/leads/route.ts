@@ -8,26 +8,36 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
     const source = searchParams.get("source");
-    const limit = parseInt(searchParams.get("limit") || "50");
+    const search = searchParams.get("search");
+    const limit = parseInt(searchParams.get("limit") || "100");
+    const offset = parseInt(searchParams.get("offset") || "0");
 
     let query = supabase
       .from("leads")
-      .select("*")
+      .select("*", { count: "exact" })
       .order("created_at", { ascending: false })
-      .limit(limit);
+      .range(offset, offset + limit - 1);
 
-    if (status) {
+    if (status && status !== "all") {
       query = query.eq("status", status);
     }
-    if (source) {
+    if (source && source !== "all") {
       query = query.eq("source", source);
     }
+    if (search) {
+      query = query.or(`name.ilike.%${search}%,email.ilike.%${search}%,phone.ilike.%${search}%,company.ilike.%${search}%`);
+    }
 
-    const { data, error } = await query;
+    const { data, error, count } = await query;
 
     if (error) throw error;
 
-    return NextResponse.json({ leads: data });
+    return NextResponse.json({ 
+      leads: data,
+      total: count || 0,
+      limit,
+      offset 
+    });
   } catch (error) {
     console.error("Error fetching leads:", error);
     return NextResponse.json(
