@@ -39,12 +39,7 @@ const navigation = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { name: "Users & CRM", href: "/admin/users", icon: Users },
   { name: "Leads", href: "/admin/leads", icon: UserPlus },
-  { name: "Classes", href: "/admin/classes", icon: CalendarDays, children: [
-    { name: "Schedule", href: "/admin/classes" },
-    { name: "Class Types", href: "/admin/classes/types" },
-    { name: "Course Series", href: "/admin/classes/series" },
-    { name: "Instructors", href: "/admin/classes/instructors" },
-  ]},
+  { name: "Classes", href: "/admin/classes", icon: CalendarDays },
   { name: "Kitchen Rental", href: "/admin/rentals", icon: Warehouse, children: [
     { name: "Bookings", href: "/admin/rentals" },
     { name: "Assets", href: "/admin/rentals/assets" },
