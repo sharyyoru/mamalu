@@ -2,12 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { stripe } from "@/lib/stripe/server";
 
-// GET: List all invoices
+// GET: List all invoices with date range and filters
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
-    const limit = parseInt(searchParams.get("limit") || "50");
+    const startDate = searchParams.get("startDate");
+    const endDate = searchParams.get("endDate");
+    const serviceType = searchParams.get("serviceType");
+    const limit = parseInt(searchParams.get("limit") || "100");
     const offset = parseInt(searchParams.get("offset") || "0");
 
     const supabase = createAdminClient();
@@ -17,13 +20,39 @@ export async function GET(request: NextRequest) {
 
     let query = supabase
       .from("invoices")
-      .select("*, booking:booking_id(id, booking_number, class_title, attendee_name)")
-      .order("created_at", { ascending: false })
-      .range(offset, offset + limit - 1);
+      .select(`
+        *,
+        service_booking:service_booking_id(
+          id, booking_number, service_name, service_type,
+          customer_name, event_date, event_time, guest_count
+        ),
+        payment_link:payment_link_id(
+          id, link_code, title, stripe_payment_link_url
+        ),
+        creator:created_by(
+          id, full_name, email
+        )
+      `, { count: "exact" })
+      .order("created_at", { ascending: false });
 
+    // Apply filters
     if (status && status !== "all") {
       query = query.eq("status", status);
     }
+
+    if (startDate) {
+      query = query.gte("created_at", `${startDate}T00:00:00`);
+    }
+
+    if (endDate) {
+      query = query.lte("created_at", `${endDate}T23:59:59`);
+    }
+
+    if (serviceType && serviceType !== "all") {
+      query = query.eq("service_type", serviceType);
+    }
+
+    query = query.range(offset, offset + limit - 1);
 
     const { data: invoices, error, count } = await query;
 
@@ -32,7 +61,20 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ invoices, total: count });
+    // Calculate stats
+    const stats = {
+      total: count || 0,
+      draft: invoices?.filter((i) => i.status === "draft").length || 0,
+      sent: invoices?.filter((i) => i.status === "sent").length || 0,
+      paid: invoices?.filter((i) => i.status === "paid").length || 0,
+      cancelled: invoices?.filter((i) => i.status === "cancelled").length || 0,
+      totalAmount: invoices?.reduce((sum, i) => sum + (i.amount || 0), 0) || 0,
+      paidAmount: invoices
+        ?.filter((i) => i.status === "paid")
+        .reduce((sum, i) => sum + (i.amount || 0), 0) || 0,
+    };
+
+    return NextResponse.json({ invoices, total: count, stats });
   } catch (error) {
     console.error("Get invoices error:", error);
     return NextResponse.json({ error: "Failed to fetch invoices" }, { status: 500 });
@@ -44,15 +86,26 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const {
+      // Legacy field for backwards compatibility
       bookingId,
+      // New service booking field
+      serviceBookingId,
+      paymentLinkId,
       customerName,
       customerEmail,
       customerPhone,
       amount,
+      baseAmount,
+      extrasAmount,
       description,
       lineItems,
+      serviceName,
+      serviceType,
+      eventDate,
+      guestCount,
       dueDate,
       notes,
+      createdBy,
       sendImmediately,
     } = body;
 
@@ -70,7 +123,7 @@ export async function POST(request: NextRequest) {
 
     // Generate invoice number
     const { data: invoiceNumData } = await supabase.rpc("generate_invoice_number");
-    const invoiceNumber = invoiceNumData || `INV-${Date.now()}`;
+    const invoiceNumber = invoiceNumData || `INV-${new Date().getFullYear().toString().slice(-2)}-${Date.now().toString().slice(-5)}`;
 
     // Create Stripe payment link
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
@@ -81,9 +134,9 @@ export async function POST(request: NextRequest) {
           price_data: {
             currency: "aed",
             product_data: {
-              name: description || `Invoice ${invoiceNumber}`,
+              name: description || serviceName || `Invoice ${invoiceNumber}`,
               description: lineItems
-                ? lineItems.map((item: { name: string; quantity: number; amount: number }) => 
+                ? lineItems.map((item: { name: string; quantity: number; price: number }) => 
                     `${item.name} x${item.quantity}`
                   ).join(", ")
                 : undefined,
@@ -95,7 +148,8 @@ export async function POST(request: NextRequest) {
       ],
       metadata: {
         invoice_number: invoiceNumber,
-        booking_id: bookingId || "",
+        service_booking_id: serviceBookingId || "",
+        payment_link_id: paymentLinkId || "",
         customer_email: customerEmail,
       },
       after_completion: {
@@ -107,21 +161,30 @@ export async function POST(request: NextRequest) {
     });
 
     // Create invoice record
-    const invoiceData = {
+    const invoiceData: Record<string, any> = {
       invoice_number: invoiceNumber,
       booking_id: bookingId || null,
+      service_booking_id: serviceBookingId || null,
+      payment_link_id: paymentLinkId || null,
       customer_name: customerName,
       customer_email: customerEmail,
       customer_phone: customerPhone || null,
       amount,
+      base_amount: baseAmount || null,
+      extras_amount: extrasAmount || null,
       currency: "AED",
       description: description || null,
       line_items: lineItems || null,
+      service_name: serviceName || null,
+      service_type: serviceType || null,
+      event_date: eventDate || null,
+      guest_count: guestCount || null,
       status: sendImmediately ? "sent" : "draft",
       payment_link: paymentLink.url,
       due_date: dueDate || null,
       sent_at: sendImmediately ? new Date().toISOString() : null,
       notes: notes || null,
+      created_by: createdBy || null,
     };
 
     const { data: invoice, error: insertError } = await supabase
@@ -135,18 +198,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: insertError.message }, { status: 500 });
     }
 
-    // Update booking if linked
-    if (bookingId) {
+    // Update service booking if linked
+    if (serviceBookingId) {
       await supabase
-        .from("class_bookings")
+        .from("service_bookings")
         .update({
+          invoice_id: invoice.id,
           invoice_number: invoiceNumber,
-          invoice_url: paymentLink.url,
-          payment_link: paymentLink.url,
-          payment_link_created_at: new Date().toISOString(),
-          payment_method: "invoice",
         })
-        .eq("id", bookingId);
+        .eq("id", serviceBookingId);
+    }
+
+    // Update payment link if linked
+    if (paymentLinkId) {
+      await supabase
+        .from("payment_links")
+        .update({
+          invoice_id: invoice.id,
+        })
+        .eq("id", paymentLinkId);
     }
 
     return NextResponse.json({

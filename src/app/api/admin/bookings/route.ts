@@ -284,6 +284,49 @@ export async function POST(request: NextRequest) {
           ...paymentLink,
           stripeUrl: stripePaymentLink.url,
         };
+
+        // Create invoice for the booking
+        const { data: invoiceNumData } = await supabase.rpc("generate_invoice_number");
+        const invoiceNumber = invoiceNumData || `INV-${new Date().getFullYear().toString().slice(-2)}-${Date.now().toString().slice(-5)}`;
+
+        const { data: invoice } = await supabase
+          .from("invoices")
+          .insert({
+            invoice_number: invoiceNumber,
+            service_booking_id: booking.id,
+            payment_link_id: paymentLink.id,
+            customer_name: customerName,
+            customer_email: customerEmail,
+            customer_phone: customerPhone || null,
+            amount: totalAmount,
+            base_amount: baseAmount || totalAmount,
+            extras_amount: extrasAmount || 0,
+            currency: "AED",
+            description: productName,
+            line_items: extras || null,
+            service_name: serviceName,
+            service_type: serviceType,
+            event_date: eventDate || null,
+            guest_count: guestCount,
+            status: "sent",
+            payment_link: stripePaymentLink.url,
+            sent_at: new Date().toISOString(),
+            notes: notes || null,
+            created_by: createdBy || null,
+          })
+          .select()
+          .single();
+
+        if (invoice) {
+          // Update booking with invoice reference
+          await supabase
+            .from("service_bookings")
+            .update({ 
+              invoice_id: invoice.id,
+              invoice_number: invoiceNumber,
+            })
+            .eq("id", booking.id);
+        }
       }
     }
 
