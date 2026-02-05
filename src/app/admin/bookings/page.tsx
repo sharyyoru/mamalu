@@ -139,6 +139,10 @@ export default function AdminBookingsPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [copiedLink, setCopiedLink] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  
+  // Date range filters
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
 
   // Get current user on mount
   useEffect(() => {
@@ -160,6 +164,8 @@ export default function AdminBookingsPage() {
       if (paymentFilter !== "all") params.set("payment_status", paymentFilter);
       if (serviceTypeFilter !== "all") params.set("service_type", serviceTypeFilter);
       if (creatorFilter !== "all") params.set("created_by", creatorFilter);
+      if (startDate) params.set("startDate", startDate);
+      if (endDate) params.set("endDate", endDate);
       
       const res = await fetch(`/api/admin/bookings?${params}`);
       if (res.ok) {
@@ -177,7 +183,33 @@ export default function AdminBookingsPage() {
 
   useEffect(() => {
     fetchBookings();
-  }, [statusFilter, paymentFilter, serviceTypeFilter, creatorFilter]);
+  }, [statusFilter, paymentFilter, serviceTypeFilter, creatorFilter, startDate, endDate]);
+
+  const setQuickDateRange = (range: string) => {
+    const today = new Date();
+    let start = new Date();
+    
+    switch (range) {
+      case "today":
+        start = today;
+        break;
+      case "week":
+        start.setDate(today.getDate() - 7);
+        break;
+      case "month":
+        start.setMonth(today.getMonth() - 1);
+        break;
+      case "quarter":
+        start.setMonth(today.getMonth() - 3);
+        break;
+      case "year":
+        start.setFullYear(today.getFullYear() - 1);
+        break;
+    }
+    
+    setStartDate(start.toISOString().split("T")[0]);
+    setEndDate(today.toISOString().split("T")[0]);
+  };
 
   const filteredBookings = bookings.filter((booking) => {
     if (!searchQuery) return true;
@@ -340,7 +372,8 @@ export default function AdminBookingsPage() {
 
       {/* Filters */}
       <Card>
-        <CardContent className="p-4">
+        <CardContent className="p-4 space-y-4">
+          {/* Search and Status Filters */}
           <div className="flex flex-wrap gap-4">
             <div className="flex-1 min-w-[200px]">
               <div className="relative">
@@ -386,20 +419,75 @@ export default function AdminBookingsPage() {
               <option value="corporate_deck">Corporate</option>
               <option value="nanny_class">Nanny Class</option>
             </select>
-            {creators.length > 0 && (
-              <select
-                value={creatorFilter}
-                onChange={(e) => setCreatorFilter(e.target.value)}
-                className="px-4 py-2 border border-stone-200 rounded-lg"
+            <select
+              value={creatorFilter}
+              onChange={(e) => setCreatorFilter(e.target.value)}
+              className="px-4 py-2 border border-stone-200 rounded-lg"
+            >
+              <option value="all">All Staff</option>
+              {creators.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.full_name || c.email}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Date Range */}
+          <div className="flex flex-wrap items-center gap-4 pt-2 border-t">
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-stone-500" />
+              <span className="text-sm font-medium text-stone-700">Date Range:</span>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setQuickDateRange("today")}
+                className="px-3 py-1 text-sm border border-stone-200 rounded-lg hover:bg-stone-50"
               >
-                <option value="all">All Staff</option>
-                {creators.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.full_name || c.email}
-                  </option>
-                ))}
-              </select>
-            )}
+                Today
+              </button>
+              <button
+                onClick={() => setQuickDateRange("week")}
+                className="px-3 py-1 text-sm border border-stone-200 rounded-lg hover:bg-stone-50"
+              >
+                Last 7 Days
+              </button>
+              <button
+                onClick={() => setQuickDateRange("month")}
+                className="px-3 py-1 text-sm border border-stone-200 rounded-lg hover:bg-stone-50"
+              >
+                Last Month
+              </button>
+              <button
+                onClick={() => setQuickDateRange("quarter")}
+                className="px-3 py-1 text-sm border border-stone-200 rounded-lg hover:bg-stone-50"
+              >
+                Last Quarter
+              </button>
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="px-3 py-1.5 text-sm border border-stone-200 rounded-lg"
+              />
+              <span className="text-stone-500">to</span>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="px-3 py-1.5 text-sm border border-stone-200 rounded-lg"
+              />
+              {(startDate || endDate) && (
+                <button
+                  onClick={() => { setStartDate(""); setEndDate(""); }}
+                  className="text-stone-400 hover:text-stone-600"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>

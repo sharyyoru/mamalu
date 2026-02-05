@@ -10,6 +10,8 @@ export async function GET(request: NextRequest) {
     const paymentStatus = searchParams.get("payment_status");
     const serviceType = searchParams.get("service_type");
     const createdBy = searchParams.get("created_by");
+    const startDate = searchParams.get("startDate");
+    const endDate = searchParams.get("endDate");
     const limit = parseInt(searchParams.get("limit") || "100");
     const offset = parseInt(searchParams.get("offset") || "0");
 
@@ -47,6 +49,14 @@ export async function GET(request: NextRequest) {
 
     if (createdBy && createdBy !== "all") {
       query = query.eq("created_by", createdBy);
+    }
+
+    if (startDate) {
+      query = query.gte("created_at", `${startDate}T00:00:00`);
+    }
+
+    if (endDate) {
+      query = query.lte("created_at", `${endDate}T23:59:59`);
     }
 
     const { data: bookings, error } = await query;
