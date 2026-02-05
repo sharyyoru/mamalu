@@ -37,8 +37,8 @@ interface AdminSidebarProps {
 
 const navigation = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
-  { name: "Users & CRM", href: "/admin/users", icon: Users },
-  { name: "Leads", href: "/admin/leads", icon: UserPlus },
+  { name: "Mamalu Users", href: "/admin/users", icon: Users },
+  { name: "Leads CRM", href: "/admin/leads", icon: UserPlus },
   { name: "Classes", href: "/admin/classes", icon: CalendarDays },
   { name: "Kitchen Rental", href: "/admin/rentals", icon: Warehouse, children: [
     { name: "Bookings", href: "/admin/rentals" },
@@ -51,18 +51,15 @@ const navigation = [
   { name: "Attendees", href: "/admin/attendees", icon: ClipboardList },
   { name: "Invoices", href: "/admin/invoices", icon: FileText },
   { name: "Payment Links", href: "/admin/payment-links", icon: LinkIcon },
-  { name: "Payment Extras", href: "/admin/payment-extras", icon: DollarSign },
   { name: "Payment Tracking", href: "/admin/payment-tracking", icon: Clock },
   { name: "WhatsApp Monitor", href: "/admin/whatsapp", icon: Phone, superAdminOnly: true },
   { name: "Orders", href: "/admin/orders", icon: ShoppingBag },
-  { name: "Memberships", href: "/admin/memberships", icon: CreditCard },
   { name: "Marketing", href: "/admin/marketing", icon: Tags, children: [
     { name: "Campaigns", href: "/admin/marketing" },
     { name: "Discounts", href: "/admin/marketing/discounts" },
     { name: "Referrals", href: "/admin/marketing/referrals" },
   ]},
   { name: "Inquiries", href: "/admin/inquiries", icon: MessageSquare },
-  { name: "Notifications", href: "/admin/notifications", icon: Bell },
   { name: "Sales Report", href: "/admin/sales", icon: TrendingUp },
   { name: "Reports", href: "/admin/reports", icon: PieChart },
   { name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
