@@ -164,6 +164,52 @@ export async function POST(request: NextRequest) {
                 })
                 .eq("id", paymentLink.id);
 
+              // Update associated service_booking if exists
+              if (paymentLink.reference_type === "service_booking" && paymentLink.reference_id) {
+                const { data: booking } = await supabase
+                  .from("service_bookings")
+                  .select("is_deposit_payment, deposit_amount, total_amount")
+                  .eq("id", paymentLink.reference_id)
+                  .single();
+
+                if (booking) {
+                  const paidAmount = (session.amount_total || 0) / 100;
+                  const isDepositPayment = booking.is_deposit_payment;
+                  const isFullPayment = !isDepositPayment || paidAmount >= booking.total_amount;
+
+                  await supabase
+                    .from("service_bookings")
+                    .update({
+                      payment_status: isFullPayment ? "paid" : "deposit_paid",
+                      deposit_paid: isDepositPayment ? true : undefined,
+                      paid_at: new Date().toISOString(),
+                      status: "confirmed",
+                    })
+                    .eq("id", paymentLink.reference_id);
+
+                  console.log(`Updated service_booking ${paymentLink.reference_id} payment status`);
+                }
+              }
+
+              // Update associated invoice if exists
+              const { data: invoice } = await supabase
+                .from("invoices")
+                .select("id")
+                .eq("payment_link_id", paymentLink.id)
+                .single();
+
+              if (invoice) {
+                await supabase
+                  .from("invoices")
+                  .update({
+                    status: "paid",
+                    paid_at: new Date().toISOString(),
+                  })
+                  .eq("id", invoice.id);
+
+                console.log(`Updated invoice ${invoice.id} to paid status`);
+              }
+
               // Record transaction
               await supabase.from("payment_transactions").insert({
                 transaction_type: "payment",
@@ -177,6 +223,7 @@ export async function POST(request: NextRequest) {
                   payment_link_id: paymentLink.id,
                   stripe_payment_link_id: stripePaymentLinkId,
                   customer_email: session.customer_email,
+                  service_booking_id: paymentLink.reference_type === "service_booking" ? paymentLink.reference_id : undefined,
                 },
               });
 
