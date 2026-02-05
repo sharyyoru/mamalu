@@ -1,0 +1,22 @@
+{
+  "name": "mamalu-whatsapp-monitor",
+  "version": "1.0.0",
+  "description": "WhatsApp Web monitoring server for cash keyword detection",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node index.js"
+  },
+  "dependencies": {
+    "whatsapp-web.js": "^1.25.0",
+    "qrcode": "^1.5.3",
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "ws": "^8.16.0",
+    "@supabase/supabase-js": "^2.39.0",
+    "dotenv": "^16.3.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

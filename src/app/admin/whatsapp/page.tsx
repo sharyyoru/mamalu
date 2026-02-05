@@ -1,419 +1,590 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { MessageSquare, AlertCircle, CheckCircle, Clock, TrendingUp, X, Loader2 } from "lucide-react";
+import { useEffect, useState, useRef, useCallback } from "react";
+import { 
+  MessageSquare, AlertCircle, CheckCircle, Clock, Wifi, WifiOff, 
+  QrCode, RefreshCw, Loader2, Volume2, VolumeX, Bell, Shield,
+  Phone, User, Calendar, Search, X, ExternalLink
+} from "lucide-react";
 
-interface WhatsAppAccount {
-  id: string;
-  phone_number: string;
-  display_name: string;
-  status: string;
-  connected_at: string;
-  stats: {
-    total_messages: number;
-    pending_flags: number;
-  };
+// WhatsApp Server URL - configure in .env.local
+const WA_SERVER_URL = process.env.NEXT_PUBLIC_WA_SERVER_URL || "http://localhost:3001";
+
+interface ConnectionStatus {
+  status: "disconnected" | "initializing" | "qr_pending" | "authenticated" | "ready";
+  qrCode: string | null;
+  qrDataUrl: string | null;
+  phoneNumber: string | null;
+  displayName: string | null;
+  lastError: string | null;
+  connectedAt: string | null;
 }
 
-interface FlaggedMessage {
+interface CashMention {
   id: string;
-  message_text: string;
-  flag_type: string;
-  confidence_score: number;
-  review_status: string;
-  flagged_at: string;
+  message_id: string;
   from_number: string;
   contact_name: string;
+  message_text: string;
+  timestamp: string;
+  is_group: boolean;
+  matched_keywords: string[];
+  review_status: "pending" | "confirmed" | "false_positive" | "dismissed";
+  notes: string | null;
+}
+
+interface RealtimeAlert {
+  id: string;
+  from: string;
+  contactName: string;
+  text: string;
+  timestamp: string;
+  isGroup: boolean;
 }
 
 export default function WhatsAppMonitoringPage() {
-  const [accounts, setAccounts] = useState<WhatsAppAccount[]>([]);
-  const [flaggedMessages, setFlaggedMessages] = useState<FlaggedMessage[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedAccount, setSelectedAccount] = useState<string | null>(null);
-  const [showConnectModal, setShowConnectModal] = useState(false);
-  const [connecting, setConnecting] = useState(false);
-  const [connectError, setConnectError] = useState<string | null>(null);
-  const [formData, setFormData] = useState({
-    displayName: "",
+  // Connection state
+  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>({
+    status: "disconnected",
+    qrCode: null,
+    qrDataUrl: null,
+    phoneNumber: null,
+    displayName: null,
+    lastError: null,
+    connectedAt: null,
   });
-  const [twilioConfig, setTwilioConfig] = useState<{
-    configured: boolean;
-    whatsappNumber: string | null;
-    webhookUrl: string;
-  } | null>(null);
+  const [serverOnline, setServerOnline] = useState<boolean | null>(null);
+  const [connecting, setConnecting] = useState(false);
 
-  useEffect(() => {
-    fetchAccounts();
-    checkTwilioConfig();
+  // Monitoring state
+  const [cashMentions, setCashMentions] = useState<CashMention[]>([]);
+  const [realtimeAlerts, setRealtimeAlerts] = useState<RealtimeAlert[]>([]);
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<"all" | "pending" | "confirmed">("all");
+
+  // WebSocket ref
+  const wsRef = useRef<WebSocket | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Check server health
+  const checkServerHealth = useCallback(async () => {
+    try {
+      const res = await fetch(`${WA_SERVER_URL}/health`, { 
+        method: "GET",
+        mode: "cors",
+      });
+      setServerOnline(res.ok);
+      return res.ok;
+    } catch {
+      setServerOnline(false);
+      return false;
+    }
   }, []);
 
-  const checkTwilioConfig = async () => {
+  // Fetch current status from server
+  const fetchStatus = useCallback(async () => {
     try {
-      const res = await fetch("/api/whatsapp/connect");
+      const res = await fetch(`${WA_SERVER_URL}/api/status`);
       if (res.ok) {
         const data = await res.json();
-        setTwilioConfig(data);
+        setConnectionStatus(data);
       }
     } catch (error) {
-      console.error("Failed to check Twilio config:", error);
+      console.error("Failed to fetch status:", error);
     }
-  };
+  }, []);
 
-  useEffect(() => {
-    if (selectedAccount) {
-      fetchFlaggedMessages(selectedAccount);
-    }
-  }, [selectedAccount]);
-
-  const fetchAccounts = async () => {
+  // Fetch flagged messages from server
+  const fetchMessages = useCallback(async () => {
     try {
-      const res = await fetch("/api/whatsapp/accounts");
+      const url = new URL(`${WA_SERVER_URL}/api/messages`);
+      if (filter !== "all") {
+        url.searchParams.set("status", filter);
+      }
+      const res = await fetch(url.toString());
       if (res.ok) {
         const data = await res.json();
-        setAccounts(data.accounts || []);
-        if (data.accounts?.length > 0) {
-          setSelectedAccount(data.accounts[0].id);
+        setCashMentions(data.messages || []);
+      }
+    } catch (error) {
+      console.error("Failed to fetch messages:", error);
+    }
+  }, [filter]);
+
+  // Connect WebSocket for real-time updates
+  const connectWebSocket = useCallback(() => {
+    if (wsRef.current?.readyState === WebSocket.OPEN) return;
+
+    const wsUrl = WA_SERVER_URL.replace(/^http/, "ws");
+    const ws = new WebSocket(wsUrl);
+
+    ws.onopen = () => {
+      console.log("WebSocket connected");
+    };
+
+    ws.onmessage = (event) => {
+      try {
+        const message = JSON.parse(event.data);
+        
+        switch (message.type) {
+          case "status":
+            setConnectionStatus(message.data);
+            break;
+          case "qr":
+            setConnectionStatus(prev => ({
+              ...prev,
+              status: "qr_pending",
+              qrDataUrl: message.data.qrDataUrl,
+            }));
+            break;
+          case "ready":
+            fetchMessages();
+            break;
+          case "cash_alert":
+            // Add to realtime alerts
+            setRealtimeAlerts(prev => [message.data, ...prev].slice(0, 50));
+            // Play sound if enabled
+            if (soundEnabled && audioRef.current) {
+              audioRef.current.play().catch(() => {});
+            }
+            // Refresh messages list
+            fetchMessages();
+            break;
+          case "disconnected":
+            setConnectionStatus(prev => ({
+              ...prev,
+              status: "disconnected",
+              lastError: message.data?.reason,
+            }));
+            break;
         }
+      } catch (error) {
+        console.error("WebSocket message parse error:", error);
       }
-    } catch (error) {
-      console.error("Failed to fetch accounts:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
-  const fetchFlaggedMessages = async (accountId: string) => {
-    try {
-      const res = await fetch(`/api/whatsapp/messages?account_id=${accountId}&flagged_only=true&limit=20`);
-      if (res.ok) {
-        const data = await res.json();
-        setFlaggedMessages(data.messages || []);
-      }
-    } catch (error) {
-      console.error("Failed to fetch flagged messages:", error);
-    }
-  };
+    ws.onclose = () => {
+      console.log("WebSocket disconnected");
+      // Reconnect after 3 seconds
+      setTimeout(() => {
+        if (serverOnline) {
+          connectWebSocket();
+        }
+      }, 3000);
+    };
 
-  const updateReviewStatus = async (messageId: string, status: string) => {
-    try {
-      const res = await fetch(`/api/whatsapp/messages/${messageId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ review_status: status }),
-      });
-      if (res.ok) {
-        fetchFlaggedMessages(selectedAccount!);
-      }
-    } catch (error) {
-      console.error("Failed to update review status:", error);
-    }
-  };
+    ws.onerror = (error) => {
+      console.error("WebSocket error:", error);
+    };
 
-  const handleConnectAccount = async (e: React.FormEvent) => {
-    e.preventDefault();
+    wsRef.current = ws;
+  }, [serverOnline, soundEnabled, fetchMessages]);
+
+  // Initialize WhatsApp connection
+  const initializeConnection = async () => {
     setConnecting(true);
-    setConnectError(null);
-
     try {
-      const res = await fetch("/api/whatsapp/connect", {
+      const res = await fetch(`${WA_SERVER_URL}/api/connect`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ displayName: formData.displayName }),
       });
-
       const data = await res.json();
-
       if (!res.ok) {
-        throw new Error(data.error || "Failed to connect account");
+        throw new Error(data.error || "Failed to initialize");
       }
-
-      // Success - close modal and refresh accounts
-      setShowConnectModal(false);
-      setFormData({ displayName: "" });
-      fetchAccounts();
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to connect account";
-      setConnectError(errorMessage);
+    } catch (error) {
+      console.error("Failed to initialize:", error);
     } finally {
       setConnecting(false);
     }
   };
 
+  // Disconnect WhatsApp
+  const disconnectWhatsApp = async () => {
+    try {
+      await fetch(`${WA_SERVER_URL}/api/disconnect`, { method: "POST" });
+    } catch (error) {
+      console.error("Failed to disconnect:", error);
+    }
+  };
+
+  // Update review status
+  const updateReviewStatus = async (id: string, status: string) => {
+    try {
+      const res = await fetch(`${WA_SERVER_URL}/api/messages/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ review_status: status }),
+      });
+      if (res.ok) {
+        fetchMessages();
+      }
+    } catch (error) {
+      console.error("Failed to update status:", error);
+    }
+  };
+
+  // Initial setup
+  useEffect(() => {
+    const init = async () => {
+      setLoading(true);
+      const online = await checkServerHealth();
+      if (online) {
+        await fetchStatus();
+        await fetchMessages();
+        connectWebSocket();
+      }
+      setLoading(false);
+    };
+    init();
+
+    // Cleanup
+    return () => {
+      wsRef.current?.close();
+    };
+  }, [checkServerHealth, fetchStatus, fetchMessages, connectWebSocket]);
+
+  // Refetch messages when filter changes
+  useEffect(() => {
+    if (serverOnline) {
+      fetchMessages();
+    }
+  }, [filter, serverOnline, fetchMessages]);
+
+  // Status badge colors
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "ready": return "bg-green-100 text-green-800";
+      case "authenticated": return "bg-blue-100 text-blue-800";
+      case "qr_pending": return "bg-amber-100 text-amber-800";
+      case "initializing": return "bg-blue-100 text-blue-800";
+      default: return "bg-stone-100 text-stone-800";
+    }
+  };
+
   if (loading) {
     return (
-      <div className="p-8">
-        <div className="animate-pulse">
-          <div className="h-8 bg-stone-200 rounded w-1/4 mb-4"></div>
-          <div className="h-32 bg-stone-200 rounded mb-4"></div>
-        </div>
+      <div className="h-screen flex items-center justify-center">
+        <RefreshCw className="h-8 w-8 animate-spin text-stone-400" />
       </div>
     );
   }
 
-  const connectModal = showConnectModal && (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-4 border-b">
-          <h2 className="text-xl font-semibold">Connect WhatsApp Account</h2>
-          <button
-            onClick={() => setShowConnectModal(false)}
-            className="p-1 hover:bg-stone-100 rounded"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-        <form onSubmit={handleConnectAccount} className="p-4 space-y-4">
-          {connectError && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-              {connectError}
-            </div>
-          )}
-
-          {!twilioConfig?.configured ? (
-            <div className="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded">
-              <p className="font-medium">Twilio not configured</p>
-              <p className="text-sm mt-1">Please add the following environment variables:</p>
-              <ul className="text-sm mt-2 list-disc list-inside">
-                <li>TWILIO_ACCOUNT_SID</li>
-                <li>TWILIO_AUTH_TOKEN</li>
-                <li>TWILIO_WHATSAPP_NUMBER</li>
-              </ul>
-            </div>
-          ) : (
-            <>
-              <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded">
-                <p className="font-medium">Twilio Connected</p>
-                <p className="text-sm mt-1">WhatsApp Number: {twilioConfig.whatsappNumber}</p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-stone-700 mb-1">
-                  Display Name *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.displayName}
-                  onChange={(e) => setFormData({ ...formData, displayName: e.target.value })}
-                  placeholder="e.g., Mamalu Kitchen Support"
-                  className="w-full px-3 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
-                />
-              </div>
-
-              <div className="bg-stone-50 border border-stone-200 rounded-lg p-3">
-                <p className="text-sm font-medium text-stone-700">Webhook URL</p>
-                <p className="text-xs text-stone-600 mt-1 break-all font-mono">{twilioConfig.webhookUrl}</p>
-                <p className="text-xs text-stone-500 mt-2">Add this URL in Twilio Console → Messaging → WhatsApp Sandbox Settings</p>
-              </div>
-            </>
-          )}
-
-          <div className="flex gap-3 pt-4">
-            <button
-              type="button"
-              onClick={() => setShowConnectModal(false)}
-              className="flex-1 px-4 py-2 border border-stone-300 text-stone-700 rounded-lg hover:bg-stone-50"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={connecting || !twilioConfig?.configured}
-              className="flex-1 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              {connecting ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Connecting...
-                </>
-              ) : (
-                "Activate Monitoring"
-              )}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-
-  if (accounts.length === 0) {
+  // Server offline state
+  if (serverOnline === false) {
     return (
-      <>
-        <div className="p-8">
-          <h1 className="text-3xl font-bold mb-6">WhatsApp Monitoring</h1>
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-6">
-            <div className="flex items-start gap-4">
-              <MessageSquare className="h-8 w-8 text-amber-600 flex-shrink-0" />
-              <div>
-                <h2 className="text-xl font-semibold text-amber-900 mb-2">No WhatsApp Accounts Connected</h2>
-                <p className="text-amber-800 mb-4">
-                  Connect your WhatsApp Business account to start monitoring messages for cash mentions.
+      <div className="p-8">
+        <h1 className="text-3xl font-bold mb-6">WhatsApp Cash Monitor</h1>
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+          <div className="flex items-start gap-4">
+            <WifiOff className="h-8 w-8 text-red-600 flex-shrink-0" />
+            <div>
+              <h2 className="text-xl font-semibold text-red-900 mb-2">WhatsApp Server Offline</h2>
+              <p className="text-red-800 mb-4">
+                The WhatsApp monitoring server is not running. Please start the server to enable monitoring.
+              </p>
+              <div className="bg-red-100 rounded-lg p-4 mb-4">
+                <p className="font-mono text-sm text-red-900">
+                  cd whatsapp-server<br />
+                  npm install<br />
+                  npm start
                 </p>
-                <button 
-                  onClick={() => setShowConnectModal(true)}
-                  className="bg-amber-600 text-white px-4 py-2 rounded-lg hover:bg-amber-700"
-                >
-                  Connect WhatsApp Account
-                </button>
               </div>
+              <p className="text-sm text-red-700 mb-4">
+                Server URL: <code className="bg-red-100 px-2 py-1 rounded">{WA_SERVER_URL}</code>
+              </p>
+              <button
+                onClick={() => checkServerHealth()}
+                className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 flex items-center gap-2"
+              >
+                <RefreshCw className="h-4 w-4" />
+                Retry Connection
+              </button>
             </div>
           </div>
         </div>
-        {connectModal}
-      </>
+      </div>
     );
   }
-
-  const selectedAccountData = accounts.find(a => a.id === selectedAccount);
 
   return (
-    <div className="p-8">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">WhatsApp Monitoring</h1>
-        <p className="text-stone-600">Monitor WhatsApp messages for cash mentions and suspicious activity</p>
-      </div>
+    <div className="h-[calc(100vh-64px)] flex flex-col">
+      {/* Hidden audio element for alerts */}
+      <audio ref={audioRef} src="/sounds/alert.mp3" preload="auto" />
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-stone-600">Total Messages</span>
-            <MessageSquare className="h-5 w-5 text-blue-600" />
+      {/* Header */}
+      <div className="p-4 border-b bg-white">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-stone-900">WhatsApp Cash Monitor</h1>
+            <p className="text-stone-500 text-sm">Monitor conversations for cash keyword mentions</p>
           </div>
-          <div className="text-3xl font-bold">{selectedAccountData?.stats.total_messages || 0}</div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-stone-600">Pending Flags</span>
-            <AlertCircle className="h-5 w-5 text-amber-600" />
-          </div>
-          <div className="text-3xl font-bold text-amber-600">{selectedAccountData?.stats.pending_flags || 0}</div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-stone-600">Connected Accounts</span>
-            <TrendingUp className="h-5 w-5 text-green-600" />
-          </div>
-          <div className="text-3xl font-bold">{accounts.length}</div>
-        </div>
-      </div>
-
-      <div className="bg-white rounded-lg shadow mb-6">
-        <div className="p-6 border-b border-stone-200">
-          <h2 className="text-xl font-semibold mb-4">Connected Accounts</h2>
-          <div className="flex gap-2 flex-wrap">
-            {accounts.map((account) => (
-              <button
-                key={account.id}
-                onClick={() => setSelectedAccount(account.id)}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  selectedAccount === account.id
-                    ? "bg-amber-600 text-white"
-                    : "bg-stone-100 text-stone-700 hover:bg-stone-200"
-                }`}
-              >
-                {account.display_name || account.phone_number}
-                {account.stats.pending_flags > 0 && (
-                  <span className="ml-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-                    {account.stats.pending_flags}
-                  </span>
-                )}
-              </button>
-            ))}
+          <div className="flex items-center gap-3">
+            <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(connectionStatus.status)}`}>
+              {connectionStatus.status === "ready" ? "Connected" : connectionStatus.status.replace("_", " ")}
+            </span>
+            <button
+              onClick={() => setSoundEnabled(!soundEnabled)}
+              className="p-2 hover:bg-stone-100 rounded-lg"
+              title={soundEnabled ? "Mute alerts" : "Enable alerts"}
+            >
+              {soundEnabled ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5 text-stone-400" />}
+            </button>
+            <button
+              onClick={fetchMessages}
+              className="p-2 hover:bg-stone-100 rounded-lg"
+              title="Refresh"
+            >
+              <RefreshCw className="h-5 w-5" />
+            </button>
           </div>
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow">
-        <div className="p-6 border-b border-stone-200">
-          <h2 className="text-xl font-semibold">Flagged Messages</h2>
-        </div>
-        <div className="divide-y divide-stone-200">
-          {flaggedMessages.length === 0 ? (
-            <div className="p-8 text-center text-stone-500">
-              <CheckCircle className="h-12 w-12 mx-auto mb-3 text-green-500" />
-              <p>No flagged messages found</p>
-            </div>
-          ) : (
-            flaggedMessages.map((message) => (
-              <div key={message.id} className="p-6 hover:bg-stone-50">
-                <div className="flex items-start justify-between mb-3">
-                  <div>
-                    <div className="font-semibold text-stone-900">
-                      {message.contact_name || message.from_number}
+      {/* Main content - Split Panel */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Left Panel - QR Code / Connection */}
+        <div className="w-96 border-r bg-stone-50 flex flex-col">
+          <div className="p-4 border-b bg-white">
+            <h2 className="font-semibold flex items-center gap-2">
+              <QrCode className="h-5 w-5" />
+              WhatsApp Connection
+            </h2>
+          </div>
+
+          <div className="flex-1 p-4 overflow-y-auto">
+            {connectionStatus.status === "ready" ? (
+              // Connected state
+              <div className="space-y-4">
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                      <Wifi className="h-6 w-6 text-green-600" />
                     </div>
-                    <div className="text-sm text-stone-500">
-                      {new Date(message.flagged_at).toLocaleString()}
+                    <div>
+                      <p className="font-semibold text-green-900">{connectionStatus.displayName || "Connected"}</p>
+                      <p className="text-sm text-green-700">{connectionStatus.phoneNumber}</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      message.flag_type === "cash_mention" ? "bg-amber-100 text-amber-800" :
-                      message.flag_type === "suspicious_activity" ? "bg-red-100 text-red-800" :
-                      "bg-blue-100 text-blue-800"
-                    }`}>
-                      {message.flag_type.replace("_", " ")}
-                    </span>
-                    <span className="text-sm text-stone-600">
-                      {Math.round(message.confidence_score * 100)}% confidence
-                    </span>
+                  <p className="text-xs text-green-600">
+                    Connected since {connectionStatus.connectedAt ? new Date(connectionStatus.connectedAt).toLocaleString() : "now"}
+                  </p>
+                </div>
+
+                <div className="bg-white border rounded-lg p-4">
+                  <h3 className="font-medium mb-2 flex items-center gap-2">
+                    <Shield className="h-4 w-4 text-amber-600" />
+                    Monitoring Keywords
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    <span className="px-2 py-1 bg-amber-100 text-amber-800 rounded text-sm">cash</span>
+                    <span className="px-2 py-1 bg-amber-100 text-amber-800 rounded text-sm">نقد</span>
+                    <span className="px-2 py-1 bg-amber-100 text-amber-800 rounded text-sm">كاش</span>
                   </div>
                 </div>
 
-                <div className="bg-stone-50 rounded p-3 mb-3">
-                  <p className="text-stone-700">{message.message_text}</p>
+                <button
+                  onClick={disconnectWhatsApp}
+                  className="w-full px-4 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50"
+                >
+                  Disconnect WhatsApp
+                </button>
+              </div>
+            ) : connectionStatus.status === "qr_pending" && connectionStatus.qrDataUrl ? (
+              // QR Code state
+              <div className="space-y-4">
+                <div className="bg-white border rounded-lg p-4 text-center">
+                  <img 
+                    src={connectionStatus.qrDataUrl} 
+                    alt="WhatsApp QR Code" 
+                    className="mx-auto mb-4"
+                  />
+                  <p className="text-sm text-stone-600 mb-2">
+                    Scan this QR code with WhatsApp
+                  </p>
+                  <ol className="text-xs text-stone-500 text-left space-y-1">
+                    <li>1. Open WhatsApp on your phone</li>
+                    <li>2. Go to Settings → Linked Devices</li>
+                    <li>3. Tap &quot;Link a Device&quot;</li>
+                    <li>4. Scan this QR code</li>
+                  </ol>
+                </div>
+              </div>
+            ) : connectionStatus.status === "initializing" || connectionStatus.status === "authenticated" ? (
+              // Initializing state
+              <div className="bg-white border rounded-lg p-8 text-center">
+                <Loader2 className="h-12 w-12 animate-spin text-amber-600 mx-auto mb-4" />
+                <p className="font-medium text-stone-900">
+                  {connectionStatus.status === "authenticated" ? "Authenticated, loading..." : "Initializing WhatsApp..."}
+                </p>
+                <p className="text-sm text-stone-500 mt-2">
+                  Please wait while we connect to WhatsApp
+                </p>
+              </div>
+            ) : (
+              // Disconnected state
+              <div className="space-y-4">
+                <div className="bg-white border rounded-lg p-6 text-center">
+                  <div className="w-16 h-16 bg-stone-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <MessageSquare className="h-8 w-8 text-stone-400" />
+                  </div>
+                  <h3 className="font-semibold text-stone-900 mb-2">Connect WhatsApp</h3>
+                  <p className="text-sm text-stone-500 mb-4">
+                    Connect your WhatsApp account to start monitoring for cash mentions
+                  </p>
+                  <button
+                    onClick={initializeConnection}
+                    disabled={connecting}
+                    className="w-full px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {connecting ? (
+                      <>
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                        Connecting...
+                      </>
+                    ) : (
+                      <>
+                        <QrCode className="h-5 w-5" />
+                        Generate QR Code
+                      </>
+                    )}
+                  </button>
                 </div>
 
-                {message.review_status === "pending" && (
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => updateReviewStatus(message.id, "confirmed")}
-                      className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-sm"
-                    >
-                      Confirm Violation
-                    </button>
-                    <button
-                      onClick={() => updateReviewStatus(message.id, "false_positive")}
-                      className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
-                    >
-                      False Positive
-                    </button>
-                    <button
-                      onClick={() => updateReviewStatus(message.id, "dismissed")}
-                      className="px-4 py-2 bg-stone-300 text-stone-700 rounded hover:bg-stone-400 text-sm"
-                    >
-                      Dismiss
-                    </button>
-                  </div>
-                )}
-
-                {message.review_status !== "pending" && (
-                  <div className="flex items-center gap-2 text-sm">
-                    {message.review_status === "confirmed" && (
-                      <>
-                        <AlertCircle className="h-4 w-4 text-red-600" />
-                        <span className="text-red-600 font-medium">Confirmed Violation</span>
-                      </>
-                    )}
-                    {message.review_status === "false_positive" && (
-                      <>
-                        <CheckCircle className="h-4 w-4 text-green-600" />
-                        <span className="text-green-600 font-medium">Marked as False Positive</span>
-                      </>
-                    )}
-                    {message.review_status === "dismissed" && (
-                      <>
-                        <Clock className="h-4 w-4 text-stone-500" />
-                        <span className="text-stone-500 font-medium">Dismissed</span>
-                      </>
-                    )}
+                {connectionStatus.lastError && (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                    <p className="text-sm text-red-700">{connectionStatus.lastError}</p>
                   </div>
                 )}
               </div>
-            ))
-          )}
+            )}
+
+            {/* Real-time alerts preview */}
+            {realtimeAlerts.length > 0 && (
+              <div className="mt-4">
+                <h3 className="font-medium mb-2 flex items-center gap-2">
+                  <Bell className="h-4 w-4 text-red-500" />
+                  Recent Alerts
+                </h3>
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {realtimeAlerts.slice(0, 5).map((alert, idx) => (
+                    <div key={idx} className="bg-red-50 border border-red-200 rounded p-2 text-sm">
+                      <p className="font-medium text-red-900">{alert.contactName || alert.from}</p>
+                      <p className="text-red-700 truncate">{alert.text}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Right Panel - Flagged Messages */}
+        <div className="flex-1 flex flex-col bg-white">
+          <div className="p-4 border-b flex items-center justify-between">
+            <h2 className="font-semibold flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-amber-600" />
+              Cash Mentions ({cashMentions.length})
+            </h2>
+            <div className="flex items-center gap-2">
+              <select
+                value={filter}
+                onChange={(e) => setFilter(e.target.value as typeof filter)}
+                className="px-3 py-1.5 border rounded-lg text-sm"
+              >
+                <option value="all">All</option>
+                <option value="pending">Pending Review</option>
+                <option value="confirmed">Confirmed</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="flex-1 overflow-y-auto">
+            {cashMentions.length === 0 ? (
+              <div className="h-full flex items-center justify-center text-center p-8">
+                <div>
+                  <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
+                  <h3 className="font-semibold text-stone-900 mb-2">No Cash Mentions</h3>
+                  <p className="text-stone-500">
+                    {connectionStatus.status === "ready" 
+                      ? "All clear! No suspicious messages detected."
+                      : "Connect WhatsApp to start monitoring messages."}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="divide-y">
+                {cashMentions.map((mention) => (
+                  <div key={mention.id} className="p-4 hover:bg-stone-50">
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-stone-200 rounded-full flex items-center justify-center">
+                          <User className="h-5 w-5 text-stone-500" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-stone-900">
+                            {mention.contact_name || mention.from_number}
+                          </p>
+                          <p className="text-xs text-stone-500 flex items-center gap-1">
+                            <Calendar className="h-3 w-3" />
+                            {new Date(mention.timestamp).toLocaleString()}
+                            {mention.is_group && (
+                              <span className="ml-2 px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-xs">Group</span>
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${
+                        mention.review_status === "pending" ? "bg-amber-100 text-amber-800" :
+                        mention.review_status === "confirmed" ? "bg-red-100 text-red-800" :
+                        mention.review_status === "false_positive" ? "bg-green-100 text-green-800" :
+                        "bg-stone-100 text-stone-600"
+                      }`}>
+                        {mention.review_status}
+                      </span>
+                    </div>
+
+                    <div className="bg-stone-100 rounded-lg p-3 mb-3">
+                      <p className="text-stone-800 whitespace-pre-wrap">{mention.message_text}</p>
+                      {mention.matched_keywords?.length > 0 && (
+                        <div className="mt-2 flex gap-1">
+                          {mention.matched_keywords.map((kw, i) => (
+                            <span key={i} className="px-1.5 py-0.5 bg-amber-200 text-amber-900 rounded text-xs">
+                              {kw}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {mention.review_status === "pending" && (
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => updateReviewStatus(mention.id, "confirmed")}
+                          className="px-3 py-1.5 bg-red-600 text-white rounded hover:bg-red-700 text-sm"
+                        >
+                          Confirm Violation
+                        </button>
+                        <button
+                          onClick={() => updateReviewStatus(mention.id, "false_positive")}
+                          className="px-3 py-1.5 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
+                        >
+                          False Positive
+                        </button>
+                        <button
+                          onClick={() => updateReviewStatus(mention.id, "dismissed")}
+                          className="px-3 py-1.5 bg-stone-200 text-stone-700 rounded hover:bg-stone-300 text-sm"
+                        >
+                          Dismiss
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

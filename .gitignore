@@ -36,6 +36,11 @@ yarn-error.log*
 # vercel
 .vercel
 
+# whatsapp server
+/whatsapp-server/node_modules
+/whatsapp-server/whatsapp-session
+/whatsapp-server/.env
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
