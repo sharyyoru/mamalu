@@ -184,6 +184,30 @@ export async function GET(request: NextRequest) {
       return names[type] || type;
     };
 
+    // Format bookings for Depachika report
+    const formattedBookings = (bookings || [])
+      .filter((b: any) => b.status === "confirmed" || b.status === "completed")
+      .map((b: any) => ({
+        id: b.id,
+        booking_number: b.booking_number,
+        service_type: b.service_type,
+        service_name: b.service_name,
+        menu_name: b.menu_name,
+        customer_name: b.customer_name,
+        customer_email: b.customer_email,
+        event_date: b.event_date,
+        created_at: b.created_at,
+        paid_at: b.paid_at,
+        guest_count: b.guest_count || 1,
+        base_amount: b.base_amount || b.total_amount || 0,
+        extras_amount: b.extras_amount || 0,
+        total_amount: b.total_amount || 0,
+        payment_status: b.payment_status,
+        status: b.status,
+        special_requests: b.special_requests,
+      }))
+      .sort((a: any, b: any) => new Date(a.event_date || a.created_at).getTime() - new Date(b.event_date || b.created_at).getTime());
+
     return NextResponse.json({
       period: { from: fromISO, to: toISO },
       summary: {
@@ -211,6 +235,7 @@ export async function GET(request: NextRequest) {
         typeName: formatServiceType(item.type),
       })),
       dailyData,
+      bookings: formattedBookings,
     });
   } catch (error: any) {
     console.error("Sales report error:", error);

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import * as XLSX from "xlsx";
 import {
   RefreshCw,
   TrendingUp,
@@ -18,6 +19,9 @@ import {
   ArrowUp,
   ArrowDown,
   Download,
+  FileSpreadsheet,
+  BarChart3,
+  ClipboardList,
 } from "lucide-react";
 
 interface SalesData {
@@ -49,6 +53,32 @@ interface SalesData {
     revenue: number;
   }>;
   dailyData: Array<{ date: string; revenue: number; bookings: number }>;
+  bookings: Array<{
+    id: string;
+    booking_number: string;
+    service_type: string;
+    service_name: string;
+    menu_name: string;
+    customer_name: string;
+    customer_email: string;
+    event_date: string;
+    created_at: string;
+    paid_at: string;
+    guest_count: number;
+    base_amount: number;
+    extras_amount: number;
+    total_amount: number;
+    payment_status: string;
+    status: string;
+    special_requests: string;
+  }>;
+  monthlyBreakdown: Array<{
+    month: string;
+    foods: number;
+    drinks: number;
+    addons: number;
+    total: number;
+  }>;
 }
 
 const serviceIcons: Record<string, any> = {
@@ -69,6 +99,9 @@ export default function AdminSalesPage() {
   const [salesData, setSalesData] = useState<SalesData | null>(null);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState("month");
+  const [activeTab, setActiveTab] = useState<"overview" | "management" | "depachika">("overview");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
 
   useEffect(() => {
     fetchSalesData();
@@ -77,7 +110,11 @@ export default function AdminSalesPage() {
   const fetchSalesData = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`/api/admin/sales-report?period=${period}`);
+      let url = `/api/admin/sales-report?period=${period}`;
+      if (startDate && endDate) {
+        url += `&start_date=${startDate}&end_date=${endDate}`;
+      }
+      const res = await fetch(url);
       if (res.ok) {
         const data = await res.json();
         setSalesData(data);
@@ -86,6 +123,12 @@ export default function AdminSalesPage() {
       console.error("Failed to fetch sales data:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchWithDateRange = () => {
+    if (startDate && endDate) {
+      fetchSalesData();
     }
   };
 
@@ -98,6 +141,130 @@ export default function AdminSalesPage() {
       month: "short",
       day: "numeric",
     });
+  };
+
+  const exportManagementReport = () => {
+    if (!salesData) return;
+
+    const wb = XLSX.utils.book_new();
+
+    // Sales Summary Sheet
+    const summaryData = [
+      ["MAMALU KITCHEN - MANAGEMENT REPORT"],
+      [`Period: ${new Date(salesData.period.from).toLocaleDateString()} - ${new Date(salesData.period.to).toLocaleDateString()}`],
+      [],
+      ["SALES SUMMARY"],
+      ["Category", "Amount (AED)"],
+      ["Service Bookings", salesData.summary.serviceRevenue],
+      ["Class Bookings", salesData.summary.classRevenue],
+      ["Payment Links", salesData.summary.paymentLinkRevenue],
+      ["TOTAL REVENUE", salesData.summary.totalRevenue],
+      [],
+      ["BOOKING STATISTICS"],
+      ["Metric", "Count"],
+      ["Total Bookings", salesData.summary.totalBookings],
+      ["Service Bookings", salesData.summary.serviceBookings],
+      ["Class Bookings", salesData.summary.classBookings],
+      ["Payment Links", salesData.summary.paymentLinks],
+      ["Total Guests", salesData.summary.totalGuests],
+    ];
+    const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
+    XLSX.utils.book_append_sheet(wb, summarySheet, "Sales Summary");
+
+    // Daily Sales Sheet
+    const dailyData = [
+      ["DAILY SALES REPORT"],
+      [],
+      ["Date", "Revenue (AED)", "Bookings"],
+      ...(salesData.dailyData?.map(day => [
+        new Date(day.date).toLocaleDateString(),
+        day.revenue,
+        day.bookings
+      ]) || []),
+    ];
+    const dailySheet = XLSX.utils.aoa_to_sheet(dailyData);
+    XLSX.utils.book_append_sheet(wb, dailySheet, "Daily Sales");
+
+    // Sales by Service Type Sheet
+    const serviceData = [
+      ["SALES BY SERVICE TYPE"],
+      [],
+      ["Service Type", "Bookings", "Revenue (AED)", "Guests"],
+      ...(salesData.serviceSales?.map(service => [
+        service.name,
+        service.count,
+        service.revenue,
+        service.guests
+      ]) || []),
+    ];
+    const serviceSheet = XLSX.utils.aoa_to_sheet(serviceData);
+    XLSX.utils.book_append_sheet(wb, serviceSheet, "By Service Type");
+
+    // Top Sellers Sheet
+    const topData = [
+      ["TOP 10 BEST SELLERS"],
+      [],
+      ["Rank", "Item Name", "Service Type", "Orders", "Revenue (AED)"],
+      ...(salesData.bestSellers?.slice(0, 10).map((item, idx) => [
+        idx + 1,
+        item.name,
+        item.typeName,
+        item.count,
+        item.revenue
+      ]) || []),
+    ];
+    const topSheet = XLSX.utils.aoa_to_sheet(topData);
+    XLSX.utils.book_append_sheet(wb, topSheet, "Top 10 Sellers");
+
+    XLSX.writeFile(wb, `Management-Report-${new Date().toISOString().split("T")[0]}.xlsx`);
+  };
+
+  const exportDepachikaReport = () => {
+    if (!salesData?.bookings) return;
+
+    const wb = XLSX.utils.book_new();
+
+    const reportData = [
+      ["DEPACHIKA MONTHLY REPORT - MAMALU KITCHEN"],
+      [`Period: ${new Date(salesData.period.from).toLocaleDateString()} - ${new Date(salesData.period.to).toLocaleDateString()}`],
+      [],
+      ["#", "Event Date", "Class Type", "Payment Date", "Customer Name", "Price/Person", "Walk-in", "Price Calc", "Attendees", "Base Amount", "Extras", "Total Amount", "Notes"],
+      ...salesData.bookings.map((booking, idx) => [
+        idx + 1,
+        booking.event_date ? new Date(booking.event_date).toLocaleDateString() : "-",
+        booking.service_name || booking.service_type,
+        booking.paid_at ? new Date(booking.paid_at).toLocaleDateString() : "-",
+        booking.customer_name,
+        booking.guest_count > 0 ? Math.round(booking.base_amount / booking.guest_count) : booking.base_amount,
+        booking.service_type === "walkin_menu" ? 1 : "",
+        `=${booking.base_amount}`,
+        booking.guest_count,
+        booking.base_amount,
+        booking.extras_amount || 0,
+        booking.total_amount,
+        booking.special_requests || ""
+      ]),
+      [],
+      ["", "", "", "", "", "", "", "", "TOTALS:", 
+        salesData.bookings.reduce((sum, b) => sum + (b.base_amount || 0), 0),
+        salesData.bookings.reduce((sum, b) => sum + (b.extras_amount || 0), 0),
+        salesData.bookings.reduce((sum, b) => sum + (b.total_amount || 0), 0),
+        ""
+      ],
+    ];
+
+    const ws = XLSX.utils.aoa_to_sheet(reportData);
+    
+    // Set column widths
+    ws["!cols"] = [
+      { wch: 5 }, { wch: 12 }, { wch: 25 }, { wch: 12 }, { wch: 20 },
+      { wch: 12 }, { wch: 8 }, { wch: 12 }, { wch: 10 }, { wch: 12 },
+      { wch: 10 }, { wch: 12 }, { wch: 30 }
+    ];
+
+    XLSX.utils.book_append_sheet(wb, ws, new Date().toLocaleString("default", { month: "long", year: "numeric" }).toUpperCase());
+
+    XLSX.writeFile(wb, `Depachika-Report-${new Date().toISOString().split("T")[0]}.xlsx`);
   };
 
   const exportToCSV = () => {
@@ -138,9 +305,9 @@ export default function AdminSalesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-stone-900">Sales Report</h1>
+          <h1 className="text-3xl font-bold text-stone-900">Sales & Reports</h1>
           <p className="text-stone-500 mt-1">
-            Track revenue, bookings, and best sellers across all services
+            Track revenue, bookings, and generate exportable reports
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -154,10 +321,6 @@ export default function AdminSalesPage() {
             <option value="quarter">Last 3 Months</option>
             <option value="year">Last Year</option>
           </select>
-          <Button variant="outline" onClick={exportToCSV}>
-            <Download className="h-4 w-4 mr-2" />
-            Export CSV
-          </Button>
           <Button variant="outline" onClick={fetchSalesData}>
             <RefreshCw className="h-4 w-4 mr-2" />
             Refresh
@@ -165,7 +328,261 @@ export default function AdminSalesPage() {
         </div>
       </div>
 
-      {/* Summary Cards */}
+      {/* Tabs */}
+      <div className="flex items-center gap-1 p-1 bg-stone-100 rounded-lg w-fit">
+        <button
+          onClick={() => setActiveTab("overview")}
+          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+            activeTab === "overview"
+              ? "bg-white text-stone-900 shadow-sm"
+              : "text-stone-600 hover:text-stone-900"
+          }`}
+        >
+          <BarChart3 className="h-4 w-4 inline mr-2" />
+          Overview
+        </button>
+        <button
+          onClick={() => setActiveTab("management")}
+          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+            activeTab === "management"
+              ? "bg-white text-stone-900 shadow-sm"
+              : "text-stone-600 hover:text-stone-900"
+          }`}
+        >
+          <ClipboardList className="h-4 w-4 inline mr-2" />
+          Management Report
+        </button>
+        <button
+          onClick={() => setActiveTab("depachika")}
+          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+            activeTab === "depachika"
+              ? "bg-white text-stone-900 shadow-sm"
+              : "text-stone-600 hover:text-stone-900"
+          }`}
+        >
+          <FileSpreadsheet className="h-4 w-4 inline mr-2" />
+          Depachika Report
+        </button>
+      </div>
+
+      {/* Management Report Tab */}
+      {activeTab === "management" && (
+        <div className="space-y-6">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle>Management Report</CardTitle>
+              <Button onClick={exportManagementReport} className="bg-green-600 hover:bg-green-700">
+                <Download className="h-4 w-4 mr-2" />
+                Export Excel
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <p className="text-stone-500 mb-6">
+                Monthly sales breakdown with daily reports, service type analysis, and top sellers.
+              </p>
+
+              {/* Sales Summary Table */}
+              <div className="mb-8">
+                <h3 className="font-semibold text-lg mb-4">Sales Summary</h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="bg-stone-100">
+                        <th className="border border-stone-200 px-4 py-2 text-left">Category</th>
+                        <th className="border border-stone-200 px-4 py-2 text-right">Amount (AED)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td className="border border-stone-200 px-4 py-2">Service Bookings</td>
+                        <td className="border border-stone-200 px-4 py-2 text-right">{formatCurrency(salesData?.summary.serviceRevenue || 0)}</td>
+                      </tr>
+                      <tr>
+                        <td className="border border-stone-200 px-4 py-2">Class Bookings</td>
+                        <td className="border border-stone-200 px-4 py-2 text-right">{formatCurrency(salesData?.summary.classRevenue || 0)}</td>
+                      </tr>
+                      <tr>
+                        <td className="border border-stone-200 px-4 py-2">Payment Links</td>
+                        <td className="border border-stone-200 px-4 py-2 text-right">{formatCurrency(salesData?.summary.paymentLinkRevenue || 0)}</td>
+                      </tr>
+                      <tr className="bg-stone-50 font-bold">
+                        <td className="border border-stone-200 px-4 py-2">TOTAL REVENUE</td>
+                        <td className="border border-stone-200 px-4 py-2 text-right">{formatCurrency(salesData?.summary.totalRevenue || 0)}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Daily Sales Table */}
+              <div className="mb-8">
+                <h3 className="font-semibold text-lg mb-4">Daily Sales Report</h3>
+                <div className="overflow-x-auto max-h-96">
+                  <table className="w-full border-collapse">
+                    <thead className="sticky top-0">
+                      <tr className="bg-stone-100">
+                        <th className="border border-stone-200 px-4 py-2 text-left">Date</th>
+                        <th className="border border-stone-200 px-4 py-2 text-right">Revenue (AED)</th>
+                        <th className="border border-stone-200 px-4 py-2 text-right">Bookings</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {salesData?.dailyData?.map((day, idx) => (
+                        <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-stone-50"}>
+                          <td className="border border-stone-200 px-4 py-2">{new Date(day.date).toLocaleDateString()}</td>
+                          <td className="border border-stone-200 px-4 py-2 text-right">{formatCurrency(day.revenue)}</td>
+                          <td className="border border-stone-200 px-4 py-2 text-right">{day.bookings}</td>
+                        </tr>
+                      ))}
+                      {(!salesData?.dailyData || salesData.dailyData.length === 0) && (
+                        <tr>
+                          <td colSpan={3} className="border border-stone-200 px-4 py-8 text-center text-stone-500">
+                            No daily data available
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Top 10 Sellers */}
+              <div>
+                <h3 className="font-semibold text-lg mb-4">Top 10 Best Sellers</h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="bg-stone-100">
+                        <th className="border border-stone-200 px-4 py-2 text-center">Rank</th>
+                        <th className="border border-stone-200 px-4 py-2 text-left">Item Name</th>
+                        <th className="border border-stone-200 px-4 py-2 text-left">Service Type</th>
+                        <th className="border border-stone-200 px-4 py-2 text-right">Orders</th>
+                        <th className="border border-stone-200 px-4 py-2 text-right">Revenue (AED)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {salesData?.bestSellers?.slice(0, 10).map((item, idx) => (
+                        <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-stone-50"}>
+                          <td className="border border-stone-200 px-4 py-2 text-center font-bold">#{idx + 1}</td>
+                          <td className="border border-stone-200 px-4 py-2">{item.name}</td>
+                          <td className="border border-stone-200 px-4 py-2">
+                            <Badge className={serviceColors[item.type] || "bg-stone-100 text-stone-700"}>
+                              {item.typeName}
+                            </Badge>
+                          </td>
+                          <td className="border border-stone-200 px-4 py-2 text-right">{item.count}</td>
+                          <td className="border border-stone-200 px-4 py-2 text-right">{formatCurrency(item.revenue)}</td>
+                        </tr>
+                      ))}
+                      {(!salesData?.bestSellers || salesData.bestSellers.length === 0) && (
+                        <tr>
+                          <td colSpan={5} className="border border-stone-200 px-4 py-8 text-center text-stone-500">
+                            No sales data available
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Depachika Report Tab */}
+      {activeTab === "depachika" && (
+        <div className="space-y-6">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle>Depachika Monthly Report</CardTitle>
+              <Button onClick={exportDepachikaReport} className="bg-green-600 hover:bg-green-700">
+                <Download className="h-4 w-4 mr-2" />
+                Export Excel
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <p className="text-stone-500 mb-6">
+                Detailed booking list with event dates, customer names, pricing breakdown, and totals.
+              </p>
+
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse text-sm">
+                  <thead className="sticky top-0">
+                    <tr className="bg-stone-100">
+                      <th className="border border-stone-200 px-3 py-2 text-center">#</th>
+                      <th className="border border-stone-200 px-3 py-2 text-left">Event Date</th>
+                      <th className="border border-stone-200 px-3 py-2 text-left">Class Type</th>
+                      <th className="border border-stone-200 px-3 py-2 text-left">Payment Date</th>
+                      <th className="border border-stone-200 px-3 py-2 text-left">Customer Name</th>
+                      <th className="border border-stone-200 px-3 py-2 text-right">Price/Person</th>
+                      <th className="border border-stone-200 px-3 py-2 text-right">Attendees</th>
+                      <th className="border border-stone-200 px-3 py-2 text-right">Base Amount</th>
+                      <th className="border border-stone-200 px-3 py-2 text-right">Extras</th>
+                      <th className="border border-stone-200 px-3 py-2 text-right">Total</th>
+                      <th className="border border-stone-200 px-3 py-2 text-left">Notes</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {salesData?.bookings?.map((booking, idx) => (
+                      <tr key={booking.id || idx} className={idx % 2 === 0 ? "bg-white" : "bg-stone-50"}>
+                        <td className="border border-stone-200 px-3 py-2 text-center">{idx + 1}</td>
+                        <td className="border border-stone-200 px-3 py-2">
+                          {booking.event_date ? new Date(booking.event_date).toLocaleDateString() : "-"}
+                        </td>
+                        <td className="border border-stone-200 px-3 py-2">{booking.service_name || booking.service_type}</td>
+                        <td className="border border-stone-200 px-3 py-2">
+                          {booking.paid_at ? new Date(booking.paid_at).toLocaleDateString() : "-"}
+                        </td>
+                        <td className="border border-stone-200 px-3 py-2 font-medium">{booking.customer_name}</td>
+                        <td className="border border-stone-200 px-3 py-2 text-right">
+                          {booking.guest_count > 0 ? Math.round(booking.base_amount / booking.guest_count) : booking.base_amount}
+                        </td>
+                        <td className="border border-stone-200 px-3 py-2 text-right">{booking.guest_count}</td>
+                        <td className="border border-stone-200 px-3 py-2 text-right">{booking.base_amount}</td>
+                        <td className="border border-stone-200 px-3 py-2 text-right">{booking.extras_amount || 0}</td>
+                        <td className="border border-stone-200 px-3 py-2 text-right font-bold">{booking.total_amount}</td>
+                        <td className="border border-stone-200 px-3 py-2 text-stone-500 text-xs max-w-[200px] truncate">
+                          {booking.special_requests || "-"}
+                        </td>
+                      </tr>
+                    ))}
+                    {(!salesData?.bookings || salesData.bookings.length === 0) && (
+                      <tr>
+                        <td colSpan={11} className="border border-stone-200 px-4 py-8 text-center text-stone-500">
+                          No booking data available for this period
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                  {salesData?.bookings && salesData.bookings.length > 0 && (
+                    <tfoot>
+                      <tr className="bg-stone-100 font-bold">
+                        <td colSpan={7} className="border border-stone-200 px-3 py-2 text-right">TOTALS:</td>
+                        <td className="border border-stone-200 px-3 py-2 text-right">
+                          {formatCurrency(salesData.bookings.reduce((sum, b) => sum + (b.base_amount || 0), 0))}
+                        </td>
+                        <td className="border border-stone-200 px-3 py-2 text-right">
+                          {formatCurrency(salesData.bookings.reduce((sum, b) => sum + (b.extras_amount || 0), 0))}
+                        </td>
+                        <td className="border border-stone-200 px-3 py-2 text-right">
+                          {formatCurrency(salesData.bookings.reduce((sum, b) => sum + (b.total_amount || 0), 0))}
+                        </td>
+                        <td className="border border-stone-200 px-3 py-2"></td>
+                      </tr>
+                    </tfoot>
+                  )}
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Overview Tab (existing content) */}
+      {activeTab === "overview" && (
+        <>
+          {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-6">
@@ -438,6 +855,8 @@ export default function AdminSalesPage() {
           </div>
         </CardContent>
       </Card>
+        </>
+      )}
     </div>
   );
 }
