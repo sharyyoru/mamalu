@@ -63,9 +63,21 @@ export default function WhatsAppMonitoringPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "pending" | "confirmed">("all");
 
-  // WebSocket ref
+  // Refs
   const wsRef = useRef<WebSocket | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const serverOnlineRef = useRef<boolean | null>(null);
+  const soundEnabledRef = useRef(true);
+
+  // Keep refs in sync
+  useEffect(() => {
+    serverOnlineRef.current = serverOnline;
+  }, [serverOnline]);
+
+  useEffect(() => {
+    soundEnabledRef.current = soundEnabled;
+  }, [soundEnabled]);
 
   // Check server health
   const checkServerHealth = useCallback(async () => {
@@ -79,19 +91,6 @@ export default function WhatsAppMonitoringPage() {
     } catch {
       setServerOnline(false);
       return false;
-    }
-  }, []);
-
-  // Fetch current status from server
-  const fetchStatus = useCallback(async () => {
-    try {
-      const res = await fetch(`${WA_SERVER_URL}/api/status`);
-      if (res.ok) {
-        const data = await res.json();
-        setConnectionStatus(data);
-      }
-    } catch (error) {
-      console.error("Failed to fetch status:", error);
     }
   }, []);
 
@@ -116,6 +115,12 @@ export default function WhatsAppMonitoringPage() {
   const connectWebSocket = useCallback(() => {
     if (wsRef.current?.readyState === WebSocket.OPEN) return;
 
+    // Clear any pending reconnect timeout
+    if (reconnectTimeoutRef.current) {
+      clearTimeout(reconnectTimeoutRef.current);
+      reconnectTimeoutRef.current = null;
+    }
+
     const wsUrl = WA_SERVER_URL.replace(/^http/, "ws");
     const ws = new WebSocket(wsUrl);
 
@@ -139,17 +144,24 @@ export default function WhatsAppMonitoringPage() {
             }));
             break;
           case "ready":
-            fetchMessages();
+            // Fetch messages on ready
+            fetch(`${WA_SERVER_URL}/api/messages`)
+              .then(res => res.json())
+              .then(data => setCashMentions(data.messages || []))
+              .catch(console.error);
             break;
           case "cash_alert":
             // Add to realtime alerts
             setRealtimeAlerts(prev => [message.data, ...prev].slice(0, 50));
-            // Play sound if enabled
-            if (soundEnabled && audioRef.current) {
+            // Play sound if enabled (use ref to avoid dependency)
+            if (soundEnabledRef.current && audioRef.current) {
               audioRef.current.play().catch(() => {});
             }
             // Refresh messages list
-            fetchMessages();
+            fetch(`${WA_SERVER_URL}/api/messages`)
+              .then(res => res.json())
+              .then(data => setCashMentions(data.messages || []))
+              .catch(console.error);
             break;
           case "disconnected":
             setConnectionStatus(prev => ({
@@ -166,9 +178,10 @@ export default function WhatsAppMonitoringPage() {
 
     ws.onclose = () => {
       console.log("WebSocket disconnected");
-      // Reconnect after 3 seconds
-      setTimeout(() => {
-        if (serverOnline) {
+      wsRef.current = null;
+      // Reconnect after 3 seconds using ref to check server status
+      reconnectTimeoutRef.current = setTimeout(() => {
+        if (serverOnlineRef.current) {
           connectWebSocket();
         }
       }, 3000);
@@ -179,7 +192,7 @@ export default function WhatsAppMonitoringPage() {
     };
 
     wsRef.current = ws;
-  }, [serverOnline, soundEnabled, fetchMessages]);
+  }, []);
 
   // Initialize WhatsApp connection
   const initializeConnection = async () => {
@@ -225,15 +238,35 @@ export default function WhatsAppMonitoringPage() {
     }
   };
 
-  // Initial setup
+  // Initial setup - run once on mount
   useEffect(() => {
     const init = async () => {
       setLoading(true);
-      const online = await checkServerHealth();
-      if (online) {
-        await fetchStatus();
-        await fetchMessages();
-        connectWebSocket();
+      try {
+        const res = await fetch(`${WA_SERVER_URL}/health`, { method: "GET", mode: "cors" });
+        const online = res.ok;
+        setServerOnline(online);
+        serverOnlineRef.current = online;
+        
+        if (online) {
+          // Fetch status
+          const statusRes = await fetch(`${WA_SERVER_URL}/api/status`);
+          if (statusRes.ok) {
+            const statusData = await statusRes.json();
+            setConnectionStatus(statusData);
+          }
+          // Fetch messages
+          const messagesRes = await fetch(`${WA_SERVER_URL}/api/messages`);
+          if (messagesRes.ok) {
+            const messagesData = await messagesRes.json();
+            setCashMentions(messagesData.messages || []);
+          }
+          // Connect WebSocket
+          connectWebSocket();
+        }
+      } catch {
+        setServerOnline(false);
+        serverOnlineRef.current = false;
       }
       setLoading(false);
     };
@@ -241,9 +274,12 @@ export default function WhatsAppMonitoringPage() {
 
     // Cleanup
     return () => {
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+      }
       wsRef.current?.close();
     };
-  }, [checkServerHealth, fetchStatus, fetchMessages, connectWebSocket]);
+  }, [connectWebSocket]);
 
   // Refetch messages when filter changes
   useEffect(() => {

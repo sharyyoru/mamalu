@@ -22,9 +22,14 @@ const MONITORED_KEYWORDS = ['cash', 'نقد', 'كاش'];
 
 // Supabase client
 let supabase = null;
-if (SUPABASE_URL && SUPABASE_SERVICE_KEY) {
-  supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
-  console.log('✓ Supabase connected');
+if (SUPABASE_URL && SUPABASE_SERVICE_KEY && SUPABASE_URL.startsWith('http')) {
+  try {
+    supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+    console.log('✓ Supabase connected');
+  } catch (err) {
+    console.warn('⚠ Supabase connection failed:', err.message);
+    supabase = null;
+  }
 } else {
   console.warn('⚠ Supabase not configured - messages will not be stored');
 }
