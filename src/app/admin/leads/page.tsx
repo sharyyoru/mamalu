@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { 
   UserPlus,
@@ -67,7 +68,9 @@ const leadStatuses = [
   { id: 'proposal', name: 'Proposal', color: 'bg-cyan-500', bgLight: 'bg-cyan-100 text-cyan-700' },
   { id: 'negotiation', name: 'Negotiation', color: 'bg-orange-500', bgLight: 'bg-orange-100 text-orange-700' },
   { id: 'won', name: 'Won', color: 'bg-green-500', bgLight: 'bg-green-100 text-green-700' },
-  { id: 'lost', name: 'Lost', color: 'bg-red-500', bgLight: 'bg-red-100 text-red-700' },
+  { id: 'sold_hot', name: 'Sold - Hot', color: 'bg-red-500', bgLight: 'bg-red-100 text-red-700' },
+  { id: 'sold_cold', name: 'Sold - Cold', color: 'bg-cyan-500', bgLight: 'bg-cyan-100 text-cyan-700' },
+  { id: 'lost', name: 'Lost', color: 'bg-stone-500', bgLight: 'bg-stone-100 text-stone-700' },
 ];
 
 interface Lead {
@@ -88,6 +91,7 @@ interface Lead {
 }
 
 export default function LeadsPage() {
+  const router = useRouter();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -118,6 +122,19 @@ export default function LeadsPage() {
   useEffect(() => {
     fetchLeads();
   }, []);
+
+  // Handle delete lead
+  const handleDeleteLead = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this lead?')) return;
+    try {
+      const res = await fetch(`/api/leads/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        setLeads(leads.filter(l => l.id !== id));
+      }
+    } catch (error) {
+      console.error('Failed to delete lead:', error);
+    }
+  };
 
   // Calculate stats
   const totalLeads = leads.length;
@@ -499,13 +516,13 @@ export default function LeadsPage() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button variant="ghost" size="sm">
+                        <Button variant="ghost" size="sm" onClick={() => router.push(`/admin/leads/${lead.id}`)}>
                           <Eye className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="sm">
+                        <Button variant="ghost" size="sm" onClick={() => router.push(`/admin/leads/${lead.id}`)}>
                           <Edit3 className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-600 hover:bg-red-50">
+                        <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-600 hover:bg-red-50" onClick={() => handleDeleteLead(lead.id)}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
