@@ -12,7 +12,7 @@ const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
 
 // Configuration
-const PORT = process.env.WA_SERVER_PORT || 3001;
+const PORT = process.env.PORT || process.env.WA_SERVER_PORT || 3001;
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000,https://mamalu.vercel.app').split(',');
@@ -138,6 +138,7 @@ function initializeWhatsApp() {
     }),
     puppeteer: {
       headless: true,
+      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
