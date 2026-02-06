@@ -41,29 +41,37 @@ export async function GET(request: NextRequest) {
     if (error) throw error;
 
     // Build stats query with same date filter but no pagination/status/source filter
-    let statsQuery = supabase.from("leads").select("source, status");
-    if (startDate) {
-      statsQuery = statsQuery.gte("created_at", startDate);
+    // Paginate to handle >1000 leads (Supabase default row limit)
+    let allLeadsForStats: { source: string; status: string }[] = [];
+    let statsOffset = 0;
+    const statsPageSize = 1000;
+    while (true) {
+      let statsQuery = supabase.from("leads").select("source, status")
+        .range(statsOffset, statsOffset + statsPageSize - 1);
+      if (startDate) {
+        statsQuery = statsQuery.gte("created_at", startDate);
+      }
+      if (endDate) {
+        statsQuery = statsQuery.lte("created_at", `${endDate}T23:59:59`);
+      }
+      const { data: statsPage } = await statsQuery;
+      if (!statsPage || statsPage.length === 0) break;
+      allLeadsForStats = allLeadsForStats.concat(statsPage);
+      if (statsPage.length < statsPageSize) break;
+      statsOffset += statsPageSize;
     }
-    if (endDate) {
-      statsQuery = statsQuery.lte("created_at", `${endDate}T23:59:59`);
-    }
-    
-    const { data: allLeadsForStats, error: statsError } = await statsQuery;
     
     // Calculate stats from all leads (within date range)
     const stats = {
-      total: allLeadsForStats?.length || 0,
+      total: allLeadsForStats.length,
       bySource: {} as Record<string, number>,
       byStatus: {} as Record<string, number>,
     };
     
-    if (allLeadsForStats) {
-      allLeadsForStats.forEach(lead => {
-        stats.bySource[lead.source] = (stats.bySource[lead.source] || 0) + 1;
-        stats.byStatus[lead.status] = (stats.byStatus[lead.status] || 0) + 1;
-      });
-    }
+    allLeadsForStats.forEach(lead => {
+      stats.bySource[lead.source] = (stats.bySource[lead.source] || 0) + 1;
+      stats.byStatus[lead.status] = (stats.byStatus[lead.status] || 0) + 1;
+    });
 
     return NextResponse.json({ 
       leads: data,
