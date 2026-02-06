@@ -277,11 +277,29 @@ export default function LeadDetailPage() {
       const res = await fetch(`/api/leads/${leadId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(editForm),
+        body: JSON.stringify({
+          name: editForm.name,
+          email: editForm.email,
+          phone: editForm.phone,
+          company: editForm.company,
+          status: editForm.status,
+          assigned_to: editForm.assigned_to,
+          notes: editForm.notes,
+          lead_type: editForm.lead_type,
+          source: editForm.source,
+          interests: editForm.interests,
+          budget_range: editForm.budget_range,
+        }),
       });
       if (res.ok) {
-        const data = await res.json();
-        setLead({ ...lead, ...data.lead });
+        // Re-fetch the full lead with relations to properly rehydrate
+        const refreshRes = await fetch(`/api/leads/${leadId}`);
+        if (refreshRes.ok) {
+          const refreshData = await refreshRes.json();
+          setLead(refreshData.lead);
+          setEditForm(refreshData.lead);
+          setStats(refreshData.stats || { totalRevenue: 0, totalBookings: 0, totalInvoices: 0 });
+        }
         setIsEditing(false);
       }
     } catch (error) {
