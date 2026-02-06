@@ -74,7 +74,7 @@ function containsKeyword(text) {
 }
 
 // Store flagged message in Supabase
-async function storeFlaggedMessage(message, chatInfo) {
+async function storeFlaggedMessage(message, chatInfo, fromMe = false) {
   if (!supabase) {
     console.log('Flagged message (not stored - no Supabase):', message.body);
     return null;
@@ -85,9 +85,9 @@ async function storeFlaggedMessage(message, chatInfo) {
       .from('whatsapp_cash_mentions')
       .insert({
         message_id: message.id._serialized,
-        from_number: message.from,
-        to_number: message.to,
-        contact_name: chatInfo?.name || message.from,
+        from_number: fromMe ? message.to : message.from,
+        to_number: fromMe ? message.from : message.to,
+        contact_name: chatInfo?.name || (fromMe ? message.to : message.from),
         message_text: message.body,
         timestamp: new Date(message.timestamp * 1000).toISOString(),
         chat_id: message.from,
@@ -207,13 +207,17 @@ function initializeWhatsApp() {
     broadcast('ready', { message: 'WhatsApp is ready for monitoring' });
   });
 
-  // Message event - monitor for keywords
-  whatsappClient.on('message', async (message) => {
+  // Message event - monitor ALL messages (including self-sent) for keywords
+  whatsappClient.on('message_create', async (message) => {
     try {
       // Skip status messages
       if (message.isStatus) return;
 
       const messageText = message.body || '';
+      const isSelf = message.fromMe;
+      
+      // Log every message for diagnostics
+      console.log(`📩 Message ${isSelf ? '(sent)' : '(received)'}: "${messageText.substring(0, 50)}" from=${message.from} to=${message.to}`);
       
       if (containsKeyword(messageText)) {
         console.log('🚨 CASH KEYWORD DETECTED:', messageText.substring(0, 100));
@@ -224,20 +228,24 @@ function initializeWhatsApp() {
           const chat = await message.getChat();
           chatInfo = { name: chat.name || chat.id.user };
         } catch (e) {
-          chatInfo = { name: message.from };
+          chatInfo = { name: isSelf ? message.to : message.from };
         }
 
+        // For self-sent messages, use 'to' as the chat identifier
+        const chatId = isSelf ? message.to : message.from;
+
         // Store in database
-        const storedMessage = await storeFlaggedMessage(message, chatInfo);
+        const storedMessage = await storeFlaggedMessage(message, chatInfo, isSelf);
 
         // Broadcast alert to connected clients
         broadcast('cash_alert', {
           id: storedMessage?.id || message.id._serialized,
-          from: message.from,
+          from: chatId,
           contactName: chatInfo?.name,
           text: messageText,
           timestamp: new Date(message.timestamp * 1000).toISOString(),
-          isGroup: message.from.includes('@g.us')
+          isGroup: chatId.includes('@g.us'),
+          fromMe: isSelf
         });
       }
     } catch (err) {
@@ -399,6 +407,51 @@ app.patch('/api/messages/:id', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+});
+
+// Test endpoint - simulate a cash keyword message to verify pipeline
+app.post('/api/test-alert', async (req, res) => {
+  const testMessage = {
+    id: { _serialized: 'test_' + Date.now() },
+    from: 'test@c.us',
+    to: 'self@c.us',
+    body: req.body?.text || 'Test cash mention',
+    timestamp: Math.floor(Date.now() / 1000),
+    isStatus: false,
+    fromMe: false
+  };
+
+  const chatInfo = { name: req.body?.from || 'Test Contact' };
+
+  if (containsKeyword(testMessage.body)) {
+    const stored = await storeFlaggedMessage(testMessage, chatInfo, false);
+    broadcast('cash_alert', {
+      id: stored?.id || testMessage.id._serialized,
+      from: testMessage.from,
+      contactName: chatInfo.name,
+      text: testMessage.body,
+      timestamp: new Date().toISOString(),
+      isGroup: false,
+      fromMe: false
+    });
+    return res.json({ success: true, detected: true, stored: !!stored });
+  }
+
+  res.json({ success: true, detected: false, message: 'No keyword found in text' });
+});
+
+// Diagnostics endpoint
+app.get('/api/diagnostics', (req, res) => {
+  res.json({
+    serverStatus: 'running',
+    whatsappStatus: connectionState.status,
+    supabaseConnected: !!supabase,
+    monitoredKeywords: MONITORED_KEYWORDS,
+    wsClientsCount: wsClients.size,
+    eventListener: 'message_create',
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString()
+  });
 });
 
 // WebSocket connection handling
