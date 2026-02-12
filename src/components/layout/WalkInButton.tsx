@@ -7,13 +7,13 @@ export function WalkInButton() {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="fixed bottom-24 right-6 z-40 flex flex-col items-end gap-3">
+    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
       {expanded && (
         <div className="bg-white rounded-2xl shadow-2xl border border-stone-200 p-5 w-72 animate-in slide-in-from-bottom-2 fade-in duration-200">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <ChefHat className="h-5 w-5 text-amber-600" />
-              <h3 className="font-bold text-stone-900">Walk-Ins</h3>
+              <h3 className="font-bold text-stone-900">Walk-In Customers</h3>
             </div>
             <button
               onClick={() => setExpanded(false)}
@@ -38,10 +38,16 @@ export function WalkInButton() {
       )}
       <button
         onClick={() => setExpanded(!expanded)}
-        className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-full p-4 shadow-lg hover:shadow-xl transition-all hover:scale-105"
-        aria-label="Walk-ins available"
+        className="w-16 h-16 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-110 animate-bounce"
+        style={{ animationDuration: "2s" }}
+        aria-label="Walk-in Customers"
       >
-        <ChefHat className="h-6 w-6" />
+        <ChefHat className="h-7 w-7" />
+        {!expanded && (
+          <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-[10px] font-bold">
+            !
+          </span>
+        )}
       </button>
     </div>
   );

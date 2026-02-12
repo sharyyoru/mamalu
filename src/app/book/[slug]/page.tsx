@@ -27,6 +27,8 @@ import {
   PartyPopper,
   Utensils,
   Music,
+  ChefHat,
+  MessageCircle,
 } from "lucide-react";
 
 interface ServicePackage {
@@ -521,6 +523,28 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
         </div>
       </div>
 
+      {/* Walk-In Customers Banner */}
+      <div className="bg-gradient-to-r from-amber-500 to-orange-500">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3 text-white">
+              <ChefHat className="h-5 w-5" />
+              <span className="font-medium text-sm">Walk-In Customers Welcome!</span>
+              <span className="text-white/80 text-sm hidden sm:inline">Feeling spontaneous? Check our last-minute availability</span>
+            </div>
+            <a
+              href="https://wa.me/97145897860?text=Hi!%20I%27d%20like%20to%20check%20walk-in%20availability"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-white/20 hover:bg-white/30 text-white text-sm font-medium px-4 py-1.5 rounded-full transition-colors flex items-center gap-1.5"
+            >
+              <MessageCircle className="h-3.5 w-3.5" />
+              WhatsApp Us
+            </a>
+          </div>
+        </div>
+      </div>
+
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Main Content */}
@@ -562,6 +586,23 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
                   <p className="text-stone-500 mt-1">2-hour hands-on cooking experience with professional chefs</p>
                   <p className="text-sm text-stone-400 mt-2">Min: 6 guests • Max: 35 guests</p>
                 </div>
+
+                {/* Guest Count Selector */}
+                <Card>
+                  <CardContent className="p-5">
+                    <label className="block text-sm font-medium text-stone-700 mb-3">Number of Guests</label>
+                    <div className="flex items-center gap-4">
+                      <Button variant="outline" size="icon" onClick={() => setGuestCount(Math.max(6, guestCount - 1))} disabled={guestCount <= 6}>
+                        <Minus className="h-4 w-4" />
+                      </Button>
+                      <span className="text-2xl font-bold w-12 text-center">{guestCount}</span>
+                      <Button variant="outline" size="icon" onClick={() => setGuestCount(Math.min(35, guestCount + 1))} disabled={guestCount >= 35}>
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                      <span className="text-sm text-stone-500">(Min: 6, Max: 35)</span>
+                    </div>
+                  </CardContent>
+                </Card>
 
                 <div className="grid gap-4">
                   {corporateMenus.map((menu) => (
@@ -635,6 +676,23 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
                   <p className="text-stone-500 mt-1">2-hour private birthday cooking experience</p>
                   <p className="text-sm text-stone-400 mt-2">Min: 6 guests • Max: 35 guests • Price per person</p>
                 </div>
+
+                {/* Guest Count Selector */}
+                <Card>
+                  <CardContent className="p-5">
+                    <label className="block text-sm font-medium text-stone-700 mb-3">Number of Kids</label>
+                    <div className="flex items-center gap-4">
+                      <Button variant="outline" size="icon" onClick={() => setGuestCount(Math.max(6, guestCount - 1))} disabled={guestCount <= 6}>
+                        <Minus className="h-4 w-4" />
+                      </Button>
+                      <span className="text-2xl font-bold w-12 text-center">{guestCount}</span>
+                      <Button variant="outline" size="icon" onClick={() => setGuestCount(Math.min(35, guestCount + 1))} disabled={guestCount >= 35}>
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                      <span className="text-sm text-stone-500">(Min: 6, Max: 35)</span>
+                    </div>
+                  </CardContent>
+                </Card>
 
                 <div className="grid md:grid-cols-2 gap-4">
                   {birthdayMenus.map((menu) => (
@@ -958,8 +1016,8 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
                         <Button
                           variant="outline"
                           size="icon"
-                          onClick={() => setGuestCount(Math.max(selectedPackage?.min_guests || 1, guestCount - 1))}
-                          disabled={guestCount <= (selectedPackage?.min_guests || 1)}
+                          onClick={() => setGuestCount(Math.max(hasMenuSelection ? 6 : (selectedPackage?.min_guests || 1), guestCount - 1))}
+                          disabled={guestCount <= (hasMenuSelection ? 6 : (selectedPackage?.min_guests || 1))}
                         >
                           <Minus className="h-4 w-4" />
                         </Button>
@@ -967,13 +1025,13 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
                         <Button
                           variant="outline"
                           size="icon"
-                          onClick={() => setGuestCount(Math.min(selectedPackage?.max_guests || 50, guestCount + 1))}
-                          disabled={guestCount >= (selectedPackage?.max_guests || 50)}
+                          onClick={() => setGuestCount(Math.min(hasMenuSelection ? 35 : (selectedPackage?.max_guests || 50), guestCount + 1))}
+                          disabled={guestCount >= (hasMenuSelection ? 35 : (selectedPackage?.max_guests || 50))}
                         >
                           <Plus className="h-4 w-4" />
                         </Button>
                         <span className="text-sm text-stone-500">
-                          (Min: {selectedPackage?.min_guests}, Max: {selectedPackage?.max_guests})
+                          (Min: {hasMenuSelection ? 6 : selectedPackage?.min_guests}, Max: {hasMenuSelection ? 35 : selectedPackage?.max_guests})
                         </span>
                       </div>
                     </div>
