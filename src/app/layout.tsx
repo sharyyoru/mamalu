@@ -4,6 +4,7 @@ import { Geist, Geist_Mono, Patrick_Hand, Poppins } from "next/font/google";
 import { Header, Footer } from "@/components/layout";
 import { SocialSidebar } from "@/components/layout/SocialSidebar";
 import { LiveChat } from "@/components/layout/LiveChat";
+import { WalkInButton } from "@/components/layout/WalkInButton";
 import LoadingScreen from "@/components/layout/LoadingScreen";
 import "./globals.css";
 
@@ -76,6 +77,7 @@ export default async function RootLayout({
           <>
             <SocialSidebar />
             <LiveChat />
+            <WalkInButton />
           </>
         )}
       </body>

@@ -100,6 +100,16 @@ const leadStatuses = [
   { id: "lost", name: "Lost", color: "bg-stone-100 text-stone-700" },
 ];
 
+const leadSources = [
+  { id: "instagram", name: "Instagram" },
+  { id: "facebook", name: "Facebook" },
+  { id: "website", name: "Website" },
+  { id: "whatsapp", name: "WhatsApp" },
+  { id: "phone", name: "Phone Call" },
+  { id: "walkin", name: "Walk-in" },
+  { id: "referral", name: "Referral" },
+];
+
 const bookingTypes = [
   { id: "birthday", name: "Birthday Party" },
   { id: "corporate", name: "Corporate Event" },
@@ -728,6 +738,58 @@ export default function LeadDetailPage() {
                     </select>
                   </div>
                   <div>
+                    <label className="text-sm text-stone-500">Source</label>
+                    <select
+                      value={editForm.source || "website"}
+                      onChange={(e) => setEditForm({ ...editForm, source: e.target.value })}
+                      className="w-full mt-1 px-3 py-2 border rounded-lg"
+                    >
+                      {leadSources.map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-sm text-stone-500">Lead Type</label>
+                    <select
+                      value={editForm.lead_type || "individual"}
+                      onChange={(e) => setEditForm({ ...editForm, lead_type: e.target.value })}
+                      className="w-full mt-1 px-3 py-2 border rounded-lg"
+                    >
+                      <option value="individual">Individual</option>
+                      <option value="corporate">Corporate</option>
+                      <option value="group">Group</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-sm text-stone-500">Interest</label>
+                    <div className="flex flex-wrap gap-1.5 mt-1">
+                      {['Kids Birthday', 'Camp', 'Walk-Ins', 'Adult Private Classes', 'Team-Building', 'Nanny Classes', 'Rental'].map(interest => (
+                        <button
+                          key={interest}
+                          type="button"
+                          onClick={() => {
+                            const current = Array.isArray(editForm.interests) ? editForm.interests : [];
+                            if (current.includes(interest)) {
+                              setEditForm({ ...editForm, interests: current.filter((i: string) => i !== interest) });
+                            } else {
+                              setEditForm({ ...editForm, interests: [...current, interest] });
+                            }
+                          }}
+                          className={`px-2 py-1 rounded-full text-xs font-medium transition-all ${
+                            (Array.isArray(editForm.interests) ? editForm.interests : []).includes(interest)
+                              ? 'bg-amber-500 text-white'
+                              : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                          }`}
+                        >
+                          {interest}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
                     <label className="text-sm text-stone-500">Notes</label>
                     <textarea
                       value={editForm.notes || ""}
@@ -779,8 +841,26 @@ export default function LeadDetailPage() {
                   )}
                   <div className="pt-2 border-t">
                     <p className="text-sm text-stone-500">Source</p>
-                    <Badge className="mt-1">{lead.source}</Badge>
+                    <Badge className="mt-1">{leadSources.find(s => s.id === lead.source)?.name || lead.source}</Badge>
                   </div>
+                  {lead.lead_type && (
+                    <div>
+                      <p className="text-sm text-stone-500">Lead Type</p>
+                      <p className="mt-1 capitalize">{lead.lead_type}</p>
+                    </div>
+                  )}
+                  {lead.interests && lead.interests.length > 0 && (
+                    <div className="pt-2 border-t">
+                      <p className="text-sm text-stone-500 mb-1">Interests</p>
+                      <div className="flex flex-wrap gap-1">
+                        {lead.interests.map((interest) => (
+                          <Badge key={interest} className="bg-amber-100 text-amber-700 text-xs">
+                            {interest}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   <div>
                     <p className="text-sm text-stone-500">Created</p>
                     <p className="mt-1">{formatDate(lead.created_at)}</p>

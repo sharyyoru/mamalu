@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Check, Plus, Minus, ShoppingCart, Users, Clock, ChefHat } from "lucide-react";
+import { ArrowLeft, Check, Plus, Minus, ShoppingCart, Users, Clock, ChefHat, Loader2, CalendarDays } from "lucide-react";
 
 interface MenuPackage {
   id: string;
@@ -132,6 +132,107 @@ export default function KidsBookingPage() {
   const [selectedPackage, setSelectedPackage] = useState<string | null>(null);
   const [addOns, setAddOns] = useState<{ [key: string]: number }>({});
   const [numberOfKids, setNumberOfKids] = useState(6);
+  
+  // Booking form state
+  const [ageRange, setAgeRange] = useState("");
+  const [eventDate, setEventDate] = useState("");
+  const [eventTime, setEventTime] = useState("");
+  const [allTimeSlots, setAllTimeSlots] = useState<{ start: string; end: string; duration: number; label: string }[]>([]);
+  const [availableTimeSlots, setAvailableTimeSlots] = useState<{ start: string; end: string; duration: number; label: string }[]>([]);
+  const [blockedTimeSlots, setBlockedTimeSlots] = useState<{ start: string; end: string; duration: number; label: string }[]>([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
+  const [customerName, setCustomerName] = useState("");
+  const [customerEmail, setCustomerEmail] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
+  const [specialRequests, setSpecialRequests] = useState("");
+  const [waiverAccepted, setWaiverAccepted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [showBookingForm, setShowBookingForm] = useState(false);
+
+  // Fetch time slots when date changes
+  useEffect(() => {
+    if (!eventDate) return;
+    const fetchSlots = async () => {
+      setLoadingSlots(true);
+      try {
+        const res = await fetch(`/api/services/availability?date=${eventDate}`);
+        if (res.ok) {
+          const data = await res.json();
+          setAllTimeSlots(data.allSlots || []);
+          setAvailableTimeSlots(data.availableSlots || []);
+          setBlockedTimeSlots(data.blockedSlots || []);
+        }
+      } catch (error) {
+        console.error("Failed to fetch slots:", error);
+      } finally {
+        setLoadingSlots(false);
+      }
+    };
+    fetchSlots();
+    setEventTime("");
+  }, [eventDate]);
+
+  const handleBookingSubmit = async () => {
+    if (!selectedPackage || !customerName || !customerEmail || !ageRange || !waiverAccepted) {
+      alert("Please fill in all required fields");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const pkg = menuPackages.find(p => p.id === selectedPackage);
+      const baseAmount = (pkg?.price || 0) * numberOfKids;
+      const extrasData = Object.entries(addOns).map(([id, quantity]) => {
+        const addOn = [...foodAddOns, ...merchAddOns].find(a => a.id === id);
+        return addOn ? { id, name: addOn.name, price: addOn.price, quantity } : null;
+      }).filter(Boolean);
+      const extrasAmount = extrasData.reduce((sum, e: any) => sum + (e.price * e.quantity), 0);
+      const totalAmount = baseAmount + extrasAmount;
+      const depositAmount = Math.ceil(totalAmount * 0.5);
+
+      const res = await fetch("/api/services/book", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          serviceType: "birthday_deck",
+          serviceName: `Kids Birthday - ${pkg?.name}`,
+          packageName: pkg?.name,
+          menuName: pkg?.name,
+          menuPrice: pkg?.price,
+          customerName,
+          customerEmail,
+          customerPhone,
+          eventDate: eventDate || null,
+          eventTime: eventTime || null,
+          guestCount: numberOfKids,
+          extras: extrasData,
+          baseAmount,
+          extrasAmount,
+          totalAmount,
+          isDepositPayment: true,
+          depositAmount,
+          balanceAmount: totalAmount - depositAmount,
+          specialRequests,
+          ageRange,
+          waiverAccepted,
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.checkoutUrl) {
+          window.location.href = data.checkoutUrl;
+        }
+      } else {
+        const error = await res.json();
+        alert(error.error || "Failed to create booking");
+      }
+    } catch (error) {
+      console.error("Booking error:", error);
+      alert("Failed to create booking. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const handleAddOnChange = (id: string, increment: boolean) => {
     setAddOns(prev => {
@@ -473,13 +574,201 @@ export default function KidsBookingPage() {
                   </div>
                 </div>
 
-                <Button className="w-full mt-6 gradient-peach-glow text-white rounded-full py-6 text-lg">
+                <Button 
+                  className="w-full mt-6 gradient-peach-glow text-white rounded-full py-6 text-lg"
+                  onClick={() => setShowBookingForm(true)}
+                >
                   <ShoppingCart className="h-5 w-5 mr-2" />
                   Proceed to Booking
                 </Button>
 
                 <p className="text-xs text-stone-500 text-center mt-4">
                   A 50% deposit is required to secure your booking, with the remaining 50% due 48 hours before the class.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Booking Details Form */}
+          {showBookingForm && selectedPackage && (
+            <div className="mt-12 max-w-2xl mx-auto space-y-6">
+              <div className="glass-card rounded-3xl p-8">
+                <h3 className="text-2xl font-bold text-stone-900 mb-6 flex items-center gap-2">
+                  <CalendarDays className="h-6 w-6 text-[#ff8c6b]" />
+                  Booking Details
+                </h3>
+
+                {/* Age Range */}
+                <div className="mb-6">
+                  <label className="block text-sm font-semibold text-stone-700 mb-3">
+                    Age Range of Children *
+                  </label>
+                  <div className="grid grid-cols-3 gap-3">
+                    {["3-6", "7-10", "11-13"].map((range) => (
+                      <button
+                        key={range}
+                        type="button"
+                        onClick={() => setAgeRange(range)}
+                        className={`py-3 px-4 rounded-xl text-sm font-medium transition-all ${
+                          ageRange === range
+                            ? "bg-[#ff8c6b] text-white shadow-lg"
+                            : "glass text-stone-700 hover:bg-stone-100"
+                        }`}
+                      >
+                        {range} years
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Date & Time */}
+                <div className="grid sm:grid-cols-2 gap-4 mb-6">
+                  <div>
+                    <label className="block text-sm font-semibold text-stone-700 mb-2">
+                      Preferred Date
+                    </label>
+                    <input
+                      type="date"
+                      value={eventDate}
+                      onChange={(e) => setEventDate(e.target.value)}
+                      min={new Date().toISOString().split("T")[0]}
+                      className="w-full px-4 py-3 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#ff8c6b]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-stone-700 mb-2">
+                      Preferred Time
+                      {loadingSlots && <span className="ml-2 text-xs text-stone-400">(Loading...)</span>}
+                    </label>
+                    {!eventDate ? (
+                      <p className="text-sm text-stone-500 py-3">Select a date first</p>
+                    ) : loadingSlots ? (
+                      <div className="flex items-center gap-2 py-3">
+                        <Loader2 className="h-4 w-4 animate-spin text-stone-400" />
+                        <span className="text-sm text-stone-500">Checking availability...</span>
+                      </div>
+                    ) : availableTimeSlots.length === 0 ? (
+                      <p className="text-sm text-amber-600 py-3">No available time slots. Try another date.</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {allTimeSlots.map((slot) => {
+                          const isAvailable = availableTimeSlots.some(s => s.start === slot.start);
+                          const isSelected = eventTime === slot.start;
+                          return (
+                            <button
+                              key={slot.start}
+                              type="button"
+                              disabled={!isAvailable}
+                              onClick={() => setEventTime(slot.start)}
+                              className={`w-full py-2.5 px-4 rounded-xl text-sm font-medium transition-all text-left ${
+                                isSelected
+                                  ? "bg-[#ff8c6b] text-white"
+                                  : isAvailable
+                                    ? "glass text-stone-700 hover:bg-stone-100"
+                                    : "bg-stone-50 text-stone-300 cursor-not-allowed line-through"
+                              }`}
+                            >
+                              {slot.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Customer Details */}
+                <div className="space-y-4 mb-6">
+                  <h4 className="text-lg font-semibold text-stone-900">Your Details</h4>
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-stone-700 mb-1">Full Name *</label>
+                      <input
+                        type="text"
+                        value={customerName}
+                        onChange={(e) => setCustomerName(e.target.value)}
+                        placeholder="Your full name"
+                        className="w-full px-4 py-3 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#ff8c6b]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-stone-700 mb-1">Email *</label>
+                      <input
+                        type="email"
+                        value={customerEmail}
+                        onChange={(e) => setCustomerEmail(e.target.value)}
+                        placeholder="email@example.com"
+                        className="w-full px-4 py-3 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#ff8c6b]"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-stone-700 mb-1">Phone</label>
+                      <input
+                        type="tel"
+                        value={customerPhone}
+                        onChange={(e) => setCustomerPhone(e.target.value)}
+                        placeholder="+971 50 123 4567"
+                        className="w-full px-4 py-3 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#ff8c6b]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-stone-700 mb-1">Special Requests</label>
+                      <input
+                        type="text"
+                        value={specialRequests}
+                        onChange={(e) => setSpecialRequests(e.target.value)}
+                        placeholder="Allergies, dietary needs..."
+                        className="w-full px-4 py-3 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#ff8c6b]"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Waiver */}
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
+                  <label className="flex items-start gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={waiverAccepted}
+                      onChange={(e) => setWaiverAccepted(e.target.checked)}
+                      className="mt-1 h-4 w-4 rounded border-stone-300 text-[#ff8c6b] focus:ring-[#ff8c6b]"
+                    />
+                    <div>
+                      <p className="text-sm font-medium text-stone-900">
+                        I accept the Liability Waiver *
+                      </p>
+                      <p className="text-xs text-stone-600 mt-1">
+                        By checking this box, I acknowledge and accept the terms of the Mamalu Kitchen liability waiver. 
+                        I understand that cooking activities involve inherent risks including but not limited to burns, 
+                        cuts, and allergic reactions. I agree to release Mamalu Kitchen from any liability.
+                      </p>
+                    </div>
+                  </label>
+                </div>
+
+                {/* Submit */}
+                <Button
+                  className="w-full gradient-peach-glow text-white rounded-full py-6 text-lg"
+                  onClick={handleBookingSubmit}
+                  disabled={submitting || !customerName || !customerEmail || !ageRange || !waiverAccepted}
+                >
+                  {submitting ? (
+                    <>
+                      <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <ShoppingCart className="h-5 w-5 mr-2" />
+                      Pay 50% Deposit ({Math.ceil(calculateTotal() * 0.5)} AED)
+                    </>
+                  )}
+                </Button>
+
+                <p className="text-xs text-stone-500 text-center mt-4">
+                  50% deposit secures your booking. Balance of {Math.ceil(calculateTotal() * 0.5)} AED due 48 hours before event.
                 </p>
               </div>
             </div>

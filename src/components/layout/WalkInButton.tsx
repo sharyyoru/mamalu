@@ -1,0 +1,48 @@
+"use client";
+
+import { useState } from "react";
+import { MessageCircle, X, ChefHat } from "lucide-react";
+
+export function WalkInButton() {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <div className="fixed bottom-24 right-6 z-40 flex flex-col items-end gap-3">
+      {expanded && (
+        <div className="bg-white rounded-2xl shadow-2xl border border-stone-200 p-5 w-72 animate-in slide-in-from-bottom-2 fade-in duration-200">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <ChefHat className="h-5 w-5 text-amber-600" />
+              <h3 className="font-bold text-stone-900">Walk-Ins</h3>
+            </div>
+            <button
+              onClick={() => setExpanded(false)}
+              className="text-stone-400 hover:text-stone-600"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+          <p className="text-sm text-stone-600 mb-4">
+            Feeling spontaneous? Contact us on WhatsApp to check our last-minute availability!
+          </p>
+          <a
+            href="https://wa.me/97145897860?text=Hi!%20I%27d%20like%20to%20check%20walk-in%20availability"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 w-full bg-green-500 hover:bg-green-600 text-white font-medium py-3 px-4 rounded-xl transition-colors"
+          >
+            <MessageCircle className="h-4 w-4" />
+            Chat on WhatsApp
+          </a>
+        </div>
+      )}
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-full p-4 shadow-lg hover:shadow-xl transition-all hover:scale-105"
+        aria-label="Walk-ins available"
+      >
+        <ChefHat className="h-6 w-6" />
+      </button>
+    </div>
+  );
+}
