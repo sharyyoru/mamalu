@@ -8,7 +8,7 @@ const BUFFER_MINUTES = 60;
 // Each slot has a start time, end time, duration, and days available
 // days: 0=Sunday, 1=Monday, 2=Tuesday, 3=Wednesday, 4=Thursday, 5=Friday, 6=Saturday
 const MAMALU_TIME_SLOTS = [
-  { start: "10:00", end: "12:30", duration: 150, label: "10:00 AM - 12:30 PM", days: [0, 1, 2, 3, 4, 5, 6] }, // Mon-Sun
+  { start: "11:00", end: "12:30", duration: 90, label: "11:00 AM - 12:30 PM", days: [0, 1, 2, 3, 4, 5, 6] }, // Mon-Sun
   { start: "13:30", end: "15:00", duration: 90, label: "1:30 PM - 3:00 PM", days: [0, 1, 2, 3, 4, 5, 6] }, // Mon-Sun
   { start: "16:00", end: "17:30", duration: 90, label: "4:00 PM - 5:30 PM", days: [0, 1, 2, 3, 4, 5, 6] }, // Mon-Sun
   { start: "18:30", end: "20:00", duration: 90, label: "6:30 PM - 8:00 PM", days: [0, 1, 2, 3, 4, 5, 6] }, // Mon-Sun

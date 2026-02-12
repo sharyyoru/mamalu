@@ -120,7 +120,7 @@ const foodAddOns: AddOn[] = [
 
 const merchAddOns: AddOn[] = [
   { id: "custom-apron", name: "Custom Apron (with name)", price: 80, unit: "per piece", category: "merch" },
-  { id: "chef-hat", name: "Chef Hat (with name)", price: 60, unit: "per piece", category: "merch" },
+  { id: "chef-hat", name: "Chef Hat (with name)", price: 50, unit: "per piece", category: "merch" },
   { id: "custom-mug", name: "Custom Mug (any design)", price: 45, unit: "per mug", category: "merch" },
   { id: "custom-spatula", name: "Custom Spatula", price: 50, unit: "per spatula", category: "merch" },
   { id: "cupcake-goodie-bag", name: "Cupcake Goodie Bags", price: 80, unit: "per bag", category: "merch" },

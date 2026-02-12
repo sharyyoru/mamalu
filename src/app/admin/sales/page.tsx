@@ -71,6 +71,13 @@ interface SalesData {
     payment_status: string;
     status: string;
     special_requests: string;
+    stripe_checkout_session_id: string | null;
+    is_deposit_payment: boolean;
+    deposit_amount: number | null;
+    balance_amount: number | null;
+    deposit_paid: boolean;
+    balance_paid: boolean;
+    age_range: string | null;
   }>;
   monthlyBreakdown: Array<{
     month: string;
@@ -102,6 +109,7 @@ export default function AdminSalesPage() {
   const [activeTab, setActiveTab] = useState<"overview" | "management" | "depachika">("overview");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [paymentFilter, setPaymentFilter] = useState<"all" | "completed" | "deposit_paid" | "pending">("all");
 
   useEffect(() => {
     fetchSalesData();
@@ -502,9 +510,31 @@ export default function AdminSalesPage() {
               </Button>
             </CardHeader>
             <CardContent>
-              <p className="text-stone-500 mb-6">
+              <p className="text-stone-500 mb-4">
                 Detailed booking list with event dates, customer names, pricing breakdown, and totals.
               </p>
+
+              {/* Payment Status Filter */}
+              <div className="flex flex-wrap gap-2 mb-4">
+                {[
+                  { id: "all" as const, label: "All Bookings" },
+                  { id: "completed" as const, label: "Completed / Paid" },
+                  { id: "deposit_paid" as const, label: "Advance / Deposit Paid" },
+                  { id: "pending" as const, label: "Pending" },
+                ].map((f) => (
+                  <button
+                    key={f.id}
+                    onClick={() => setPaymentFilter(f.id)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                      paymentFilter === f.id
+                        ? "bg-stone-900 text-white"
+                        : "bg-stone-100 text-stone-600 hover:bg-stone-200"
+                    }`}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
 
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse text-sm">
@@ -520,40 +550,77 @@ export default function AdminSalesPage() {
                       <th className="border border-stone-200 px-3 py-2 text-right">Base Amount</th>
                       <th className="border border-stone-200 px-3 py-2 text-right">Extras</th>
                       <th className="border border-stone-200 px-3 py-2 text-right">Total</th>
-                      <th className="border border-stone-200 px-3 py-2 text-left">Notes</th>
+                      <th className="border border-stone-200 px-3 py-2 text-center">Payment</th>
+                      <th className="border border-stone-200 px-3 py-2 text-center">Stripe</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {salesData?.bookings?.map((booking, idx) => (
-                      <tr key={booking.id || idx} className={idx % 2 === 0 ? "bg-white" : "bg-stone-50"}>
-                        <td className="border border-stone-200 px-3 py-2 text-center">{idx + 1}</td>
-                        <td className="border border-stone-200 px-3 py-2">
-                          {booking.event_date ? new Date(booking.event_date).toLocaleDateString() : "-"}
-                        </td>
-                        <td className="border border-stone-200 px-3 py-2">{booking.service_name || booking.service_type}</td>
-                        <td className="border border-stone-200 px-3 py-2">
-                          {booking.paid_at ? new Date(booking.paid_at).toLocaleDateString() : "-"}
-                        </td>
-                        <td className="border border-stone-200 px-3 py-2 font-medium">{booking.customer_name}</td>
-                        <td className="border border-stone-200 px-3 py-2 text-right">
-                          {booking.guest_count > 0 ? Math.round(booking.base_amount / booking.guest_count) : booking.base_amount}
-                        </td>
-                        <td className="border border-stone-200 px-3 py-2 text-right">{booking.guest_count}</td>
-                        <td className="border border-stone-200 px-3 py-2 text-right">{booking.base_amount}</td>
-                        <td className="border border-stone-200 px-3 py-2 text-right">{booking.extras_amount || 0}</td>
-                        <td className="border border-stone-200 px-3 py-2 text-right font-bold">{booking.total_amount}</td>
-                        <td className="border border-stone-200 px-3 py-2 text-stone-500 text-xs max-w-[200px] truncate">
-                          {booking.special_requests || "-"}
-                        </td>
-                      </tr>
-                    ))}
-                    {(!salesData?.bookings || salesData.bookings.length === 0) && (
-                      <tr>
-                        <td colSpan={11} className="border border-stone-200 px-4 py-8 text-center text-stone-500">
-                          No booking data available for this period
-                        </td>
-                      </tr>
-                    )}
+                    {(() => {
+                      const filteredBookings = (salesData?.bookings || []).filter((b) => {
+                        if (paymentFilter === "all") return true;
+                        if (paymentFilter === "completed") return b.payment_status === "paid" || b.status === "completed";
+                        if (paymentFilter === "deposit_paid") return b.payment_status === "deposit_paid" || b.is_deposit_payment;
+                        if (paymentFilter === "pending") return b.payment_status === "pending" || b.payment_status === "deposit_pending";
+                        return true;
+                      });
+                      
+                      if (filteredBookings.length === 0) {
+                        return (
+                          <tr>
+                            <td colSpan={12} className="border border-stone-200 px-4 py-8 text-center text-stone-500">
+                              No booking data available for this filter
+                            </td>
+                          </tr>
+                        );
+                      }
+                      
+                      return filteredBookings.map((booking, idx) => (
+                        <tr key={booking.id || idx} className={idx % 2 === 0 ? "bg-white" : "bg-stone-50"}>
+                          <td className="border border-stone-200 px-3 py-2 text-center">{idx + 1}</td>
+                          <td className="border border-stone-200 px-3 py-2">
+                            {booking.event_date ? new Date(booking.event_date).toLocaleDateString() : "-"}
+                          </td>
+                          <td className="border border-stone-200 px-3 py-2">{booking.service_name || booking.service_type}</td>
+                          <td className="border border-stone-200 px-3 py-2">
+                            {booking.paid_at ? new Date(booking.paid_at).toLocaleDateString() : "-"}
+                          </td>
+                          <td className="border border-stone-200 px-3 py-2 font-medium">{booking.customer_name}</td>
+                          <td className="border border-stone-200 px-3 py-2 text-right">
+                            {booking.guest_count > 0 ? Math.round(booking.base_amount / booking.guest_count) : booking.base_amount}
+                          </td>
+                          <td className="border border-stone-200 px-3 py-2 text-right">{booking.guest_count}</td>
+                          <td className="border border-stone-200 px-3 py-2 text-right">{booking.base_amount}</td>
+                          <td className="border border-stone-200 px-3 py-2 text-right">{booking.extras_amount || 0}</td>
+                          <td className="border border-stone-200 px-3 py-2 text-right font-bold">{booking.total_amount}</td>
+                          <td className="border border-stone-200 px-3 py-2 text-center">
+                            <Badge className={
+                              booking.payment_status === "paid" ? "bg-green-100 text-green-700" :
+                              booking.payment_status === "deposit_paid" ? "bg-amber-100 text-amber-700" :
+                              "bg-stone-100 text-stone-600"
+                            }>
+                              {booking.payment_status === "paid" ? "Paid" :
+                               booking.payment_status === "deposit_paid" ? "Deposit" :
+                               booking.payment_status === "deposit_pending" ? "Dep. Pending" :
+                               booking.payment_status || "Pending"}
+                            </Badge>
+                          </td>
+                          <td className="border border-stone-200 px-3 py-2 text-center">
+                            {booking.stripe_checkout_session_id ? (
+                              <a
+                                href={`https://dashboard.stripe.com/checkout/sessions/${booking.stripe_checkout_session_id}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:text-blue-800 text-xs underline"
+                              >
+                                View
+                              </a>
+                            ) : (
+                              <span className="text-stone-400 text-xs">-</span>
+                            )}
+                          </td>
+                        </tr>
+                      ));
+                    })()}
                   </tbody>
                   {salesData?.bookings && salesData.bookings.length > 0 && (
                     <tfoot>
@@ -568,7 +635,7 @@ export default function AdminSalesPage() {
                         <td className="border border-stone-200 px-3 py-2 text-right">
                           {formatCurrency(salesData.bookings.reduce((sum, b) => sum + (b.total_amount || 0), 0))}
                         </td>
-                        <td className="border border-stone-200 px-3 py-2"></td>
+                        <td colSpan={2} className="border border-stone-200 px-3 py-2"></td>
                       </tr>
                     </tfoot>
                   )}

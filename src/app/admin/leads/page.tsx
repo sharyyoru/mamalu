@@ -132,6 +132,7 @@ export default function LeadsPage() {
     source: 'website',
     status: 'new',
     notes: '',
+    interests: [] as string[],
   });
   const [savingLead, setSavingLead] = useState(false);
   
@@ -196,7 +197,7 @@ export default function LeadsPage() {
       });
       if (res.ok) {
         setShowAddModal(false);
-        setNewLead({ name: '', email: '', phone: '', company: '', lead_type: 'individual', source: 'website', status: 'new', notes: '' });
+        setNewLead({ name: '', email: '', phone: '', company: '', lead_type: 'individual', source: 'website', status: 'new', notes: '', interests: [] });
         fetchLeads();
       } else {
         const err = await res.json();
@@ -964,6 +965,34 @@ export default function LeadsPage() {
                   <option value="corporate">Corporate</option>
                   <option value="group">Group</option>
                 </select>
+              </div>
+
+              {/* Interest */}
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-1">Interest</label>
+                <div className="flex flex-wrap gap-2">
+                  {['Kids Birthday', 'Camp', 'Walk-Ins', 'Adult Private Classes', 'Team-Building', 'Nanny Classes', 'Rental'].map(interest => (
+                    <button
+                      key={interest}
+                      type="button"
+                      onClick={() => {
+                        const current = newLead.interests || [];
+                        if (current.includes(interest)) {
+                          setNewLead({ ...newLead, interests: current.filter(i => i !== interest) });
+                        } else {
+                          setNewLead({ ...newLead, interests: [...current, interest] });
+                        }
+                      }}
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                        (newLead.interests || []).includes(interest)
+                          ? 'bg-amber-500 text-white'
+                          : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                      }`}
+                    >
+                      {interest}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {/* Source */}

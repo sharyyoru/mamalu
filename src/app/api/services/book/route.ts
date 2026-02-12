@@ -37,6 +37,8 @@ export async function POST(request: NextRequest) {
       depositAmount,
       balanceAmount,
       specialRequests,
+      ageRange,
+      waiverAccepted,
       userId,
       createdBy,
     } = body;
@@ -83,6 +85,8 @@ export async function POST(request: NextRequest) {
       balance_paid: false,
       payment_status: paymentStatus,
       special_requests: specialRequests || null,
+      age_range: ageRange || null,
+      waiver_accepted: waiverAccepted || false,
       user_id: userId || null,
       created_by: createdBy || null,
       status: "pending",

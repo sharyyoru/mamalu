@@ -205,6 +205,13 @@ export async function GET(request: NextRequest) {
         payment_status: b.payment_status,
         status: b.status,
         special_requests: b.special_requests,
+        stripe_checkout_session_id: b.stripe_checkout_session_id || null,
+        is_deposit_payment: b.is_deposit_payment || false,
+        deposit_amount: b.deposit_amount || null,
+        balance_amount: b.balance_amount || null,
+        deposit_paid: b.deposit_paid || false,
+        balance_paid: b.balance_paid || false,
+        age_range: b.age_range || null,
       }))
       .sort((a: any, b: any) => new Date(a.event_date || a.created_at).getTime() - new Date(b.event_date || b.created_at).getTime());
 

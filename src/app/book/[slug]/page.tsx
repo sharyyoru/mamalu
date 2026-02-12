@@ -141,7 +141,7 @@ const serviceExtras: Record<string, ExtraItem[]> = {
   birthday_deck: [
     // Custom items from PDF
     { id: "custom_apron", name: "Custom Apron with Name", description: "Personalized Mamalu apron with your name", price: 80, icon: Gift, category: "custom" },
-    { id: "custom_chef_hat", name: "Custom Chef Hat", description: "Personalized chef hat with your name", price: 60, icon: Gift, category: "custom" },
+    { id: "custom_chef_hat", name: "Custom Chef Hat", description: "Personalized chef hat with your name", price: 50, icon: Gift, category: "custom" },
     // Birthday Cakes (from PDF)
     { id: "custom_cake_10", name: "Birthday Cake (10 people)", description: "Custom designed birthday cake", price: 575, icon: Cake, category: "cake" },
     { id: "custom_cake_20", name: "Birthday Cake (20 people)", description: "Custom designed birthday cake", price: 700, icon: Cake, category: "cake" },
@@ -169,7 +169,7 @@ const serviceExtras: Record<string, ExtraItem[]> = {
   corporate_deck: [
     // Custom items from PDF
     { id: "custom_apron", name: "Custom Apron with Name", description: "Personalized Mamalu apron with your name", price: 80, icon: Gift, category: "custom" },
-    { id: "custom_chef_hat", name: "Custom Chef Hat", description: "Personalized chef hat with your name", price: 60, icon: Gift, category: "custom" },
+    { id: "custom_chef_hat", name: "Custom Chef Hat", description: "Personalized chef hat with your name", price: 50, icon: Gift, category: "custom" },
     { id: "balloons", name: "Balloon Bundle", description: "2 bunches of 7 balloons (any color)", price: 260, icon: PartyPopper, category: "decor" },
     { id: "custom_cake_10", name: "Custom Cake (up to 10 people)", description: "Beautiful custom designed cake", price: 300, icon: Cake, category: "food" },
     { id: "custom_cake_20", name: "Custom Cake (up to 20 people)", description: "Beautiful custom designed cake", price: 700, icon: Cake, category: "food" },
@@ -221,6 +221,8 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
   const [companyName, setCompanyName] = useState("");
   const [specialRequests, setSpecialRequests] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [ageRange, setAgeRange] = useState("");
+  const [waiverAccepted, setWaiverAccepted] = useState(false);
 
   // Get available extras for current service
   const availableExtras = service ? (serviceExtras[service.service_type] || []) : [];
@@ -435,6 +437,8 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
           depositAmount: isDepositPayment ? paymentAmount : null,
           balanceAmount: isDepositPayment ? totalAmount - paymentAmount : null,
           specialRequests,
+          ageRange: ageRange || null,
+          waiverAccepted,
         }),
       });
 
@@ -1040,6 +1044,31 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
                       </div>
                     </div>
 
+                    {/* Age Range (for birthday bookings) */}
+                    {isBirthday && (
+                      <div>
+                        <label className="block text-sm font-medium text-stone-700 mb-2">
+                          Age Range of Children *
+                        </label>
+                        <div className="grid grid-cols-3 gap-3">
+                          {["3-6", "7-10", "11-13"].map((range) => (
+                            <button
+                              key={range}
+                              type="button"
+                              onClick={() => setAgeRange(range)}
+                              className={`py-3 px-4 rounded-lg text-sm font-medium transition-all ${
+                                ageRange === range
+                                  ? "bg-stone-900 text-white"
+                                  : "bg-stone-100 text-stone-700 hover:bg-stone-200"
+                              }`}
+                            >
+                              {range} years
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     {/* Special Requests */}
                     <div>
                       <label className="block text-sm font-medium text-stone-700 mb-2">
@@ -1053,6 +1082,28 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
                         className="w-full px-4 py-3 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-500"
                       />
                     </div>
+
+                    {/* Waiver Acceptance */}
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                      <label className="flex items-start gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={waiverAccepted}
+                          onChange={(e) => setWaiverAccepted(e.target.checked)}
+                          className="mt-1 h-4 w-4 rounded border-stone-300 text-stone-900 focus:ring-stone-500"
+                        />
+                        <div>
+                          <p className="text-sm font-medium text-stone-900">
+                            I accept the Liability Waiver *
+                          </p>
+                          <p className="text-xs text-stone-600 mt-1">
+                            By checking this box, I acknowledge and accept the terms of the Mamalu Kitchen liability waiver. 
+                            I understand that cooking activities involve inherent risks including but not limited to burns, 
+                            cuts, and allergic reactions. I agree to release Mamalu Kitchen from any liability.
+                          </p>
+                        </div>
+                      </label>
+                    </div>
                   </CardContent>
                 </Card>
 
@@ -1065,6 +1116,7 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
                     size="lg"
                     className="bg-stone-900 hover:bg-stone-800"
                     onClick={() => setStep(hasExtras ? 4 : 3)}
+                    disabled={!waiverAccepted || (isBirthday && !ageRange)}
                   >
                     Continue
                     <ArrowRight className="ml-2 h-4 w-4" />
