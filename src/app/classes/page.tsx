@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Baby, ChefHat, Sparkles, MapPin } from "lucide-react";
 
@@ -25,6 +26,10 @@ export default async function ClassesPage({
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-20 left-10 w-64 h-64 bg-gradient-to-br from-[#ff8c6b]/20 to-transparent rounded-full blur-3xl" />
           <div className="absolute bottom-10 right-10 w-80 h-80 bg-gradient-to-br from-[#ffa891]/15 to-transparent rounded-full blur-3xl" />
+          <Image src="/images/whisk-01.png" alt="" width={80} height={80} className="absolute top-[10%] left-[3%] opacity-[0.07] animate-doodle-float" />
+          <Image src="/images/pot-01.png" alt="" width={70} height={70} className="absolute top-[15%] right-[4%] opacity-[0.06] animate-doodle-wiggle" style={{animationDelay: '1s'}} />
+          <Image src="/images/rolling pin-01.png" alt="" width={75} height={75} className="absolute bottom-[10%] left-[8%] opacity-[0.06] animate-doodle-scale" style={{animationDelay: '2s'}} />
+          <Image src="/images/pasta-01.png" alt="" width={70} height={70} className="absolute bottom-[15%] right-[6%] opacity-[0.05] animate-doodle-float" style={{animationDelay: '1.5s'}} />
         </div>
 
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
@@ -98,8 +103,12 @@ export default async function ClassesPage({
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 lg:py-20 gradient-mesh">
-        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
+      <section className="py-16 lg:py-20 gradient-mesh relative overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none">
+          <Image src="/images/apron.png" alt="" width={60} height={60} className="absolute top-[10%] left-[5%] opacity-[0.05] animate-doodle-float" />
+          <Image src="/images/gloves-01.png" alt="" width={55} height={55} className="absolute bottom-[10%] right-[5%] opacity-[0.05] animate-doodle-wiggle" style={{animationDelay: '1s'}} />
+        </div>
+        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center relative z-10">
           <div className="glass-card rounded-3xl p-8 sm:p-12 glow-peach-sm">
             <h2 className="text-2xl sm:text-3xl font-bold text-stone-900 mb-4">
               Can&apos;t find what you&apos;re looking for?

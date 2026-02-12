@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MapPin, Phone, Mail, Clock, CheckCircle, Loader2, Send } from "lucide-react";
+import Image from "next/image";
 
 const contactInfo = [
   {
@@ -91,8 +92,13 @@ export default function ContactPage() {
   return (
     <div>
       {/* Hero */}
-      <section className="bg-gradient-to-br from-stone-50 via-[#ff8c6b]/5 to-stone-100 py-16 lg:py-20">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <section className="bg-gradient-to-br from-stone-50 via-[#ff8c6b]/5 to-stone-100 py-16 lg:py-20 relative overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none">
+          <Image src="/images/speech-bubble.png" alt="" width={70} height={70} className="absolute top-[10%] left-[4%] opacity-[0.06] animate-doodle-float" />
+          <Image src="/images/pot-01.png" alt="" width={60} height={60} className="absolute top-[15%] right-[5%] opacity-[0.05] animate-doodle-wiggle" style={{animationDelay: '1s'}} />
+          <Image src="/images/notepad.png" alt="" width={55} height={55} className="absolute bottom-[10%] left-[8%] opacity-[0.05] animate-doodle-scale" style={{animationDelay: '2s'}} />
+        </div>
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="max-w-3xl mx-auto text-center">
             <h1 className="text-4xl sm:text-5xl font-bold text-stone-900">
               Contact Us

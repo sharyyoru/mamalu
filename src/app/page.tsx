@@ -16,7 +16,6 @@ import {
   Sparkles,
   Play,
   ShoppingBag,
-  BookOpen,
   ChevronRight,
   Quote,
   Heart,
@@ -114,51 +113,21 @@ export default function Home() {
       <div className="overflow-hidden">
         {/* Hero Section */}
         <section className="relative min-h-[90vh] flex items-center bg-gradient-to-br from-stone-50 via-white to-stone-100 overflow-hidden">
-          {/* Animated Food Doodles Background */}
+          {/* Animated Hand-Drawn Doodle Icons Background */}
           <div className="absolute inset-0 pointer-events-none overflow-hidden">
-            {/* Soft gradient blobs */}
-            <div className="absolute top-20 left-[10%] w-64 h-64 bg-gradient-to-br from-stone-200/40 to-transparent rounded-full blur-3xl animate-float" />
-            <div className="absolute bottom-20 right-[10%] w-80 h-80 bg-gradient-to-br from-stone-300/30 to-transparent rounded-full blur-3xl animate-float-slow" />
+            <div className="absolute top-20 left-[10%] w-64 h-64 bg-gradient-to-br from-[#ff8c6b]/10 to-transparent rounded-full blur-3xl animate-float" />
+            <div className="absolute bottom-20 right-[10%] w-80 h-80 bg-gradient-to-br from-stone-200/30 to-transparent rounded-full blur-3xl animate-float-slow" />
             
-            {/* Animated Food Doodles - 10x bigger */}
-            <svg className="absolute top-[5%] left-[2%] w-[160px] h-[160px] text-stone-200 animate-float opacity-40" viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <circle cx="50" cy="35" r="25" />
-              <path d="M25 60 Q50 80 75 60" />
-              <path d="M35 35 L35 25 M50 35 L50 20 M65 35 L65 25" />
-            </svg>
-            <svg className="absolute top-[10%] right-[3%] w-[140px] h-[140px] text-stone-200 animate-bounce opacity-35" style={{animationDuration: '3s'}} viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <ellipse cx="50" cy="60" rx="35" ry="20" />
-              <path d="M20 55 Q50 30 80 55" />
-              <circle cx="35" cy="50" r="5" fill="currentColor" />
-              <circle cx="55" cy="45" r="4" fill="currentColor" />
-              <circle cx="65" cy="55" r="5" fill="currentColor" />
-            </svg>
-            <svg className="absolute bottom-[15%] left-[5%] w-[120px] h-[120px] text-stone-200 animate-pulse opacity-35" viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <rect x="25" y="30" width="50" height="40" rx="5" />
-              <path d="M30 30 Q50 10 70 30" />
-              <circle cx="50" cy="50" r="10" />
-            </svg>
-            <svg className="absolute bottom-[25%] right-[8%] w-[100px] h-[100px] text-stone-200 animate-float opacity-30" style={{animationDelay: '1s'}} viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <path d="M50 20 L50 80" />
-              <ellipse cx="50" cy="20" rx="20" ry="10" />
-            </svg>
-            <svg className="absolute top-[35%] left-[0%] w-[80px] h-[80px] text-stone-200 animate-bounce opacity-30" style={{animationDuration: '4s'}} viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <circle cx="50" cy="50" r="30" />
-              <path d="M30 50 L70 50 M50 30 L50 70" strokeDasharray="5 5" />
-            </svg>
-            <svg className="absolute top-[55%] right-[2%] w-[120px] h-[120px] text-stone-200 animate-pulse opacity-35" style={{animationDelay: '2s'}} viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <path d="M30 70 Q30 30 50 30 Q70 30 70 70" />
-              <path d="M40 70 L40 85 M60 70 L60 85" />
-              <line x1="35" y1="85" x2="65" y2="85" />
-            </svg>
-            <svg className="absolute top-[70%] left-[15%] w-[100px] h-[100px] text-stone-200 animate-float opacity-25" style={{animationDelay: '0.5s'}} viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <path d="M30 80 L50 20 L70 80 Z" />
-              <circle cx="50" cy="55" r="8" />
-            </svg>
-            <svg className="absolute top-[25%] left-[40%] w-[90px] h-[90px] text-stone-200 animate-bounce opacity-20" style={{animationDuration: '5s'}} viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <ellipse cx="50" cy="50" rx="30" ry="20" />
-              <path d="M25 50 Q50 70 75 50" />
-            </svg>
+            <Image src="/images/whisk-01.png" alt="" width={100} height={100} className="absolute top-[5%] left-[3%] opacity-[0.08] animate-doodle-float" style={{animationDelay: '0s'}} />
+            <Image src="/images/pot-01.png" alt="" width={80} height={80} className="absolute top-[8%] right-[5%] opacity-[0.07] animate-doodle-wiggle" style={{animationDelay: '1s'}} />
+            <Image src="/images/rolling pin-01.png" alt="" width={90} height={90} className="absolute bottom-[15%] left-[4%] opacity-[0.08] animate-doodle-scale" style={{animationDelay: '0.5s'}} />
+            <Image src="/images/pasta-01.png" alt="" width={100} height={100} className="absolute bottom-[20%] right-[6%] opacity-[0.07] animate-doodle-float" style={{animationDelay: '2s'}} />
+            <Image src="/images/apron.png" alt="" width={70} height={70} className="absolute top-[40%] left-[1%] opacity-[0.06] animate-doodle-wiggle" style={{animationDelay: '1.5s'}} />
+            <Image src="/images/salt-01.png" alt="" width={60} height={60} className="absolute top-[30%] right-[2%] opacity-[0.07] animate-doodle-float" style={{animationDelay: '3s'}} />
+            <Image src="/images/pizza cutter-01.png" alt="" width={70} height={70} className="absolute top-[65%] left-[12%] opacity-[0.06] animate-doodle-scale" style={{animationDelay: '2.5s'}} />
+            <Image src="/images/gloves-01.png" alt="" width={80} height={80} className="absolute top-[55%] right-[3%] opacity-[0.06] animate-doodle-wiggle" style={{animationDelay: '0.8s'}} />
+            <Image src="/images/recipes_layout_07.png" alt="" width={50} height={50} className="absolute top-[20%] left-[35%] opacity-[0.05] animate-doodle-float" style={{animationDelay: '4s'}} />
+            <Image src="/images/spoon big-01.png" alt="" width={60} height={60} className="absolute bottom-[30%] left-[25%] opacity-[0.05] animate-doodle-wiggle" style={{animationDelay: '1.2s'}} />
           </div>
 
           <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 lg:py-24 w-full">
@@ -281,12 +250,12 @@ export default function Home() {
                 <h3 className="mt-4 font-bold text-stone-900 group-hover:text-stone-600 transition-colors">Shop Products</h3>
                 <p className="text-sm text-stone-500 mt-1 hidden sm:block">Premium ingredients</p>
               </Link>
-              <Link href="/recipes" className="glass-card rounded-2xl p-6 text-center card-hover group">
-                <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-stone-800 to-stone-900 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                  <BookOpen className="h-7 w-7 text-white" />
+              <Link href="/book/birthday-deck" className="glass-card rounded-2xl p-6 text-center card-hover group">
+                <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                  <Cake className="h-7 w-7 text-white" />
                 </div>
-                <h3 className="mt-4 font-bold text-stone-900 group-hover:text-stone-600 transition-colors">View Recipes</h3>
-                <p className="text-sm text-stone-500 mt-1 hidden sm:block">Free recipe collection</p>
+                <h3 className="mt-4 font-bold text-stone-900 group-hover:text-stone-600 transition-colors">Birthday Parties</h3>
+                <p className="text-sm text-stone-500 mt-1 hidden sm:block">Cooking birthday fun</p>
               </Link>
             </div>
           </div>
@@ -361,11 +330,59 @@ export default function Home() {
           </div>
         </section>
 
+        {/* Photo Gallery Strip */}
+        <section className="py-12 bg-stone-900 relative overflow-hidden">
+          <div className="absolute inset-0 pointer-events-none">
+            <Image src="/images/whisk-01.png" alt="" width={60} height={60} className="absolute top-4 left-[5%] opacity-[0.08] animate-doodle-float invert" />
+            <Image src="/images/recipes_layout_09.png" alt="" width={40} height={40} className="absolute bottom-4 right-[8%] opacity-[0.08] animate-doodle-wiggle invert" />
+          </div>
+          <div className="text-center mb-8">
+            <h3 className="text-xl font-bold text-white/90">Life at Mamalu Kitchen</h3>
+          </div>
+          <div className="flex gap-3 overflow-hidden">
+            <div className="flex gap-3 animate-marquee">
+              {[
+                "/images/Mamalou Kitchen - 103_edited.jpg",
+                "/images/IMG_3079_edited.jpg",
+                "/images/File_000-2.jpeg",
+                "/images/Mamalou Kitchen - 151.jpg",
+                "/images/IMG_4199.jpg",
+                "/images/File_010.jpeg",
+                "/images/Mamalou Kitchen - 165.jpg",
+                "/images/IMG_7324.jpg",
+                "/images/Mamalou Kitchen - 103_edited.jpg",
+                "/images/IMG_3079_edited.jpg",
+                "/images/File_000-2.jpeg",
+                "/images/Mamalou Kitchen - 151.jpg",
+                "/images/IMG_4199.jpg",
+                "/images/File_010.jpeg",
+              ].map((src, i) => (
+                <div key={i} className="flex-shrink-0 w-64 h-44 rounded-xl overflow-hidden">
+                  <Image src={src} alt="Mamalu Kitchen" width={256} height={176} className="w-full h-full object-cover hover:scale-110 transition-transform duration-500" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Doodle Divider */}
+        <div className="relative py-6 bg-gradient-to-r from-stone-50 via-white to-stone-50 overflow-hidden">
+          <div className="flex justify-center gap-12 opacity-[0.08]">
+            <Image src="/images/pot big-01.png" alt="" width={50} height={50} className="animate-doodle-float" />
+            <Image src="/images/knives-01.png" alt="" width={45} height={45} className="animate-doodle-wiggle" style={{animationDelay: '0.5s'}} />
+            <Image src="/images/broccoli-01.png" alt="" width={50} height={50} className="animate-doodle-scale" style={{animationDelay: '1s'}} />
+            <Image src="/images/noodles-01.png" alt="" width={45} height={45} className="animate-doodle-float" style={{animationDelay: '1.5s'}} />
+            <Image src="/images/skewers-01.png" alt="" width={45} height={45} className="animate-doodle-wiggle" style={{animationDelay: '2s'}} />
+          </div>
+        </div>
+
         {/* Meet the Founder Section */}
         <section className="py-20 lg:py-28 gradient-mesh relative overflow-hidden">
           <div className="absolute inset-0 pointer-events-none">
             <div className="absolute top-20 right-20 w-64 h-64 bg-gradient-to-br from-stone-300/30 to-transparent rounded-full blur-3xl" />
             <div className="absolute bottom-20 left-20 w-80 h-80 bg-gradient-to-br from-stone-200/25 to-transparent rounded-full blur-3xl" />
+            <Image src="/images/rolling pin-01.png" alt="" width={80} height={80} className="absolute top-[10%] right-[5%] opacity-[0.06] animate-doodle-float" />
+            <Image src="/images/recipe-01.png" alt="" width={60} height={60} className="absolute bottom-[10%] left-[3%] opacity-[0.06] animate-doodle-wiggle" style={{animationDelay: '1s'}} />
           </div>
 
           <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 relative z-10">
@@ -498,6 +515,8 @@ export default function Home() {
         <section className="py-20 lg:py-28 gradient-mesh relative overflow-hidden">
           <div className="absolute inset-0 pointer-events-none">
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-br from-stone-300/20 to-transparent rounded-full blur-3xl" />
+            <Image src="/images/girl-01.png" alt="" width={70} height={70} className="absolute top-[15%] left-[5%] opacity-[0.06] animate-doodle-float" />
+            <Image src="/images/lunch-bag.png" alt="" width={60} height={60} className="absolute bottom-[15%] right-[5%] opacity-[0.06] animate-doodle-wiggle" style={{animationDelay: '1s'}} />
           </div>
 
           <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center relative z-10">

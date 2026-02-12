@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import Image from "next/image";
 import { ChefHat, Heart, Award, Users } from "lucide-react";
 
 export const metadata: Metadata = {
@@ -32,8 +33,14 @@ export default function AboutPage() {
   return (
     <div>
       {/* Hero */}
-      <section className="bg-gradient-to-br from-amber-50 to-stone-100 py-20 lg:py-28">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <section className="bg-gradient-to-br from-amber-50 to-stone-100 py-20 lg:py-28 relative overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none">
+          <Image src="/images/apron.png" alt="" width={80} height={80} className="absolute top-[8%] left-[3%] opacity-[0.06] animate-doodle-float" />
+          <Image src="/images/whisk-01.png" alt="" width={70} height={70} className="absolute top-[12%] right-[4%] opacity-[0.06] animate-doodle-wiggle" style={{animationDelay: '1s'}} />
+          <Image src="/images/recipes_layout_07.png" alt="" width={50} height={50} className="absolute bottom-[10%] left-[6%] opacity-[0.05] animate-doodle-scale" style={{animationDelay: '2s'}} />
+          <Image src="/images/salt-01.png" alt="" width={55} height={55} className="absolute bottom-[15%] right-[5%] opacity-[0.05] animate-doodle-float" style={{animationDelay: '1.5s'}} />
+        </div>
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="max-w-3xl mx-auto text-center">
             <h1 className="text-4xl sm:text-5xl font-bold text-stone-900">
               About Mamalu Kitchen

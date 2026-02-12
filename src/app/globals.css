@@ -208,3 +208,50 @@ html {
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
+
+/* Doodle icon animations */
+@keyframes doodle-float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-12px) rotate(3deg); }
+  75% { transform: translateY(5px) rotate(-2deg); }
+}
+
+@keyframes doodle-spin-slow {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes doodle-wiggle {
+  0%, 100% { transform: rotate(-5deg); }
+  50% { transform: rotate(5deg); }
+}
+
+@keyframes doodle-scale {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  50% { transform: scale(1.1) rotate(3deg); }
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-doodle-float {
+  animation: doodle-float 5s ease-in-out infinite;
+}
+
+.animate-doodle-wiggle {
+  animation: doodle-wiggle 3s ease-in-out infinite;
+}
+
+.animate-doodle-scale {
+  animation: doodle-scale 4s ease-in-out infinite;
+}
+
+.animate-doodle-spin {
+  animation: doodle-spin-slow 20s linear infinite;
+}
+
+.animate-marquee {
+  animation: marquee 30s linear infinite;
+}
