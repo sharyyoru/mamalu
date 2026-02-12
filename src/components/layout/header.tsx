@@ -58,7 +58,6 @@ const serviceCategories = [
 ];
 
 const secondaryNavigation = [
-  { name: "Recipes", href: "/recipes" },
   { name: "Our Story", href: "/about" },
   {
     name: "Services",

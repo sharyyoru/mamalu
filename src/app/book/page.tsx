@@ -159,7 +159,7 @@ export default function BookPage() {
                   className="flex-1 rounded-full h-12"
                   asChild
                 >
-                  <a href="https://wa.me/971XXXXXXXXX" target="_blank" rel="noopener noreferrer">
+                  <a href="https://wa.me/971527479512" target="_blank" rel="noopener noreferrer">
                     <MessageCircle className="h-4 w-4 mr-2" />
                     WhatsApp
                   </a>
@@ -324,7 +324,7 @@ export default function BookPage() {
               </Link>
             </Button>
             <Button size="lg" variant="outline" className="rounded-full px-8" asChild>
-              <a href="https://wa.me/971XXXXXXXXX" target="_blank" rel="noopener noreferrer">
+              <a href="https://wa.me/971527479512" target="_blank" rel="noopener noreferrer">
                 WhatsApp Us
               </a>
             </Button>

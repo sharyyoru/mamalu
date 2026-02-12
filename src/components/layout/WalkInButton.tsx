@@ -26,7 +26,7 @@ export function WalkInButton() {
             Feeling spontaneous? Contact us on WhatsApp to check our last-minute availability!
           </p>
           <a
-            href="https://wa.me/97145897860?text=Hi!%20I%27d%20like%20to%20check%20walk-in%20availability"
+            href="https://wa.me/971527479512?text=Hi!%20I%27d%20like%20to%20check%20walk-in%20availability"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center justify-center gap-2 w-full bg-green-500 hover:bg-green-600 text-white font-medium py-3 px-4 rounded-xl transition-colors"

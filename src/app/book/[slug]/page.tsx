@@ -533,7 +533,7 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
               <span className="text-white/80 text-sm hidden sm:inline">Feeling spontaneous? Check our last-minute availability</span>
             </div>
             <a
-              href="https://wa.me/97145897860?text=Hi!%20I%27d%20like%20to%20check%20walk-in%20availability"
+              href="https://wa.me/971527479512?text=Hi!%20I%27d%20like%20to%20check%20walk-in%20availability"
               target="_blank"
               rel="noopener noreferrer"
               className="bg-white/20 hover:bg-white/30 text-white text-sm font-medium px-4 py-1.5 rounded-full transition-colors flex items-center gap-1.5"

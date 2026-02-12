@@ -1,13 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Instagram, Facebook, Youtube, Twitter, ChevronLeft, ChevronRight } from "lucide-react";
+import { Instagram, Facebook, Youtube, ChevronLeft, ChevronRight } from "lucide-react";
 
 const socialLinks = [
-  { name: "Instagram", href: "https://instagram.com/mamalukitchen", icon: Instagram, color: "hover:bg-pink-500" },
-  { name: "Facebook", href: "https://facebook.com/mamalukitchen", icon: Facebook, color: "hover:bg-blue-600" },
-  { name: "YouTube", href: "https://youtube.com/@mamalukitchen", icon: Youtube, color: "hover:bg-red-500" },
-  { name: "Twitter", href: "https://twitter.com/mamalukitchen", icon: Twitter, color: "hover:bg-sky-500" },
+  { name: "Instagram", href: "https://www.instagram.com/mamalukitchen/", icon: Instagram, color: "hover:bg-pink-500" },
+  { name: "Facebook", href: "https://www.facebook.com/MAMALUSKITCHEN/", icon: Facebook, color: "hover:bg-blue-600" },
+  { name: "YouTube", href: "https://www.youtube.com/channel/UCBmhc9N-9imnv_CAITvp6oA", icon: Youtube, color: "hover:bg-red-500" },
 ];
 
 export function SocialSidebar() {

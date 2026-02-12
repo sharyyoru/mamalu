@@ -9,17 +9,19 @@ const contactInfo = [
   {
     icon: MapPin,
     title: "Visit Us",
-    details: ["123 Culinary Street", "Dubai, UAE"],
+    details: ["Mamalu Kitchen", "Depachika Food Hall, Nakheel Mall", "Center of Palm Jumeirah", "Dubai - United Arab Emirates"],
   },
   {
     icon: Phone,
-    title: "Call Us",
-    details: ["+971 4 123 4567", "+971 50 123 4567"],
+    title: "Call / WhatsApp",
+    details: ["+971 52 747 9512"],
+    href: "https://wa.me/971527479512",
   },
   {
     icon: Mail,
     title: "Email Us",
-    details: ["hello@mamalukitchen.com", "classes@mamalukitchen.com"],
+    details: ["info@mamalukitchen.com"],
+    href: "mailto:info@mamalukitchen.com",
   },
   {
     icon: Clock,
@@ -256,7 +258,9 @@ export default function ContactPage() {
                       </h3>
                       {item.details.map((detail, idx) => (
                         <p key={idx} className="text-stone-600">
-                          {detail}
+                          {(item as any).href ? (
+                            <a href={(item as any).href} target={((item as any).href as string).startsWith('http') ? '_blank' : undefined} rel="noopener noreferrer" className="hover:text-[#ff8c6b] transition-colors">{detail}</a>
+                          ) : detail}
                         </p>
                       ))}
                     </div>
@@ -271,7 +275,7 @@ export default function ContactPage() {
                   Chat with us directly for quick responses about classes and bookings.
                 </p>
                 <a 
-                  href="https://wa.me/971501234567" 
+                  href="https://wa.me/971527479512" 
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-green-600 transition-colors"

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Instagram, Facebook, Twitter, Youtube, Mail, Phone, MapPin, Heart, ArrowRight } from "lucide-react";
+import { Instagram, Facebook, Youtube, Mail, Phone, MapPin, Heart, ArrowRight } from "lucide-react";
 
 const primaryLinks = [
   { name: "Home", href: "/" },
@@ -10,28 +10,25 @@ const primaryLinks = [
 
 const secondaryLinks = {
   explore: [
-    { name: "Recipes", href: "/recipes" },
     { name: "Blog", href: "/blogs" },
     { name: "Our Story", href: "/about" },
   ],
   services: [
     { name: "Private Events", href: "/services/events" },
     { name: "Food Consultancy", href: "/services/consultancy" },
-    { name: "Birthday Parties", href: "/classes?type=birthday" },
+    { name: "Birthday Parties", href: "/book/birthday-deck" },
   ],
   support: [
     { name: "Contact Us", href: "/contact" },
-    { name: "Press", href: "/press" },
     { name: "Privacy Policy", href: "/privacy" },
     { name: "Terms of Service", href: "/terms" },
   ],
 };
 
 const socialLinks = [
-  { name: "Instagram", href: "#", icon: Instagram },
-  { name: "Facebook", href: "#", icon: Facebook },
-  { name: "Twitter", href: "#", icon: Twitter },
-  { name: "YouTube", href: "#", icon: Youtube },
+  { name: "Instagram", href: "https://www.instagram.com/mamalukitchen/", icon: Instagram },
+  { name: "Facebook", href: "https://www.facebook.com/MAMALUSKITCHEN/", icon: Facebook },
+  { name: "YouTube", href: "https://www.youtube.com/channel/UCBmhc9N-9imnv_CAITvp6oA", icon: Youtube },
 ];
 
 export function Footer() {
@@ -91,23 +88,23 @@ export function Footer() {
               
               {/* Contact Info */}
               <div className="mt-6 space-y-3">
-                <a href="mailto:hello@mamalukitchen.com" className="flex items-center gap-3 text-stone-400 hover:text-[#ff8c6b] transition-colors">
+                <a href="mailto:info@mamalukitchen.com" className="flex items-center gap-3 text-stone-400 hover:text-[#ff8c6b] transition-colors">
                   <div className="w-8 h-8 rounded-full bg-stone-800 flex items-center justify-center">
                     <Mail className="h-4 w-4" />
                   </div>
-                  hello@mamalukitchen.com
+                  info@mamalukitchen.com
                 </a>
-                <a href="tel:+971501234567" className="flex items-center gap-3 text-stone-400 hover:text-[#ff8c6b] transition-colors">
+                <a href="https://wa.me/971527479512" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-stone-400 hover:text-[#ff8c6b] transition-colors">
                   <div className="w-8 h-8 rounded-full bg-stone-800 flex items-center justify-center">
                     <Phone className="h-4 w-4" />
                   </div>
-                  +971 50 123 4567
+                  +971 52 747 9512
                 </a>
                 <div className="flex items-center gap-3 text-stone-400">
                   <div className="w-8 h-8 rounded-full bg-stone-800 flex items-center justify-center">
                     <MapPin className="h-4 w-4" />
                   </div>
-                  Dubai, UAE
+                  Depachika Food Hall, Nakheel Mall, Palm Jumeirah, Dubai
                 </div>
               </div>
 
