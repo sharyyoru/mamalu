@@ -27,7 +27,7 @@ import { formatPrice } from "@/lib/utils";
 
 // Mamalu Schedule Time Slots
 const MAMALU_TIME_SLOTS = [
-  { start: "10:00", end: "12:30", label: "10:00 AM - 12:30 PM", days: [0, 1, 2, 3, 4, 5, 6] },
+  { start: "11:00", end: "12:30", label: "11:00 AM - 12:30 PM", days: [0, 1, 2, 3, 4, 5, 6] },
   { start: "13:30", end: "15:00", label: "1:30 PM - 3:00 PM", days: [0, 1, 2, 3, 4, 5, 6] },
   { start: "16:00", end: "17:30", label: "4:00 PM - 5:30 PM", days: [0, 1, 2, 3, 4, 5, 6] },
   { start: "18:30", end: "20:00", label: "6:30 PM - 8:00 PM", days: [0, 1, 2, 3, 4, 5, 6] },

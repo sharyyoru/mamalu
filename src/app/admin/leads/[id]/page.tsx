@@ -1490,7 +1490,7 @@ export default function LeadDetailPage() {
                         className="w-full px-4 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                       >
                         <option value="">Select time</option>
-                        <option value="10:00">10:00 AM - 12:30 PM</option>
+                        <option value="11:00">11:00 AM - 12:30 PM</option>
                         <option value="13:30">1:30 PM - 3:00 PM</option>
                         <option value="16:00">4:00 PM - 5:30 PM</option>
                         <option value="18:30">6:30 PM - 8:00 PM</option>
