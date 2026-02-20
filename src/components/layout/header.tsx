@@ -3,83 +3,23 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect } from "react";
-import { Menu, X, ShoppingBag, User, ChevronDown, GraduationCap, Store, Home, Sparkles, Search, Baby, Users, Cake, ChefHat, Calendar, ArrowRight } from "lucide-react";
+import { Menu, X, ShoppingBag, ChefHat, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { GlobalSearch } from "./GlobalSearch";
 
-const primaryNavigation = [
-  { name: "Home", href: "/", icon: Home },
-  { 
-    name: "Book", 
-    href: "/book",
-    icon: Calendar,
-    hasMegaMenu: true,
-  },
-  { name: "Shop", href: "/products", icon: Store },
-];
-
-const serviceCategories = [
-  { 
-    name: "Birthdays", 
-    href: "/book/birthday-deck", 
-    emoji: "🎂",
-    icon: Cake,
-    category: "Kids",
-    description: "Fun cooking birthday parties for kids",
-    color: "from-pink-500 to-rose-500"
-  },
-  { 
-    name: "Corporate", 
-    href: "/book/corporate-deck", 
-    emoji: "�",
-    icon: Users,
-    category: "Adults",
-    description: "Team building culinary experiences",
-    color: "from-indigo-500 to-purple-600"
-  },
-  { 
-    name: "Nanny Class", 
-    href: "/book/nanny-class", 
-    emoji: "👨‍�",
-    icon: ChefHat,
-    category: "Adults",
-    description: "Professional cooking training for caregivers",
-    color: "from-emerald-500 to-teal-600"
-  },
-  { 
-    name: "Walk-in Menu", 
-    href: "/book/walkin-menu", 
-    emoji: "☕",
-    icon: Baby,
-    category: "Dine",
-    description: "Fresh, healthy meals ready to enjoy",
-    color: "from-amber-500 to-orange-500"
-  },
-];
-
-const secondaryNavigation = [
-  { name: "Our Story", href: "/about" },
-  {
-    name: "Services",
-    href: "/services",
-    children: [
-      { name: "Private Events", href: "/services/events" },
-      { name: "Food Consultancy", href: "/services/consultancy" },
-    ],
-  },
-  { name: "Blog", href: "/blogs" },
-  { name: "Contact", href: "/contact" },
+const navLinks = [
+  { name: "Classes", href: "/classes" },
+  { name: "Shop", href: "/products" },
+  { name: "About", href: "/about" },
 ];
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
   const [scrolled, setScrolled] = useState(false);
-  const [megaMenuOpen, setMegaMenuOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
+      setScrolled(window.scrollY > 50);
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
@@ -98,263 +38,148 @@ export function Header() {
 
     updateCartCount();
     window.addEventListener("storage", updateCartCount);
-    
-    const handleCartUpdate = () => updateCartCount();
-    window.addEventListener("cartUpdated", handleCartUpdate);
+    window.addEventListener("cartUpdated", updateCartCount);
 
     return () => {
       window.removeEventListener("storage", updateCartCount);
-      window.removeEventListener("cartUpdated", handleCartUpdate);
+      window.removeEventListener("cartUpdated", updateCartCount);
     };
   }, []);
 
   return (
     <header className={cn(
-      "sticky top-0 z-50 transition-all duration-300",
-      scrolled 
-        ? "bg-white/95 backdrop-blur-md shadow-lg shadow-black/5" 
-        : "bg-white"
+      "fixed top-0 left-0 right-0 z-50 transition-all duration-500",
+      scrolled ? "py-4" : "py-6"
     )}>
-      <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-20 lg:h-24 items-center justify-between gap-4">
-          {/* Logo - Bigger */}
-          <Link href="/" className="flex items-center gap-2 transition-transform hover:scale-105 flex-shrink-0">
-            <Image 
-              src="/graphics/mamalu-logo.avif" 
-              alt="Mamalu Kitchen" 
-              width={120} 
-              height={120}
-              className="h-14 w-auto sm:h-16 lg:h-20"
-              priority
-            />
-          </Link>
-
-          {/* Primary Navigation - Desktop */}
-          <div className="hidden lg:flex lg:items-center lg:gap-1">
-            {primaryNavigation.map((item) => {
-              const Icon = item.icon;
-              return (
-                <div 
-                  key={item.name} 
-                  className="relative"
-                  onMouseEnter={() => item.hasMegaMenu && setMegaMenuOpen(true)}
-                  onMouseLeave={() => item.hasMegaMenu && setMegaMenuOpen(false)}
-                >
-                  <Link
-                    href={item.href}
-                    className={cn(
-                      "flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-all",
-                      "text-stone-700 hover:text-stone-900",
-                      "hover:bg-stone-100"
-                    )}
-                  >
-                    <Icon className="h-4 w-4" />
-                    {item.name}
-                    {item.hasMegaMenu && <ChevronDown className={cn("h-4 w-4 transition-transform", megaMenuOpen && "rotate-180")} />}
-                  </Link>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Prominent Search Bar - Desktop */}
-          <div className="hidden lg:flex flex-1 max-w-md mx-6">
-            <GlobalSearch />
-          </div>
-
-          {/* Right Section - Cart, Account */}
-          <div className="flex items-center gap-2 sm:gap-3">
-            {/* Search trigger for tablet */}
-            <div className="hidden sm:block lg:hidden">
-              <GlobalSearch />
-            </div>
-
-            {/* Cart */}
+      <nav className="mx-auto max-w-7xl px-6 lg:px-8">
+        <div className="flex items-center justify-between">
+          
+          {/* Left: Logo + Nav Links */}
+          <div className="flex items-center gap-12">
+            {/* Logo */}
             <Link 
-              href="/cart" 
-              className="relative p-2.5 rounded-full hover:bg-stone-100 transition-all group"
-            >
-              <ShoppingBag className="h-5 w-5 text-stone-700 group-hover:text-stone-600 transition-colors" />
-              {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-gradient-to-r from-stone-800 to-stone-900 text-[10px] font-bold text-white flex items-center justify-center shadow-lg">
-                  {cartCount > 99 ? "99+" : cartCount}
-                </span>
+              href="/" 
+              className={cn(
+                "transition-all duration-500",
+                scrolled ? "scale-90" : "scale-100"
               )}
+            >
+              <Image 
+                src="/graphics/mamalu-logo.avif" 
+                alt="Mamalu Kitchen" 
+                width={140} 
+                height={60}
+                className="h-12 w-auto"
+                priority
+              />
             </Link>
 
-            {/* Account */}
-            <Link 
-              href="/account" 
-              className="hidden sm:flex p-2.5 rounded-full hover:bg-stone-100 transition-all group"
+            {/* Desktop Nav Links - Stacked Style */}
+            <div className="hidden lg:flex flex-col gap-0.5">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.name}
+                  href={link.href}
+                  className="text-sm font-bold text-[var(--c-black)] hover:text-[var(--c-peach)] transition-colors uppercase tracking-wide"
+                >
+                  {link.name}
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          {/* Center: Badge with Icon */}
+          <div className="hidden lg:flex flex-col items-center absolute left-1/2 -translate-x-1/2">
+            <div className={cn(
+              "relative w-16 h-16 rounded-full bg-[var(--c-peach)] flex items-center justify-center shadow-lg transition-all duration-500 group hover:scale-110",
+              scrolled ? "scale-75" : "scale-100"
+            )}>
+              <ChefHat className="w-7 h-7 text-white" />
+              {/* Decorative lines */}
+              <div className="absolute -top-3 left-1/2 w-px h-3 bg-[var(--c-peach-light)]" />
+              <div className="absolute -bottom-3 left-1/2 w-px h-3 bg-[var(--c-peach-light)]" />
+            </div>
+            <span className={cn(
+              "mt-2 text-[10px] font-bold text-[var(--c-peach)] uppercase tracking-[0.2em] transition-all duration-500",
+              scrolled ? "opacity-0 -translate-y-2" : "opacity-100 translate-y-0"
+            )}>
+              #FeedingFamilies
+            </span>
+          </div>
+
+          {/* Right: Book Button + Cart */}
+          <div className="flex items-center gap-4">
+            {/* Book Now Button */}
+            <Link
+              href="/classes"
+              className={cn(
+                "hidden md:inline-flex items-center gap-2 px-6 py-3 rounded-full border-2 border-[var(--c-black)] text-sm font-bold uppercase tracking-wide transition-all duration-300",
+                "hover:bg-[var(--c-black)] hover:text-white",
+                scrolled ? "px-4 py-2 text-xs" : ""
+              )}
             >
-              <User className="h-5 w-5 text-stone-700 group-hover:text-stone-600 transition-colors" />
+              <Calendar className="w-4 h-4" />
+              Book Now
+            </Link>
+
+            {/* Cart Button */}
+            <Link
+              href="/cart"
+              className={cn(
+                "relative flex items-center gap-2 px-5 py-3 rounded-full bg-[var(--c-black)] text-white text-sm font-bold uppercase tracking-wide transition-all duration-300 hover:bg-[var(--c-peach)]",
+                scrolled ? "px-4 py-2 text-xs" : ""
+              )}
+            >
+              <span>Cart</span>
+              {cartCount > 0 && (
+                <span className="flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-white text-[var(--c-black)] text-[10px] font-bold">
+                  {cartCount}
+                </span>
+              )}
+              <ShoppingBag className="w-4 h-4" />
             </Link>
 
             {/* Mobile Menu Toggle */}
             <button
               type="button"
-              className="lg:hidden p-2.5 rounded-full hover:bg-stone-100 transition-all"
+              className="lg:hidden p-2 rounded-full hover:bg-[var(--c-warm)] transition-colors"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
               {mobileMenuOpen ? (
-                <X className="h-6 w-6 text-stone-700" />
+                <X className="h-6 w-6 text-[var(--c-black)]" />
               ) : (
-                <Menu className="h-6 w-6 text-stone-700" />
+                <Menu className="h-6 w-6 text-[var(--c-black)]" />
               )}
             </button>
           </div>
         </div>
       </nav>
 
-      {/* Mega Menu for Classes - Full Width, 100% Opacity */}
-      <div 
-        className={cn(
-          "absolute left-0 right-0 top-full bg-white border-t border-stone-100 shadow-2xl transition-all duration-300 z-40 hidden lg:block",
-          megaMenuOpen ? "opacity-100 visible translate-y-0" : "opacity-0 invisible -translate-y-2"
-        )}
-        onMouseEnter={() => setMegaMenuOpen(true)}
-        onMouseLeave={() => setMegaMenuOpen(false)}
-      >
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-          <div className="grid grid-cols-4 gap-6">
-            {serviceCategories.map((category) => {
-              const Icon = category.icon;
-              return (
-                <Link
-                  key={category.name}
-                  href={category.href}
-                  className="group p-5 rounded-2xl border border-stone-100 hover:border-stone-200 hover:shadow-lg transition-all bg-white hover:bg-stone-50"
-                >
-                  <div className={cn("w-12 h-12 rounded-xl bg-gradient-to-br flex items-center justify-center mb-4 group-hover:scale-110 transition-transform", category.color)}>
-                    <Icon className="h-6 w-6 text-white" />
-                  </div>
-                  <h3 className="font-bold text-stone-900 mb-1 group-hover:text-stone-600 transition-colors">
-                    {category.name}
-                  </h3>
-                  <p className="text-sm text-stone-500 line-clamp-2">
-                    {category.description}
-                  </p>
-                </Link>
-              );
-            })}
-          </div>
-          <div className="mt-6 pt-6 border-t border-stone-100 flex items-center justify-between">
-            <p className="text-sm text-stone-500">
-              Can&apos;t decide? Browse all our services and find the perfect experience.
-            </p>
-            <Link 
-              href="/book" 
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-stone-800 to-stone-700 text-white font-semibold text-sm hover:shadow-lg hover:shadow-stone-900/20 transition-all"
-            >
-              <Calendar className="h-4 w-4" />
-              View All Services
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      {/* Mobile Navigation - Modern & Exciting */}
+      {/* Mobile Menu */}
       <div
         className={cn(
-          "lg:hidden fixed inset-0 top-20 bg-white z-40 transition-all duration-500 ease-in-out overflow-y-auto",
+          "lg:hidden fixed inset-0 top-20 bg-[var(--c-cream)] z-40 transition-all duration-500",
           mobileMenuOpen ? "opacity-100 visible" : "opacity-0 invisible pointer-events-none"
         )}
       >
-        <div className="p-4 space-y-4 pb-24">
-          {/* Mobile Search - Prominent */}
-          <div className="relative">
-            <GlobalSearch />
-          </div>
-
-          {/* Primary Actions - Colorful Cards */}
-          <div className="grid grid-cols-3 gap-3">
-            {primaryNavigation.map((item, idx) => {
-              const Icon = item.icon;
-              const colors = ["from-stone-800 to-stone-900", "from-violet-500 to-purple-600", "from-emerald-500 to-teal-600"];
-              return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex flex-col items-center gap-3 p-4 rounded-2xl bg-stone-50 hover:bg-stone-100 transition-all group active:scale-95"
-                >
-                  <div className={cn("w-14 h-14 rounded-2xl bg-gradient-to-br flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform", colors[idx])}>
-                    <Icon className="h-6 w-6 text-white" />
-                  </div>
-                  <span className="text-sm font-bold text-stone-900">{item.name}</span>
-                </Link>
-              );
-            })}
-          </div>
-
-          {/* Class Categories - Visual Grid */}
-          <div className="bg-gradient-to-br from-stone-50 to-stone-100 rounded-3xl p-4">
-            <h3 className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-4 flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-stone-900" />
-              Quick Book
-            </h3>
-            <div className="grid grid-cols-2 gap-3">
-              {serviceCategories.map((category) => {
-                const Icon = category.icon;
-                return (
-                  <Link
-                    key={category.name}
-                    href={category.href}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-3 p-3 rounded-xl bg-white shadow-sm hover:shadow-md transition-all active:scale-95"
-                  >
-                    <div className={cn("w-10 h-10 rounded-lg bg-gradient-to-br flex items-center justify-center flex-shrink-0", category.color)}>
-                      <Icon className="h-5 w-5 text-white" />
-                    </div>
-                    <span className="text-sm font-semibold text-stone-700 truncate">{category.name.replace(" Classes", "").replace(" Parties", "")}</span>
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Secondary Navigation - Clean List */}
-          <div className="bg-white rounded-2xl border border-stone-100 overflow-hidden">
-            {secondaryNavigation.map((item, idx) => (
-              <div key={item.name}>
-                <Link
-                  href={item.href}
-                  onClick={() => !item.children && setMobileMenuOpen(false)}
-                  className={cn(
-                    "flex items-center justify-between py-4 px-5 text-stone-700 hover:text-stone-900 hover:bg-stone-50 transition-all",
-                    idx !== 0 && "border-t border-stone-100"
-                  )}
-                >
-                  <span className="font-semibold">{item.name}</span>
-                  {item.children ? <ChevronDown className="h-4 w-4 text-stone-400" /> : <ArrowRight className="h-4 w-4 text-stone-300" />}
-                </Link>
-                {item.children && (
-                  <div className="bg-stone-50 px-5 py-2">
-                    {item.children.map((child) => (
-                      <Link
-                        key={child.name}
-                        href={child.href}
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="block py-2.5 text-sm text-stone-500 hover:text-stone-900 transition-all"
-                      >
-                        {child.name}
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-
-          {/* Account Button */}
+        <div className="flex flex-col items-center justify-center h-full gap-8">
+          {navLinks.map((link, i) => (
+            <Link
+              key={link.name}
+              href={link.href}
+              onClick={() => setMobileMenuOpen(false)}
+              className="text-4xl font-bold text-[var(--c-black)] hover:text-[var(--c-peach)] transition-colors uppercase"
+              style={{ animationDelay: `${i * 0.1}s` }}
+            >
+              {link.name}
+            </Link>
+          ))}
           <Link
-            href="/account"
+            href="/classes"
             onClick={() => setMobileMenuOpen(false)}
-            className="flex items-center justify-center gap-3 py-4 rounded-2xl bg-gradient-to-r from-stone-900 to-stone-800 text-white font-semibold shadow-lg active:scale-95 transition-transform"
+            className="mt-8 px-8 py-4 bg-[var(--c-peach)] text-white text-xl font-bold rounded-full uppercase tracking-wide"
           >
-            <User className="h-5 w-5" />
-            My Account
+            Book a Class
           </Link>
         </div>
       </div>

@@ -5,12 +5,22 @@ import Link from "next/link";
 import Image from "next/image";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { Calendar, Play, ArrowRight, Star, Heart, ChefHat, Users, Cake, Baby } from "lucide-react";
+import { Calendar, ArrowRight, Star, Heart, ChefHat, Users, Cake, Baby } from "lucide-react";
+import ShapeSlideshow from "@/components/ui/ShapeSlideshow";
 
 // Register GSAP plugins
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
+
+const heroImages = [
+  "/images/Mamalou Kitchen - 103_edited.jpg",
+  "/images/IMG_3079_edited.jpg",
+  "/images/kids-classes.png",
+  "/images/birthday-parties.png",
+  "/images/Mamalou Kitchen - 151.jpg",
+  "/images/family-classes.png",
+];
 
 const services = [
   {
@@ -201,80 +211,115 @@ export default function HomePage() {
 
   return (
     <main className="overflow-hidden">
-      {/* Hero Section */}
+      {/* Hero Section - mybird.com style layout */}
       <section
         ref={heroRef}
-        className="relative min-h-screen flex items-center justify-center hero-gradient overflow-hidden"
+        className="relative min-h-screen pt-32 pb-20 hero-gradient overflow-hidden"
       >
-        {/* Floating Doodles */}
-        <div className="absolute inset-0 pointer-events-none">
-          <Image src="/images/whisk-01.png" alt="" width={100} height={100} className="hero-doodle absolute top-[10%] left-[5%]" />
-          <Image src="/images/pot-01.png" alt="" width={80} height={80} className="hero-doodle absolute top-[15%] right-[8%]" />
-          <Image src="/images/rolling pin-01.png" alt="" width={90} height={90} className="hero-doodle absolute bottom-[20%] left-[8%]" />
-          <Image src="/images/pasta-01.png" alt="" width={85} height={85} className="hero-doodle absolute bottom-[25%] right-[5%]" />
-          <Image src="/images/apron.png" alt="" width={70} height={70} className="hero-doodle absolute top-[45%] left-[3%]" />
-          <Image src="/images/salt-01.png" alt="" width={60} height={60} className="hero-doodle absolute top-[35%] right-[3%]" />
-          <Image src="/images/gloves-01.png" alt="" width={75} height={75} className="hero-doodle absolute bottom-[35%] right-[12%]" />
-          <Image src="/images/spoon big-01.png" alt="" width={65} height={65} className="hero-doodle absolute top-[60%] left-[12%]" />
+        {/* Wavy bottom border */}
+        <div className="absolute bottom-0 left-0 right-0 h-16">
+          <svg viewBox="0 0 1440 100" className="w-full h-full" preserveAspectRatio="none">
+            <path 
+              d="M0,50 C150,100 350,0 500,50 C650,100 800,0 1000,50 C1150,100 1300,0 1440,50 L1440,100 L0,100 Z" 
+              fill="var(--c-cream)"
+              className="opacity-50"
+            />
+            <path 
+              d="M0,70 C200,100 400,40 600,70 C800,100 1000,40 1200,70 C1350,90 1400,60 1440,80 L1440,100 L0,100 Z" 
+              fill="white"
+            />
+          </svg>
         </div>
 
-        {/* Hero Content */}
-        <div ref={heroTextRef} className="container relative z-10 text-center px-4">
-          <div className="max-w-5xl mx-auto">
-            {/* Badge */}
-            <div className="hero-subtitle inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm px-6 py-3 rounded-full mb-8 shadow-lg">
-              <span className="text-[var(--c-peach)] font-semibold">#FeedingFamilies</span>
-              <span className="text-[var(--c-gray)]">Since 2020</span>
-            </div>
+        <div className="container mx-auto px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center min-h-[70vh]">
+            
+            {/* Left: Text Content */}
+            <div ref={heroTextRef} className="relative z-10">
+              {/* Main Title - Large uppercase like mybird */}
+              <h1 className="hero-title mb-6">
+                <span className="hero-title-line block text-[clamp(3rem,10vw,7rem)] leading-[0.9] font-bold uppercase">
+                  Cooking
+                </span>
+                <span className="hero-title-line block text-[clamp(3rem,10vw,7rem)] leading-[0.9] font-bold uppercase text-gradient">
+                  Classes
+                </span>
+                <span className="hero-title-line block text-[clamp(3rem,10vw,7rem)] leading-[0.9] font-bold uppercase">
+                  For Kids
+                </span>
+              </h1>
 
-            {/* Main Title */}
-            <h1 className="hero-title mb-8">
-              <span className="hero-title-line block">Where Little</span>
-              <span className="hero-title-line block text-gradient">Chefs Become</span>
-              <span className="hero-title-line block">Big Cooks</span>
-            </h1>
+              {/* Subtitle - positioned like mybird */}
+              <p className="hero-subtitle text-lg md:text-xl text-[var(--c-gray)] max-w-md mb-10 leading-relaxed">
+                Fun and healthy cooking classes in Dubai for kids, families, and teams. Create delicious memories.
+              </p>
 
-            {/* Subtitle */}
-            <p className="hero-subtitle text-xl md:text-2xl text-[var(--c-gray)] max-w-2xl mx-auto mb-12">
-              Fun, healthy cooking classes for kids and families in Dubai. Create delicious memories while learning essential life skills.
-            </p>
-
-            {/* CTAs */}
-            <div className="flex flex-wrap justify-center gap-4 mb-16">
-              <Link
-                href="/classes"
-                className="hero-cta btn-primary group"
-              >
-                <Calendar className="w-5 h-5" />
-                <span>Book a Class</span>
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </Link>
-              <button className="hero-cta btn-secondary group">
-                <Play className="w-5 h-5" />
-                <span>Watch Our Story</span>
-              </button>
-            </div>
-
-            {/* Stats */}
-            <div className="hero-stats flex flex-wrap justify-center gap-8 md:gap-16">
-              {stats.map((stat, i) => (
-                <div key={i} className="text-center">
-                  <div className="text-3xl md:text-4xl font-bold text-[var(--c-black)] flex items-center justify-center gap-1">
-                    {stat.value}
-                    {stat.label === "Star Rating" && <Star className="w-6 h-6 fill-[var(--c-peach)] text-[var(--c-peach)]" />}
-                  </div>
-                  <div className="text-sm text-[var(--c-gray)] mt-1">{stat.label}</div>
+              {/* CTAs - pill buttons like mybird */}
+              <div className="hero-cta flex flex-wrap gap-4 items-center">
+                <Link
+                  href="/classes"
+                  className="inline-flex items-center gap-2 px-8 py-4 rounded-full border-2 border-[var(--c-black)] text-sm font-bold uppercase tracking-wide transition-all duration-300 hover:bg-[var(--c-black)] hover:text-white"
+                >
+                  Book a Class
+                </Link>
+                <Link
+                  href="/products"
+                  className="inline-flex items-center gap-2 px-8 py-4 rounded-full border-2 border-[var(--c-black)] text-sm font-bold uppercase tracking-wide transition-all duration-300 hover:bg-[var(--c-black)] hover:text-white"
+                >
+                  Shop Now
+                </Link>
+                <div className="w-10 h-10 rounded-full bg-[var(--c-peach)] flex items-center justify-center">
+                  <ChefHat className="w-5 h-5 text-white" />
                 </div>
-              ))}
+              </div>
+            </div>
+
+            {/* Right: Shape Slideshow */}
+            <div className="relative flex items-center justify-center">
+              <ShapeSlideshow 
+                images={heroImages} 
+                interval={4000}
+                className="w-full max-w-lg"
+              />
+              
+              {/* Floating doodles around slideshow */}
+              <Image 
+                src="/images/whisk-01.png" 
+                alt="" 
+                width={60} 
+                height={60} 
+                className="hero-doodle absolute -top-8 -left-4 opacity-20"
+              />
+              <Image 
+                src="/images/pot-01.png" 
+                alt="" 
+                width={50} 
+                height={50} 
+                className="hero-doodle absolute top-1/4 -right-8 opacity-20"
+              />
+              <Image 
+                src="/images/spoon big-01.png" 
+                alt="" 
+                width={45} 
+                height={45} 
+                className="hero-doodle absolute -bottom-4 left-1/4 opacity-20"
+              />
             </div>
           </div>
-        </div>
 
-        {/* Scroll Indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 animate-bounce">
-          <span className="text-xs uppercase tracking-widest text-[var(--c-gray)]">Scroll</span>
-          <div className="w-6 h-10 border-2 border-[var(--c-gray)] rounded-full flex justify-center pt-2">
-            <div className="w-1 h-2 bg-[var(--c-peach)] rounded-full animate-pulse" />
+          {/* Bottom Features - like mybird */}
+          <div className="hero-stats grid grid-cols-3 gap-8 mt-16 pt-8 border-t border-[var(--c-gray-light)]/30">
+            {stats.slice(0, 3).map((stat, i) => (
+              <div key={i} className="text-center">
+                <div className="w-12 h-12 mx-auto mb-3 rounded-full border border-[var(--c-gray-light)] flex items-center justify-center">
+                  {i === 0 && <Users className="w-5 h-5 text-[var(--c-peach)]" />}
+                  {i === 1 && <Calendar className="w-5 h-5 text-[var(--c-peach)]" />}
+                  {i === 2 && <Star className="w-5 h-5 text-[var(--c-peach)]" />}
+                </div>
+                <div className="font-bold text-[var(--c-black)]">{stat.label}</div>
+                <div className="text-sm text-[var(--c-gray)]">{stat.value}</div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
