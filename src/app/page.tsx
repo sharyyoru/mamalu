@@ -214,7 +214,7 @@ export default function HomePage() {
       {/* Hero Section - Peach background like mybird.com */}
       <section
         ref={heroRef}
-        className="relative min-h-screen pt-32 pb-20 bg-[var(--c-peach)] overflow-hidden"
+        className="relative pt-28 pb-12 bg-[var(--c-peach)] overflow-hidden"
       >
         {/* Wavy bottom border - peach to white transition */}
         <div className="absolute bottom-0 left-0 right-0 h-20">
@@ -232,7 +232,7 @@ export default function HomePage() {
         </div>
 
         <div className="container mx-auto px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center min-h-[70vh]">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center">
             
             {/* Left: Text Content */}
             <div ref={heroTextRef} className="relative z-10">
@@ -274,52 +274,64 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Right: Shape Slideshow */}
+            {/* Right: Cooking Animation GIF */}
             <div className="relative flex items-center justify-center">
-              <ShapeSlideshow 
-                images={heroImages} 
-                interval={4000}
-                className="w-full max-w-lg"
-              />
-              
-              {/* Floating doodles around slideshow */}
               <Image 
-                src="/images/whisk-01.png" 
-                alt="" 
-                width={60} 
-                height={60} 
-                className="hero-doodle absolute -top-8 -left-4 opacity-20"
-              />
-              <Image 
-                src="/images/pot-01.png" 
-                alt="" 
-                width={50} 
-                height={50} 
-                className="hero-doodle absolute top-1/4 -right-8 opacity-20"
-              />
-              <Image 
-                src="/images/spoon big-01.png" 
-                alt="" 
-                width={45} 
-                height={45} 
-                className="hero-doodle absolute -bottom-4 left-1/4 opacity-20"
+                src="/graphics/992822912468Cooking.gif"
+                alt="Cooking Animation"
+                width={400}
+                height={400}
+                className="w-full max-w-sm lg:max-w-md"
+                unoptimized
+                priority
               />
             </div>
           </div>
 
-          {/* Bottom Features - like mybird */}
-          <div className="hero-stats grid grid-cols-3 gap-8 mt-16 pt-8 border-t border-[var(--c-gray-light)]/30">
-            {stats.slice(0, 3).map((stat, i) => (
-              <div key={i} className="text-center">
-                <div className="w-12 h-12 mx-auto mb-3 rounded-full border border-[var(--c-gray-light)] flex items-center justify-center">
-                  {i === 0 && <Users className="w-5 h-5 text-[var(--c-accent-dark)]" />}
-                  {i === 1 && <Calendar className="w-5 h-5 text-[var(--c-accent-dark)]" />}
-                  {i === 2 && <Star className="w-5 h-5 text-[var(--c-accent-dark)]" />}
-                </div>
-                <div className="font-bold text-[var(--c-black)]">{stat.label}</div>
-                <div className="text-sm text-[var(--c-gray)]">{stat.value}</div>
+          {/* Stats Section - visible in one screen */}
+          <div className="hero-stats grid grid-cols-3 gap-4 md:gap-8 mt-8 pt-6 border-t border-[var(--c-black)]/10">
+            <div className="text-center">
+              <div className="w-14 h-14 md:w-16 md:h-16 mx-auto mb-2">
+                <Image 
+                  src="/graphics/happy-kids.gif"
+                  alt="Happy Kids"
+                  width={64}
+                  height={64}
+                  className="w-full h-full object-contain"
+                  unoptimized
+                />
               </div>
-            ))}
+              <div className="font-bold text-[var(--c-black)] text-sm md:text-base">Happy Kids</div>
+              <div className="text-xs md:text-sm text-[var(--c-gray)]">2000+</div>
+            </div>
+            <div className="text-center">
+              <div className="w-14 h-14 md:w-16 md:h-16 mx-auto mb-2">
+                <Image 
+                  src="/graphics/classes.gif"
+                  alt="Classes Held"
+                  width={64}
+                  height={64}
+                  className="w-full h-full object-contain"
+                  unoptimized
+                />
+              </div>
+              <div className="font-bold text-[var(--c-black)] text-sm md:text-base">Classes Held</div>
+              <div className="text-xs md:text-sm text-[var(--c-gray)]">500+</div>
+            </div>
+            <div className="text-center">
+              <div className="w-14 h-14 md:w-16 md:h-16 mx-auto mb-2">
+                <Image 
+                  src="/graphics/reviews.gif"
+                  alt="Star Rating"
+                  width={64}
+                  height={64}
+                  className="w-full h-full object-contain"
+                  unoptimized
+                />
+              </div>
+              <div className="font-bold text-[var(--c-black)] text-sm md:text-base">Star Rating</div>
+              <div className="text-xs md:text-sm text-[var(--c-gray)]">4.9</div>
+            </div>
           </div>
         </div>
       </section>

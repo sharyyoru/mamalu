@@ -60,13 +60,16 @@ export function Header() {
 
   return (
     <>
-      {/* Header - Transparent like mybird.com */}
+      {/* Header - White default, transparent on scroll like mybird.com */}
       <header className={cn(
         "fixed top-0 left-0 right-0 z-50 transition-all duration-500",
-        scrolled ? "py-2 bg-white/90 backdrop-blur-md shadow-sm" : "py-4 bg-transparent"
+        scrolled ? "bg-transparent" : "bg-white"
       )}>
         <nav className="container mx-auto px-6 lg:px-8">
-          <div className="flex items-center justify-between relative min-h-[60px]">
+          <div className={cn(
+            "flex items-center justify-between relative transition-all duration-500",
+            scrolled ? "py-2" : "py-4"
+          )}>
             
             {/* Left: Nav Links - Aligned to content area (hidden on scroll) */}
             <div className={cn(
@@ -84,17 +87,34 @@ export function Header() {
               ))}
             </div>
 
-            {/* Center: Logo + Open Menu (on scroll) */}
-            <div className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center">
+            {/* Mobile: Menu button on left (hidden on desktop, hidden on scroll) */}
+            <button
+              type="button"
+              className={cn(
+                "lg:hidden p-2 transition-all duration-500",
+                scrolled ? "opacity-0 pointer-events-none" : "opacity-100"
+              )}
+              onClick={() => setMenuOpen(true)}
+            >
+              <svg className="h-6 w-6 text-[var(--c-black)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+
+            {/* Center: Logo + Open Menu (on scroll) - positioned to overflow into hero */}
+            <div className={cn(
+              "absolute left-1/2 -translate-x-1/2 flex flex-col items-center transition-all duration-500",
+              scrolled ? "top-2" : "top-2"
+            )}>
               <Link href="/" className="transition-all duration-500">
                 <Image 
                   src="/graphics/mamalu-logo-transparent.png" 
                   alt="Mamalu Kitchen" 
-                  width={140} 
-                  height={140}
+                  width={160} 
+                  height={160}
                   className={cn(
                     "transition-all duration-500",
-                    scrolled ? "w-20 h-20" : "w-28 h-28 lg:w-32 lg:h-32"
+                    scrolled ? "w-16 h-16 mt-2" : "w-24 h-24 lg:w-28 lg:h-28"
                   )}
                   priority
                 />
@@ -104,8 +124,8 @@ export function Header() {
               <button
                 onClick={() => setMenuOpen(true)}
                 className={cn(
-                  "text-xs font-bold uppercase tracking-widest text-[var(--c-black)] hover:opacity-60 transition-all duration-500 mt-1",
-                  scrolled ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2 pointer-events-none"
+                  "text-[10px] font-bold uppercase tracking-widest text-[var(--c-black)] hover:opacity-60 transition-all duration-500",
+                  scrolled ? "opacity-100 translate-y-0 mt-0" : "opacity-0 -translate-y-2 pointer-events-none"
                 )}
               >
                 Open Menu
@@ -119,10 +139,11 @@ export function Header() {
             )}>
               <Link
                 href="/cart"
-                className="relative flex items-center gap-3 px-5 py-2.5 rounded-full border border-[var(--c-black)]/20 bg-white text-sm font-bold uppercase tracking-wide transition-all duration-300 hover:border-[var(--c-black)]"
+                className="relative flex items-center gap-2 px-4 py-2 rounded-full border border-[var(--c-black)]/20 bg-white text-sm font-bold uppercase tracking-wide transition-all duration-300 hover:border-[var(--c-black)]"
               >
-                <span className="text-[var(--c-black)]">Cart ({cartCount})</span>
-                <div className="w-8 h-8 relative">
+                <span className="text-[var(--c-black)] hidden sm:inline">Cart ({cartCount})</span>
+                <span className="text-[var(--c-black)] sm:hidden">{cartCount}</span>
+                <div className="w-6 h-6 sm:w-8 sm:h-8 relative">
                   <Image 
                     src="/images/lunch-bag.png" 
                     alt="Cart" 
@@ -131,17 +152,6 @@ export function Header() {
                   />
                 </div>
               </Link>
-
-              {/* Mobile Menu Toggle */}
-              <button
-                type="button"
-                className="lg:hidden p-2 rounded-full hover:bg-white/50 transition-colors"
-                onClick={() => setMenuOpen(true)}
-              >
-                <svg className="h-6 w-6 text-[var(--c-black)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              </button>
             </div>
           </div>
         </nav>
