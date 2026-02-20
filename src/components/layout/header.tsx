@@ -60,17 +60,17 @@ export function Header() {
 
   return (
     <>
-      {/* Header with Peach Background */}
+      {/* Header - Transparent like mybird.com */}
       <header className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-500 bg-[var(--c-peach)]",
-        scrolled ? "py-3" : "py-6"
+        "fixed top-0 left-0 right-0 z-50 transition-all duration-500",
+        scrolled ? "py-2 bg-white/90 backdrop-blur-md shadow-sm" : "py-4 bg-transparent"
       )}>
-        <nav className="mx-auto max-w-7xl px-6 lg:px-8">
-          <div className="flex items-center justify-between relative min-h-[80px]">
+        <nav className="container mx-auto px-6 lg:px-8">
+          <div className="flex items-center justify-between relative min-h-[60px]">
             
-            {/* Left: Nav Links - Stacked Style (hidden on scroll) */}
+            {/* Left: Nav Links - Aligned to content area (hidden on scroll) */}
             <div className={cn(
-              "hidden lg:flex flex-col gap-0.5 transition-all duration-500 ml-[10%]",
+              "hidden lg:flex flex-col gap-0.5 transition-all duration-500",
               scrolled ? "opacity-0 pointer-events-none -translate-x-4" : "opacity-100 translate-x-0"
             )}>
               {navLinks.map((link) => (
@@ -146,30 +146,6 @@ export function Header() {
           </div>
         </nav>
       </header>
-      
-      {/* Wavy Lines - Separate from header, like mybird.com */}
-      <div className={cn(
-        "fixed left-0 right-0 z-40 pointer-events-none transition-all duration-500",
-        scrolled ? "top-[104px]" : "top-[152px]"
-      )}>
-        <svg 
-          viewBox="0 0 1440 60" 
-          className="w-full h-12"
-          preserveAspectRatio="none"
-        >
-          {/* Back wave - lighter */}
-          <path 
-            d="M0,30 C240,60 480,0 720,30 C960,60 1200,0 1440,30 L1440,0 L0,0 Z" 
-            fill="var(--c-peach-light)"
-            opacity="0.7"
-          />
-          {/* Front wave - main peach */}
-          <path 
-            d="M0,20 C180,50 360,10 540,25 C720,40 900,5 1080,20 C1260,35 1380,15 1440,25 L1440,0 L0,0 Z" 
-            fill="var(--c-peach)"
-          />
-        </svg>
-      </div>
 
       {/* Fullscreen Menu Overlay - mybird.com style */}
       <div

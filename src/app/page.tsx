@@ -211,21 +211,21 @@ export default function HomePage() {
 
   return (
     <main className="overflow-hidden">
-      {/* Hero Section - mybird.com style layout */}
+      {/* Hero Section - Peach background like mybird.com */}
       <section
         ref={heroRef}
-        className="relative min-h-screen pt-40 pb-20 bg-white overflow-hidden"
+        className="relative min-h-screen pt-32 pb-20 bg-[var(--c-peach)] overflow-hidden"
       >
-        {/* Wavy bottom border */}
-        <div className="absolute bottom-0 left-0 right-0 h-16">
+        {/* Wavy bottom border - peach to white transition */}
+        <div className="absolute bottom-0 left-0 right-0 h-20">
           <svg viewBox="0 0 1440 100" className="w-full h-full" preserveAspectRatio="none">
             <path 
-              d="M0,50 C150,100 350,0 500,50 C650,100 800,0 1000,50 C1150,100 1300,0 1440,50 L1440,100 L0,100 Z" 
-              fill="var(--c-cream)"
-              className="opacity-50"
+              d="M0,30 C240,80 480,0 720,40 C960,80 1200,10 1440,50 L1440,100 L0,100 Z" 
+              fill="var(--c-peach-light)"
+              className="opacity-60"
             />
             <path 
-              d="M0,70 C200,100 400,40 600,70 C800,100 1000,40 1200,70 C1350,90 1400,60 1440,80 L1440,100 L0,100 Z" 
+              d="M0,50 C180,90 360,20 540,60 C720,100 900,30 1080,70 C1260,100 1380,40 1440,80 L1440,100 L0,100 Z" 
               fill="white"
             />
           </svg>
@@ -245,7 +245,7 @@ export default function HomePage() {
                   Classes
                 </span>
                 <span className="hero-title-line block text-[clamp(3rem,10vw,7rem)] leading-[1] font-bold">
-                  For Kids
+                  For All
                 </span>
               </h1>
 
