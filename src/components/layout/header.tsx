@@ -104,32 +104,46 @@ export function Header() {
             {/* Center: Logo + Open Menu (on scroll) - positioned to overflow into hero */}
             <div className={cn(
               "absolute left-1/2 -translate-x-1/2 flex flex-col items-center transition-all duration-500",
-              scrolled ? "top-2" : "top-2"
+              scrolled ? "top-1" : "top-2"
             )}>
-              <Link href="/" className="transition-all duration-500">
-                <Image 
-                  src="/graphics/mamalu-logo-transparent.png" 
-                  alt="Mamalu Kitchen" 
-                  width={160} 
-                  height={160}
-                  className={cn(
-                    "transition-all duration-500",
-                    scrolled ? "w-16 h-16 mt-2" : "w-24 h-24 lg:w-28 lg:h-28"
-                  )}
-                  priority
-                />
-              </Link>
-              
-              {/* Open Menu Button - appears on scroll */}
-              <button
-                onClick={() => setMenuOpen(true)}
-                className={cn(
-                  "text-[10px] font-bold uppercase tracking-widest text-[var(--c-black)] hover:opacity-60 transition-all duration-500",
-                  scrolled ? "opacity-100 translate-y-0 mt-0" : "opacity-0 -translate-y-2 pointer-events-none"
-                )}
+              {/* White circular background with shadow on scroll */}
+              <div className={cn(
+                "flex flex-col items-center transition-all duration-500 cursor-pointer",
+                scrolled ? "bg-white rounded-full p-3 shadow-lg" : ""
+              )}
+              onClick={() => scrolled && setMenuOpen(true)}
               >
-                Open Menu
-              </button>
+                {/* Logo - links home when not scrolled, opens menu when scrolled */}
+                {scrolled ? (
+                  <Image 
+                    src="/graphics/mamalu-logo-transparent.png" 
+                    alt="Mamalu Kitchen" 
+                    width={160} 
+                    height={160}
+                    className="w-14 h-14 transition-all duration-500"
+                    priority
+                  />
+                ) : (
+                  <Link href="/">
+                    <Image 
+                      src="/graphics/mamalu-logo-transparent.png" 
+                      alt="Mamalu Kitchen" 
+                      width={160} 
+                      height={160}
+                      className="w-24 h-24 lg:w-28 lg:h-28 transition-all duration-500"
+                      priority
+                    />
+                  </Link>
+                )}
+                
+                {/* Open Menu Text - appears on scroll */}
+                <span className={cn(
+                  "text-[9px] font-bold uppercase tracking-widest text-[var(--c-black)] transition-all duration-500 mt-1",
+                  scrolled ? "opacity-100" : "opacity-0 pointer-events-none"
+                )}>
+                  Open Menu
+                </span>
+              </div>
             </div>
 
             {/* Right: Cart Button (hidden on scroll) */}

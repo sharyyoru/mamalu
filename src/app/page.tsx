@@ -214,18 +214,29 @@ export default function HomePage() {
       {/* Hero Section - Peach background like mybird.com */}
       <section
         ref={heroRef}
-        className="relative pt-28 pb-12 bg-[var(--c-peach)] overflow-hidden"
+        className="relative pt-36 pb-16 overflow-hidden"
       >
-        {/* Wavy bottom border - peach to white transition */}
-        <div className="absolute bottom-0 left-0 right-0 h-20">
+        {/* White background base */}
+        <div className="absolute inset-0 bg-white" />
+        
+        {/* Wavy TOP border - white to peach transition like mybird */}
+        <div className="absolute top-0 left-0 right-0 h-24 z-0">
           <svg viewBox="0 0 1440 100" className="w-full h-full" preserveAspectRatio="none">
             <path 
-              d="M0,30 C240,80 480,0 720,40 C960,80 1200,10 1440,50 L1440,100 L0,100 Z" 
-              fill="var(--c-peach-light)"
-              className="opacity-60"
+              d="M0,0 L1440,0 L1440,60 C1300,80 1100,30 900,50 C700,70 500,30 300,50 C150,65 50,40 0,55 Z" 
+              fill="var(--c-peach)"
             />
+          </svg>
+        </div>
+        
+        {/* Peach background section */}
+        <div className="absolute top-20 bottom-20 left-0 right-0 bg-[var(--c-peach)] z-0" />
+        
+        {/* Wavy BOTTOM border - peach to white transition */}
+        <div className="absolute bottom-0 left-0 right-0 h-24 z-0">
+          <svg viewBox="0 0 1440 100" className="w-full h-full" preserveAspectRatio="none">
             <path 
-              d="M0,50 C180,90 360,20 540,60 C720,100 900,30 1080,70 C1260,100 1380,40 1440,80 L1440,100 L0,100 Z" 
+              d="M0,40 C150,20 300,60 500,35 C700,10 900,50 1100,30 C1300,10 1400,40 1440,25 L1440,100 L0,100 Z" 
               fill="white"
             />
           </svg>
@@ -275,62 +286,62 @@ export default function HomePage() {
             </div>
 
             {/* Right: Cooking Animation GIF */}
-            <div className="relative flex items-center justify-center">
+            <div className="relative flex items-center justify-center z-10">
               <Image 
-                src="/graphics/992822912468Cooking.gif"
+                src="/graphics/final-cooking.gif"
                 alt="Cooking Animation"
-                width={400}
-                height={400}
-                className="w-full max-w-sm lg:max-w-md"
+                width={450}
+                height={450}
+                className="w-full max-w-md lg:max-w-lg"
                 unoptimized
                 priority
               />
             </div>
           </div>
 
-          {/* Stats Section - visible in one screen */}
-          <div className="hero-stats grid grid-cols-3 gap-4 md:gap-8 mt-8 pt-6 border-t border-[var(--c-black)]/10">
+          {/* Stats Section - visible in one screen, doubled icon sizes */}
+          <div className="hero-stats grid grid-cols-3 gap-4 md:gap-8 mt-10 pt-8 border-t border-[var(--c-black)]/10 relative z-10">
             <div className="text-center">
-              <div className="w-14 h-14 md:w-16 md:h-16 mx-auto mb-2">
+              <div className="w-24 h-24 md:w-28 md:h-28 mx-auto mb-3">
                 <Image 
                   src="/graphics/happy-kids.gif"
                   alt="Happy Kids"
-                  width={64}
-                  height={64}
+                  width={112}
+                  height={112}
                   className="w-full h-full object-contain"
                   unoptimized
                 />
               </div>
-              <div className="font-bold text-[var(--c-black)] text-sm md:text-base">Happy Kids</div>
-              <div className="text-xs md:text-sm text-[var(--c-gray)]">2000+</div>
+              <div className="font-bold text-[var(--c-black)] text-base md:text-lg">Happy Kids</div>
+              <div className="text-sm md:text-base text-[var(--c-gray)]">2000+</div>
             </div>
             <div className="text-center">
-              <div className="w-14 h-14 md:w-16 md:h-16 mx-auto mb-2">
+              <div className="w-24 h-24 md:w-28 md:h-28 mx-auto mb-3">
                 <Image 
                   src="/graphics/classes.gif"
                   alt="Classes Held"
-                  width={64}
-                  height={64}
+                  width={112}
+                  height={112}
                   className="w-full h-full object-contain"
                   unoptimized
                 />
               </div>
-              <div className="font-bold text-[var(--c-black)] text-sm md:text-base">Classes Held</div>
-              <div className="text-xs md:text-sm text-[var(--c-gray)]">500+</div>
+              <div className="font-bold text-[var(--c-black)] text-base md:text-lg">Classes Held</div>
+              <div className="text-sm md:text-base text-[var(--c-gray)]">500+</div>
             </div>
             <div className="text-center">
-              <div className="w-14 h-14 md:w-16 md:h-16 mx-auto mb-2">
+              <div className="w-24 h-24 md:w-28 md:h-28 mx-auto mb-3">
                 <Image 
                   src="/graphics/reviews.gif"
                   alt="Star Rating"
-                  width={64}
-                  height={64}
+                  width={112}
+                  height={112}
                   className="w-full h-full object-contain"
                   unoptimized
                 />
               </div>
-              <div className="font-bold text-[var(--c-black)] text-sm md:text-base">Star Rating</div>
-              <div className="text-xs md:text-sm text-[var(--c-gray)]">4.9</div>
+              <div className="font-bold text-[var(--c-black)] text-base md:text-lg">Star Rating</div>
+              <div className="text-sm md:text-base text-[var(--c-gray)]">4.9</div>
             </div>
           </div>
         </div>
