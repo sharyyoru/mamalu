@@ -209,16 +209,27 @@ html {
   background-clip: text;
 }
 
-/* Doodle icon animations */
+/* Enhanced doodle animations */
 @keyframes doodle-float {
   0%, 100% { transform: translateY(0) rotate(0deg); }
   25% { transform: translateY(-12px) rotate(3deg); }
   75% { transform: translateY(5px) rotate(-2deg); }
 }
 
+@keyframes doodle-bounce {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-20px) scale(1.1); }
+}
+
 @keyframes doodle-spin-slow {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+@keyframes doodle-rotate-float {
+  0% { transform: rotate(0deg) translateY(0); }
+  50% { transform: rotate(180deg) translateY(-15px); }
+  100% { transform: rotate(360deg) translateY(0); }
 }
 
 @keyframes doodle-wiggle {
@@ -231,13 +242,70 @@ html {
   50% { transform: scale(1.1) rotate(3deg); }
 }
 
+@keyframes doodle-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.05); opacity: 1; }
+}
+
+@keyframes doodle-sway {
+  0%, 100% { transform: translateX(0) rotate(0deg); }
+  25% { transform: translateX(-10px) rotate(-2deg); }
+  75% { transform: translateX(10px) rotate(2deg); }
+}
+
 @keyframes marquee {
   0% { transform: translateX(0); }
   100% { transform: translateX(-50%); }
 }
 
+/* Hero section animations */
+@keyframes hero-text-reveal {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes hero-button-appear {
+  from { opacity: 0; transform: scale(0.8) translateY(20px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes hero-doodle-entrance {
+  from { opacity: 0; transform: scale(0) rotate(-180deg); }
+  to { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+
+/* Scroll-triggered animations */
+@keyframes slide-in-left {
+  from { opacity: 0; transform: translateX(-50px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(50px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Animation utility classes */
 .animate-doodle-float {
   animation: doodle-float 5s ease-in-out infinite;
+}
+
+.animate-doodle-bounce {
+  animation: doodle-bounce 4s ease-in-out infinite;
+}
+
+.animate-doodle-rotate {
+  animation: doodle-rotate-float 15s linear infinite;
 }
 
 .animate-doodle-wiggle {
@@ -248,10 +316,131 @@ html {
   animation: doodle-scale 4s ease-in-out infinite;
 }
 
-.animate-doodle-spin {
-  animation: doodle-spin-slow 20s linear infinite;
+.animate-doodle-pulse {
+  animation: doodle-pulse 2s ease-in-out infinite;
 }
 
-.animate-marquee {
-  animation: marquee 30s linear infinite;
+.animate-doodle-sway {
+  animation: doodle-sway 6s ease-in-out infinite;
+}
+
+.animate-hero-text {
+  animation: hero-text-reveal 1s ease-out forwards;
+}
+
+.animate-hero-button {
+  animation: hero-button-appear 1s ease-out 0.5s forwards;
+  opacity: 0;
+}
+
+.animate-hero-doodle {
+  animation: hero-doodle-entrance 1.2s ease-out forwards;
+  opacity: 0;
+}
+
+.animate-slide-left {
+  animation: slide-in-left 0.8s ease-out forwards;
+  opacity: 0;
+}
+
+.animate-slide-right {
+  animation: slide-in-right 0.8s ease-out forwards;
+  opacity: 0;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.6s ease-out forwards;
+  opacity: 0;
+}
+
+.animate-fade-up {
+  animation: fade-in-up 0.8s ease-out forwards;
+  opacity: 0;
+}
+
+/* Staggered animation delays */
+.animate-delay-100 { animation-delay: 100ms; }
+.animate-delay-200 { animation-delay: 200ms; }
+.animate-delay-300 { animation-delay: 300ms; }
+.animate-delay-400 { animation-delay: 400ms; }
+.animate-delay-500 { animation-delay: 500ms; }
+.animate-delay-600 { animation-delay: 600ms; }
+.animate-delay-700 { animation-delay: 700ms; }
+.animate-delay-800 { animation-delay: 800ms; }
+
+/* Interactive hover states */
+.doodle-interactive {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.doodle-interactive:hover {
+  transform: scale(1.2) rotate(10deg);
+  filter: brightness(1.2);
+}
+
+/* Hero section specific styles */
+.hero-gradient {
+  background: linear-gradient(135deg, 
+    rgba(255, 140, 107, 0.1) 0%, 
+    rgba(250, 250, 249, 0.95) 40%, 
+    rgba(245, 245, 244, 0.95) 60%, 
+    rgba(255, 168, 145, 0.1) 100%);
+}
+
+.hero-doodle-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.hero-doodle {
+  position: absolute;
+  opacity: 0.15;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+}
+
+/* Enhanced card hover effects */
+.card-3d {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-style: preserve-3d;
+}
+
+.card-3d:hover {
+  transform: translateY(-12px) rotateX(2deg);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+}
+
+/* Button glow effects */
+.button-glow {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.button-glow::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.button-glow:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+.button-glow:hover {
+  box-shadow: 0 8px 25px rgba(255, 140, 107, 0.4);
+  transform: translateY(-2px);
 }

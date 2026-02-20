@@ -5,6 +5,12 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import VideoPlayer from "@/components/layout/VideoPlayer";
+import EnhancedHero from "@/components/ui/EnhancedHero";
+import FloatingDoodles from "@/components/ui/FloatingDoodles";
+import EnhancedServiceCard from "@/components/ui/EnhancedServiceCard";
+import EnhancedPhotoGallery from "@/components/ui/EnhancedPhotoGallery";
+import AnimatedSection from "@/components/ui/AnimatedSection";
+import ScrollProgress from "@/components/ui/ScrollProgress";
 import {
   ChefHat,
   Users,
@@ -95,6 +101,57 @@ const stats = [
   { value: "4.9", label: "Rating", icon: Star },
 ];
 
+const galleryPhotos = [
+  { 
+    src: "/images/Mamalou Kitchen - 103_edited.jpg", 
+    alt: "Kids cooking class at Mamalu Kitchen",
+    caption: "Little Chefs in Action",
+    category: "Kids Classes"
+  },
+  { 
+    src: "/images/IMG_3079_edited.jpg", 
+    alt: "Family cooking together",
+    caption: "Family Bonding",
+    category: "Family Classes"
+  },
+  { 
+    src: "/images/File_000-2.jpeg", 
+    alt: "Birthday party cooking",
+    caption: "Birthday Celebrations",
+    category: "Parties"
+  },
+  { 
+    src: "/images/Mamalou Kitchen - 151.jpg", 
+    alt: "Adult cooking class",
+    caption: "Culinary Adventures",
+    category: "Adult Classes"
+  },
+  { 
+    src: "/images/IMG_4199.jpg", 
+    alt: "Professional kitchen setup",
+    caption: "Our Professional Kitchen",
+    category: "Facilities"
+  },
+  { 
+    src: "/images/File_010.jpeg", 
+    alt: "Cooking demonstration",
+    caption: "Expert Chefs at Work",
+    category: "Classes"
+  },
+  { 
+    src: "/images/Mamalou Kitchen - 165.jpg", 
+    alt: "Happy students with their creations",
+    caption: "Proud Moments",
+    category: "Achievements"
+  },
+  { 
+    src: "/images/IMG_7324.jpg", 
+    alt: "Colorful cooking ingredients",
+    caption: "Fresh Ingredients",
+    category: "Quality"
+  },
+];
+
 export default function Home() {
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [isVideoOpen, setIsVideoOpen] = useState(false);
@@ -109,132 +166,20 @@ export default function Home() {
   return (
     <>
       <VideoPlayer isOpen={isVideoOpen} onClose={() => setIsVideoOpen(false)} />
+      <ScrollProgress />
       
       <div className="overflow-hidden">
-        {/* Hero Section */}
-        <section className="relative min-h-[90vh] flex items-center bg-gradient-to-br from-stone-50 via-white to-stone-100 overflow-hidden">
-          {/* Animated Hand-Drawn Doodle Icons Background */}
-          <div className="absolute inset-0 pointer-events-none overflow-hidden">
-            <div className="absolute top-20 left-[10%] w-64 h-64 bg-gradient-to-br from-[#ff8c6b]/10 to-transparent rounded-full blur-3xl animate-float" />
-            <div className="absolute bottom-20 right-[10%] w-80 h-80 bg-gradient-to-br from-stone-200/30 to-transparent rounded-full blur-3xl animate-float-slow" />
-            
-            <Image src="/images/whisk-01.png" alt="" width={100} height={100} className="absolute top-[5%] left-[3%] opacity-[0.08] animate-doodle-float" style={{animationDelay: '0s'}} />
-            <Image src="/images/pot-01.png" alt="" width={80} height={80} className="absolute top-[8%] right-[5%] opacity-[0.07] animate-doodle-wiggle" style={{animationDelay: '1s'}} />
-            <Image src="/images/rolling pin-01.png" alt="" width={90} height={90} className="absolute bottom-[15%] left-[4%] opacity-[0.08] animate-doodle-scale" style={{animationDelay: '0.5s'}} />
-            <Image src="/images/pasta-01.png" alt="" width={100} height={100} className="absolute bottom-[20%] right-[6%] opacity-[0.07] animate-doodle-float" style={{animationDelay: '2s'}} />
-            <Image src="/images/apron.png" alt="" width={70} height={70} className="absolute top-[40%] left-[1%] opacity-[0.06] animate-doodle-wiggle" style={{animationDelay: '1.5s'}} />
-            <Image src="/images/salt-01.png" alt="" width={60} height={60} className="absolute top-[30%] right-[2%] opacity-[0.07] animate-doodle-float" style={{animationDelay: '3s'}} />
-            <Image src="/images/pizza cutter-01.png" alt="" width={70} height={70} className="absolute top-[65%] left-[12%] opacity-[0.06] animate-doodle-scale" style={{animationDelay: '2.5s'}} />
-            <Image src="/images/gloves-01.png" alt="" width={80} height={80} className="absolute top-[55%] right-[3%] opacity-[0.06] animate-doodle-wiggle" style={{animationDelay: '0.8s'}} />
-            <Image src="/images/recipes_layout_07.png" alt="" width={50} height={50} className="absolute top-[20%] left-[35%] opacity-[0.05] animate-doodle-float" style={{animationDelay: '4s'}} />
-            <Image src="/images/spoon big-01.png" alt="" width={60} height={60} className="absolute bottom-[30%] left-[25%] opacity-[0.05] animate-doodle-wiggle" style={{animationDelay: '1.2s'}} />
-          </div>
-
-          <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 lg:py-24 w-full">
-            <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-              {/* Left Content */}
-              <div className="text-center lg:text-left">
-                <div className="inline-flex items-center gap-2 glass text-stone-700 px-5 py-2.5 rounded-full text-sm font-semibold mb-6 animate-float">
-                  <Sparkles className="h-4 w-4 text-stone-900" />
-                  #FeedingFamilies Since 2020
-                </div>
-                
-                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-stone-900 tracking-tight leading-[1.15]">
-                  Where Little Chefs <span className="text-gradient">Become Big Cooks</span>
-                </h1>
-                
-                <p className="mt-6 text-lg lg:text-xl text-stone-600 max-w-xl mx-auto lg:mx-0">
-                  Fun, healthy cooking classes for kids and families in Dubai. 
-                  Create delicious memories while learning essential life skills!
-                </p>
-
-                {/* CTA Buttons */}
-                <div className="flex flex-wrap justify-center lg:justify-start gap-4 mt-8">
-                  <Button 
-                    size="lg" 
-                    className="h-14 px-8 gradient-peach-glow text-white text-base font-semibold rounded-full hover:scale-105 transition-transform" 
-                    asChild
-                  >
-                    <Link href="/classes" className="flex items-center gap-3">
-                      <Calendar className="h-5 w-5" />
-                      Book a Class
-                    </Link>
-                  </Button>
-                  <Button 
-                    size="lg" 
-                    variant="outline" 
-                    className="h-14 px-8 glass hover:bg-white/90 text-base font-semibold rounded-full border-0"
-                    onClick={() => setIsVideoOpen(true)}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-r from-stone-800 to-stone-700 flex items-center justify-center">
-                        <Play className="h-4 w-4 text-white ml-0.5" />
-                      </div>
-                      Watch Our Story
-                    </div>
-                  </Button>
-                </div>
-
-                {/* Stats */}
-                <div className="flex flex-wrap justify-center lg:justify-start gap-8 mt-12">
-                  {stats.map((stat, idx) => (
-                    <div key={idx} className="text-center lg:text-left">
-                      <div className="text-3xl lg:text-4xl font-extrabold text-gradient flex items-center gap-1 justify-center lg:justify-start">
-                        {stat.value}
-                        {stat.icon && <stat.icon className="h-6 w-6 fill-stone-800 text-stone-800" />}
-                      </div>
-                      <div className="text-sm text-stone-500 font-medium">{stat.label}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Right Content - Class Cards */}
-              <div className="relative">
-                <div className="grid grid-cols-2 gap-4">
-                  {serviceTypes.map((classType, idx) => {
-                    const Icon = classType.icon;
-                    return (
-                      <Link
-                        key={classType.id}
-                        href={classType.href}
-                        className={`group glass-card rounded-2xl p-4 sm:p-5 card-hover ${idx === 0 ? 'col-span-2 sm:col-span-1' : ''}`}
-                        style={{ animationDelay: `${idx * 100}ms` }}
-                      >
-                        <div className="flex items-start gap-4">
-                          <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${classType.color} flex items-center justify-center shadow-lg flex-shrink-0 group-hover:scale-110 transition-transform`}>
-                            <Icon className="h-6 w-6 text-white" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-bold text-stone-900 text-lg group-hover:text-stone-600 transition-colors">
-                              {classType.title}
-                            </h3>
-                            <p className="text-sm text-stone-500 mt-1 line-clamp-2">
-                              {classType.description}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center justify-end mt-4 text-stone-700 font-medium text-sm opacity-0 group-hover:opacity-100 transition-opacity">
-                          Book Now <ChevronRight className="h-4 w-4 ml-1" />
-                        </div>
-                      </Link>
-                    );
-                  })}
-                </div>
-
-                {/* Floating Badge */}
-                <div className="absolute -top-4 -right-4 glass-card rounded-full px-4 py-2 shadow-xl animate-float hidden lg:flex items-center gap-2">
-                  <Heart className="h-4 w-4 text-red-500 fill-red-500" />
-                  <span className="text-sm font-semibold text-stone-700">Loved by families</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
+        {/* Enhanced Hero Section */}
+        <EnhancedHero onVideoOpen={() => setIsVideoOpen(true)} />
 
         {/* Quick Actions Section */}
-        <section className="py-8 -mt-8 relative z-10">
-          <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+        <AnimatedSection 
+          animation="fade-up" 
+          delay={200}
+          className="py-8 -mt-8 relative z-10 overflow-hidden"
+        >
+          <FloatingDoodles density="low" theme="cooking" />
+          <div className="relative z-10 mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-3 gap-4">
               <Link href="/classes" className="glass-card rounded-2xl p-6 text-center card-hover group">
                 <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-stone-800 to-stone-900 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
@@ -259,10 +204,14 @@ export default function Home() {
               </Link>
             </div>
           </div>
-        </section>
+        </AnimatedSection>
 
         {/* Featured Classes Section */}
-        <section className="py-20 lg:py-28">
+        <AnimatedSection 
+          animation="fade-up" 
+          delay={400}
+          className="py-20 lg:py-28"
+        >
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
               <div className="inline-flex items-center gap-2 glass text-stone-700 px-4 py-2 rounded-full text-sm font-medium mb-4">
@@ -278,45 +227,21 @@ export default function Home() {
             </div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {serviceTypes.map((classType, idx) => {
-                const Icon = classType.icon;
-                return (
-                  <Link
-                    key={classType.id}
-                    href={classType.href}
-                    className="group relative overflow-hidden rounded-3xl card-hover"
-                    style={{ animationDelay: `${idx * 100}ms` }}
-                  >
-                    {/* Image */}
-                    <div className="aspect-[3/4] relative">
-                      <Image
-                        src={classType.image}
-                        alt={classType.title}
-                        fill
-                        className="object-cover group-hover:scale-110 transition-transform duration-500"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                      
-                      {/* Content Overlay */}
-                      <div className="absolute inset-0 p-6 flex flex-col justify-end">
-                        <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${classType.color} flex items-center justify-center shadow-xl mb-4 group-hover:scale-110 transition-transform`}>
-                          <Icon className="h-6 w-6 text-white" />
-                        </div>
-                        <h3 className="text-xl font-bold text-white mb-2">
-                          {classType.title}
-                        </h3>
-                        <p className="text-white/80 text-sm line-clamp-2">
-                          {classType.description}
-                        </p>
-                        <div className="flex items-center gap-2 mt-4 text-white font-medium">
-                          <span>Explore</span>
-                          <ArrowRight className="h-4 w-4 group-hover:translate-x-2 transition-transform" />
-                        </div>
-                      </div>
-                    </div>
-                  </Link>
-                );
-              })}
+              {serviceTypes.map((classType, idx) => (
+                <EnhancedServiceCard
+                  key={classType.id}
+                  id={classType.id}
+                  title={classType.title}
+                  category={classType.category}
+                  description={classType.description}
+                  icon={classType.icon}
+                  color={classType.color}
+                  href={classType.href}
+                  emoji={classType.emoji}
+                  image={classType.image}
+                  index={idx}
+                />
+              ))}
             </div>
 
             <div className="text-center mt-12">
@@ -328,40 +253,34 @@ export default function Home() {
               </Button>
             </div>
           </div>
-        </section>
+        </AnimatedSection>
 
-        {/* Photo Gallery Strip */}
-        <section className="py-12 bg-stone-900 relative overflow-hidden">
-          <div className="absolute inset-0 pointer-events-none">
-            <Image src="/images/whisk-01.png" alt="" width={60} height={60} className="absolute top-4 left-[5%] opacity-[0.08] animate-doodle-float invert" />
-            <Image src="/images/recipes_layout_09.png" alt="" width={40} height={40} className="absolute bottom-4 right-[8%] opacity-[0.08] animate-doodle-wiggle invert" />
-          </div>
-          <div className="text-center mb-8">
-            <h3 className="text-xl font-bold text-white/90">Life at Mamalu Kitchen</h3>
-          </div>
-          <div className="flex gap-3 overflow-hidden">
-            <div className="flex gap-3 animate-marquee">
-              {[
-                "/images/Mamalou Kitchen - 103_edited.jpg",
-                "/images/IMG_3079_edited.jpg",
-                "/images/File_000-2.jpeg",
-                "/images/Mamalou Kitchen - 151.jpg",
-                "/images/IMG_4199.jpg",
-                "/images/File_010.jpeg",
-                "/images/Mamalou Kitchen - 165.jpg",
-                "/images/IMG_7324.jpg",
-                "/images/Mamalou Kitchen - 103_edited.jpg",
-                "/images/IMG_3079_edited.jpg",
-                "/images/File_000-2.jpeg",
-                "/images/Mamalou Kitchen - 151.jpg",
-                "/images/IMG_4199.jpg",
-                "/images/File_010.jpeg",
-              ].map((src, i) => (
-                <div key={i} className="flex-shrink-0 w-64 h-44 rounded-xl overflow-hidden">
-                  <Image src={src} alt="Mamalu Kitchen" width={256} height={176} className="w-full h-full object-cover hover:scale-110 transition-transform duration-500" />
-                </div>
-              ))}
+        {/* Enhanced Photo Gallery */}
+        <section className="py-16 lg:py-24 bg-stone-900 relative overflow-hidden">
+          <FloatingDoodles density="medium" theme="celebration" enableParallax={true} />
+          
+          <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12">
+              <div className="inline-flex items-center gap-2 glass text-stone-700 px-4 py-2 rounded-full text-sm font-medium mb-4">
+                <Sparkles className="h-4 w-4 text-stone-900" />
+                Life at Mamalu Kitchen
+              </div>
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white">
+                Memories We Create Together
+              </h2>
+              <p className="mt-4 text-lg text-stone-300 max-w-2xl mx-auto">
+                From happy little chefs to proud parents, see the joy of cooking through our eyes
+              </p>
             </div>
+
+            <EnhancedPhotoGallery
+              photos={galleryPhotos}
+              autoScroll={true}
+              scrollInterval={4000}
+              showControls={true}
+              showThumbnails={true}
+              className="max-w-5xl mx-auto"
+            />
           </div>
         </section>
 
