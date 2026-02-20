@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect } from "react";
-import { Menu, X } from "lucide-react";
+import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
@@ -13,13 +13,13 @@ const navLinks = [
 ];
 
 export function Header() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
+      setScrolled(window.scrollY > 100);
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
@@ -46,18 +46,33 @@ export function Header() {
     };
   }, []);
 
+  // Prevent body scroll when menu is open
+  useEffect(() => {
+    if (menuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [menuOpen]);
+
   return (
     <>
       {/* Header with Peach Background */}
       <header className={cn(
         "fixed top-0 left-0 right-0 z-50 transition-all duration-500 bg-[var(--c-peach)]",
-        scrolled ? "py-2" : "py-4"
+        scrolled ? "py-3" : "py-6"
       )}>
         <nav className="mx-auto max-w-7xl px-6 lg:px-8">
-          <div className="flex items-center justify-between relative">
+          <div className="flex items-center justify-between relative min-h-[80px]">
             
-            {/* Left: Nav Links - Stacked Style */}
-            <div className="hidden lg:flex flex-col gap-0.5">
+            {/* Left: Nav Links - Stacked Style (hidden on scroll) */}
+            <div className={cn(
+              "hidden lg:flex flex-col gap-0.5 transition-all duration-500 ml-[10%]",
+              scrolled ? "opacity-0 pointer-events-none -translate-x-4" : "opacity-100 translate-x-0"
+            )}>
               {navLinks.map((link) => (
                 <Link
                   key={link.name}
@@ -69,39 +84,44 @@ export function Header() {
               ))}
             </div>
 
-            {/* Center: Logo - Big and Centered */}
-            <Link 
-              href="/" 
-              className={cn(
-                "absolute left-1/2 -translate-x-1/2 transition-all duration-500",
-                scrolled ? "scale-75" : "scale-100"
-              )}
-            >
-              <Image 
-                src="/graphics/mamalu-logo.avif" 
-                alt="Mamalu Kitchen" 
-                width={280} 
-                height={120}
+            {/* Center: Logo + Open Menu (on scroll) */}
+            <div className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center">
+              <Link href="/" className="transition-all duration-500">
+                <Image 
+                  src="/graphics/mamalu-logo-transparent.png" 
+                  alt="Mamalu Kitchen" 
+                  width={140} 
+                  height={140}
+                  className={cn(
+                    "transition-all duration-500",
+                    scrolled ? "w-20 h-20" : "w-28 h-28 lg:w-32 lg:h-32"
+                  )}
+                  priority
+                />
+              </Link>
+              
+              {/* Open Menu Button - appears on scroll */}
+              <button
+                onClick={() => setMenuOpen(true)}
                 className={cn(
-                  "w-auto transition-all duration-500",
-                  scrolled ? "h-16" : "h-24 lg:h-28"
-                )}
-                priority
-              />
-            </Link>
-
-            {/* Right: Cart Button with Lunch Bag Doodle */}
-            <div className="flex items-center gap-4">
-              {/* Cart Button */}
-              <Link
-                href="/cart"
-                className={cn(
-                  "relative flex items-center gap-3 px-5 py-2.5 rounded-full border border-[var(--c-black)]/20 bg-white text-sm font-bold uppercase tracking-wide transition-all duration-300 hover:border-[var(--c-black)]",
-                  scrolled ? "px-4 py-2 text-xs" : ""
+                  "text-xs font-bold uppercase tracking-widest text-[var(--c-black)] hover:opacity-60 transition-all duration-500 mt-1",
+                  scrolled ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2 pointer-events-none"
                 )}
               >
+                Open Menu
+              </button>
+            </div>
+
+            {/* Right: Cart Button (hidden on scroll) */}
+            <div className={cn(
+              "flex items-center gap-4 transition-all duration-500",
+              scrolled ? "opacity-0 pointer-events-none translate-x-4" : "opacity-100 translate-x-0"
+            )}>
+              <Link
+                href="/cart"
+                className="relative flex items-center gap-3 px-5 py-2.5 rounded-full border border-[var(--c-black)]/20 bg-white text-sm font-bold uppercase tracking-wide transition-all duration-300 hover:border-[var(--c-black)]"
+              >
                 <span className="text-[var(--c-black)]">Cart ({cartCount})</span>
-                {/* Lunch bag doodle as cart icon */}
                 <div className="w-8 h-8 relative">
                   <Image 
                     src="/images/lunch-bag.png" 
@@ -116,59 +136,138 @@ export function Header() {
               <button
                 type="button"
                 className="lg:hidden p-2 rounded-full hover:bg-white/50 transition-colors"
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                onClick={() => setMenuOpen(true)}
               >
-                {mobileMenuOpen ? (
-                  <X className="h-6 w-6 text-[var(--c-black)]" />
-                ) : (
-                  <Menu className="h-6 w-6 text-[var(--c-black)]" />
-                )}
+                <svg className="h-6 w-6 text-[var(--c-black)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
               </button>
             </div>
           </div>
         </nav>
-        
-        {/* Wavy Cut - Part of header, transitions to white */}
-        <div className="absolute bottom-0 left-0 right-0 translate-y-full h-8 pointer-events-none">
-          <svg 
-            viewBox="0 0 1440 32" 
-            className="w-full h-full" 
-            preserveAspectRatio="none"
-          >
-            <path 
-              d="M0,0 L1440,0 L1440,8 C1200,32 900,4 600,16 C300,28 100,8 0,20 L0,0 Z" 
-              fill="var(--c-peach)"
-            />
-          </svg>
-        </div>
       </header>
+      
+      {/* Wavy Lines - Separate from header, like mybird.com */}
+      <div className={cn(
+        "fixed left-0 right-0 z-40 pointer-events-none transition-all duration-500",
+        scrolled ? "top-[104px]" : "top-[152px]"
+      )}>
+        <svg 
+          viewBox="0 0 1440 60" 
+          className="w-full h-12"
+          preserveAspectRatio="none"
+        >
+          {/* Back wave - lighter */}
+          <path 
+            d="M0,30 C240,60 480,0 720,30 C960,60 1200,0 1440,30 L1440,0 L0,0 Z" 
+            fill="var(--c-peach-light)"
+            opacity="0.7"
+          />
+          {/* Front wave - main peach */}
+          <path 
+            d="M0,20 C180,50 360,10 540,25 C720,40 900,5 1080,20 C1260,35 1380,15 1440,25 L1440,0 L0,0 Z" 
+            fill="var(--c-peach)"
+          />
+        </svg>
+      </div>
 
-      {/* Mobile Menu */}
+      {/* Fullscreen Menu Overlay - mybird.com style */}
       <div
         className={cn(
-          "lg:hidden fixed inset-0 top-24 bg-white z-40 transition-all duration-500",
-          mobileMenuOpen ? "opacity-100 visible" : "opacity-0 invisible pointer-events-none"
+          "fixed inset-0 z-[100] transition-all duration-700",
+          menuOpen ? "visible" : "invisible pointer-events-none"
         )}
       >
-        <div className="flex flex-col items-center justify-center h-full gap-8">
-          {navLinks.map((link, i) => (
-            <Link
-              key={link.name}
-              href={link.href}
-              onClick={() => setMobileMenuOpen(false)}
-              className="text-4xl font-bold text-[var(--c-black)] hover:opacity-60 transition-opacity uppercase"
-              style={{ animationDelay: `${i * 0.1}s` }}
-            >
-              {link.name}
+        {/* Peach Background */}
+        <div 
+          className={cn(
+            "absolute inset-0 bg-[var(--c-peach)] transition-transform duration-700 ease-out",
+            menuOpen ? "translate-y-0" : "-translate-y-full"
+          )}
+        />
+        
+        {/* Menu Content */}
+        <div className={cn(
+          "relative h-full flex flex-col transition-opacity duration-500 delay-300",
+          menuOpen ? "opacity-100" : "opacity-0"
+        )}>
+          {/* Top Bar - Logo and Close */}
+          <div className="flex items-center justify-between px-6 lg:px-12 py-6">
+            <Link href="/" onClick={() => setMenuOpen(false)}>
+              <Image 
+                src="/graphics/mamalu-logo-transparent.png" 
+                alt="Mamalu Kitchen" 
+                width={100} 
+                height={100}
+                className="w-16 h-16"
+              />
             </Link>
-          ))}
-          <Link
-            href="/classes"
-            onClick={() => setMobileMenuOpen(false)}
-            className="mt-8 px-8 py-4 bg-[var(--c-black)] text-white text-xl font-bold rounded-full uppercase tracking-wide"
-          >
-            Book a Class
-          </Link>
+            
+            {/* Close Button - X icon like mybird */}
+            <button
+              onClick={() => setMenuOpen(false)}
+              className="flex flex-col items-center gap-1 group"
+            >
+              <X className="w-8 h-8 text-[var(--c-black)] group-hover:rotate-90 transition-transform duration-300" />
+              <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--c-black)]">Close</span>
+            </button>
+          </div>
+
+          {/* Menu Links - Large centered text like mybird */}
+          <div className="flex-1 flex flex-col items-center justify-center gap-4 px-6">
+            {[{ name: "Home", href: "/" }, ...navLinks].map((link, i) => (
+              <Link
+                key={link.name}
+                href={link.href}
+                onClick={() => setMenuOpen(false)}
+                className={cn(
+                  "text-5xl md:text-7xl lg:text-8xl font-bold text-[var(--c-black)] hover:opacity-60 transition-all duration-500 uppercase tracking-tight",
+                  menuOpen ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
+                )}
+                style={{ 
+                  transitionDelay: menuOpen ? `${300 + i * 100}ms` : '0ms',
+                  fontFamily: 'var(--font-patrick-hand), cursive'
+                }}
+              >
+                {link.name}
+              </Link>
+            ))}
+          </div>
+
+          {/* Bottom Info - Contact details like mybird */}
+          <div className="flex items-center justify-between px-6 lg:px-12 py-6 text-sm">
+            <a href="tel:+971585003031" className="text-[var(--c-black)] hover:opacity-60 transition-opacity">
+              +971 58 500 3031
+            </a>
+            <a href="mailto:info@mamalukitchen.com" className="text-[var(--c-black)] hover:opacity-60 transition-opacity">
+              info@mamalukitchen.com
+            </a>
+          </div>
+        </div>
+
+        {/* Decorative floating images like mybird */}
+        <div className={cn(
+          "absolute top-1/4 left-8 w-32 h-40 transition-all duration-700 delay-500",
+          menuOpen ? "opacity-60 translate-y-0 rotate-[-8deg]" : "opacity-0 translate-y-12 rotate-0"
+        )}>
+          <Image 
+            src="/images/kids-classes.png" 
+            alt="" 
+            fill 
+            className="object-cover rounded-2xl"
+          />
+        </div>
+        
+        <div className={cn(
+          "absolute top-1/3 right-12 w-40 h-52 transition-all duration-700 delay-600",
+          menuOpen ? "opacity-60 translate-y-0 rotate-[5deg]" : "opacity-0 translate-y-12 rotate-0"
+        )}>
+          <Image 
+            src="/images/birthday-parties.png" 
+            alt="" 
+            fill 
+            className="object-cover rounded-2xl"
+          />
         </div>
       </div>
     </>
