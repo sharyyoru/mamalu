@@ -3,20 +3,25 @@
 /* ===== MAMALU KITCHEN - MYBIRD-INSPIRED DESIGN SYSTEM ===== */
 
 :root {
-  /* Brand Colors - Mamalu Kitchen */
-  --c-peach: #ff8c6b;
-  --c-peach-rgb: 255, 140, 107;
-  --c-peach-light: #ffa891;
-  --c-peach-dark: #e67854;
-  --c-cream: #faf8f5;
-  --c-cream-rgb: 250, 248, 245;
-  --c-warm: #f5ebe0;
-  --c-warm-rgb: 245, 235, 224;
-  --c-black: #1c1917;
-  --c-black-rgb: 28, 25, 23;
+  /* Brand Colors - Black & White with Mint Accent (like mybird) */
+  --c-accent: #c8e6d5;
+  --c-accent-rgb: 200, 230, 213;
+  --c-accent-light: #e8f5ed;
+  --c-accent-dark: #a8d4be;
+  --c-cream: #ffffff;
+  --c-cream-rgb: 255, 255, 255;
+  --c-warm: #f8faf9;
+  --c-warm-rgb: 248, 250, 249;
+  --c-black: #1a1a1a;
+  --c-black-rgb: 26, 26, 26;
   --c-white: #ffffff;
-  --c-gray: #78716c;
-  --c-gray-light: #d6d3d1;
+  --c-gray: #666666;
+  --c-gray-light: #e5e5e5;
+  
+  /* Legacy aliases for compatibility */
+  --c-peach: var(--c-black);
+  --c-peach-light: var(--c-gray);
+  --c-peach-dark: var(--c-black);
   
   /* Typography */
   --font-display: var(--font-patrick-hand), 'Patrick Hand', cursive;
@@ -35,9 +40,9 @@
 @theme inline {
   --color-background: var(--c-cream);
   --color-foreground: var(--c-black);
-  --color-peach-500: var(--c-peach);
-  --color-peach-400: var(--c-peach-light);
-  --color-peach-600: var(--c-peach-dark);
+  --color-accent-500: var(--c-accent);
+  --color-accent-400: var(--c-accent-light);
+  --color-accent-600: var(--c-accent-dark);
   --font-sans: var(--font-body);
   --font-display: var(--font-display);
 }
@@ -86,7 +91,7 @@ h3 {
 }
 
 .text-gradient {
-  background: linear-gradient(135deg, var(--c-peach) 0%, var(--c-peach-dark) 100%);
+  background: linear-gradient(135deg, var(--c-black) 0%, var(--c-gray) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -216,7 +221,7 @@ h3 {
   content: '';
   position: absolute;
   inset: 0;
-  background: var(--c-peach);
+  background: var(--c-black);
   transform: scaleX(0);
   transform-origin: right;
   transition: transform 0.4s var(--ease-smooth);
@@ -346,12 +351,12 @@ h3 {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--c-peach);
+  background: var(--c-gray);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--c-peach-dark);
+  background: var(--c-black);
 }
 
 /* ===== UTILITY CLASSES ===== */
@@ -397,7 +402,7 @@ h3 {
   content: '';
   position: absolute;
   inset: 0;
-  background: var(--c-peach);
+  background: var(--c-black);
   transform: scaleY(1);
   transform-origin: top;
   transition: transform 1s var(--ease-smooth);
@@ -448,7 +453,7 @@ h3 {
   left: 0;
   width: 100%;
   height: 2px;
-  background: var(--c-peach);
+  background: var(--c-black);
   transform: scaleX(0);
   transform-origin: right;
   transition: transform 0.4s var(--ease-smooth);
@@ -463,7 +468,7 @@ h3 {
 .page-loader {
   position: fixed;
   inset: 0;
-  background: var(--c-peach);
+  background: var(--c-black);
   z-index: 9999;
   display: flex;
   align-items: center;

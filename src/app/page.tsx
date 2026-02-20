@@ -214,7 +214,7 @@ export default function HomePage() {
       {/* Hero Section - mybird.com style layout */}
       <section
         ref={heroRef}
-        className="relative min-h-screen pt-32 pb-20 hero-gradient overflow-hidden"
+        className="relative min-h-screen pt-40 pb-20 bg-white overflow-hidden"
       >
         {/* Wavy bottom border */}
         <div className="absolute bottom-0 left-0 right-0 h-16">
@@ -268,8 +268,8 @@ export default function HomePage() {
                 >
                   Shop Now
                 </Link>
-                <div className="w-10 h-10 rounded-full bg-[var(--c-peach)] flex items-center justify-center">
-                  <ChefHat className="w-5 h-5 text-white" />
+                <div className="w-10 h-10 rounded-full bg-[var(--c-accent)] flex items-center justify-center">
+                  <ChefHat className="w-5 h-5 text-[var(--c-accent-dark)]" />
                 </div>
               </div>
             </div>
@@ -312,9 +312,9 @@ export default function HomePage() {
             {stats.slice(0, 3).map((stat, i) => (
               <div key={i} className="text-center">
                 <div className="w-12 h-12 mx-auto mb-3 rounded-full border border-[var(--c-gray-light)] flex items-center justify-center">
-                  {i === 0 && <Users className="w-5 h-5 text-[var(--c-peach)]" />}
-                  {i === 1 && <Calendar className="w-5 h-5 text-[var(--c-peach)]" />}
-                  {i === 2 && <Star className="w-5 h-5 text-[var(--c-peach)]" />}
+                  {i === 0 && <Users className="w-5 h-5 text-[var(--c-accent-dark)]" />}
+                  {i === 1 && <Calendar className="w-5 h-5 text-[var(--c-accent-dark)]" />}
+                  {i === 2 && <Star className="w-5 h-5 text-[var(--c-accent-dark)]" />}
                 </div>
                 <div className="font-bold text-[var(--c-black)]">{stat.label}</div>
                 <div className="text-sm text-[var(--c-gray)]">{stat.value}</div>
@@ -386,7 +386,7 @@ export default function HomePage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {stats.map((stat, i) => (
               <div key={i} className="stat-item text-center">
-                <div className="text-4xl md:text-5xl font-bold text-[var(--c-peach)] mb-2">
+                <div className="text-4xl md:text-5xl font-bold text-[var(--c-accent-dark)] mb-2">
                   {stat.value}
                 </div>
                 <div className="text-white/70">{stat.label}</div>
@@ -438,7 +438,7 @@ export default function HomePage() {
               </div>
               {/* Floating badge */}
               <div className="absolute -bottom-4 -right-4 bg-white rounded-2xl p-4 shadow-xl flex items-center gap-3">
-                <Heart className="w-8 h-8 text-[var(--c-peach)] fill-[var(--c-peach)]" />
+                <Heart className="w-8 h-8 text-[var(--c-accent-dark)] fill-[var(--c-accent-dark)]" />
                 <div>
                   <div className="font-bold text-[var(--c-black)]">5+ Years</div>
                   <div className="text-sm text-[var(--c-gray)]">Feeding Families</div>
@@ -455,7 +455,7 @@ export default function HomePage() {
                 Mamalu Kitchen was inspired by her 3 boys and the need to help fellow mums and families simplify their day-to-day lives without having to worry about feeding their family fuss-free healthy food.
               </p>
               <p className="text-lg text-[var(--c-gray)] mb-8 leading-relaxed">
-                Mamalu Kitchen is creating a cooking movement under the slogan <span className="text-[var(--c-peach)] font-semibold">#feedingfamilies</span>.
+                Mamalu Kitchen is creating a cooking movement under the slogan <span className="text-[var(--c-black)] font-semibold">#feedingfamilies</span>.
               </p>
               <Link href="/our-story" className="btn-primary group">
                 <span>Our Story</span>
@@ -467,7 +467,7 @@ export default function HomePage() {
       </section>
 
       {/* CTA Section */}
-      <section className="section py-24 md:py-32 bg-[var(--c-peach)] text-white text-center">
+      <section className="section py-24 md:py-32 bg-[var(--c-black)] text-white text-center">
         <div className="container">
           <h2 className="section-title text-4xl md:text-6xl mb-6">
             Ready to Start Cooking?

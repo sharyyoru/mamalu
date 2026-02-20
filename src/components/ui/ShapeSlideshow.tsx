@@ -85,7 +85,7 @@ export default function ShapeSlideshow({
         <div 
           className="absolute inset-0 pointer-events-none"
           style={{
-            background: "radial-gradient(circle at center, transparent 30%, var(--c-cream) 100%)",
+            background: "radial-gradient(circle at center, transparent 30%, white 100%)",
             borderRadius: "60% 40% 30% 70% / 60% 30% 70% 40%",
           }}
         />
@@ -107,7 +107,7 @@ export default function ShapeSlideshow({
         <div 
           className="absolute inset-0"
           style={{
-            background: "radial-gradient(circle at center, transparent 20%, var(--c-cream) 80%)",
+            background: "radial-gradient(circle at center, transparent 20%, white 80%)",
           }}
         />
       </div>
@@ -127,7 +127,7 @@ export default function ShapeSlideshow({
         <div 
           className="absolute inset-0"
           style={{
-            background: "radial-gradient(circle at center, transparent 20%, var(--c-cream) 80%)",
+            background: "radial-gradient(circle at center, transparent 20%, white 80%)",
           }}
         />
       </div>
@@ -148,7 +148,7 @@ export default function ShapeSlideshow({
         <div 
           className="absolute inset-0"
           style={{
-            background: "radial-gradient(circle at center, transparent 10%, var(--c-cream) 70%)",
+            background: "radial-gradient(circle at center, transparent 10%, white 70%)",
           }}
         />
       </div>
