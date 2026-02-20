@@ -3,25 +3,24 @@
 /* ===== MAMALU KITCHEN - MYBIRD-INSPIRED DESIGN SYSTEM ===== */
 
 :root {
-  /* Brand Colors - Black & White with Mint Accent (like mybird) */
-  --c-accent: #c8e6d5;
-  --c-accent-rgb: 200, 230, 213;
-  --c-accent-light: #e8f5ed;
-  --c-accent-dark: #a8d4be;
+  /* Brand Colors - Black & White with Peach Header */
+  --c-peach: #ffeee8;
+  --c-peach-light: #fff5f2;
+  --c-peach-dark: #ffddcc;
   --c-cream: #ffffff;
   --c-cream-rgb: 255, 255, 255;
-  --c-warm: #f8faf9;
-  --c-warm-rgb: 248, 250, 249;
+  --c-warm: #faf8f5;
+  --c-warm-rgb: 250, 248, 245;
   --c-black: #1a1a1a;
   --c-black-rgb: 26, 26, 26;
   --c-white: #ffffff;
   --c-gray: #666666;
   --c-gray-light: #e5e5e5;
   
-  /* Legacy aliases for compatibility */
-  --c-peach: var(--c-black);
-  --c-peach-light: var(--c-gray);
-  --c-peach-dark: var(--c-black);
+  /* Accent kept for compatibility */
+  --c-accent: #ffeee8;
+  --c-accent-light: #fff5f2;
+  --c-accent-dark: #ffddcc;
   
   /* Typography */
   --font-display: var(--font-patrick-hand), 'Patrick Hand', cursive;
@@ -55,9 +54,9 @@ html {
 body {
   background: var(--c-cream);
   color: var(--c-black);
-  font-family: var(--font-body);
+  font-family: var(--font-poppins), 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 16px;
-  line-height: 1.5;
+  line-height: 1.6;
   overflow-x: hidden;
 }
 
@@ -69,21 +68,21 @@ body {
   body { font-size: 20px; }
 }
 
-/* ===== TYPOGRAPHY - MYBIRD STYLE ===== */
+/* ===== TYPOGRAPHY - MAMALU STYLE ===== */
 h1, h2, h3, .font-display {
-  font-family: var(--font-display);
+  font-family: var(--font-patrick-hand), 'Patrick Hand', cursive;
   font-weight: 400;
-  line-height: 0.95;
-  text-transform: uppercase;
-  letter-spacing: -0.02em;
+  line-height: 1.1;
+  letter-spacing: 0.01em;
+  text-transform: none;
 }
 
 h1 {
-  font-size: clamp(3rem, 12vw, 8rem);
+  font-size: clamp(2.5rem, 8vw, 5rem);
 }
 
 h2 {
-  font-size: clamp(2.5rem, 8vw, 5rem);
+  font-size: clamp(2rem, 6vw, 4rem);
 }
 
 h3 {

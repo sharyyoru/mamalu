@@ -3,13 +3,13 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect } from "react";
-import { Menu, X, ShoppingBag } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
-  { name: "Shop", href: "/products" },
-  { name: "Blog", href: "/blogs" },
-  { name: "Contacts", href: "/contact" },
+  { name: "Kids", href: "/classes/kids" },
+  { name: "Adults", href: "/book?category=adults" },
+  { name: "Corporate", href: "/book/corporate-deck" },
 ];
 
 export function Header() {
@@ -48,103 +48,74 @@ export function Header() {
 
   return (
     <>
-      {/* Header */}
+      {/* Header with Peach Background */}
       <header className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-500 bg-white",
-        scrolled ? "py-3 shadow-sm" : "py-5"
+        "fixed top-0 left-0 right-0 z-50 transition-all duration-500 bg-[var(--c-peach)]",
+        scrolled ? "py-2" : "py-4"
       )}>
         <nav className="mx-auto max-w-7xl px-6 lg:px-8">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between relative">
             
-            {/* Left: Logo + Nav Links */}
-            <div className="flex items-center gap-16">
-              {/* Logo - Much Bigger */}
-              <Link 
-                href="/" 
-                className={cn(
-                  "transition-all duration-500",
-                  scrolled ? "scale-90" : "scale-100"
-                )}
-              >
-                <Image 
-                  src="/graphics/mamalu-logo.avif" 
-                  alt="Mamalu Kitchen" 
-                  width={200} 
-                  height={80}
-                  className={cn(
-                    "w-auto transition-all duration-500",
-                    scrolled ? "h-16" : "h-20 lg:h-24"
-                  )}
-                  priority
-                />
-              </Link>
-
-              {/* Desktop Nav Links - Stacked Style like mybird */}
-              <div className="hidden lg:flex flex-col gap-0.5">
-                {navLinks.map((link) => (
-                  <Link
-                    key={link.name}
-                    href={link.href}
-                    className="text-sm font-bold text-[var(--c-black)] hover:opacity-60 transition-opacity uppercase tracking-wide"
-                  >
-                    {link.name}
-                  </Link>
-                ))}
-              </div>
+            {/* Left: Nav Links - Stacked Style */}
+            <div className="hidden lg:flex flex-col gap-0.5">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.name}
+                  href={link.href}
+                  className="text-sm font-bold text-[var(--c-black)] hover:opacity-60 transition-opacity uppercase tracking-wide"
+                >
+                  {link.name}
+                </Link>
+              ))}
             </div>
 
-            {/* Center: Globe Badge with Icon - like mybird */}
-            <div className="hidden lg:flex flex-col items-center absolute left-1/2 -translate-x-1/2">
-              <div className={cn(
-                "relative w-14 h-14 rounded-full bg-[var(--c-accent)] flex items-center justify-center transition-all duration-500 group hover:scale-110",
+            {/* Center: Logo - Big and Centered */}
+            <Link 
+              href="/" 
+              className={cn(
+                "absolute left-1/2 -translate-x-1/2 transition-all duration-500",
                 scrolled ? "scale-75" : "scale-100"
-              )}>
-                {/* Globe/Earth icon like mybird */}
-                <svg className="w-7 h-7 text-[var(--c-accent-dark)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                  <circle cx="12" cy="12" r="10" />
-                  <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-                </svg>
-                {/* Decorative horizontal lines through globe */}
-                <div className="absolute top-1/2 -left-4 w-4 h-px bg-[var(--c-accent-dark)]" />
-                <div className="absolute top-1/2 -right-4 w-4 h-px bg-[var(--c-accent-dark)]" />
-              </div>
-              <span className={cn(
-                "mt-2 text-[9px] font-bold text-[var(--c-accent-dark)] uppercase tracking-[0.15em] transition-all duration-500 text-center leading-tight",
-                scrolled ? "opacity-0 -translate-y-2" : "opacity-100 translate-y-0"
-              )}>
-                #FEEDING<br/>FAMILIES
-              </span>
-            </div>
+              )}
+            >
+              <Image 
+                src="/graphics/mamalu-logo.avif" 
+                alt="Mamalu Kitchen" 
+                width={280} 
+                height={120}
+                className={cn(
+                  "w-auto transition-all duration-500",
+                  scrolled ? "h-16" : "h-24 lg:h-28"
+                )}
+                priority
+              />
+            </Link>
 
-            {/* Right: Cart Button */}
+            {/* Right: Cart Button with Lunch Bag Doodle */}
             <div className="flex items-center gap-4">
-              {/* Cart Button - pill style like mybird */}
+              {/* Cart Button */}
               <Link
                 href="/cart"
                 className={cn(
-                  "relative flex items-center gap-3 px-5 py-2.5 rounded-full border border-[var(--c-gray-light)] bg-white text-sm font-bold uppercase tracking-wide transition-all duration-300 hover:border-[var(--c-black)]",
+                  "relative flex items-center gap-3 px-5 py-2.5 rounded-full border border-[var(--c-black)]/20 bg-white text-sm font-bold uppercase tracking-wide transition-all duration-300 hover:border-[var(--c-black)]",
                   scrolled ? "px-4 py-2 text-xs" : ""
                 )}
               >
                 <span className="text-[var(--c-black)]">Cart ({cartCount})</span>
-                {/* Striped circle icon like mybird */}
-                <div className="w-8 h-8 rounded-full bg-[var(--c-accent)] flex items-center justify-center overflow-hidden">
-                  <div className="w-full h-full" style={{
-                    background: `repeating-linear-gradient(
-                      90deg,
-                      var(--c-accent-dark) 0px,
-                      var(--c-accent-dark) 2px,
-                      var(--c-accent) 2px,
-                      var(--c-accent) 4px
-                    )`
-                  }} />
+                {/* Lunch bag doodle as cart icon */}
+                <div className="w-8 h-8 relative">
+                  <Image 
+                    src="/images/lunch-bag.png" 
+                    alt="Cart" 
+                    fill 
+                    className="object-contain"
+                  />
                 </div>
               </Link>
 
               {/* Mobile Menu Toggle */}
               <button
                 type="button"
-                className="lg:hidden p-2 rounded-full hover:bg-[var(--c-warm)] transition-colors"
+                className="lg:hidden p-2 rounded-full hover:bg-white/50 transition-colors"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               >
                 {mobileMenuOpen ? (
@@ -156,21 +127,21 @@ export function Header() {
             </div>
           </div>
         </nav>
+        
+        {/* Wavy Cut - Part of header, transitions to white */}
+        <div className="absolute bottom-0 left-0 right-0 translate-y-full h-8 pointer-events-none">
+          <svg 
+            viewBox="0 0 1440 32" 
+            className="w-full h-full" 
+            preserveAspectRatio="none"
+          >
+            <path 
+              d="M0,0 L1440,0 L1440,8 C1200,32 900,4 600,16 C300,28 100,8 0,20 L0,0 Z" 
+              fill="var(--c-peach)"
+            />
+          </svg>
+        </div>
       </header>
-
-      {/* Wavy Cut Section - White to Mint like mybird */}
-      <div className="fixed top-[88px] lg:top-[104px] left-0 right-0 z-40 pointer-events-none overflow-hidden h-12">
-        <svg 
-          viewBox="0 0 1440 50" 
-          className="w-full h-full" 
-          preserveAspectRatio="none"
-        >
-          <path 
-            d="M0,0 L1440,0 L1440,20 C1200,50 900,10 600,30 C300,50 100,20 0,35 L0,0 Z" 
-            fill="var(--c-accent-light)"
-          />
-        </svg>
-      </div>
 
       {/* Mobile Menu */}
       <div

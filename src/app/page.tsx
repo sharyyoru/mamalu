@@ -236,15 +236,15 @@ export default function HomePage() {
             
             {/* Left: Text Content */}
             <div ref={heroTextRef} className="relative z-10">
-              {/* Main Title - Large uppercase like mybird */}
+              {/* Main Title - Large like mamalukitchen */}
               <h1 className="hero-title mb-6">
-                <span className="hero-title-line block text-[clamp(3rem,10vw,7rem)] leading-[0.9] font-bold uppercase">
+                <span className="hero-title-line block text-[clamp(3rem,10vw,7rem)] leading-[1] font-bold">
                   Cooking
                 </span>
-                <span className="hero-title-line block text-[clamp(3rem,10vw,7rem)] leading-[0.9] font-bold uppercase text-gradient">
+                <span className="hero-title-line block text-[clamp(3rem,10vw,7rem)] leading-[1] font-bold text-gradient">
                   Classes
                 </span>
-                <span className="hero-title-line block text-[clamp(3rem,10vw,7rem)] leading-[0.9] font-bold uppercase">
+                <span className="hero-title-line block text-[clamp(3rem,10vw,7rem)] leading-[1] font-bold">
                   For Kids
                 </span>
               </h1>
