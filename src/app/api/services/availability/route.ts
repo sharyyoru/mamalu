@@ -82,8 +82,10 @@ export async function GET(request: NextRequest) {
     const slotsForDay = getSlotsForDay(dayOfWeek);
 
     const supabase = createAdminClient();
+    
+    // If no supabase client, return all slots as available
     if (!supabase) {
-      // Return all slots for the day if DB not configured
+      console.log("Supabase not configured, returning all slots as available");
       return NextResponse.json({
         date,
         dayOfWeek,
@@ -95,24 +97,46 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch all confirmed bookings for the given date
-    const { data: bookings, error } = await supabase
-      .from("service_bookings")
-      .select("event_time, duration_minutes")
-      .eq("event_date", date)
-      .in("status", ["confirmed", "pending", "deposit_paid"]);
+    let bookedSlots: BookedSlot[] = [];
+    
+    try {
+      const { data: bookings, error } = await supabase
+        .from("service_bookings")
+        .select("event_time, duration_minutes")
+        .eq("event_date", date)
+        .in("status", ["confirmed", "pending", "deposit_paid"]);
 
-    if (error) {
-      console.error("Error fetching bookings:", error);
-      return NextResponse.json(
-        { error: "Failed to fetch availability" },
-        { status: 500 }
-      );
+      if (error) {
+        console.error("Error fetching bookings:", error);
+        // On error, still return all slots as available rather than failing
+        return NextResponse.json({
+          date,
+          dayOfWeek,
+          allSlots: slotsForDay,
+          availableSlots: slotsForDay,
+          blockedSlots: [],
+          bufferMinutes: BUFFER_MINUTES,
+          warning: "Could not check existing bookings",
+        });
+      }
+
+      bookedSlots = (bookings || []).map((b) => ({
+        event_time: b.event_time || "",
+        duration_minutes: b.duration_minutes || 120,
+      }));
+    } catch (dbError) {
+      console.error("Database error:", dbError);
+      // On error, still return all slots as available
+      return NextResponse.json({
+        date,
+        dayOfWeek,
+        allSlots: slotsForDay,
+        availableSlots: slotsForDay,
+        blockedSlots: [],
+        bufferMinutes: BUFFER_MINUTES,
+        warning: "Database connection error",
+      });
     }
-
-    const bookedSlots: BookedSlot[] = (bookings || []).map((b) => ({
-      event_time: b.event_time || "",
-      duration_minutes: b.duration_minutes || 120,
-    }));
 
     // Calculate available and blocked time slots
     const availableSlots = slotsForDay.filter(

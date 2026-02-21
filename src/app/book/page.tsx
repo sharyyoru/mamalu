@@ -342,6 +342,14 @@ function ServiceCard({ service, category }: { service: Service; category: string
     ? Math.min(...service.packages.map((p) => p.price))
     : service.base_price;
 
+  const handleMenuClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (service.menu_pdf_url) {
+      window.open(service.menu_pdf_url, '_blank', 'noopener,noreferrer');
+    }
+  };
+
   return (
     <Link href={`/book/${service.slug}`}>
       <Card className={`group overflow-hidden hover:shadow-xl transition-all duration-300 border-0 ${categoryBg[category]}`}>
@@ -353,16 +361,14 @@ function ServiceCard({ service, category }: { service: Service; category: string
                 <Icon className="h-6 w-6 text-white" />
               </div>
               {service.menu_pdf_url && (
-                <a
-                  href={service.menu_pdf_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
+                <button
+                  type="button"
+                  onClick={handleMenuClick}
                   className="flex items-center gap-1 bg-white/20 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full hover:bg-white/30 transition-colors"
                 >
                   <FileText className="h-3 w-3" />
                   View Menu
-                </a>
+                </button>
               )}
             </div>
             <div>

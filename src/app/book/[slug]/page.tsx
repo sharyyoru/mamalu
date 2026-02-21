@@ -277,11 +277,16 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
         setService(data.service);
         setMenuItems(data.menuItems || []);
         
-        // Auto-select popular package
-        const popular = data.service?.packages?.find((p: ServicePackage) => p.is_popular);
-        if (popular) {
-          setSelectedPackage(popular);
-          setGuestCount(popular.min_guests || 1);
+        // Auto-select popular package only for non-menu-based services
+        const serviceType = data.service?.service_type;
+        const isMenuBased = serviceType === "corporate_deck" || serviceType === "birthday_deck" || serviceType === "nanny_class";
+        
+        if (!isMenuBased) {
+          const popular = data.service?.packages?.find((p: ServicePackage) => p.is_popular);
+          if (popular) {
+            setSelectedPackage(popular);
+            setGuestCount(popular.min_guests || 1);
+          }
         }
       }
     } catch (error) {
