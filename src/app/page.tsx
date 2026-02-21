@@ -214,7 +214,7 @@ export default function HomePage() {
       {/* Hero Section - Peach background with wave borders */}
       <section
         ref={heroRef}
-        className="relative pt-28 pb-8 bg-[var(--c-peach)] overflow-hidden"
+        className="relative pt-40 pb-12 bg-[var(--c-peach)] overflow-hidden"
       >
         {/* Wavy TOP border - creates wave effect at top */}
         <div className="absolute -top-1 left-0 right-0 h-16 z-10">
@@ -243,37 +243,36 @@ export default function HomePage() {
         <div className="container mx-auto px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center">
             
-            {/* Left: Text Content - balanced sizing */}
+            {/* Left: Text Content - 2 lines for horizontal space */}
             <div ref={heroTextRef} className="relative z-10">
-              {/* Main Title - balanced size */}
+              {/* Main Title - 2 lines */}
               <h1 className="hero-title mb-4">
-                <span className="hero-title-line block text-[clamp(2.5rem,8vw,5rem)] leading-[1.1] font-bold">
-                  Cooking
+                <span className="hero-title-line block text-[clamp(2.5rem,7vw,4.5rem)] leading-[1.1] font-bold">
+                  Cooking Classes
                 </span>
-                <span className="hero-title-line block text-[clamp(2.5rem,8vw,5rem)] leading-[1.1] font-bold text-gradient">
-                  Classes
-                </span>
-                <span className="hero-title-line block text-[clamp(2.5rem,8vw,5rem)] leading-[1.1] font-bold">
-                  For All
+                <span className="hero-title-line block text-[clamp(2.5rem,7vw,4.5rem)] leading-[1.1] font-bold text-gradient">
+                  For Everyone
                 </span>
               </h1>
 
               {/* Subtitle */}
-              <p className="hero-subtitle text-base md:text-lg text-[var(--c-gray)] max-w-sm mb-6 leading-relaxed">
+              <p className="hero-subtitle text-base md:text-lg text-[var(--c-gray)] max-w-md mb-6 leading-relaxed">
                 Fun and healthy cooking classes in Dubai for kids, families, and teams. Create delicious memories.
               </p>
 
-              {/* CTAs - smaller buttons */}
-              <div className="hero-cta flex flex-wrap gap-3 items-center">
+              {/* CTAs - animated Book a Class button */}
+              <div className="hero-cta flex flex-wrap gap-4 items-center">
                 <Link
                   href="/classes"
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full border-2 border-[var(--c-black)] text-xs font-bold uppercase tracking-wide transition-all duration-300 hover:bg-[var(--c-black)] hover:text-white"
+                  className="group relative inline-flex items-center gap-2 px-8 py-4 rounded-full bg-[var(--c-black)] text-white text-sm font-bold uppercase tracking-wide transition-all duration-300 hover:scale-105 hover:shadow-xl overflow-hidden"
                 >
-                  Book a Class
+                  <span className="relative z-10">Book a Class</span>
+                  <span className="absolute inset-0 bg-gradient-to-r from-[var(--c-peach-dark)] to-[var(--c-accent)] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <span className="absolute -inset-1 bg-[var(--c-black)] rounded-full animate-pulse opacity-20" />
                 </Link>
                 <Link
                   href="/products"
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full border-2 border-[var(--c-black)] text-xs font-bold uppercase tracking-wide transition-all duration-300 hover:bg-[var(--c-black)] hover:text-white"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full border-2 border-[var(--c-black)] text-sm font-bold uppercase tracking-wide transition-all duration-300 hover:bg-[var(--c-black)] hover:text-white"
                 >
                   Shop Now
                 </Link>
@@ -294,8 +293,13 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Stats Section - inside peach bg, reduced icon-text gap */}
-          <div className="hero-stats grid grid-cols-3 gap-3 md:gap-6 mt-6 pt-6 border-t border-[var(--c-black)]/10 relative z-10">
+        </div>
+      </section>
+
+      {/* Stats Section - separate white background, no divider */}
+      <section className="py-12 bg-white">
+        <div className="container mx-auto px-6 lg:px-8">
+          <div className="hero-stats grid grid-cols-3 gap-4 md:gap-8">
             <div className="text-center">
               <div className="w-16 h-16 md:w-20 md:h-20 mx-auto mb-1">
                 <Image 
