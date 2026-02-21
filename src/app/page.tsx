@@ -243,8 +243,8 @@ export default function HomePage() {
         <div className="container mx-auto px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center">
             
-            {/* Left: Text Content - 2 lines for horizontal space */}
-            <div ref={heroTextRef} className="relative z-10">
+            {/* Left: Text Content - centered on mobile/tablet */}
+            <div ref={heroTextRef} className="relative z-10 text-center lg:text-left">
               {/* Main Title - 2 lines */}
               <h1 className="hero-title mb-4">
                 <span className="hero-title-line block text-[clamp(2.5rem,7vw,4.5rem)] leading-[1.1] font-bold">
@@ -256,12 +256,12 @@ export default function HomePage() {
               </h1>
 
               {/* Subtitle */}
-              <p className="hero-subtitle text-base md:text-lg text-[var(--c-gray)] max-w-md mb-6 leading-relaxed">
+              <p className="hero-subtitle text-base md:text-lg text-[var(--c-gray)] max-w-md mx-auto lg:mx-0 mb-6 leading-relaxed">
                 Fun and healthy cooking classes in Dubai for kids, families, and teams. Create delicious memories.
               </p>
 
-              {/* CTAs - animated Book a Class button */}
-              <div className="hero-cta flex flex-wrap gap-4 items-center">
+              {/* CTAs - animated Book a Class button, centered on mobile */}
+              <div className="hero-cta flex flex-wrap gap-4 items-center justify-center lg:justify-start">
                 <Link
                   href="/classes"
                   className="group relative inline-flex items-center gap-2 px-8 py-4 rounded-full bg-[var(--c-black)] text-white text-sm font-bold uppercase tracking-wide transition-all duration-300 hover:scale-105 hover:shadow-xl overflow-hidden"
@@ -296,51 +296,51 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Stats Section - separate white background, no divider */}
-      <section className="py-12 bg-white">
+      {/* Stats Section - separate white background, 2x icon/text size */}
+      <section className="py-16 bg-white">
         <div className="container mx-auto px-6 lg:px-8">
-          <div className="hero-stats grid grid-cols-3 gap-4 md:gap-8">
+          <div className="hero-stats grid grid-cols-3 gap-6 md:gap-12">
             <div className="text-center">
-              <div className="w-16 h-16 md:w-20 md:h-20 mx-auto mb-1">
+              <div className="w-28 h-28 md:w-36 md:h-36 mx-auto mb-2">
                 <Image 
                   src="/graphics/happy-kids.gif"
                   alt="Happy Kids"
-                  width={80}
-                  height={80}
+                  width={144}
+                  height={144}
                   className="w-full h-full object-contain"
                   unoptimized
                 />
               </div>
-              <div className="font-bold text-[var(--c-black)] text-sm md:text-base">Happy Kids</div>
-              <div className="text-xs md:text-sm text-[var(--c-gray)]">2000+</div>
+              <div className="font-bold text-[var(--c-black)] text-lg md:text-2xl" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>Happy Kids</div>
+              <div className="text-base md:text-xl text-[var(--c-gray)]" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>2000+</div>
             </div>
             <div className="text-center">
-              <div className="w-16 h-16 md:w-20 md:h-20 mx-auto mb-1">
+              <div className="w-28 h-28 md:w-36 md:h-36 mx-auto mb-2">
                 <Image 
                   src="/graphics/classes.gif"
                   alt="Classes Held"
-                  width={80}
-                  height={80}
+                  width={144}
+                  height={144}
                   className="w-full h-full object-contain"
                   unoptimized
                 />
               </div>
-              <div className="font-bold text-[var(--c-black)] text-sm md:text-base">Classes Held</div>
-              <div className="text-xs md:text-sm text-[var(--c-gray)]">500+</div>
+              <div className="font-bold text-[var(--c-black)] text-lg md:text-2xl" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>Classes Held</div>
+              <div className="text-base md:text-xl text-[var(--c-gray)]" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>500+</div>
             </div>
             <div className="text-center">
-              <div className="w-16 h-16 md:w-20 md:h-20 mx-auto mb-1">
+              <div className="w-28 h-28 md:w-36 md:h-36 mx-auto mb-2">
                 <Image 
                   src="/graphics/reviews.gif"
                   alt="Star Rating"
-                  width={80}
-                  height={80}
+                  width={144}
+                  height={144}
                   className="w-full h-full object-contain"
                   unoptimized
                 />
               </div>
-              <div className="font-bold text-[var(--c-black)] text-sm md:text-base">Star Rating</div>
-              <div className="text-xs md:text-sm text-[var(--c-gray)]">4.9</div>
+              <div className="font-bold text-[var(--c-black)] text-lg md:text-2xl" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>Star Rating</div>
+              <div className="text-base md:text-xl text-[var(--c-gray)]" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>4.9</div>
             </div>
           </div>
         </div>

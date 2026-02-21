@@ -80,7 +80,8 @@ export function Header() {
                 <Link
                   key={link.name}
                   href={link.href}
-                  className="text-sm font-bold text-[var(--c-black)] hover:opacity-60 transition-opacity uppercase tracking-wide"
+                  className="text-base font-bold text-[var(--c-black)] hover:opacity-60 transition-opacity uppercase"
+                  style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}
                 >
                   {link.name}
                 </Link>
@@ -128,9 +129,9 @@ export function Header() {
                     <Image 
                       src="/graphics/mamalu-logo-transparent.png" 
                       alt="Mamalu Kitchen" 
-                      width={160} 
-                      height={160}
-                      className="w-20 h-20 lg:w-24 lg:h-24 transition-all duration-500"
+                      width={200} 
+                      height={200}
+                      className="w-28 h-28 lg:w-36 lg:h-36 transition-all duration-500"
                       priority
                     />
                   </Link>
