@@ -663,18 +663,6 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
                   ))}
                 </div>
 
-                {selectedMenu && (
-                  <div className="flex justify-end">
-                    <Button
-                      size="lg"
-                      className="bg-stone-900 hover:bg-stone-800"
-                      onClick={() => setStep(2)}
-                    >
-                      Continue
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
-                  </div>
-                )}
               </div>
             )}
 
@@ -743,18 +731,6 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
                   ))}
                 </div>
 
-                {selectedMenu && (
-                  <div className="flex justify-end">
-                    <Button
-                      size="lg"
-                      className="bg-stone-900 hover:bg-stone-800"
-                      onClick={() => setStep(2)}
-                    >
-                      Continue
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
-                  </div>
-                )}
               </div>
             )}
 
@@ -803,18 +779,6 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
                   ))}
                 </div>
 
-                {selectedMenu && (
-                  <div className="flex justify-end">
-                    <Button
-                      size="lg"
-                      className="bg-stone-900 hover:bg-stone-800"
-                      onClick={() => setStep(2)}
-                    >
-                      Continue
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
-                  </div>
-                )}
               </div>
             )}
 
@@ -890,18 +854,6 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
                   ))}
                 </div>
 
-                {selectedPackage && (
-                  <div className="flex justify-end">
-                    <Button
-                      size="lg"
-                      className="bg-stone-900 hover:bg-stone-800"
-                      onClick={() => setStep(2)}
-                    >
-                      Continue
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
-                  </div>
-                )}
               </div>
             )}
 
@@ -1007,20 +959,6 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
                   ));
                 })()}
 
-                <div className="flex justify-between">
-                  <Button variant="outline" onClick={() => setStep(1)}>
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    Back
-                  </Button>
-                  <Button
-                    size="lg"
-                    className="bg-stone-900 hover:bg-stone-800"
-                    onClick={() => setStep(3)}
-                  >
-                    {Object.keys(selectedExtras).length > 0 ? "Continue with Extras" : "Skip Extras"}
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </div>
               </div>
             )}
 
@@ -1189,21 +1127,6 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
                   </CardContent>
                 </Card>
 
-                <div className="flex justify-between">
-                  <Button variant="outline" onClick={() => setStep(hasExtras ? 2 : 1)}>
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    Back
-                  </Button>
-                  <Button
-                    size="lg"
-                    className="bg-stone-900 hover:bg-stone-800"
-                    onClick={() => setStep(hasExtras ? 4 : 3)}
-                    disabled={!waiverAccepted || (isBirthday && !ageRange)}
-                  >
-                    Continue
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </div>
               </div>
             )}
 
@@ -1274,30 +1197,6 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
                   </CardContent>
                 </Card>
 
-                <div className="flex justify-between">
-                  <Button variant="outline" onClick={() => setStep(hasExtras ? 3 : 2)}>
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    Back
-                  </Button>
-                  <Button
-                    size="lg"
-                    className="bg-stone-900 hover:bg-stone-800"
-                    onClick={handleSubmit}
-                    disabled={!customerName || !customerEmail || !customerPhone || submitting}
-                  >
-                    {submitting ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Processing...
-                      </>
-                    ) : (
-                      <>
-                        Proceed to Payment
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </>
-                    )}
-                  </Button>
-                </div>
               </div>
             )}
 
@@ -1421,12 +1320,12 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
             )}
           </div>
 
-          {/* Order Summary Sidebar */}
-          <div className="lg:col-span-1">
-            <div className="sticky top-24">
-              <Card>
+          {/* Order Summary Sidebar - Hidden on mobile, shown on desktop */}
+          <div className="hidden lg:block lg:col-span-1">
+            <div className="sticky top-1/2 -translate-y-1/2">
+              <Card className="shadow-lg">
                 <CardContent className="p-6">
-                  <h3 className="text-lg font-bold text-stone-900 mb-4">Order Summary</h3>
+                  <h3 className="text-lg font-bold text-stone-900 mb-4" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>Order Summary</h3>
                   
                   {/* Menu-based booking summary (Corporate, Birthday, Nanny) */}
                   {hasMenuSelection && selectedMenu && (
@@ -1622,12 +1521,94 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
                     </>
                   )}
 
-                  {!selectedPackage && !isWalkin && (
+                  {!selectedPackage && !selectedMenu && !isWalkin && (
                     <p className="text-stone-500 text-sm">Select a package to continue</p>
                   )}
 
                   {isWalkin && cart.length === 0 && (
                     <p className="text-stone-500 text-sm">Add items to your order</p>
+                  )}
+
+                  {/* Navigation Buttons - Desktop */}
+                  {!isWalkin && (selectedMenu || selectedPackage) && (
+                    <div className="mt-6 pt-4 border-t border-stone-200 space-y-3">
+                      {/* Step 1: Continue to next step */}
+                      {step === 1 && (
+                        <Button
+                          className="w-full bg-stone-900 hover:bg-stone-800"
+                          size="lg"
+                          onClick={() => setStep(2)}
+                        >
+                          Continue
+                          <ArrowRight className="ml-2 h-4 w-4" />
+                        </Button>
+                      )}
+
+                      {/* Step 2: Extras - Back and Continue/Skip */}
+                      {hasExtras && step === 2 && (
+                        <>
+                          <Button
+                            className="w-full bg-stone-900 hover:bg-stone-800"
+                            size="lg"
+                            onClick={() => setStep(3)}
+                          >
+                            {Object.keys(selectedExtras).length > 0 ? "Continue with Extras" : "Skip Extras"}
+                            <ArrowRight className="ml-2 h-4 w-4" />
+                          </Button>
+                          <Button variant="outline" className="w-full" onClick={() => setStep(1)}>
+                            <ArrowLeft className="mr-2 h-4 w-4" />
+                            Back
+                          </Button>
+                        </>
+                      )}
+
+                      {/* Step 2/3: Event Details - Back and Continue */}
+                      {step === (hasExtras ? 3 : 2) && (
+                        <>
+                          <Button
+                            className="w-full bg-stone-900 hover:bg-stone-800"
+                            size="lg"
+                            onClick={() => setStep(hasExtras ? 4 : 3)}
+                            disabled={!waiverAccepted || (isBirthday && !ageRange)}
+                          >
+                            Continue
+                            <ArrowRight className="ml-2 h-4 w-4" />
+                          </Button>
+                          <Button variant="outline" className="w-full" onClick={() => setStep(hasExtras ? 2 : 1)}>
+                            <ArrowLeft className="mr-2 h-4 w-4" />
+                            Back
+                          </Button>
+                        </>
+                      )}
+
+                      {/* Step 3/4: Contact Details - Back and Submit */}
+                      {step === (hasExtras ? 4 : 3) && (
+                        <>
+                          <Button
+                            className="w-full bg-stone-900 hover:bg-stone-800"
+                            size="lg"
+                            onClick={handleSubmit}
+                            disabled={!customerName || !customerEmail || !customerPhone || submitting}
+                          >
+                            {submitting ? (
+                              <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Processing...
+                              </>
+                            ) : (
+                              <>
+                                Proceed to Payment
+                                <ArrowRight className="ml-2 h-4 w-4" />
+                              </>
+                            )}
+                          </Button>
+                          <Button variant="outline" className="w-full" onClick={() => setStep(hasExtras ? 3 : 2)}>
+                            <ArrowLeft className="mr-2 h-4 w-4" />
+                            Back
+                          </Button>
+                        </>
+                      )}
+                    </div>
                   )}
                 </CardContent>
               </Card>
@@ -1635,6 +1616,129 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
           </div>
         </div>
       </div>
+
+      {/* Mobile Floating Order Summary Bar - Deliveroo Style */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-stone-200 shadow-[0_-4px_20px_rgba(0,0,0,0.1)]">
+        <div className="px-4 py-3">
+          {/* Show order summary when menu/package selected */}
+          {!isWalkin && (selectedMenu || selectedPackage) && (
+            <div className="space-y-3">
+              {/* Collapsed Summary Row */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-stone-500">
+                    {selectedMenu?.name || selectedPackage?.name}
+                    {!isNanny && ` • ${guestCount} guests`}
+                  </p>
+                  <p className="text-lg font-bold text-stone-900">
+                    AED {totalAmount.toLocaleString()}
+                    {requiresDeposit && (
+                      <span className="text-xs font-normal text-stone-500 ml-1">(50% deposit: AED {depositAmount.toLocaleString()})</span>
+                    )}
+                  </p>
+                </div>
+                
+                {/* Action Buttons */}
+                <div className="flex items-center gap-2">
+                  {step > 1 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setStep(step - 1)}
+                      className="px-3"
+                    >
+                      <ArrowLeft className="h-4 w-4" />
+                    </Button>
+                  )}
+                  
+                  {step === 1 && (
+                    <Button
+                      className="bg-stone-900 hover:bg-stone-800"
+                      onClick={() => setStep(2)}
+                    >
+                      Continue
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  )}
+
+                  {hasExtras && step === 2 && (
+                    <Button
+                      className="bg-stone-900 hover:bg-stone-800"
+                      onClick={() => setStep(3)}
+                    >
+                      {Object.keys(selectedExtras).length > 0 ? "Continue" : "Skip"}
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  )}
+
+                  {step === (hasExtras ? 3 : 2) && (
+                    <Button
+                      className="bg-stone-900 hover:bg-stone-800"
+                      onClick={() => setStep(hasExtras ? 4 : 3)}
+                      disabled={!waiverAccepted || (isBirthday && !ageRange)}
+                    >
+                      Continue
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  )}
+
+                  {step === (hasExtras ? 4 : 3) && (
+                    <Button
+                      className="bg-stone-900 hover:bg-stone-800"
+                      onClick={handleSubmit}
+                      disabled={!customerName || !customerEmail || !customerPhone || submitting}
+                    >
+                      {submitting ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <>
+                          Pay Now
+                          <ArrowRight className="ml-2 h-4 w-4" />
+                        </>
+                      )}
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Walk-in cart summary */}
+          {isWalkin && cart.length > 0 && (
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs text-stone-500">{cart.length} items</p>
+                <p className="text-lg font-bold text-stone-900">AED {calculateTotal().toLocaleString()}</p>
+              </div>
+              <Button
+                className="bg-stone-900 hover:bg-stone-800"
+                onClick={handleSubmit}
+                disabled={!customerName || !customerEmail || submitting}
+              >
+                {submitting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <>
+                    <ShoppingCart className="mr-2 h-4 w-4" />
+                    Checkout
+                  </>
+                )}
+              </Button>
+            </div>
+          )}
+
+          {/* Empty state */}
+          {!isWalkin && !selectedMenu && !selectedPackage && (
+            <p className="text-center text-stone-500 text-sm py-2">Select a menu to continue</p>
+          )}
+          {isWalkin && cart.length === 0 && (
+            <p className="text-center text-stone-500 text-sm py-2">Add items to your order</p>
+          )}
+        </div>
+      </div>
+
+      {/* Bottom padding for mobile to account for floating bar */}
+      <div className="lg:hidden h-24" />
     </div>
   );
 }
