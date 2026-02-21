@@ -1322,11 +1322,13 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
 
           {/* Order Summary Sidebar - Hidden on mobile, shown on desktop */}
           <div className="hidden lg:block lg:col-span-1">
-            <div className="sticky top-1/2 -translate-y-1/2">
-              <Card className="shadow-lg">
-                <CardContent className="p-6">
-                  <h3 className="text-lg font-bold text-stone-900 mb-4" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>Order Summary</h3>
+            <div className="sticky top-36">
+              <Card className="shadow-lg max-h-[calc(100vh-10rem)] flex flex-col">
+                <CardContent className="p-6 flex flex-col min-h-0">
+                  <h3 className="text-lg font-bold text-stone-900 mb-4 flex-shrink-0" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>Order Summary</h3>
                   
+                  {/* Scrollable content area */}
+                  <div className="flex-1 overflow-y-auto min-h-0 pr-1">
                   {/* Menu-based booking summary (Corporate, Birthday, Nanny) */}
                   {hasMenuSelection && selectedMenu && (
                     <div className="space-y-3">
@@ -1528,10 +1530,12 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
                   {isWalkin && cart.length === 0 && (
                     <p className="text-stone-500 text-sm">Add items to your order</p>
                   )}
+                  </div>
+                  {/* End scrollable content area */}
 
-                  {/* Navigation Buttons - Desktop */}
+                  {/* Navigation Buttons - Desktop - Fixed at bottom */}
                   {!isWalkin && (selectedMenu || selectedPackage) && (
-                    <div className="mt-6 pt-4 border-t border-stone-200 space-y-3">
+                    <div className="mt-6 pt-4 border-t border-stone-200 space-y-3 flex-shrink-0">
                       {/* Step 1: Continue to next step */}
                       {step === 1 && (
                         <Button
