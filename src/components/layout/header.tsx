@@ -73,20 +73,20 @@ export function Header() {
             
             {/* Left: Nav Links - Horizontal layout, 2x bigger text, line separators */}
             <div className={cn(
-              "hidden lg:flex flex-row items-center gap-4 transition-all duration-500",
+              "hidden lg:flex flex-row items-center gap-6 transition-all duration-500 z-10",
               scrolled ? "opacity-0 pointer-events-none -translate-x-4" : "opacity-100 translate-x-0"
             )}>
               {navLinks.map((link, index) => (
-                <div key={link.name} className="flex items-center gap-4">
+                <div key={link.name} className="flex items-center gap-6">
                   <Link
                     href={link.href}
-                    className="text-2xl font-bold text-[var(--c-black)] hover:opacity-60 transition-opacity uppercase"
+                    className="text-xl font-bold text-[var(--c-black)] hover:opacity-60 transition-opacity uppercase whitespace-nowrap"
                     style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}
                   >
                     {link.name}
                   </Link>
                   {index < navLinks.length - 1 && (
-                    <div className="w-px h-6 bg-[var(--c-black)]/20" />
+                    <div className="w-px h-5 bg-[var(--c-black)]/20" />
                   )}
                 </div>
               ))}
@@ -108,8 +108,8 @@ export function Header() {
 
             {/* Center: Logo + Open Menu (on scroll) - positioned to overflow into hero */}
             <div className={cn(
-              "absolute left-1/2 -translate-x-1/2 flex flex-col items-center transition-all duration-500",
-              scrolled ? "top-1" : "top-2"
+              "absolute left-1/2 -translate-x-1/2 flex flex-col items-center transition-all duration-500 z-0",
+              scrolled ? "top-1" : "top-0"
             )}>
               {/* White rounded rectangle background with shadow on scroll */}
               <div className={cn(
@@ -133,9 +133,9 @@ export function Header() {
                     <Image 
                       src="/graphics/mamalu-logo-transparent.png" 
                       alt="Mamalu Kitchen" 
-                      width={200} 
-                      height={200}
-                      className="w-28 h-28 lg:w-36 lg:h-36 transition-all duration-500"
+                      width={160} 
+                      height={160}
+                      className="w-20 h-20 lg:w-24 lg:h-24 transition-all duration-500"
                       priority
                     />
                   </Link>
