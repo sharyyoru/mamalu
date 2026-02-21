@@ -106,10 +106,10 @@ export function Header() {
               "absolute left-1/2 -translate-x-1/2 flex flex-col items-center transition-all duration-500",
               scrolled ? "top-1" : "top-2"
             )}>
-              {/* White circular background with shadow on scroll */}
+              {/* White rounded rectangle background with shadow on scroll */}
               <div className={cn(
                 "flex flex-col items-center transition-all duration-500 cursor-pointer",
-                scrolled ? "bg-white rounded-full p-3 shadow-lg" : ""
+                scrolled ? "bg-white rounded-2xl px-6 py-3 shadow-lg" : ""
               )}
               onClick={() => scrolled && setMenuOpen(true)}
               >
@@ -120,7 +120,7 @@ export function Header() {
                     alt="Mamalu Kitchen" 
                     width={160} 
                     height={160}
-                    className="w-14 h-14 transition-all duration-500"
+                    className="w-12 h-12 transition-all duration-500"
                     priority
                   />
                 ) : (
@@ -130,7 +130,7 @@ export function Header() {
                       alt="Mamalu Kitchen" 
                       width={160} 
                       height={160}
-                      className="w-24 h-24 lg:w-28 lg:h-28 transition-all duration-500"
+                      className="w-20 h-20 lg:w-24 lg:h-24 transition-all duration-500"
                       priority
                     />
                   </Link>
@@ -138,7 +138,7 @@ export function Header() {
                 
                 {/* Open Menu Text - appears on scroll */}
                 <span className={cn(
-                  "text-[9px] font-bold uppercase tracking-widest text-[var(--c-black)] transition-all duration-500 mt-1",
+                  "text-[9px] font-bold uppercase tracking-widest text-[var(--c-black)] transition-all duration-500 mt-1 whitespace-nowrap",
                   scrolled ? "opacity-100" : "opacity-0 pointer-events-none"
                 )}>
                   Open Menu

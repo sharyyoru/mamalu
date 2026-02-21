@@ -211,32 +211,30 @@ export default function HomePage() {
 
   return (
     <main className="overflow-hidden">
-      {/* Hero Section - Peach background like mybird.com */}
+      {/* Hero Section - Peach background with wave borders */}
       <section
         ref={heroRef}
-        className="relative pt-36 pb-16 overflow-hidden"
+        className="relative pt-28 pb-8 bg-[var(--c-peach)] overflow-hidden"
       >
-        {/* White background base */}
-        <div className="absolute inset-0 bg-white" />
-        
-        {/* Wavy TOP border - white to peach transition like mybird */}
-        <div className="absolute top-0 left-0 right-0 h-24 z-0">
-          <svg viewBox="0 0 1440 100" className="w-full h-full" preserveAspectRatio="none">
+        {/* Wavy TOP border - creates wave effect at top */}
+        <div className="absolute -top-1 left-0 right-0 h-16 z-10">
+          <svg viewBox="0 0 1440 60" className="w-full h-full" preserveAspectRatio="none">
             <path 
-              d="M0,0 L1440,0 L1440,60 C1300,80 1100,30 900,50 C700,70 500,30 300,50 C150,65 50,40 0,55 Z" 
+              d="M0,60 L0,20 C200,40 400,5 600,25 C800,45 1000,10 1200,30 C1350,45 1420,25 1440,35 L1440,60 Z" 
               fill="var(--c-peach)"
+            />
+            <path 
+              d="M0,0 L1440,0 L1440,20 C1300,35 1100,10 900,25 C700,40 500,15 300,30 C150,40 50,20 0,30 Z" 
+              fill="white"
             />
           </svg>
         </div>
         
-        {/* Peach background section */}
-        <div className="absolute top-20 bottom-20 left-0 right-0 bg-[var(--c-peach)] z-0" />
-        
         {/* Wavy BOTTOM border - peach to white transition */}
-        <div className="absolute bottom-0 left-0 right-0 h-24 z-0">
-          <svg viewBox="0 0 1440 100" className="w-full h-full" preserveAspectRatio="none">
+        <div className="absolute -bottom-1 left-0 right-0 h-16 z-10">
+          <svg viewBox="0 0 1440 60" className="w-full h-full" preserveAspectRatio="none">
             <path 
-              d="M0,40 C150,20 300,60 500,35 C700,10 900,50 1100,30 C1300,10 1400,40 1440,25 L1440,100 L0,100 Z" 
+              d="M0,0 C200,20 400,0 600,15 C800,30 1000,5 1200,20 C1350,30 1420,15 1440,25 L1440,60 L0,60 Z" 
               fill="white"
             />
           </svg>
@@ -245,103 +243,100 @@ export default function HomePage() {
         <div className="container mx-auto px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center">
             
-            {/* Left: Text Content */}
+            {/* Left: Text Content - balanced sizing */}
             <div ref={heroTextRef} className="relative z-10">
-              {/* Main Title - Large like mamalukitchen */}
-              <h1 className="hero-title mb-6">
-                <span className="hero-title-line block text-[clamp(3rem,10vw,7rem)] leading-[1] font-bold">
+              {/* Main Title - balanced size */}
+              <h1 className="hero-title mb-4">
+                <span className="hero-title-line block text-[clamp(2.5rem,8vw,5rem)] leading-[1.1] font-bold">
                   Cooking
                 </span>
-                <span className="hero-title-line block text-[clamp(3rem,10vw,7rem)] leading-[1] font-bold text-gradient">
+                <span className="hero-title-line block text-[clamp(2.5rem,8vw,5rem)] leading-[1.1] font-bold text-gradient">
                   Classes
                 </span>
-                <span className="hero-title-line block text-[clamp(3rem,10vw,7rem)] leading-[1] font-bold">
+                <span className="hero-title-line block text-[clamp(2.5rem,8vw,5rem)] leading-[1.1] font-bold">
                   For All
                 </span>
               </h1>
 
-              {/* Subtitle - positioned like mybird */}
-              <p className="hero-subtitle text-lg md:text-xl text-[var(--c-gray)] max-w-md mb-10 leading-relaxed">
+              {/* Subtitle */}
+              <p className="hero-subtitle text-base md:text-lg text-[var(--c-gray)] max-w-sm mb-6 leading-relaxed">
                 Fun and healthy cooking classes in Dubai for kids, families, and teams. Create delicious memories.
               </p>
 
-              {/* CTAs - pill buttons like mybird */}
-              <div className="hero-cta flex flex-wrap gap-4 items-center">
+              {/* CTAs - smaller buttons */}
+              <div className="hero-cta flex flex-wrap gap-3 items-center">
                 <Link
                   href="/classes"
-                  className="inline-flex items-center gap-2 px-8 py-4 rounded-full border-2 border-[var(--c-black)] text-sm font-bold uppercase tracking-wide transition-all duration-300 hover:bg-[var(--c-black)] hover:text-white"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full border-2 border-[var(--c-black)] text-xs font-bold uppercase tracking-wide transition-all duration-300 hover:bg-[var(--c-black)] hover:text-white"
                 >
                   Book a Class
                 </Link>
                 <Link
                   href="/products"
-                  className="inline-flex items-center gap-2 px-8 py-4 rounded-full border-2 border-[var(--c-black)] text-sm font-bold uppercase tracking-wide transition-all duration-300 hover:bg-[var(--c-black)] hover:text-white"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full border-2 border-[var(--c-black)] text-xs font-bold uppercase tracking-wide transition-all duration-300 hover:bg-[var(--c-black)] hover:text-white"
                 >
                   Shop Now
                 </Link>
-                <div className="w-10 h-10 rounded-full bg-[var(--c-accent)] flex items-center justify-center">
-                  <ChefHat className="w-5 h-5 text-[var(--c-accent-dark)]" />
-                </div>
               </div>
             </div>
 
-            {/* Right: Cooking Animation GIF */}
+            {/* Right: Cooking Animation GIF - larger for balance */}
             <div className="relative flex items-center justify-center z-10">
               <Image 
                 src="/graphics/final-cooking.gif"
                 alt="Cooking Animation"
-                width={450}
-                height={450}
-                className="w-full max-w-md lg:max-w-lg"
+                width={500}
+                height={500}
+                className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg"
                 unoptimized
                 priority
               />
             </div>
           </div>
 
-          {/* Stats Section - visible in one screen, doubled icon sizes */}
-          <div className="hero-stats grid grid-cols-3 gap-4 md:gap-8 mt-10 pt-8 border-t border-[var(--c-black)]/10 relative z-10">
+          {/* Stats Section - inside peach bg, reduced icon-text gap */}
+          <div className="hero-stats grid grid-cols-3 gap-3 md:gap-6 mt-6 pt-6 border-t border-[var(--c-black)]/10 relative z-10">
             <div className="text-center">
-              <div className="w-24 h-24 md:w-28 md:h-28 mx-auto mb-3">
+              <div className="w-16 h-16 md:w-20 md:h-20 mx-auto mb-1">
                 <Image 
                   src="/graphics/happy-kids.gif"
                   alt="Happy Kids"
-                  width={112}
-                  height={112}
+                  width={80}
+                  height={80}
                   className="w-full h-full object-contain"
                   unoptimized
                 />
               </div>
-              <div className="font-bold text-[var(--c-black)] text-base md:text-lg">Happy Kids</div>
-              <div className="text-sm md:text-base text-[var(--c-gray)]">2000+</div>
+              <div className="font-bold text-[var(--c-black)] text-sm md:text-base">Happy Kids</div>
+              <div className="text-xs md:text-sm text-[var(--c-gray)]">2000+</div>
             </div>
             <div className="text-center">
-              <div className="w-24 h-24 md:w-28 md:h-28 mx-auto mb-3">
+              <div className="w-16 h-16 md:w-20 md:h-20 mx-auto mb-1">
                 <Image 
                   src="/graphics/classes.gif"
                   alt="Classes Held"
-                  width={112}
-                  height={112}
+                  width={80}
+                  height={80}
                   className="w-full h-full object-contain"
                   unoptimized
                 />
               </div>
-              <div className="font-bold text-[var(--c-black)] text-base md:text-lg">Classes Held</div>
-              <div className="text-sm md:text-base text-[var(--c-gray)]">500+</div>
+              <div className="font-bold text-[var(--c-black)] text-sm md:text-base">Classes Held</div>
+              <div className="text-xs md:text-sm text-[var(--c-gray)]">500+</div>
             </div>
             <div className="text-center">
-              <div className="w-24 h-24 md:w-28 md:h-28 mx-auto mb-3">
+              <div className="w-16 h-16 md:w-20 md:h-20 mx-auto mb-1">
                 <Image 
                   src="/graphics/reviews.gif"
                   alt="Star Rating"
-                  width={112}
-                  height={112}
+                  width={80}
+                  height={80}
                   className="w-full h-full object-contain"
                   unoptimized
                 />
               </div>
-              <div className="font-bold text-[var(--c-black)] text-base md:text-lg">Star Rating</div>
-              <div className="text-sm md:text-base text-[var(--c-gray)]">4.9</div>
+              <div className="font-bold text-[var(--c-black)] text-sm md:text-base">Star Rating</div>
+              <div className="text-xs md:text-sm text-[var(--c-gray)]">4.9</div>
             </div>
           </div>
         </div>
