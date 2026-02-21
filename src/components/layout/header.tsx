@@ -71,20 +71,24 @@ export function Header() {
             scrolled ? "py-2" : "py-4"
           )}>
             
-            {/* Left: Nav Links - Aligned to content area (hidden on scroll) */}
+            {/* Left: Nav Links - Horizontal layout, 2x bigger text, line separators */}
             <div className={cn(
-              "hidden lg:flex flex-col gap-0.5 transition-all duration-500",
+              "hidden lg:flex flex-row items-center gap-4 transition-all duration-500",
               scrolled ? "opacity-0 pointer-events-none -translate-x-4" : "opacity-100 translate-x-0"
             )}>
-              {navLinks.map((link) => (
-                <Link
-                  key={link.name}
-                  href={link.href}
-                  className="text-base font-bold text-[var(--c-black)] hover:opacity-60 transition-opacity uppercase"
-                  style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}
-                >
-                  {link.name}
-                </Link>
+              {navLinks.map((link, index) => (
+                <div key={link.name} className="flex items-center gap-4">
+                  <Link
+                    href={link.href}
+                    className="text-2xl font-bold text-[var(--c-black)] hover:opacity-60 transition-opacity uppercase"
+                    style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}
+                  >
+                    {link.name}
+                  </Link>
+                  {index < navLinks.length - 1 && (
+                    <div className="w-px h-6 bg-[var(--c-black)]/20" />
+                  )}
+                </div>
               ))}
             </div>
 
@@ -248,30 +252,30 @@ export function Header() {
           </div>
         </div>
 
-        {/* Decorative floating GIFs - hidden on mobile to avoid covering text */}
+        {/* Decorative floating GIFs - 2.5x bigger, closer to center, visible on all screens */}
         <div className={cn(
-          "hidden md:block absolute top-1/3 left-8 lg:left-16 w-28 h-28 lg:w-36 lg:h-36 transition-all duration-700 delay-500",
-          menuOpen ? "opacity-80 translate-y-0" : "opacity-0 translate-y-12"
+          "absolute top-1/2 -translate-y-1/2 left-[10%] md:left-[15%] lg:left-[20%] w-24 h-24 md:w-48 md:h-48 lg:w-56 lg:h-56 transition-all duration-700 delay-500 pointer-events-none",
+          menuOpen ? "opacity-70 translate-x-0" : "opacity-0 -translate-x-12"
         )}>
           <Image 
             src="/graphics/happy-kids.gif" 
             alt="" 
-            width={144}
-            height={144}
+            width={224}
+            height={224}
             className="w-full h-full object-contain"
             unoptimized
           />
         </div>
         
         <div className={cn(
-          "hidden md:block absolute top-1/3 right-8 lg:right-16 w-28 h-28 lg:w-36 lg:h-36 transition-all duration-700 delay-600",
-          menuOpen ? "opacity-80 translate-y-0" : "opacity-0 translate-y-12"
+          "absolute top-1/2 -translate-y-1/2 right-[10%] md:right-[15%] lg:right-[20%] w-24 h-24 md:w-48 md:h-48 lg:w-56 lg:h-56 transition-all duration-700 delay-600 pointer-events-none",
+          menuOpen ? "opacity-70 translate-x-0" : "opacity-0 translate-x-12"
         )}>
           <Image 
             src="/graphics/classes.gif" 
             alt="" 
-            width={144}
-            height={144}
+            width={224}
+            height={224}
             className="w-full h-full object-contain"
             unoptimized
           />

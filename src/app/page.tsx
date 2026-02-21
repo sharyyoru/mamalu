@@ -365,6 +365,7 @@ export default function HomePage() {
                   alt={`Gallery image ${i + 1}`}
                   width={320}
                   height={400}
+                  quality={100}
                   className="w-full h-full object-cover hover:scale-110 transition-transform duration-700"
                 />
               </div>
@@ -384,6 +385,7 @@ export default function HomePage() {
                   src="/images/founder-lama.jpg"
                   alt="Lama - Founder of Mamalu Kitchen"
                   fill
+                  quality={100}
                   className="object-cover object-top"
                 />
               </div>
