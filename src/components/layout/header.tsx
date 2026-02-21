@@ -172,17 +172,17 @@ export function Header() {
         </nav>
       </header>
 
-      {/* Fullscreen Menu Overlay - mybird.com style */}
+      {/* Fullscreen Menu Overlay - white bg, centered logo, peach highlights */}
       <div
         className={cn(
           "fixed inset-0 z-[100] transition-all duration-700",
           menuOpen ? "visible" : "invisible pointer-events-none"
         )}
       >
-        {/* Peach Background */}
+        {/* White Background */}
         <div 
           className={cn(
-            "absolute inset-0 bg-[var(--c-peach)] transition-transform duration-700 ease-out",
+            "absolute inset-0 bg-white transition-transform duration-700 ease-out",
             menuOpen ? "translate-y-0" : "-translate-y-full"
           )}
         />
@@ -192,37 +192,37 @@ export function Header() {
           "relative h-full flex flex-col transition-opacity duration-500 delay-300",
           menuOpen ? "opacity-100" : "opacity-0"
         )}>
-          {/* Top Bar - Logo and Close */}
-          <div className="flex items-center justify-between px-6 lg:px-12 py-6">
-            <Link href="/" onClick={() => setMenuOpen(false)}>
+          {/* Top Bar - Centered Logo (2x bigger) and Close */}
+          <div className="flex items-center justify-center px-6 lg:px-12 py-8 relative">
+            <Link href="/" onClick={() => setMenuOpen(false)} className="mx-auto">
               <Image 
                 src="/graphics/mamalu-logo-transparent.png" 
                 alt="Mamalu Kitchen" 
-                width={100} 
-                height={100}
-                className="w-16 h-16"
+                width={160} 
+                height={160}
+                className="w-28 h-28 md:w-32 md:h-32"
               />
             </Link>
             
-            {/* Close Button - X icon like mybird */}
+            {/* Close Button - positioned absolute right */}
             <button
               onClick={() => setMenuOpen(false)}
-              className="flex flex-col items-center gap-1 group"
+              className="absolute right-6 lg:right-12 flex flex-col items-center gap-1 group"
             >
               <X className="w-8 h-8 text-[var(--c-black)] group-hover:rotate-90 transition-transform duration-300" />
               <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--c-black)]">Close</span>
             </button>
           </div>
 
-          {/* Menu Links - Large centered text like mybird */}
-          <div className="flex-1 flex flex-col items-center justify-center gap-4 px-6">
+          {/* Menu Links - Large centered text with peach underline highlight on hover */}
+          <div className="flex-1 flex flex-col items-center justify-center gap-6 px-6 relative z-10">
             {[{ name: "Home", href: "/" }, ...navLinks].map((link, i) => (
               <Link
                 key={link.name}
                 href={link.href}
                 onClick={() => setMenuOpen(false)}
                 className={cn(
-                  "text-5xl md:text-7xl lg:text-8xl font-bold text-[var(--c-black)] hover:opacity-60 transition-all duration-500 uppercase tracking-tight",
+                  "relative text-4xl md:text-6xl lg:text-7xl font-bold text-[var(--c-black)] transition-all duration-500 uppercase tracking-tight group",
                   menuOpen ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
                 )}
                 style={{ 
@@ -230,44 +230,50 @@ export function Header() {
                   fontFamily: 'var(--font-patrick-hand), cursive'
                 }}
               >
-                {link.name}
+                <span className="relative z-10">{link.name}</span>
+                {/* Peach highlight underline on hover */}
+                <span className="absolute bottom-0 left-0 w-full h-3 bg-[var(--c-peach)] -z-0 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
               </Link>
             ))}
           </div>
 
-          {/* Bottom Info - Contact details like mybird */}
+          {/* Bottom Info - Contact details */}
           <div className="flex items-center justify-between px-6 lg:px-12 py-6 text-sm">
-            <a href="tel:+971585003031" className="text-[var(--c-black)] hover:opacity-60 transition-opacity">
+            <a href="tel:+971585003031" className="text-[var(--c-black)] hover:text-[var(--c-peach-dark)] transition-colors">
               +971 58 500 3031
             </a>
-            <a href="mailto:info@mamalukitchen.com" className="text-[var(--c-black)] hover:opacity-60 transition-opacity">
+            <a href="mailto:info@mamalukitchen.com" className="text-[var(--c-black)] hover:text-[var(--c-peach-dark)] transition-colors">
               info@mamalukitchen.com
             </a>
           </div>
         </div>
 
-        {/* Decorative floating images like mybird */}
+        {/* Decorative floating GIFs - hidden on mobile to avoid covering text */}
         <div className={cn(
-          "absolute top-1/4 left-8 w-32 h-40 transition-all duration-700 delay-500",
-          menuOpen ? "opacity-60 translate-y-0 rotate-[-8deg]" : "opacity-0 translate-y-12 rotate-0"
+          "hidden md:block absolute top-1/3 left-8 lg:left-16 w-28 h-28 lg:w-36 lg:h-36 transition-all duration-700 delay-500",
+          menuOpen ? "opacity-80 translate-y-0" : "opacity-0 translate-y-12"
         )}>
           <Image 
-            src="/images/kids-classes.png" 
+            src="/graphics/happy-kids.gif" 
             alt="" 
-            fill 
-            className="object-cover rounded-2xl"
+            width={144}
+            height={144}
+            className="w-full h-full object-contain"
+            unoptimized
           />
         </div>
         
         <div className={cn(
-          "absolute top-1/3 right-12 w-40 h-52 transition-all duration-700 delay-600",
-          menuOpen ? "opacity-60 translate-y-0 rotate-[5deg]" : "opacity-0 translate-y-12 rotate-0"
+          "hidden md:block absolute top-1/3 right-8 lg:right-16 w-28 h-28 lg:w-36 lg:h-36 transition-all duration-700 delay-600",
+          menuOpen ? "opacity-80 translate-y-0" : "opacity-0 translate-y-12"
         )}>
           <Image 
-            src="/images/birthday-parties.png" 
+            src="/graphics/classes.gif" 
             alt="" 
-            fill 
-            className="object-cover rounded-2xl"
+            width={144}
+            height={144}
+            className="w-full h-full object-contain"
+            unoptimized
           />
         </div>
       </div>

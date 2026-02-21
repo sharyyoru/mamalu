@@ -296,127 +296,56 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Stats Section - separate white background, 2x icon/text size */}
-      <section className="py-16 bg-white">
+      {/* Stats Section - moved higher, 1.5x bigger icons/text */}
+      <section className="-mt-8 py-8 bg-white relative z-20">
         <div className="container mx-auto px-6 lg:px-8">
-          <div className="hero-stats grid grid-cols-3 gap-6 md:gap-12">
+          <div className="hero-stats grid grid-cols-3 gap-8 md:gap-16">
             <div className="text-center">
-              <div className="w-28 h-28 md:w-36 md:h-36 mx-auto mb-2">
+              <div className="w-40 h-40 md:w-52 md:h-52 mx-auto mb-3">
                 <Image 
                   src="/graphics/happy-kids.gif"
                   alt="Happy Kids"
-                  width={144}
-                  height={144}
+                  width={208}
+                  height={208}
                   className="w-full h-full object-contain"
                   unoptimized
                 />
               </div>
-              <div className="font-bold text-[var(--c-black)] text-lg md:text-2xl" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>Happy Kids</div>
-              <div className="text-base md:text-xl text-[var(--c-gray)]" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>2000+</div>
+              <div className="font-bold text-[var(--c-black)] text-xl md:text-3xl" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>Happy Kids</div>
+              <div className="text-lg md:text-2xl text-[var(--c-gray)]" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>2000+</div>
             </div>
             <div className="text-center">
-              <div className="w-28 h-28 md:w-36 md:h-36 mx-auto mb-2">
+              <div className="w-40 h-40 md:w-52 md:h-52 mx-auto mb-3">
                 <Image 
                   src="/graphics/classes.gif"
                   alt="Classes Held"
-                  width={144}
-                  height={144}
+                  width={208}
+                  height={208}
                   className="w-full h-full object-contain"
                   unoptimized
                 />
               </div>
-              <div className="font-bold text-[var(--c-black)] text-lg md:text-2xl" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>Classes Held</div>
-              <div className="text-base md:text-xl text-[var(--c-gray)]" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>500+</div>
+              <div className="font-bold text-[var(--c-black)] text-xl md:text-3xl" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>Classes Held</div>
+              <div className="text-lg md:text-2xl text-[var(--c-gray)]" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>500+</div>
             </div>
             <div className="text-center">
-              <div className="w-28 h-28 md:w-36 md:h-36 mx-auto mb-2">
+              <div className="w-40 h-40 md:w-52 md:h-52 mx-auto mb-3">
                 <Image 
                   src="/graphics/reviews.gif"
                   alt="Star Rating"
-                  width={144}
-                  height={144}
+                  width={208}
+                  height={208}
                   className="w-full h-full object-contain"
                   unoptimized
                 />
               </div>
-              <div className="font-bold text-[var(--c-black)] text-lg md:text-2xl" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>Star Rating</div>
-              <div className="text-base md:text-xl text-[var(--c-gray)]" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>4.9</div>
+              <div className="font-bold text-[var(--c-black)] text-xl md:text-3xl" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>Star Rating</div>
+              <div className="text-lg md:text-2xl text-[var(--c-gray)]" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>4.9</div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Services Section */}
-      <section className="section py-24 md:py-32 bg-white">
-        <div className="container">
-          <div className="text-center mb-16">
-            <h2 className="section-title text-4xl md:text-6xl mb-4">
-              Choose Your <span className="text-gradient">Adventure</span>
-            </h2>
-            <p className="section-title text-lg text-[var(--c-gray)] max-w-xl mx-auto">
-              From little bakers to master chefs, we have the perfect class for everyone
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {services.map((service, i) => (
-              <Link
-                key={service.id}
-                href={service.href}
-                className="service-card card group cursor-pointer"
-              >
-                <div className="card-image aspect-[4/5] relative">
-                  <Image
-                    src={service.image}
-                    alt={service.title}
-                    fill
-                    className="object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                  
-                  {/* Icon */}
-                  <div
-                    className="absolute top-4 right-4 w-12 h-12 rounded-xl flex items-center justify-center transition-transform duration-500 group-hover:scale-110 group-hover:rotate-6"
-                    style={{ backgroundColor: service.color }}
-                  >
-                    <service.icon className="w-6 h-6 text-white" />
-                  </div>
-
-                  {/* Content */}
-                  <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                    <h3 className="text-xl font-bold mb-2 group-hover:translate-x-2 transition-transform duration-500">
-                      {service.title}
-                    </h3>
-                    <p className="text-white/80 text-sm line-clamp-2 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                      {service.description}
-                    </p>
-                    <div className="flex items-center gap-2 mt-4 font-medium opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-500">
-                      <span>Explore</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Stats Section */}
-      <section className="stats-section section py-20 bg-[var(--c-black)]">
-        <div className="container">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {stats.map((stat, i) => (
-              <div key={i} className="stat-item text-center">
-                <div className="text-4xl md:text-5xl font-bold text-[var(--c-accent-dark)] mb-2">
-                  {stat.value}
-                </div>
-                <div className="text-white/70">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* Gallery Section */}
       <section className="gallery-section section py-24 md:py-32 overflow-hidden">
@@ -488,25 +417,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="section py-24 md:py-32 bg-[var(--c-black)] text-white text-center">
-        <div className="container">
-          <h2 className="section-title text-4xl md:text-6xl mb-6">
-            Ready to Start Cooking?
-          </h2>
-          <p className="section-title text-xl opacity-90 max-w-xl mx-auto mb-10">
-            Join thousands of happy families who have discovered the joy of cooking together
-          </p>
-          <Link
-            href="/classes"
-            className="section-title inline-flex items-center gap-3 bg-white text-[var(--c-black)] px-8 py-4 rounded-full font-semibold text-lg hover:scale-105 transition-transform duration-300 shadow-lg"
-          >
-            <Calendar className="w-5 h-5" />
-            <span>Book Your First Class</span>
-            <ArrowRight className="w-5 h-5" />
-          </Link>
-        </div>
-      </section>
     </main>
   );
 }

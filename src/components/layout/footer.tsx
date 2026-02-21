@@ -34,52 +34,20 @@ const socialLinks = [
 export function Footer() {
   return (
     <footer className="relative overflow-hidden">
-      {/* CTA Banner */}
-      <div className="bg-gradient-to-r from-[#ff8c6b] via-[#ffa891] to-[#ff8c6b] py-12 relative">
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute top-0 left-1/4 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-white/5 rounded-full blur-3xl" />
-        </div>
-        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center relative z-10">
-          <h3 className="text-2xl sm:text-3xl font-bold text-white mb-3">
-            Ready to Start Your Culinary Journey?
-          </h3>
-          <p className="text-white/80 mb-6">
-            Join thousands of families creating delicious memories together
-          </p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <Link 
-              href="/classes" 
-              className="inline-flex items-center gap-2 px-6 py-3 bg-white text-[#ff8c6b] font-semibold rounded-full shadow-lg hover:shadow-xl hover:scale-105 transition-all"
-            >
-              Book a Class
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-            <Link 
-              href="/contact" 
-              className="inline-flex items-center gap-2 px-6 py-3 bg-white/20 backdrop-blur-sm text-white font-semibold rounded-full border border-white/30 hover:bg-white/30 transition-all"
-            >
-              Get in Touch
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Footer */}
+      {/* Main Footer */
       <div className="bg-gradient-to-b from-stone-900 to-stone-950 text-stone-300">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16">
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 lg:gap-12">
             {/* Brand */}
             <div className="col-span-2 md:col-span-3 lg:col-span-2">
-              <Link href="/" className="inline-flex items-center gap-3 group">
+              <Link href="/" className="inline-block group">
                 <Image 
-                  src="/graphics/mamalu-logo.avif" 
+                  src="/graphics/mamalu-logo-transparent.png" 
                   alt="Mamalu Kitchen" 
-                  width={60} 
-                  height={60}
-                  className="h-14 w-auto"
+                  width={80} 
+                  height={80}
+                  className="h-16 w-16 transition-transform group-hover:scale-105"
                 />
-                <span className="text-2xl font-bold text-white group-hover:text-[#ff8c6b] transition-colors">Mamalu</span>
               </Link>
               <p className="mt-4 text-stone-400 max-w-sm">
                 Fun, healthy cooking classes for kids and families in Dubai. 
