@@ -274,7 +274,7 @@ export default function KidsBookingPage() {
       <div className="sticky top-0 z-50 glass-card border-b border-stone-200">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
-            <Link href="/classes" className="flex items-center gap-2 text-stone-600 hover:text-[#ff8c6b] transition-colors">
+            <Link href="/book" className="flex items-center gap-2 text-stone-600 hover:text-[#ff8c6b] transition-colors">
               <ArrowLeft className="h-5 w-5" />
               <span className="font-medium">Back to Classes</span>
             </Link>

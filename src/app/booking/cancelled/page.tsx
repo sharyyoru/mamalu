@@ -33,7 +33,7 @@ function CancelledContent() {
             </div>
 
             <div className="flex gap-3 justify-center">
-              <Link href="/classes">
+              <Link href="/book">
                 <Button variant="outline">Browse Classes</Button>
               </Link>
               {bookingId && (

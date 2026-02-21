@@ -263,7 +263,7 @@ export default function HomePage() {
               {/* CTAs - animated Book a Class button, centered on mobile */}
               <div className="hero-cta flex flex-wrap gap-4 items-center justify-center lg:justify-start">
                 <Link
-                  href="/classes"
+                  href="/book"
                   className="group relative inline-flex items-center gap-2 px-8 py-4 rounded-full bg-[var(--c-black)] text-white text-sm font-bold uppercase tracking-wide transition-all duration-300 hover:scale-105 hover:shadow-xl overflow-hidden"
                 >
                   <span className="relative z-10">Book a Class</span>

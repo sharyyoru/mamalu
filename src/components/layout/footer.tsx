@@ -4,7 +4,7 @@ import { Instagram, Facebook, Youtube, Mail, Phone, MapPin, Heart, ArrowRight } 
 
 const primaryLinks = [
   { name: "Home", href: "/" },
-  { name: "Classes", href: "/classes" },
+  { name: "Classes", href: "/book" },
   { name: "Shop", href: "/products" },
 ];
 

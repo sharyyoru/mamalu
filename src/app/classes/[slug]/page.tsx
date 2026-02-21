@@ -109,7 +109,7 @@ export default async function ClassPage({ params }: ClassPageProps) {
       {/* Hero */}
       <section className="bg-gradient-to-br from-amber-50 to-stone-100 py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <Link href="/classes">
+          <Link href="/book">
             <Button variant="ghost" className="mb-6">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Classes

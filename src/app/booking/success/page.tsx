@@ -63,7 +63,7 @@ function SuccessContent() {
                 Don&apos;t worry - if you were charged, your booking has been recorded. Please contact support if you need assistance.
               </p>
               <div className="flex gap-3 justify-center">
-                <Link href="/classes">
+                <Link href="/book">
                   <Button variant="outline">Browse Classes</Button>
                 </Link>
                 <Link href="/contact">
@@ -110,7 +110,7 @@ function SuccessContent() {
             </div>
 
             <div className="flex gap-3 justify-center">
-              <Link href="/classes">
+              <Link href="/book">
                 <Button variant="outline">Browse More Classes</Button>
               </Link>
               <Link href="/account">

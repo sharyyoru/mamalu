@@ -97,7 +97,7 @@ export default function EnhancedHero({ onVideoOpen }: EnhancedHeroProps) {
 
           {/* CTA buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-hero-button">
-            <Link href="/classes">
+            <Link href="/book">
               <Button 
                 size="lg" 
                 className="button-glow bg-orange-500 hover:bg-orange-600 text-white px-8 py-4 text-lg rounded-full font-medium shadow-lg hover:shadow-xl transition-all duration-300"

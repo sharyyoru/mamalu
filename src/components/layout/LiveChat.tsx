@@ -102,7 +102,7 @@ export function LiveChat() {
 
       // Auto-response based on keywords
       setTimeout(() => {
-        let response = "Thanks for your message! Our team will get back to you shortly. In the meantime, feel free to browse our classes at /classes.";
+        let response = "Thanks for your message! Our team will get back to you shortly. In the meantime, feel free to browse our classes at /book.";
         
         const lowerMsg = inputValue.toLowerCase();
         if (lowerMsg.includes("class") || lowerMsg.includes("book")) {
