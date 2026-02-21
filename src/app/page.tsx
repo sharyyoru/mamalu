@@ -210,7 +210,7 @@ export default function HomePage() {
   }, []);
 
   return (
-    <main className="overflow-hidden">
+    <main className="overflow-hidden -mt-32 lg:-mt-36">
       {/* Hero Section - Peach background with wave borders */}
       <section
         ref={heroRef}

@@ -106,15 +106,15 @@ export function Header() {
               </svg>
             </button>
 
-            {/* Center: Logo + Open Menu (on scroll) - positioned to overflow into hero */}
+            {/* Center: Logo + Open Menu (on scroll) */}
             <div className={cn(
               "absolute left-1/2 -translate-x-1/2 flex flex-col items-center transition-all duration-500 z-0",
-              scrolled ? "top-1" : "top-0"
+              scrolled ? "top-1" : "top-2"
             )}>
-              {/* White rounded rectangle background with shadow on scroll */}
+              {/* White rounded rectangle background on scroll only */}
               <div className={cn(
                 "flex flex-col items-center transition-all duration-500 cursor-pointer",
-                scrolled ? "bg-white rounded-2xl px-6 py-3 shadow-lg" : ""
+                scrolled ? "bg-white rounded-2xl px-6 py-3" : ""
               )}
               onClick={() => scrolled && setMenuOpen(true)}
               >
@@ -133,9 +133,9 @@ export function Header() {
                     <Image 
                       src="/graphics/mamalu-logo-transparent.png" 
                       alt="Mamalu Kitchen" 
-                      width={160} 
-                      height={160}
-                      className="w-20 h-20 lg:w-24 lg:h-24 transition-all duration-500"
+                      width={200} 
+                      height={200}
+                      className="w-24 h-24 lg:w-28 lg:h-28 transition-all duration-500"
                       priority
                     />
                   </Link>
