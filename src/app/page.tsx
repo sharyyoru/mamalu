@@ -32,9 +32,6 @@ const galleryImages = [
   "/images/image0.png",
   "/images/IMG_3079_edited.jpg",
   "/images/File_000-2.jpeg",
-  "/images/Mamalou Kitchen - 151.jpg",
-  "/images/IMG_4199.jpg",
-  "/images/File_010.jpeg",
 ];
 
 export default function HomePage() {
@@ -170,18 +167,18 @@ export default function HomePage() {
       <section className="py-20 md:py-28 bg-[var(--c-warm)]">
         <div className="container">
           <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
-            {/* Small Chef */}
+            {/* Mini Chef */}
             <Link href="/book/birthday-deck" className="group relative overflow-hidden rounded-3xl aspect-[4/3] block">
               <Image
                 src="/images/kids-classes.png"
-                alt="Small Chef Classes"
+                alt="Mini Chef Classes"
                 fill
                 className="object-cover transition-transform duration-700 group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
               <div className="absolute bottom-6 left-6 right-6">
                 <h3 className="text-3xl md:text-4xl lg:text-5xl text-white font-bold" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>
-                  Small Chef
+                  Mini Chef
                 </h3>
                 <p className="text-white/80 mt-2">Fun cooking classes for kids</p>
               </div>
@@ -207,26 +204,26 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Gallery Section */}
-      <section className="gallery-section section py-24 md:py-32 overflow-hidden">
+      {/* Gallery Section - Life at Mamalu */}
+      <section className="gallery-section section py-24 md:py-32 bg-white">
         <div className="container">
           <h2 className="section-title text-4xl md:text-6xl text-center mb-16" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>
             Life at Mamalu
           </h2>
           
-          <div className="flex gap-4 overflow-hidden">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
             {galleryImages.map((src, i) => (
               <div
                 key={i}
-                className="gallery-item flex-shrink-0 w-64 md:w-80 rounded-2xl overflow-hidden"
+                className="gallery-item aspect-[4/5] rounded-2xl overflow-hidden"
               >
                 <Image
                   src={src}
                   alt={`Gallery image ${i + 1}`}
-                  width={320}
+                  width={400}
                   height={500}
                   quality={100}
-                  className="w-full h-auto object-contain hover:scale-105 transition-transform duration-700"
+                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
                 />
               </div>
             ))}

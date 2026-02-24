@@ -35,7 +35,7 @@ export async function generateQRCodeSVG(data: string): Promise<string> {
  * Generate booking check-in URL with QR token
  */
 export function getCheckInUrl(qrToken: string): string {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://mamalu.vercel.app";
   return `${baseUrl}/api/checkin/verify?token=${qrToken}`;
 }
 

@@ -126,7 +126,7 @@ export async function POST(request: NextRequest) {
     const invoiceNumber = invoiceNumData || `INV-${new Date().getFullYear().toString().slice(-2)}-${Date.now().toString().slice(-5)}`;
 
     // Create Stripe payment link
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://mamalu.vercel.app";
     
     const paymentLink = await stripe.paymentLinks.create({
       line_items: [

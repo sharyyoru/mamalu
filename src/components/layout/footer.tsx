@@ -14,7 +14,7 @@ const secondaryLinks = {
     { name: "Our Story", href: "/about" },
   ],
   services: [
-    { name: "Small Chef", href: "/book/birthday-deck" },
+    { name: "Mini Chef", href: "/book/birthday-deck" },
     { name: "Big Chef", href: "/book/corporate-deck" },
     { name: "Rentals", href: "/book/rentals" },
   ],

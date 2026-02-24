@@ -211,7 +211,7 @@ export default function BookPage() {
               }`}
             >
               <Baby className="h-5 w-5" />
-              Small Chef
+              Mini Chef
             </button>
             <button
               onClick={() => setActiveCategory(activeCategory === "adults" ? null : "adults")}
@@ -246,7 +246,7 @@ export default function BookPage() {
                   <Baby className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-stone-900">Small Chef</h2>
+                  <h2 className="text-2xl font-bold text-stone-900">Mini Chef</h2>
                   <p className="text-stone-500">Fun cooking experiences for little chefs</p>
                 </div>
               </div>

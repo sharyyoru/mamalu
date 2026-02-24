@@ -102,9 +102,9 @@ const corporateMenus = [
 
 // Corporate Masterclass Menus (from Excel)
 const corporateMasterclassMenus = [
-  { id: "bread_baking_masterclass", name: "Bread Baking Masterclass", price: 500, image: "/images/focaccia-bread.jpg", dishes: ["Olive and Zaatar Focaccia", "Mixberry Braided Bread", "Ham and Cheese Pull apart bread"], category: "masterclass" },
-  { id: "macaron_masterclass", name: "Macaron Masterclass", price: 550, image: "/images/macarons.jpg", dishes: ["Dark Chocolate Raspberry Macaron", "Mango Macaron", "Pistachio Macaron"], category: "masterclass" },
-  { id: "eclaire_masterclass", name: "Eclaire Masterclass", price: 500, image: "/images/eclairs.jpg", dishes: ["Classic Chocolate eclair", "Salted Caramel Eclair", "Vanilla Eclair with Craqualine"], category: "masterclass" },
+  { id: "bread_baking_masterclass", name: "Bread Baking Masterclass", price: 500, image: "/images/Olive and Za'atar Focaccia (No-Knead).jfif.jpg", dishes: ["Olive and Zaatar Focaccia", "Mixberry Braided Bread", "Ham and Cheese Pull apart bread"], category: "masterclass" },
+  { id: "macaron_masterclass", name: "Macaron Masterclass", price: 550, image: "/images/Raspberry macarons.jpg", dishes: ["Dark Chocolate Raspberry Macaron", "Mango Macaron", "Pistachio Macaron"], category: "masterclass" },
+  { id: "eclaire_masterclass", name: "Eclaire Masterclass", price: 500, image: "/images/lemon-meringue-eclair-with-toasted-meringue-1.jpg", dishes: ["Classic Chocolate eclair", "Salted Caramel Eclair", "Vanilla Eclair with Craqualine"], category: "masterclass" },
 ];
 
 // Corporate Monthly Specials (from Excel - AED 400 each)
@@ -112,8 +112,8 @@ const corporateMonthlySpecials = [
   { id: "first_light_suhoor", name: "First Light - Suhoor Kitchen", price: 400, image: "/images/sambousek.jpg", dishes: ["Crispy Beef Sambousek", "Creamy Ricotta filled Qatayef Pockets", "Hydrating Coconut Date Chia shake"], category: "monthly" },
   { id: "iftar_table", name: "The Iftar Table - A Spring Gathering", price: 400, image: "/images/grilled-chicken.jpg", dishes: ["Creamy blended lentil soup with crispy pita bread", "Smoky Grilled chicken with Lemon herb Freekeh & Yogurt Tahini sauce", "Warm semolina cake with orange syrup and pistachio"], category: "monthly" },
   { id: "rooted_plant_based", name: "Rooted & Plant-Based", price: 400, image: "/images/hummus.jpg", dishes: ["Whipped Hummus with warm Pita bread from scratch & olive Tapenade", "Mashed sweet potato top & lentil veggie shepherd's pie", "Rich and silky Dark Chocolate Avocado Mousse with chocolate crunch"], category: "monthly" },
-  { id: "artisan_dough_lab", name: "Artisan Dough Lab", price: 400, image: "/images/focaccia-bread.jpg", dishes: ["Rosemary sea salt focaccia", "Caramelised onion & goat cheese mini galette", "Vanilla sugar brioche knots"], category: "monthly" },
-  { id: "taste_of_france", name: "A Taste of France", price: 400, image: "/images/ratatouille.jpg", dishes: ["Classic French Mini baked ratatouille in puff pastry shells", "Crispy Duck leg with Sauteed seasonal vegetables", "Creamy Creme Brulee with fresh mix berry Compote"], category: "monthly" },
+  { id: "artisan_dough_lab", name: "Artisan Dough Lab", price: 400, image: "/images/No-Knead-Focaccia-4.jpg", dishes: ["Rosemary sea salt focaccia", "Caramelised onion & goat cheese mini galette", "Vanilla sugar brioche knots"], category: "monthly" },
+  { id: "taste_of_france", name: "A Taste of France", price: 400, image: "/images/beef-wellington-FT-RECIPE0321-c9a63fccde3b45889ad78fdad078153f.jpg", dishes: ["Classic French Mini baked ratatouille in puff pastry shells", "Crispy Duck leg with Sauteed seasonal vegetables", "Creamy Creme Brulee with fresh mix berry Compote"], category: "monthly" },
   { id: "spring_comforts_european", name: "Spring Comforts – European Table", price: 400, image: "/images/roasted-chicken.jpg", dishes: ["Sizzling king prawn with paprika, sherry and garlic infused oil", "Roasted chicken with yorkshire pudding served with seasonal roasted veggie", "Classic british treacle tart with shortcrust pastry and homemade golden syrup"], category: "monthly" },
 ];
 
@@ -168,9 +168,9 @@ const kidsMonthlySpecials = [
 // Mommy & Me Classes (from Excel - AED 375 each)
 const mommyAndMeMenus = [
   { id: "sushi_master_class", name: "Sushi Master Class", price: 375, image: "/images/avocado-maki-roll-recipe-10.jpg", dishes: ["California maki rolls", "Vegan hand roll", "Spam masubi"], category: "mommy_me" },
-  { id: "bread_baking", name: "Bread Baking", price: 375, image: "/images/garden-focaccia.jpg", dishes: ["Garden focaccia", "Bacon and cheese scrolls", "Cinnamon knots"], category: "mommy_me" },
-  { id: "tea_time", name: "Tea Time", price: 375, image: "/images/scones.jpg", dishes: ["Choose between savory option like scones to Petite four"], category: "mommy_me" },
-  { id: "bagel_party", name: "Bagel Party", price: 375, image: "/images/homemade-bagels.jpg", dishes: ["Bagel from scratch with sweet and savory toppings"], category: "mommy_me" },
+  { id: "bread_baking", name: "Bread Baking", price: 375, image: "/images/focaccia-bread-art-featured.jpg", dishes: ["Garden focaccia", "Bacon and cheese scrolls", "Cinnamon knots"], category: "mommy_me" },
+  { id: "tea_time", name: "Tea Time", price: 375, image: "/images/Savory-Scones-with-Bacon-Cheddar-Chive.jpg", dishes: ["Choose between savory option like scones to Petite four"], category: "mommy_me" },
+  { id: "bagel_party", name: "Bagel Party", price: 375, image: "/images/Pizza-Bagels-15-650x975.jpg", dishes: ["Bagel from scratch with sweet and savory toppings"], category: "mommy_me" },
   { id: "cupcake_master_class_mommy", name: "Cupcake Master Class", price: 375, image: "/images/Each-Beach-Birthday-Cupcakes.jpg", dishes: ["Choose between: Vanilla, chocolate or red velvet cupcakes", "Learn piping skills and decorate to match the season"], category: "mommy_me" },
 ];
 
@@ -424,9 +424,9 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
     return calculateBaseAmount() + calculateExtrasTotal();
   };
   
-  // Calculate deposit (50%) and balance for corporate and birthday bookings (as per PDF payment policy)
+  // Calculate deposit (50%) and balance - ONLY Birthday requires 50% deposit, everything else is 100% upfront
   const totalAmount = calculateTotal();
-  const requiresDeposit = isCorporate || isBirthday;
+  const requiresDeposit = isBirthday; // Only birthday requires 50% deposit
   const depositAmount = requiresDeposit ? Math.ceil(totalAmount * 0.5) : totalAmount;
   const balanceAmount = requiresDeposit ? totalAmount - depositAmount : 0;
 
@@ -448,8 +448,8 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
           isPerPerson: ["extra_favors", "extra_course", "wine_pairing", "certificates"].includes(e.id),
         }));
 
-      // Determine if this is a deposit payment (corporate or birthday) or full payment
-      const isDepositPayment = isCorporate || isBirthday;
+      // Determine if this is a deposit payment - ONLY Birthday requires 50% deposit
+      const isDepositPayment = isBirthday;
       const paymentAmount = isDepositPayment ? Math.ceil(totalAmount * 0.5) : totalAmount;
 
       const res = await fetch("/api/services/book", {
