@@ -168,7 +168,7 @@ export default function HomePage() {
         <div className="container">
           <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
             {/* Mini Chef */}
-            <Link href="/book/birthday-deck" className="group relative overflow-hidden rounded-3xl aspect-[4/3] block">
+            <Link href="/minichef" className="group relative overflow-hidden rounded-3xl aspect-[4/3] block">
               <Image
                 src="/images/kids-classes.png"
                 alt="Mini Chef Classes"

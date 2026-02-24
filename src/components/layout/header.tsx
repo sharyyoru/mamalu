@@ -7,7 +7,7 @@ import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
-  { name: "Mini Chef", href: "/book/birthday-deck" },
+  { name: "Mini Chef", href: "/minichef" },
   { name: "Big Chef", href: "/book/corporate-deck" },
   { name: "Rentals", href: "/book/rentals" },
 ];
