@@ -211,7 +211,7 @@ export default function BookPage() {
               }`}
             >
               <Baby className="h-5 w-5" />
-              Kids
+              Small Chef
             </button>
             <button
               onClick={() => setActiveCategory(activeCategory === "adults" ? null : "adults")}
@@ -222,19 +222,15 @@ export default function BookPage() {
               }`}
             >
               <Users className="h-5 w-5" />
-              Adults
+              Big Chef
             </button>
-            <button
-              onClick={() => setActiveCategory(activeCategory === "walkin" ? null : "walkin")}
-              className={`flex items-center gap-2 px-6 py-3 rounded-full font-semibold transition-all ${
-                activeCategory === "walkin"
-                  ? "bg-white text-stone-900"
-                  : "bg-white/10 text-white hover:bg-white/20"
-              }`}
+            <Link
+              href="/book/rentals"
+              className="flex items-center gap-2 px-6 py-3 rounded-full font-semibold transition-all bg-white/10 text-white hover:bg-white/20"
             >
               <Coffee className="h-5 w-5" />
-              Walk-in Menu
-            </button>
+              Rentals
+            </Link>
           </div>
         </div>
       </section>
@@ -250,7 +246,7 @@ export default function BookPage() {
                   <Baby className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-stone-900">Kids</h2>
+                  <h2 className="text-2xl font-bold text-stone-900">Small Chef</h2>
                   <p className="text-stone-500">Fun cooking experiences for little chefs</p>
                 </div>
               </div>
@@ -271,8 +267,8 @@ export default function BookPage() {
                   <Users className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-stone-900">Adults</h2>
-                  <p className="text-stone-500">Professional culinary experiences</p>
+                  <h2 className="text-2xl font-bold text-stone-900">Big Chef</h2>
+                  <p className="text-stone-500">Corporate events & nanny classes</p>
                 </div>
               </div>
               

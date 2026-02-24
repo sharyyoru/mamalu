@@ -7,9 +7,9 @@ import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
-  { name: "Kids", href: "/book/birthday-deck" },
-  { name: "Corporate", href: "/book/corporate-deck" },
-  { name: "Nanny Classes", href: "/book/nanny-class" },
+  { name: "Small Chef", href: "/book/birthday-deck" },
+  { name: "Big Chef", href: "/book/corporate-deck" },
+  { name: "Rentals", href: "/book/rentals" },
 ];
 
 export function Header() {

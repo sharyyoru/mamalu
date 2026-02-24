@@ -14,9 +14,9 @@ const secondaryLinks = {
     { name: "Our Story", href: "/about" },
   ],
   services: [
-    { name: "Private Events", href: "/services/events" },
-    { name: "Food Consultancy", href: "/services/consultancy" },
-    { name: "Birthday Parties", href: "/book/birthday-deck" },
+    { name: "Small Chef", href: "/book/birthday-deck" },
+    { name: "Big Chef", href: "/book/corporate-deck" },
+    { name: "Rentals", href: "/book/rentals" },
   ],
   support: [
     { name: "Contact Us", href: "/contact" },
