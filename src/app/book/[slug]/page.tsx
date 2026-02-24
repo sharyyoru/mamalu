@@ -88,55 +88,90 @@ interface ExtraItem {
   category: string;
 }
 
-// Corporate Menu Options (from PDF)
+// Corporate Menu Options - Our Classics (from PDF/Excel)
 const corporateMenus = [
-  { id: "spirit_of_thailand", name: "Spirit of Thailand", price: 300, image: "/images/Fresh-Spring-Rolls-15.jpg", dishes: ["Shrimp summer rolls", "Thai green chicken curry", "Coconut steamed rice"] },
-  { id: "la_cucina_italiana", name: "La Cucina Italiana", price: 425, image: "/images/chicken-alfredo-lasagna-roll-ups-recipe-4.jpg", dishes: ["Pasta from scratch with pomodoro or alfredo sauce", "Margherita pizza", "Chicken milanese", "Classic tiramisu"] },
-  { id: "the_mexican_table", name: "The Mexican Table", price: 450, image: "/images/Pink-Tacos-4.jpg", dishes: ["Mexican corn salad", "Tortillas from scratch", "Pulled Mexican chicken or beef", "Guacamole", "Churros with chocolate sauce"] },
-  { id: "the_art_of_sushi", name: "The Art Of Sushi", price: 450, image: "/images/Japanese-Sushi-0458.450-450x270.jpg", dishes: ["Miso soup", "Tempura shrimp maki roll", "Spicy tuna handroll", "Salmon avocado roll"] },
-  { id: "pan_asian_feast", name: "Pan Asian Feast", price: 475, image: "/images/shoyu-ramen-1-1200.jpg", dishes: ["Ramen with shoyu tare with egg noodles from scratch", "Beef yakitori skewers", "Mushroom gyoza", "Coconut and pandan sago pudding"] },
-  { id: "le_petit_menu", name: "Le Petit Menu", price: 500, image: "/images/beef-wellington-FT-RECIPE0321-c9a63fccde3b45889ad78fdad078153f.jpg", dishes: ["French onion tart tatin", "Steak frites (Seared steak with triple cooked fries)", "Le chocolate mousse with olive oil and fleur de sel"] },
-  { id: "umami_house", name: "Umami House", price: 550, image: "/images/vegetarian-summer-rolls-3.jpg", dishes: ["Shrimp papaya salad", "Tempura platter", "Chicken katsu curry or teriyaki rib eye donburi bowl with cucumber salad"] },
-  { id: "mystery_box", name: "Mystery Box Challenge", price: 550, image: "/images/Grilled-Steak-with-Chimichurri-1.jpg", dishes: ["Each team gets assigned random ingredients and are tasked with creating the best dish with guidance from our chef - like Chopped!"] },
+  { id: "spirit_of_thailand", name: "Spirit of Thailand", price: 300, image: "/images/Fresh-Spring-Rolls-15.jpg", dishes: ["Shrimp summer rolls", "Thai green chicken curry", "Coconut steamed rice"], category: "classics" },
+  { id: "la_cucina_italiana", name: "La Cucina Italiana", price: 425, image: "/images/chicken-alfredo-lasagna-roll-ups-recipe-4.jpg", dishes: ["Pasta from scratch with pomodoro or alfredo sauce", "Margherita pizza", "Chicken milanese", "Classic tiramisu"], category: "classics" },
+  { id: "the_mexican_table", name: "The Mexican Table", price: 450, image: "/images/Pink-Tacos-4.jpg", dishes: ["Mexican corn salad", "Tortillas from scratch", "Pulled Mexican chicken or beef", "Guacamole", "Churros with chocolate sauce"], category: "classics" },
+  { id: "the_art_of_sushi", name: "The Art Of Sushi", price: 450, image: "/images/Japanese-Sushi-0458.450-450x270.jpg", dishes: ["Miso soup", "Tempura shrimp maki roll", "Spicy tuna handroll", "Salmon avocado roll"], category: "classics" },
+  { id: "pan_asian_feast", name: "Pan Asian Feast", price: 475, image: "/images/shoyu-ramen-1-1200.jpg", dishes: ["Ramen with shoyu tare with egg noodles from scratch", "Beef yakitori skewers", "Mushroom gyoza", "Coconut and pandan sago pudding"], category: "classics" },
+  { id: "le_petit_menu", name: "Le Petit Menu", price: 500, image: "/images/beef-wellington-FT-RECIPE0321-c9a63fccde3b45889ad78fdad078153f.jpg", dishes: ["French onion tart tatin", "Steak frites (Seared steak with triple cooked fries)", "Le chocolate mousse with olive oil and fleur de sel"], category: "classics" },
+  { id: "umami_house", name: "Umami House", price: 550, image: "/images/vegetarian-summer-rolls-3.jpg", dishes: ["Shrimp papaya salad", "Tempura platter", "Chicken katsu curry or teriyaki rib eye donburi bowl with cucumber salad"], category: "classics" },
+  { id: "mystery_box", name: "Mystery Box Challenge", price: 550, image: "/images/Grilled-Steak-with-Chimichurri-1.jpg", dishes: ["Each team gets assigned random ingredients and are tasked with creating the best dish with guidance from our chef - like Chopped!"], category: "classics" },
 ];
 
-// Nanny Class Menu Options (from PDF - Mummy's Fabulous Helpers)
+// Corporate Masterclass Menus (from Excel)
+const corporateMasterclassMenus = [
+  { id: "bread_baking_masterclass", name: "Bread Baking Masterclass", price: 500, image: "/images/focaccia-bread.jpg", dishes: ["Olive and Zaatar Focaccia", "Mixberry Braided Bread", "Ham and Cheese Pull apart bread"], category: "masterclass" },
+  { id: "macaron_masterclass", name: "Macaron Masterclass", price: 550, image: "/images/macarons.jpg", dishes: ["Dark Chocolate Raspberry Macaron", "Mango Macaron", "Pistachio Macaron"], category: "masterclass" },
+  { id: "eclaire_masterclass", name: "Eclaire Masterclass", price: 500, image: "/images/eclairs.jpg", dishes: ["Classic Chocolate eclair", "Salted Caramel Eclair", "Vanilla Eclair with Craqualine"], category: "masterclass" },
+];
+
+// Corporate Monthly Specials (from Excel - AED 400 each)
+const corporateMonthlySpecials = [
+  { id: "first_light_suhoor", name: "First Light - Suhoor Kitchen", price: 400, image: "/images/sambousek.jpg", dishes: ["Crispy Beef Sambousek", "Creamy Ricotta filled Qatayef Pockets", "Hydrating Coconut Date Chia shake"], category: "monthly" },
+  { id: "iftar_table", name: "The Iftar Table - A Spring Gathering", price: 400, image: "/images/grilled-chicken.jpg", dishes: ["Creamy blended lentil soup with crispy pita bread", "Smoky Grilled chicken with Lemon herb Freekeh & Yogurt Tahini sauce", "Warm semolina cake with orange syrup and pistachio"], category: "monthly" },
+  { id: "rooted_plant_based", name: "Rooted & Plant-Based", price: 400, image: "/images/hummus.jpg", dishes: ["Whipped Hummus with warm Pita bread from scratch & olive Tapenade", "Mashed sweet potato top & lentil veggie shepherd's pie", "Rich and silky Dark Chocolate Avocado Mousse with chocolate crunch"], category: "monthly" },
+  { id: "artisan_dough_lab", name: "Artisan Dough Lab", price: 400, image: "/images/focaccia-bread.jpg", dishes: ["Rosemary sea salt focaccia", "Caramelised onion & goat cheese mini galette", "Vanilla sugar brioche knots"], category: "monthly" },
+  { id: "taste_of_france", name: "A Taste of France", price: 400, image: "/images/ratatouille.jpg", dishes: ["Classic French Mini baked ratatouille in puff pastry shells", "Crispy Duck leg with Sauteed seasonal vegetables", "Creamy Creme Brulee with fresh mix berry Compote"], category: "monthly" },
+  { id: "spring_comforts_european", name: "Spring Comforts – European Table", price: 400, image: "/images/roasted-chicken.jpg", dishes: ["Sizzling king prawn with paprika, sherry and garlic infused oil", "Roasted chicken with yorkshire pudding served with seasonal roasted veggie", "Classic british treacle tart with shortcrust pastry and homemade golden syrup"], category: "monthly" },
+];
+
+// Nanny Class Menu Options (from PDF/Excel - Mummy's Fabulous Helpers)
 // 1200 AED for 4 sessions, 1.5 hours each
 const nannyMenus = [
-  { id: "lebanese_1", name: "Lebanese Please 1", price: 1200, image: "/images/Musakhan-Rolls-01.jpg", dishes: ["Mograhrabieh with chicken", "Molokhiyyeh", "Riz al dajaj"] },
-  { id: "lebanese_2", name: "Lebanese Please 2", price: 1200, image: "/images/Pumpkin-Kibbeh.jpg", dishes: ["Kibbeh B'laban", "Shish barak", "Kibbeh B'saniyeh"] },
-  { id: "kibbe_masterclass", name: "Kibbe Masterclass", price: 1200, image: "/images/Pumpkin-Kibbeh.jpg", dishes: ["Pumpkin kibbe", "Lentil kibbe", "Salmon kibbe", "Potato kibbe"] },
-  { id: "kafta_masterclass", name: "Kafta Masterclass", price: 1200, image: "/images/Manti-(Meat-Filling).jpg", dishes: ["Kafta B'saniyeh", "Kafta B'tahini", "Dawood basha with vermicelli rice"] },
-  { id: "stews_for_you", name: "Stew's for You", price: 1200, image: "/images/Lamb-tagine_4.webp", dishes: ["Bamiyeh", "Bezelleh", "Loubieh", "Potato stew", "Vermicelli rice"] },
-  { id: "fishtastic", name: "Fishtastic", price: 1200, image: "/images/Pan-Roasted-Hailbut-with-Creamed-Corn-3-1.jpg.webp", dishes: ["Samki harra", "Sayadieh (spiced fish with aromatic rice)", "Kibbeh samak"] },
-  { id: "roll_with_it", name: "Roll with It", price: 1200, image: "/images/Vine-Leaves-with-Cranberries-(Vegetarian).jpg", dishes: ["Classic malfouf (stuffed cabbage rolls)", "Waraa Enab (stuffed vine leaves)"] },
-  { id: "family_friendly", name: "Family Friendly", price: 1200, image: "/images/chicken-alfredo-lasagna-roll-ups-recipe-4.jpg", dishes: ["Homemade lasagna", "Butter chicken with garlic butter naan", "Asian chicken stir fry noodles"] },
-  { id: "healthy_comfort", name: "Healthy Comfort Food", price: 1200, image: "/images/taco-cups-6.jpg", dishes: ["Pulled chicken tacos with guacamole", "Beef stroganoff", "Nut free pesto pasta"] },
-  { id: "asian_special", name: "Asian Special", price: 1200, image: "/images/vegetarian-summer-rolls-3.jpg", dishes: ["Shrimp summer rolls", "Asian salmon with jasmine rice", "Asian honey glazed chicken"] },
-  { id: "modern_middleastern", name: "Modern Middleastern", price: 1200, image: "/images/Musakhan-Rolls-01.jpg", dishes: ["Zataar chicken with sumak potatoes", "Musakhan rolls", "Freekeh salad"] },
-  { id: "dinner_party_starters", name: "Dinner Party Starters", price: 1200, image: "/images/Spicy-Tuna-Crispy-Rice-12.jpg", dishes: ["Whole roasted cauliflower", "Crispy rice with tuna", "White fish carpaccia with yuzu ponzu sauce"] },
-  { id: "lunch_box_favourites", name: "Lunch Box Favourites", price: 1200, image: "/images/Kids-Burgers-01.jpg", dishes: ["Oat crusted chicken tenders", "Pizza pinwheels", "Banana oat muffins", "Granola from scratch"] },
-  { id: "japanese_please", name: "Japanese Please", price: 1200, image: "/images/shoyu-ramen-1-1200.jpg", dishes: ["Mushroom gyoza", "Ramen with shoyu tare", "Chicken yakitori skewers"] },
-  { id: "thai_special", name: "Thai Special", price: 1200, image: "/images/Fresh-Spring-Rolls-15.jpg", dishes: ["Asian salad", "Chuck beef bao buns", "Thai green curry with shrimp", "Steamed rice"] },
-  { id: "dinner_party_tarts", name: "Dinner Party Tarts", price: 1200, image: "/images/Spinach-Pie.jpg", dishes: ["Onion tart tatin", "Wild mushroom phyllo tart", "Goat cheese and tomato tart"] },
-  { id: "sushi_masterclass", name: "Sushi Masterclass", price: 1200, image: "/images/avocado-maki-roll-recipe-10.jpg", dishes: ["Salmon and avocado rolls", "Salmon nigiri", "California maki roll"] },
-  { id: "healthy_desserts", name: "Healthy Desserts", price: 1200, image: "/images/fudgy-sweet-potato-cookies.jpg", dishes: ["Sweet potato brownies", "3 ingredient chocolate cake", "Protein chocolate chip cookies", "Date walnut cake"] },
+  { id: "lebanese_1", name: "Lebanese Please 1", price: 1200, image: "/images/Musakhan-Rolls-01.jpg", dishes: ["Mograhrabieh with chicken", "Molokhiyyeh", "Riz al dajaj"], category: "nanny" },
+  { id: "lebanese_2", name: "Lebanese Please 2", price: 1200, image: "/images/Pumpkin-Kibbeh.jpg", dishes: ["Kibbeh B'laban", "Shish barak", "Kibbeh B'saniyeh"], category: "nanny" },
+  { id: "kibbe_masterclass", name: "Kibbe Masterclass", price: 1200, image: "/images/Pumpkin-Kibbeh.jpg", dishes: ["Pumpkin kibbe", "Lentil kibbe", "Salmon kibbe", "Potato kibbe"], category: "nanny" },
+  { id: "kafta_masterclass", name: "Kafta Masterclass", price: 1200, image: "/images/Manti-(Meat-Filling).jpg", dishes: ["Kafta B'saniyeh", "Kafta B'tahini", "Dawood basha with vermicelli rice"], category: "nanny" },
+  { id: "stews_for_you", name: "Stew's for You", price: 1200, image: "/images/Lamb-tagine_4.webp", dishes: ["Bamiyeh", "Bezelleh", "Loubieh", "Potato stew", "Vermicelli rice"], category: "nanny" },
+  { id: "fishtastic", name: "Fishtastic", price: 1200, image: "/images/Pan-Roasted-Hailbut-with-Creamed-Corn-3-1.jpg.webp", dishes: ["Samki harra", "Sayadieh (spiced fish with aromatic rice)", "Kibbeh samak"], category: "nanny" },
+  { id: "roll_with_it", name: "Roll with It", price: 1200, image: "/images/Vine-Leaves-with-Cranberries-(Vegetarian).jpg", dishes: ["Classic malfouf (stuffed cabbage rolls)", "Waraa Enab (stuffed vine leaves)"], category: "nanny" },
+  { id: "family_friendly", name: "Family Friendly", price: 1200, image: "/images/chicken-alfredo-lasagna-roll-ups-recipe-4.jpg", dishes: ["Homemade lasagna", "Butter chicken with garlic butter naan", "Asian chicken stir fry noodles"], category: "nanny" },
+  { id: "healthy_comfort", name: "Healthy Comfort Food", price: 1200, image: "/images/taco-cups-6.jpg", dishes: ["Pulled chicken tacos with guacamole", "Beef stroganoff", "Nut free pesto pasta"], category: "nanny" },
+  { id: "asian_special", name: "Asian Special", price: 1200, image: "/images/vegetarian-summer-rolls-3.jpg", dishes: ["Shrimp summer rolls", "Asian salmon with jasmine rice", "Asian honey glazed chicken"], category: "nanny" },
+  { id: "modern_middleastern", name: "Modern Middleastern", price: 1200, image: "/images/Musakhan-Rolls-01.jpg", dishes: ["Zataar chicken with sumak potatoes", "Musakhan rolls", "Freekeh salad"], category: "nanny" },
+  { id: "dinner_party_starters", name: "Dinner Party Starters", price: 1200, image: "/images/Spicy-Tuna-Crispy-Rice-12.jpg", dishes: ["Whole roasted cauliflower", "Crispy rice with tuna", "White fish carpaccia with yuzu ponzu sauce"], category: "nanny" },
+  { id: "lunch_box_favourites", name: "Lunch Box Favourites", price: 1200, image: "/images/Kids-Burgers-01.jpg", dishes: ["Oat crusted chicken tenders", "Pizza pinwheels", "Banana oat muffins", "Granola from scratch"], category: "nanny" },
+  { id: "japanese_please", name: "Japanese Please", price: 1200, image: "/images/shoyu-ramen-1-1200.jpg", dishes: ["Mushroom gyoza", "Ramen with shoyu tare", "Chicken yakitori skewers"], category: "nanny" },
+  { id: "thai_special", name: "Thai Special", price: 1200, image: "/images/Fresh-Spring-Rolls-15.jpg", dishes: ["Asian salad", "Chuck beef bao buns", "Thai green curry with shrimp", "Steamed rice"], category: "nanny" },
+  { id: "dinner_party_tarts", name: "Dinner Party Tarts", price: 1200, image: "/images/Spinach-Pie.jpg", dishes: ["Onion tart tatin", "Wild mushroom phyllo tart", "Goat cheese and tomato tart"], category: "nanny" },
+  { id: "sushi_masterclass", name: "Sushi Masterclass", price: 1200, image: "/images/avocado-maki-roll-recipe-10.jpg", dishes: ["Salmon and avocado rolls", "Salmon nigiri", "California maki roll"], category: "nanny" },
+  { id: "healthy_desserts", name: "Healthy Desserts", price: 1200, image: "/images/fudgy-sweet-potato-cookies.jpg", dishes: ["Sweet potato brownies", "3 ingredient chocolate cake", "Protein chocolate chip cookies", "Date walnut cake"], category: "nanny" },
 ];
 
-// Birthdays Menu Packages (from PDF)
+// Birthdays Menu Packages - Our Classics (from PDF)
 const birthdayMenus = [
-  { id: "texas_roadhouse", name: "Texas Roadhouse", price: 275, image: "/images/Baked-Boneless-Honey-BBQ-Chicken-Wings-with-Spicy-Ranch-1-1-500x500.jpg", dishes: ["Baked BBQ wings", "Skillet Mac & Cheese", "Mississippi mud pie"] },
-  { id: "little_italy", name: "Little Italy", price: 250, image: "/images/Farfalle-Pasta11-scaled.jpg", dishes: ["Pasta from scratch", "Pomodoro sauce", "Margherita pizza", "Fudgy brownies"] },
-  { id: "funtastic", name: "Funtastic", price: 180, image: "/images/Chocolate_Marble_Cookies-BP-1.webp", dishes: ["Mixed Berry babka", "Cheesy pizza bomb", "Chocolate chip marble cookies"] },
-  { id: "kung_fu_panda", name: "Kung Fu Panda", price: 275, image: "/images/avocado-maki-roll-recipe-10.jpg", dishes: ["California sushi rolls", "Chicken yakitori skewer", "Veggie stir-fried noodles", "Chocolate custard tart"] },
-  { id: "cupcake_masterclass", name: "Cupcake Masterclass", price: 275, image: "/images/Each-Beach-Birthday-Cupcakes.jpg", dishes: ["Choose between: Vanilla, chocolate or red velvet cupcakes", "Learn piping skills and decorate to match the season"] },
-  { id: "dream_diner", name: "Dream Diner", price: 200, image: "/images/dream diner.jpg", dishes: ["Mini cheesy garlic monkey bread", "Alfredo chicken lasagna rolls", "Oreo Sprinkle skillet cookie"] },
-  { id: "hola_amigos", name: "Hola Amigos", price: 250, image: "/images/birria-tacos-5-1200x1800.jpg", dishes: ["Cheese and mushroom quesadillas", "Pulled chicken tacos", "Churros with chocolate sauce"] },
-  { id: "healthylicious", name: "Healthylicious", price: 225, image: "/images/Quinoa-Crusted-Chicken-Tenders-02.jpg", dishes: ["Parmesan baked chicken tenders", "Sweet potato fries", "Double chocolate zucchini muffins"] },
-  { id: "dumpling_masterclass", name: "Dumpling Masterclass", price: 225, image: "/images/Crispy-Skirt-Dumplings-Takestwoeggs-Final-SQ.jpg", dishes: ["Pan fried mushroom dumplings", "Steamed chicken dumplings", "Chocolate dumplings"] },
-  { id: "pretzel_masterclass", name: "Pretzel Masterclass", price: 180, image: "/images/soft-pretzel-snack-board-featured-720x720.jpg", dishes: ["Pepperoni pizza pretzel", "Garlic and herb pretzel", "Cinnamon sugar pretzel"] },
-  { id: "mama_mia", name: "Mama Mia", price: 250, image: "/images/Farfalle-Pasta11-scaled.jpg", dishes: ["Bow tie pasta from scratch", "Creamy pink sauce", "Baked chicken milanese", "Chocolate chip biscotti"] },
-  { id: "cookie_masterclass", name: "Cookie Masterclass", price: 275, image: "/images/best-chocolate-chip-cookies-recipe-ever-no-chilling-1.jpg", dishes: ["Herb and cheddar cookies", "Funfetti cookies", "Brownie crinkle cookies"] },
+  { id: "texas_roadhouse", name: "Texas Roadhouse", price: 275, image: "/new-updates/texas road house.jpg", dishes: ["Baked BBQ wings", "Skillet Mac & Cheese", "Mississippi mud pie"], category: "classics" },
+  { id: "little_italy", name: "Little Italy", price: 250, image: "/new-updates/little italy.jpg", dishes: ["Pasta from scratch", "Pomodoro sauce", "Margherita pizza", "Fudgy brownies"], category: "classics" },
+  { id: "funtastic", name: "Funtastic", price: 180, image: "/new-updates/funtastic.jpg", dishes: ["Mixed Berry babka", "Cheesy pizza bomb", "Chocolate chip marble cookies"], category: "classics" },
+  { id: "kung_fu_panda", name: "Kung Fu Panda", price: 275, image: "/new-updates/kungfu panda.jpg", dishes: ["California sushi rolls", "Chicken yakitori skewer", "Veggie stir-fried noodles", "Chocolate custard tart"], category: "classics" },
+  { id: "cupcake_masterclass", name: "Cupcake Masterclass", price: 275, image: "/images/Each-Beach-Birthday-Cupcakes.jpg", dishes: ["Choose between: Vanilla, chocolate or red velvet cupcakes", "Learn piping skills and decorate to match the season"], category: "classics" },
+  { id: "dream_diner", name: "Dream Diner", price: 200, image: "/new-updates/dream diner.jpg", dishes: ["Mini cheesy garlic monkey bread", "Alfredo chicken lasagna rolls", "Oreo Sprinkle skillet cookie"], category: "classics" },
+  { id: "hola_amigos", name: "Hola Amigos", price: 250, image: "/new-updates/hola amigos.jpg", dishes: ["Cheese and mushroom quesadillas", "Pulled chicken tacos", "Churros with chocolate sauce"], category: "classics" },
+  { id: "healthylicious", name: "Healthylicious", price: 225, image: "/new-updates/healthylicious.jpg", dishes: ["Parmesan baked chicken tenders", "Sweet potato fries", "Double chocolate zucchini muffins"], category: "classics" },
+  { id: "dumpling_masterclass", name: "Dumpling Masterclass", price: 225, image: "/new-updates/dumpling masterclass.jpg", dishes: ["Pan fried mushroom dumplings", "Steamed chicken dumplings", "Chocolate dumplings"], category: "classics" },
+  { id: "pretzel_masterclass", name: "Pretzel Masterclass", price: 180, image: "/new-updates/pretzel master class.jpg", dishes: ["Pepperoni pizza pretzel", "Garlic and herb pretzel", "Cinnamon sugar pretzel"], category: "classics" },
+  { id: "mama_mia", name: "Mama Mia", price: 250, image: "/images/Farfalle-Pasta11-scaled.jpg", dishes: ["Bow tie pasta from scratch", "Creamy pink sauce", "Baked chicken milanese", "Chocolate biscotti"], category: "classics" },
+  { id: "cookie_masterclass", name: "Cookie Masterclass", price: 275, image: "/images/best-chocolate-chip-cookies-recipe-ever-no-chilling-1.jpg", dishes: ["Herb and cheddar cookies", "Funfetti cookies", "Brownie crinkle cookies"], category: "classics" },
+];
+
+// Monthly Specials for Kids (from Excel)
+const kidsMonthlySpecials = [
+  { id: "spring_veggie_adventures", name: "Spring Veggie Adventures", price: 250, image: "/images/Rainbow-Veggie-Pinwheels.jpg", dishes: ["Crispy corn & zucchini bites with yogurt dip", "Rainbow veggie pinwheel wraps", "Lemon blueberry mini cakes"], category: "monthly" },
+  { id: "little_bread_makers", name: "Little Bread Makers", price: 250, image: "/images/chocolate-babka-18.jpg", dishes: ["Milk bread rolls from scratch", "Herb & cheese tear-and-share loaf", "Chocolate babka"], category: "monthly" },
+  { id: "comfort_food_club", name: "Comfort Food Club", price: 250, image: "/images/chicken-pot-pie-cups.jpg", dishes: ["Creamy chicken pot pie cups", "Baked mac & cheese (macaroni from scratch)", "Soft & Chewy Cinnamon Sugar Blondie Bites"], category: "monthly" },
+  { id: "bloom_bakery", name: "Bloom Bakery", price: 250, image: "/images/strawberry-cookies.jpg", dishes: ["Baked Twisted Vanilla Donut", "Strawberry Kiss Cookies", "Colourful Spring time crinkle cookie"], category: "monthly" },
+  { id: "asian_kitchen_day", name: "Asian Kitchen Day", price: 250, image: "/images/bao-buns.jpg", dishes: ["Steamed chicken bao buns", "Vegetable lo mein noodles from scratch", "Coconut Palm Sugar pancake rolls"], category: "monthly" },
+];
+
+// Mommy & Me Classes (from Excel - AED 375 each)
+const mommyAndMeMenus = [
+  { id: "sushi_master_class", name: "Sushi Master Class", price: 375, image: "/images/avocado-maki-roll-recipe-10.jpg", dishes: ["California maki rolls", "Vegan hand roll", "Spam masubi"], category: "mommy_me" },
+  { id: "bread_baking", name: "Bread Baking", price: 375, image: "/images/garden-focaccia.jpg", dishes: ["Garden focaccia", "Bacon and cheese scrolls", "Cinnamon knots"], category: "mommy_me" },
+  { id: "tea_time", name: "Tea Time", price: 375, image: "/images/scones.jpg", dishes: ["Choose between savory option like scones to Petite four"], category: "mommy_me" },
+  { id: "bagel_party", name: "Bagel Party", price: 375, image: "/images/homemade-bagels.jpg", dishes: ["Bagel from scratch with sweet and savory toppings"], category: "mommy_me" },
+  { id: "cupcake_master_class_mommy", name: "Cupcake Master Class", price: 375, image: "/images/Each-Beach-Birthday-Cupcakes.jpg", dishes: ["Choose between: Vanilla, chocolate or red velvet cupcakes", "Learn piping skills and decorate to match the season"], category: "mommy_me" },
 ];
 
 // Add-ons/Extras for different service types (from PDFs)
@@ -226,6 +261,8 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
   const [submitting, setSubmitting] = useState(false);
   const [ageRange, setAgeRange] = useState("");
   const [waiverAccepted, setWaiverAccepted] = useState(false);
+  const [activeMenuCategory, setActiveMenuCategory] = useState<"classics" | "monthly" | "mommy_me">("classics");
+  const [activeCorporateCategory, setActiveCorporateCategory] = useState<"classics" | "masterclass" | "monthly">("classics");
 
   // Get available extras for current service
   const availableExtras = service ? (serviceExtras[service.service_type] || []) : [];
@@ -610,8 +647,44 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
                   </CardContent>
                 </Card>
 
+                {/* Category Tabs */}
+                <div className="flex flex-wrap gap-2 border-b border-stone-200 pb-4">
+                  <button
+                    onClick={() => setActiveCorporateCategory("classics")}
+                    className={`px-4 py-2 rounded-full font-medium transition-all ${
+                      activeCorporateCategory === "classics"
+                        ? "bg-stone-900 text-white"
+                        : "bg-stone-100 text-stone-600 hover:bg-stone-200"
+                    }`}
+                  >
+                    🍝 Our Classics
+                  </button>
+                  <button
+                    onClick={() => setActiveCorporateCategory("masterclass")}
+                    className={`px-4 py-2 rounded-full font-medium transition-all ${
+                      activeCorporateCategory === "masterclass"
+                        ? "bg-stone-900 text-white"
+                        : "bg-stone-100 text-stone-600 hover:bg-stone-200"
+                    }`}
+                  >
+                    👨‍🍳 Masterclasses
+                  </button>
+                  <button
+                    onClick={() => setActiveCorporateCategory("monthly")}
+                    className={`px-4 py-2 rounded-full font-medium transition-all ${
+                      activeCorporateCategory === "monthly"
+                        ? "bg-stone-900 text-white"
+                        : "bg-stone-100 text-stone-600 hover:bg-stone-200"
+                    }`}
+                  >
+                    🌟 Monthly Specials
+                  </button>
+                </div>
+
                 <div className="grid gap-4">
-                  {corporateMenus.map((menu) => (
+                  {(activeCorporateCategory === "classics" ? corporateMenus : 
+                    activeCorporateCategory === "masterclass" ? corporateMasterclassMenus : 
+                    corporateMonthlySpecials).map((menu) => (
                     <Card
                       key={menu.id}
                       className={`cursor-pointer transition-all ${
@@ -640,6 +713,12 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
                                     <Badge className="bg-purple-100 text-purple-700 border-0">
                                       <Sparkles className="h-3 w-3 mr-1" />
                                       Challenge
+                                    </Badge>
+                                  )}
+                                  {menu.category === "masterclass" && (
+                                    <Badge className="bg-amber-100 text-amber-700 border-0">
+                                      <ChefHat className="h-3 w-3 mr-1" />
+                                      Masterclass
                                     </Badge>
                                   )}
                                 </div>
@@ -697,8 +776,51 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
                   </CardContent>
                 </Card>
 
+                {/* Category Tabs */}
+                <div className="flex flex-wrap gap-2 border-b border-stone-200 pb-4">
+                  <button
+                    onClick={() => setActiveMenuCategory("classics")}
+                    className={`px-4 py-2 rounded-full font-medium transition-all ${
+                      activeMenuCategory === "classics"
+                        ? "bg-stone-900 text-white"
+                        : "bg-stone-100 text-stone-600 hover:bg-stone-200"
+                    }`}
+                  >
+                    🍭 Our Classics
+                  </button>
+                  <button
+                    onClick={() => setActiveMenuCategory("monthly")}
+                    className={`px-4 py-2 rounded-full font-medium transition-all ${
+                      activeMenuCategory === "monthly"
+                        ? "bg-stone-900 text-white"
+                        : "bg-stone-100 text-stone-600 hover:bg-stone-200"
+                    }`}
+                  >
+                    🌟 Monthly Specials
+                  </button>
+                  <button
+                    onClick={() => setActiveMenuCategory("mommy_me")}
+                    className={`px-4 py-2 rounded-full font-medium transition-all ${
+                      activeMenuCategory === "mommy_me"
+                        ? "bg-stone-900 text-white"
+                        : "bg-stone-100 text-stone-600 hover:bg-stone-200"
+                    }`}
+                  >
+                    👩‍👧 Mommy & Me
+                  </button>
+                </div>
+
+                {/* Category Description */}
+                {activeMenuCategory === "mommy_me" && (
+                  <div className="p-4 bg-pink-50 rounded-lg border border-pink-200">
+                    <p className="text-pink-800 font-medium">Mom and kid have their own station where they share laughter, learning, and delicious moments together!</p>
+                  </div>
+                )}
+
                 <div className="grid md:grid-cols-2 gap-4">
-                  {birthdayMenus.map((menu) => (
+                  {(activeMenuCategory === "classics" ? birthdayMenus : 
+                    activeMenuCategory === "monthly" ? kidsMonthlySpecials : 
+                    mommyAndMeMenus).map((menu) => (
                     <Card
                       key={menu.id}
                       className={`cursor-pointer transition-all ${
