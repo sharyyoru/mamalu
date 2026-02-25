@@ -61,6 +61,18 @@ const categoryIcons: Record<string, any> = {
   walkin_menu: Coffee,
 };
 
+// Service type to image mapping
+const serviceImages: Record<string, string> = {
+  birthday_deck: "/images/birthday-parties.png",
+  corporate_deck: "/images/adult-classes.png",
+  nanny_class: "/images/Nanny class flyer.png",
+  walkin_menu: "/images/family-classes.png",
+  // Fallback category images
+  kids: "/images/kids-classes.png",
+  adults: "/images/adult-classes.png",
+  walkin: "/images/family-classes.png",
+};
+
 const categoryColors: Record<string, string> = {
   kids: "from-pink-500 to-rose-500",
   adults: "from-indigo-500 to-purple-500",
@@ -351,10 +363,21 @@ function ServiceCard({ service, category }: { service: Service; category: string
       <Card className={`group overflow-hidden hover:shadow-xl transition-all duration-300 border-0 ${categoryBg[category]}`}>
         <CardContent className="p-0">
           {/* Image/Header */}
-          <div className={`relative h-48 bg-gradient-to-br ${categoryColors[category]} p-6 flex flex-col justify-between`}>
-            <div className="flex justify-between items-start">
-              <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl">
-                <Icon className="h-6 w-6 text-white" />
+          <div className="relative h-48 overflow-hidden">
+            {/* Background Image */}
+            <Image
+              src={service.image_url || serviceImages[service.service_type] || serviceImages[category] || "/images/kids-classes.png"}
+              alt={service.name}
+              fill
+              className="object-cover group-hover:scale-105 transition-transform duration-500"
+            />
+            {/* Gradient Overlay */}
+            <div className={`absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent`} />
+            
+            {/* Top Row */}
+            <div className="absolute top-4 left-4 right-4 flex justify-between items-start z-10">
+              <div className="p-2.5 bg-white/20 backdrop-blur-sm rounded-xl">
+                <Icon className="h-5 w-5 text-white" />
               </div>
               {service.menu_pdf_url && (
                 <button
@@ -367,10 +390,12 @@ function ServiceCard({ service, category }: { service: Service; category: string
                 </button>
               )}
             </div>
-            <div>
-              <h3 className="text-2xl font-bold text-white">{service.name}</h3>
+            
+            {/* Bottom Row */}
+            <div className="absolute bottom-4 left-4 right-4 z-10">
+              <h3 className="text-2xl font-bold text-white drop-shadow-lg">{service.name}</h3>
               {popularPackage && (
-                <Badge className="mt-2 bg-white/20 text-white border-0">
+                <Badge className="mt-2 bg-white/20 text-white border-0 backdrop-blur-sm">
                   <Star className="h-3 w-3 mr-1 fill-current" />
                   Most Popular
                 </Badge>

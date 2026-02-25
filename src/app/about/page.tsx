@@ -82,8 +82,14 @@ export default function AboutPage() {
               </div>
             </div>
             <div className="relative">
-              <div className="aspect-square bg-gradient-to-br from-amber-100 to-orange-100 rounded-2xl flex items-center justify-center">
-                <ChefHat className="h-32 w-32 text-amber-600/30" />
+              <div className="aspect-square rounded-2xl overflow-hidden">
+                <Image
+                  src="/images/Lama_Jammal_pic.jpeg"
+                  alt="Lama - Founder of Mamalu Kitchen"
+                  fill
+                  className="object-cover"
+                  quality={100}
+                />
               </div>
             </div>
           </div>
