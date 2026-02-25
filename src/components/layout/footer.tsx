@@ -15,7 +15,7 @@ const secondaryLinks = {
   ],
   services: [
     { name: "Mini Chef", href: "/minichef" },
-    { name: "Big Chef", href: "/book/corporate-deck" },
+    { name: "Big Chef", href: "/bigchef" },
     { name: "Rentals", href: "/book/rentals" },
   ],
   support: [

@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 
 const navLinks = [
   { name: "Mini Chef", href: "/minichef" },
-  { name: "Big Chef", href: "/book/corporate-deck" },
+  { name: "Big Chef", href: "/bigchef" },
   { name: "Rentals", href: "/book/rentals" },
 ];
 

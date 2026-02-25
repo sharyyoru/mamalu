@@ -424,7 +424,7 @@ export default function MiniChefPage() {
                 <ArrowLeft className="h-5 w-5" />
               </Link>
               <div>
-                <h1 className="text-2xl font-bold text-stone-900">Mini Chef</h1>
+                <h1 className="text-2xl font-bold text-stone-900">MINI CHEF</h1>
                 <p className="text-stone-500 text-sm">
                   Fun cooking experiences for little chefs
                 </p>
@@ -862,46 +862,6 @@ export default function MiniChefPage() {
               </div>
             )}
 
-            {/* Navigation Buttons */}
-            <div className="flex justify-between pt-4">
-              {step > 1 ? (
-                <Button variant="outline" onClick={() => setStep(step - 1)}>
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back
-                </Button>
-              ) : (
-                <div />
-              )}
-              
-              {step < maxStep ? (
-                <Button 
-                  onClick={() => setStep(step + 1)} 
-                  disabled={!canProceed()}
-                  className="bg-stone-900 hover:bg-stone-800"
-                >
-                  Continue
-                  <ArrowRight className="h-4 w-4 ml-2" />
-                </Button>
-              ) : (
-                <Button 
-                  onClick={handleSubmit} 
-                  disabled={submitting || !canProceed()}
-                  className="bg-stone-900 hover:bg-stone-800"
-                >
-                  {submitting ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                      {requiresDeposit ? `Pay Deposit (AED ${depositAmount})` : `Pay (AED ${totalAmount})`}
-                      <ArrowRight className="h-4 w-4 ml-2" />
-                    </>
-                  )}
-                </Button>
-              )}
-            </div>
           </div>
 
           {/* Sidebar - Order Summary */}
@@ -968,6 +928,28 @@ export default function MiniChefPage() {
                   ) : (
                     <p className="text-stone-500 text-sm">Select a menu to see pricing</p>
                   )}
+                  {/* Navigation Buttons */}
+                  <div className="flex flex-col gap-2 mt-4 pt-4 border-t">
+                    {step < maxStep ? (
+                      <Button onClick={() => setStep(step + 1)} disabled={!canProceed()} className="w-full bg-stone-900 hover:bg-stone-800">
+                        Continue
+                        <ArrowRight className="h-4 w-4 ml-2" />
+                      </Button>
+                    ) : (
+                      <Button onClick={handleSubmit} disabled={submitting || !canProceed()} className="w-full bg-stone-900 hover:bg-stone-800">
+                        {submitting ? (
+                          <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Processing...</>
+                        ) : (
+                          <>{requiresDeposit ? `Pay Deposit (AED ${depositAmount})` : `Pay (AED ${totalAmount})`}<ArrowRight className="h-4 w-4 ml-2" /></>
+                        )}
+                      </Button>
+                    )}
+                    {step > 1 && (
+                      <Button variant="outline" onClick={() => setStep(step - 1)} className="w-full">
+                        <ArrowLeft className="h-4 w-4 mr-2" />Back
+                      </Button>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
 

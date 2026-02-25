@@ -79,11 +79,39 @@ export default function RentalsPage() {
 
     setIsSubmitting(true);
     
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    
-    setIsSubmitting(false);
-    setIsSubmitted(true);
+    try {
+      const selectedRental = rentalOptions.find((o) => o.id === selectedOption);
+      const selectedAddOnNames = selectedAddOns.map(id => addOns.find(a => a.id === id)?.name).filter(Boolean);
+      
+      const response = await fetch("/api/rentals/inquiry", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          date: formData.date,
+          guests: formData.guests,
+          purpose: formData.purpose,
+          message: formData.message,
+          rentalOption: selectedRental?.name,
+          rentalPrice: selectedRental?.price,
+          addOns: selectedAddOnNames,
+          totalAmount: calculateTotal(),
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to submit inquiry");
+      }
+
+      setIsSubmitted(true);
+    } catch (error) {
+      console.error("Error submitting rental inquiry:", error);
+      alert("Failed to submit inquiry. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (isSubmitted) {
@@ -123,7 +151,7 @@ export default function RentalsPage() {
             Back to Booking
           </Link>
           <h1 className="text-4xl md:text-5xl font-bold mb-4" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>
-            Kitchen Studio Rental 🍳
+            KITCHEN STUDIO RENTAL 🍳
           </h1>
           <p className="text-lg text-gray-600 max-w-2xl">
             Rent our fully-equipped professional kitchen for your cooking sessions, content creation, private events, or corporate team building.
@@ -156,7 +184,7 @@ export default function RentalsPage() {
                       <span>{option.duration}</span>
                     </div>
                     <p className="text-sm text-gray-500 mb-4">{option.description}</p>
-                    <div className="text-2xl font-bold text-[var(--c-accent-dark)]">
+                    <div className="text-2xl font-bold text-stone-900">
                       AED {option.price.toLocaleString()}
                     </div>
                   </button>
@@ -188,7 +216,7 @@ export default function RentalsPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-4">
-                      <span className="font-bold">AED {addOn.price}</span>
+                      <span className="font-bold text-stone-900">AED {addOn.price}</span>
                       <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
                         selectedAddOns.includes(addOn.id)
                           ? "bg-[var(--c-accent)] border-[var(--c-accent)]"
@@ -338,7 +366,7 @@ export default function RentalsPage() {
                   <div className="border-t pt-4 mt-4">
                     <div className="flex justify-between items-center">
                       <p className="text-lg font-bold">Total</p>
-                      <p className="text-2xl font-bold text-[var(--c-accent-dark)]">
+                      <p className="text-2xl font-bold text-stone-900">
                         AED {calculateTotal().toLocaleString()}
                       </p>
                     </div>

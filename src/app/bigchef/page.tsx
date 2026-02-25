@@ -1,0 +1,401 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  ArrowLeft, ArrowRight, Check, Clock, Calendar, Minus, Plus, Loader2,
+  Gift, Cake, PartyPopper, Utensils, ChefHat, MessageCircle, X, AlertTriangle,
+} from "lucide-react";
+
+interface MenuItem { id: string; name: string; price: number; image: string; dishes: string[]; category: string; }
+interface ExtraItem { id: string; name: string; description: string; price: number; icon: any; category: string; }
+type CategoryType = "corporate" | "classics" | "monthly" | "nanny";
+
+const categoryConfig: Record<CategoryType, { label: string; emoji: string; minGuests: number; maxGuests: number; description: string }> = {
+  corporate: { label: "Corporate / Private", emoji: "🏢", minGuests: 6, maxGuests: 35, description: "2-hour hands-on cooking experience with professional chefs" },
+  classics: { label: "Our Classics", emoji: "🍝", minGuests: 1, maxGuests: 35, description: "Classic cooking experiences for groups" },
+  monthly: { label: "Monthly Specials", emoji: "🌟", minGuests: 1, maxGuests: 35, description: "Seasonal rotating menus" },
+  nanny: { label: "Nanny Class", emoji: "👩‍🍳", minGuests: 1, maxGuests: 10, description: "Mummy's Fabulous Helpers - Turn your housekeeper into a chef" },
+};
+
+const corporateMenus: MenuItem[] = [
+  { id: "spirit_of_thailand", name: "Spirit of Thailand", price: 300, image: "/images/Green-Curry-In-A-Hurry-Paste.jpg", dishes: ["Shrimp summer rolls", "Thai green chicken curry", "Coconut steamed rice"], category: "corporate" },
+  { id: "la_cucina_italiana", name: "La Cucina Italiana", price: 425, image: "/images/Farfalle-Pasta11-scaled.jpg", dishes: ["Pasta from scratch Pomodoro or alfredo sauce", "Margherita pizza", "Chicken milanese", "Classic tiramisu"], category: "corporate" },
+  { id: "the_mexican_table", name: "The Mexican Table", price: 450, image: "/images/birria-tacos-5-1200x1800.jpg", dishes: ["Mexican corn salad", "Tortillas from scratch", "Pulled mexican chicken or beef", "Guacamole and churros with chocolate sauce"], category: "corporate" },
+  { id: "the_art_of_sushi", name: "The Art of Sushi", price: 450, image: "/images/avocado-maki-roll-recipe-10.jpg", dishes: ["Miso soup", "Tempura shrimp maki roll", "Spicy tuna handroll", "Salmon avocado roll"], category: "corporate" },
+  { id: "pan_asian_feast", name: "Pan Asian Feast", price: 475, image: "/images/shoyu-ramen-1-1200.jpg", dishes: ["Ramen with shoyu tare with egg noodles from scratch", "Beef yakitori skewers", "Mushroom gyoza", "Coconut and panda sago pudding"], category: "corporate" },
+  { id: "le_petit_menu", name: "Le Petit Menu", price: 500, image: "/images/Grilled-Steak-with-Chimichurri-1.jpg", dishes: ["French onion tart tatin", "Steak frites (seared steak with triple cooked fries)"], category: "corporate" },
+  { id: "umami_house", name: "Umami House", price: 550, image: "/images/Lemon-Garlic-Shrimp-Pasta.jpg", dishes: ["Shrimp papaya salad", "Tempura platter", "Chicken katsu curry or teriyaki ribeye donburi bowl"], category: "corporate" },
+];
+
+const classicsMenus: MenuItem[] = [
+  { id: "spirit_of_thailand_c", name: "Spirit of Thailand", price: 300, image: "/images/Green-Curry-In-A-Hurry-Paste.jpg", dishes: ["Shrimp summer rolls", "Thai green chicken curry", "Coconut steamed rice"], category: "classics" },
+  { id: "la_cucina_italiana_c", name: "La Cucina Italiana", price: 425, image: "/images/Farfalle-Pasta11-scaled.jpg", dishes: ["Pasta from scratch Pomodoro or alfredo sauce", "Margherita pizza", "Chicken milanese", "Classic tiramisu"], category: "classics" },
+  { id: "the_mexican_table_c", name: "The Mexican Table", price: 450, image: "/images/birria-tacos-5-1200x1800.jpg", dishes: ["Mexican corn salad", "Tortillas from scratch", "Pulled mexican chicken or beef", "Guacamole and churros"], category: "classics" },
+  { id: "the_art_of_sushi_c", name: "The Art of Sushi", price: 450, image: "/images/avocado-maki-roll-recipe-10.jpg", dishes: ["Miso soup", "Tempura shrimp maki roll", "Spicy tuna handroll", "Salmon avocado roll"], category: "classics" },
+  { id: "pan_asian_feast_c", name: "Pan Asian Feast", price: 475, image: "/images/shoyu-ramen-1-1200.jpg", dishes: ["Ramen with shoyu tare", "Beef yakitori skewers", "Mushroom gyoza", "Coconut sago pudding"], category: "classics" },
+  { id: "bread_baking", name: "Bread Baking Masterclass", price: 500, image: "/images/focaccia-bread-art-featured.jpg", dishes: ["Olive and Zaatar Focaccia", "Mixberry Braided Bread", "Ham and Cheese Pull apart bread"], category: "classics" },
+  { id: "macaron_masterclass", name: "Macaron Masterclass", price: 550, image: "/images/Raspberry macarons.jpg", dishes: ["Dark Chocolate Raspberry Macaron", "Mango Macaron", "Pistachio Macaron"], category: "classics" },
+  { id: "eclaire_masterclass", name: "Eclaire Masterclass", price: 500, image: "/images/raspberry_and_milk_chocolate_eclairs2-s.jpg", dishes: ["Classic Chocolate eclair", "Salted Caramel Eclair", "Vanilla Eclair with Craqualine"], category: "classics" },
+];
+
+const monthlySpecials: MenuItem[] = [
+  { id: "first_light", name: "First Light - Suhoor Kitchen", price: 400, image: "/images/Cheese-Rolls.jpg", dishes: ["Crispy Beef Sambousek", "Creamy Ricotta filled Qatayef Pockets", "Hydrating Coconut Date Chia shake"], category: "monthly" },
+  { id: "iftar_table", name: "The Iftar Table", price: 400, image: "/images/Chicken-Shawarma-10.jpg", dishes: ["Creamy lentil soup with crispy pita bread", "Smoky Grilled chicken with Lemon herb Freekeh", "Warm semolina cake"], category: "monthly" },
+  { id: "rooted_plant", name: "Rooted & Plant-Based", price: 400, image: "/images/Vegan Beet Pesto Pasta.jpg", dishes: ["Whipped Hummus with warm Pita bread", "Lentil veggie shepherd's pie", "Dark Chocolate Avocado Mousse"], category: "monthly" },
+  { id: "artisan_dough", name: "Artisan Dough Lab", price: 400, image: "/images/focaccia-bread-art-featured.jpg", dishes: ["Rosemary sea salt focaccia", "Caramelised onion & goat cheese mini galette", "Vanilla sugar brioche knots"], category: "monthly" },
+  { id: "taste_france", name: "A Taste of France", price: 400, image: "/images/peking-duck-recipe-11.jpg", dishes: ["French Mini baked ratatouille", "Crispy Duck leg with vegetables", "Creamy Creme Brulee"], category: "monthly" },
+  { id: "spring_comforts", name: "Spring Comforts - European Table", price: 400, image: "/images/shrimp-in-romesco-sauce-1-of-1-3.jpg", dishes: ["Sizzling king prawn with paprika", "Roasted chicken with yorkshire pudding", "Classic british treacle tart"], category: "monthly" },
+];
+
+const nannyMenus: MenuItem[] = [
+  { id: "lebanese_1", name: "Lebanese Please 1", price: 1200, image: "/images/Chicken-Shawarma-10.jpg", dishes: ["Mograhrabieh with chicken", "Molokhiyyeh", "Riz al dajaj"], category: "nanny" },
+  { id: "lebanese_2", name: "Lebanese Please 2", price: 1200, image: "/images/Pumpkin-Kibbeh.jpg", dishes: ["Kibbeh B'laban", "Shish barak", "Kibbeh B'saniyeh"], category: "nanny" },
+  { id: "kibbe_master", name: "Kibbe Master Class", price: 1200, image: "/images/Pumpkin-Kibbeh.jpg", dishes: ["Pumpkin kibbe", "Lentil kibbe", "Salmon kibbe", "Potato kibbe"], category: "nanny" },
+  { id: "kafta_master", name: "Kafta Master Class", price: 1200, image: "/images/Grilled-Steak-with-Chimichurri-1.jpg", dishes: ["Kafta B'saniyeh", "Kafta B'tahini", "Dawood basha"], category: "nanny" },
+  { id: "stews", name: "Stew's For You", price: 1200, image: "/images/Mini-Chicken-Pot-Pies-tasteandtellblog.com-1.jpg", dishes: ["Bamiyeh", "Bezelleh", "Loubieh", "Potato stew"], category: "nanny" },
+  { id: "fish_tastic", name: "Fish Tastic", price: 1200, image: "/images/DEL_2022_Q2_TOBY_SCOTT_beetroot-cured-salmon_960x1200-768x960.jpg", dishes: ["Samki harra", "Sayadieh", "Kibbeh samak"], category: "nanny" },
+  { id: "roll_it", name: "Roll With It", price: 1200, image: "/images/Musakhan-Rolls-01.jpg", dishes: ["Classic malfouf (stuffed cabbage)", "Waraa Enab (stuffed vine leaves)"], category: "nanny" },
+  { id: "family_friendly", name: "Family Friendly", price: 1200, image: "/images/chicken-alfredo-lasagna-roll-ups-recipe-4.jpg", dishes: ["Homemade lasagna", "Butter chicken with garlic naan", "Asian chicken stir fry noodles"], category: "nanny" },
+  { id: "healthy_comfort", name: "Healthy Comfort Food", price: 1200, image: "/images/birria-tacos-5-1200x1800.jpg", dishes: ["Pulled chicken tacos", "Beef stroganoff", "Nut free pesto pasta"], category: "nanny" },
+  { id: "asian_special", name: "Asian Special", price: 1200, image: "/images/Fresh-Spring-Rolls-15.jpg", dishes: ["Shrimp summer rolls", "Asian salmon", "Asian honey glazed chicken"], category: "nanny" },
+  { id: "modern_middle", name: "Modern Middle Eastern", price: 1200, image: "/images/crispy-zaatar-potatoes-with-chicken-cover-12666b34.jpg", dishes: ["Zaatar chicken", "Musakhan rolls", "Freekeh salad"], category: "nanny" },
+  { id: "dinner_starters", name: "Dinner Party Starters", price: 1200, image: "/images/Spicy-Tuna-Crispy-Rice-12.jpg", dishes: ["Whole roasted cauliflower", "Crispy rice with tuna", "White fish carpaccia"], category: "nanny" },
+  { id: "lunchbox", name: "Lunch Box Favourites", price: 1200, image: "/images/Quinoa-Crusted-Chicken-Tenders.jpg", dishes: ["Oat crusted chicken tenders", "Pizza pinwheels", "Banana oat muffins", "Granola"], category: "nanny" },
+  { id: "japanese", name: "Japanese Please", price: 1200, image: "/images/Crispy-rice-paper-dumplings-with-chili-garlic-oil-view-from-top_1718350397_142199.jpeg", dishes: ["Mushroom gyoza", "Ramen with shoyu tare", "Chicken yakitori"], category: "nanny" },
+  { id: "thai_specials", name: "Thai Specials", price: 1200, image: "/images/korean-cream-cheese-garlic-buns-featured.jpg", dishes: ["Asian salad", "Beef bao buns", "Thai green curry"], category: "nanny" },
+  { id: "dinner_tarts", name: "Dinner Party Tarts", price: 1200, image: "/images/5942-Feta_Tart_V2.jpg", dishes: ["Onion tart tatin", "Wild mushroom phyllo tart", "Goat cheese tomato tart"], category: "nanny" },
+  { id: "sushi_nanny", name: "Sushi Master Class", price: 1200, image: "/images/avocado-maki-roll-recipe-10.jpg", dishes: ["Salmon and avocado rolls", "Salmon nigiri", "California maki roll"], category: "nanny" },
+  { id: "healthy_dessert", name: "Healthy Dessert", price: 1200, image: "/images/oreo-brownies-5-1067x1600.jpg", dishes: ["Sweet potato brownies", "3 ingredient chocolate cake", "Protein cookies", "Date walnut cake"], category: "nanny" },
+];
+
+const corporateExtras: ExtraItem[] = [
+  { id: "custom_apron", name: "Customized Apron", description: "Personalized apron with name", price: 80, icon: Gift, category: "custom" },
+  { id: "custom_spatula", name: "Customized Spatula", description: "Personalized spatula", price: 50, icon: Utensils, category: "custom" },
+  { id: "custom_chef_hat", name: "Customized Chef Hat", description: "Personalized chef hat", price: 60, icon: ChefHat, category: "custom" },
+  { id: "custom_mug", name: "Customized Mugs", description: "Personalized mug", price: 45, icon: Gift, category: "custom" },
+  { id: "cake_10", name: "Customized Cakes (10 persons)", description: "Custom designed cake", price: 575, icon: Cake, category: "cake" },
+  { id: "cake_20", name: "Customized Cakes (20 persons)", description: "Custom designed cake", price: 700, icon: Cake, category: "cake" },
+  { id: "cake_30", name: "Customized Cakes (30 persons)", description: "Custom designed cake", price: 900, icon: Cake, category: "cake" },
+  { id: "table_10", name: "Table Set Up (10 persons)", description: "Full table setting", price: 300, icon: Utensils, category: "decor" },
+  { id: "table_20", name: "Table Set Up (20 persons)", description: "Full table setting", price: 400, icon: Utensils, category: "decor" },
+  { id: "table_30", name: "Table Set Up (30 persons)", description: "Full table setting", price: 500, icon: Utensils, category: "decor" },
+  { id: "balloons", name: "Balloons (14 pcs)", description: "2 bunches of 7 balloons", price: 260, icon: PartyPopper, category: "decor" },
+  { id: "mini_pizzas", name: "Mini Pizzas (12pcs)", description: "Delicious mini pizzas", price: 50, icon: Utensils, category: "snacks" },
+  { id: "chicken_tenders", name: "Chicken Tenders (12pcs)", description: "Crispy chicken tenders", price: 60, icon: Utensils, category: "snacks" },
+  { id: "mini_burgers", name: "Mini Burgers (6pcs)", description: "Mini burgers", price: 70, icon: Utensils, category: "snacks" },
+  { id: "musakhan", name: "Musakhan Rolls", description: "Delicious rolls", price: 50, icon: Utensils, category: "snacks" },
+  { id: "juice", name: "Juices (per pc)", description: "Fresh juice", price: 8, icon: Utensils, category: "snacks" },
+  { id: "soft_drinks", name: "Soft Drinks (per pc)", description: "Soft drink", price: 15, icon: Utensils, category: "snacks" },
+];
+
+function WaiverModal({ isOpen, onClose, onAccept }: { isOpen: boolean; onClose: () => void; onAccept: () => void }) {
+  const [hasRead, setHasRead] = useState(false);
+  if (!isOpen) return null;
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+        <div className="bg-red-600 text-white p-4 flex items-center justify-between">
+          <h2 className="text-xl font-bold">WAIVER FORM</h2>
+          <button onClick={onClose} className="p-1 hover:bg-red-700 rounded"><X className="h-5 w-5" /></button>
+        </div>
+        <div className="p-6 overflow-y-auto flex-1">
+          <h3 className="text-lg font-bold text-center mb-4">Cooking Class Waiver & Acknowledgement — Mamalu Kitchen Studio</h3>
+          <div className="space-y-4 text-sm text-stone-700">
+            <p>By completing this booking, I confirm that I am the participant or authorized representative and give permission to attend and participate in the cooking class at Mamalu Kitchen Studio. I understand that cooking activities involve the use of kitchen tools, utensils, heat sources, and food ingredients, and while Mamalu Kitchen Studio maintains a safe, supervised environment, minor injuries such as cuts, burns, slips, or allergic reactions may occur.</p>
+            <p className="text-red-600">I confirm that I have informed Mamalu Kitchen Studio of any allergies, medical conditions, dietary restrictions, or special needs prior to the class. I understand that classes take place in a shared kitchen environment where cross-contact with allergens may occur despite careful handling procedures.</p>
+            <p>I agree that Mamalu Kitchen Studio, its owners, instructors, and staff shall not be held liable for any injury, loss, or damage resulting from participation in the class, except in cases of gross negligence.</p>
+            <p>I understand that photos or videos may be taken during the class for documentation and promotional purposes unless I notify Mamalu Kitchen Studio in writing prior to the session.</p>
+            <p className="font-semibold">By checking this box, I confirm that I have read, understood, and agree to this waiver.</p>
+          </div>
+        </div>
+        <div className="p-4 border-t bg-stone-50">
+          <label className="flex items-start gap-3 cursor-pointer mb-4">
+            <input type="checkbox" checked={hasRead} onChange={(e) => setHasRead(e.target.checked)} className="mt-1 h-5 w-5" />
+            <span className="text-sm text-stone-700">I have read and understood the waiver form above and agree to all terms.</span>
+          </label>
+          <div className="flex gap-3">
+            <Button variant="outline" onClick={onClose} className="flex-1">Cancel</Button>
+            <Button onClick={onAccept} disabled={!hasRead} className="flex-1 bg-stone-900 hover:bg-stone-800">I Accept & Continue</Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function BigChefPage() {
+  const [step, setStep] = useState(1);
+  const [activeCategory, setActiveCategory] = useState<CategoryType>("corporate");
+  const [selectedMenu, setSelectedMenu] = useState<MenuItem | null>(null);
+  const [selectedNannyMenus, setSelectedNannyMenus] = useState<MenuItem[]>([]);
+  const [guestCount, setGuestCount] = useState(6);
+  const [selectedExtras, setSelectedExtras] = useState<Record<string, number>>({});
+  const [eventDate, setEventDate] = useState("");
+  const [eventTime, setEventTime] = useState("");
+  const [allTimeSlots, setAllTimeSlots] = useState<any[]>([]);
+  const [availableTimeSlots, setAvailableTimeSlots] = useState<any[]>([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
+  const [customerName, setCustomerName] = useState("");
+  const [customerEmail, setCustomerEmail] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
+  const [companyName, setCompanyName] = useState("");
+  const [specialRequests, setSpecialRequests] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [waiverAccepted, setWaiverAccepted] = useState(false);
+  const [showWaiverModal, setShowWaiverModal] = useState(false);
+
+  const currentConfig = categoryConfig[activeCategory];
+  const isCorporate = activeCategory === "corporate";
+  const isNanny = activeCategory === "nanny";
+  const hasExtras = isCorporate;
+  const maxStep = hasExtras ? 4 : 3;
+
+  const getCurrentMenus = () => {
+    switch (activeCategory) {
+      case "corporate": return corporateMenus;
+      case "classics": return classicsMenus;
+      case "monthly": return monthlySpecials;
+      case "nanny": return nannyMenus;
+      default: return [];
+    }
+  };
+
+  useEffect(() => {
+    setSelectedMenu(null);
+    setSelectedNannyMenus([]);
+    setGuestCount(currentConfig.minGuests);
+    setSelectedExtras({});
+    setStep(1);
+  }, [activeCategory]);
+
+  useEffect(() => {
+    if (!eventDate) { setAllTimeSlots([]); setAvailableTimeSlots([]); return; }
+    setLoadingSlots(true);
+    setEventTime("");
+    fetch(`/api/services/availability?date=${eventDate}`)
+      .then(res => res.json())
+      .then(data => { setAllTimeSlots(data.allSlots || []); setAvailableTimeSlots(data.availableSlots || []); })
+      .finally(() => setLoadingSlots(false));
+  }, [eventDate]);
+
+  const toggleNannyMenu = (menu: MenuItem) => {
+    setSelectedNannyMenus(prev => {
+      const isSelected = prev.some(m => m.id === menu.id);
+      if (isSelected) return prev.filter(m => m.id !== menu.id);
+      if (prev.length < 4) return [...prev, menu];
+      return prev;
+    });
+  };
+
+  const baseAmount = isNanny ? 1200 : (selectedMenu?.price || 0) * guestCount;
+  const extrasTotal = Object.entries(selectedExtras).reduce((t, [id, qty]) => t + (corporateExtras.find(e => e.id === id)?.price || 0) * qty, 0);
+  const totalAmount = baseAmount + extrasTotal;
+  const requiresDeposit = isCorporate;
+  const depositAmount = requiresDeposit ? Math.ceil(totalAmount * 0.5) : totalAmount;
+  const balanceAmount = requiresDeposit ? totalAmount - depositAmount : 0;
+
+  const handleSubmit = async () => {
+    if (!isNanny && !selectedMenu) return;
+    if (isNanny && selectedNannyMenus.length !== 4) return;
+    if (!waiverAccepted) { setShowWaiverModal(true); return; }
+    setSubmitting(true);
+    try {
+      const extrasData = corporateExtras.filter(e => selectedExtras[e.id]).map(e => ({ id: e.id, name: e.name, price: e.price, quantity: selectedExtras[e.id] }));
+      const menuData = isNanny ? { menuId: selectedNannyMenus.map(m => m.id).join(","), menuName: selectedNannyMenus.map(m => m.name).join(", "), menuPrice: 1200 } : { menuId: selectedMenu?.id, menuName: selectedMenu?.name, menuPrice: selectedMenu?.price };
+      const res = await fetch("/api/services/book", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ serviceType: "corporate_deck", serviceName: `Big Chef - ${currentConfig.label}`, packageName: isNanny ? "Nanny Class (4 Sessions)" : selectedMenu?.name, ...menuData, customerName, customerEmail, customerPhone, companyName, eventDate, eventTime, guestCount: isNanny ? 1 : guestCount, extras: extrasData, baseAmount, extrasAmount: extrasTotal, totalAmount, isDepositPayment: requiresDeposit, depositAmount: requiresDeposit ? depositAmount : null, balanceAmount: requiresDeposit ? balanceAmount : null, specialRequests, waiverAccepted, category: activeCategory }),
+      });
+      if (res.ok) { const data = await res.json(); if (data.checkoutUrl) window.location.href = data.checkoutUrl; }
+      else { const error = await res.json(); alert(error.error || "Failed to create booking"); }
+    } catch { alert("An error occurred"); } finally { setSubmitting(false); }
+  };
+
+  const handleWaiverAccept = () => { setWaiverAccepted(true); setShowWaiverModal(false); handleSubmit(); };
+  const today = new Date().toISOString().split("T")[0];
+  const stepLabels = hasExtras ? { 1: "Package", 2: "Customize", 3: "Details", 4: "Confirm" } : { 1: "Package", 2: "Details", 3: "Confirm" };
+  const canProceed = () => {
+    if (step === 1) return isNanny ? selectedNannyMenus.length === 4 : selectedMenu !== null;
+    if (hasExtras && step === 2) return true;
+    const detailsStep = hasExtras ? 3 : 2;
+    if (step === detailsStep) return customerName && customerEmail && eventDate && eventTime;
+    return true;
+  };
+
+  return (
+    <div className="min-h-screen bg-stone-50">
+      <WaiverModal isOpen={showWaiverModal} onClose={() => setShowWaiverModal(false)} onAccept={handleWaiverAccept} />
+      <div className="bg-white border-b">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex items-center gap-4">
+            <Link href="/book" className="p-2 hover:bg-stone-100 rounded-full"><ArrowLeft className="h-5 w-5" /></Link>
+            <div><h1 className="text-2xl font-bold text-stone-900">BIG CHEF</h1><p className="text-stone-500 text-sm">Professional cooking experiences for adults</p></div>
+          </div>
+        </div>
+      </div>
+      <div className="bg-gradient-to-r from-amber-500 to-orange-500">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3 text-white"><ChefHat className="h-5 w-5" /><span className="font-medium text-sm">Corporate Events Welcome!</span></div>
+          <a href="https://wa.me/971527479512" target="_blank" rel="noopener noreferrer" className="bg-white/20 hover:bg-white/30 text-white text-sm font-medium px-4 py-1.5 rounded-full flex items-center gap-1.5"><MessageCircle className="h-3.5 w-3.5" />WhatsApp Us</a>
+        </div>
+      </div>
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 space-y-6">
+            <div className="flex flex-wrap gap-2 p-1 bg-stone-100 rounded-full">
+              {(Object.keys(categoryConfig) as CategoryType[]).map(cat => (
+                <button key={cat} onClick={() => setActiveCategory(cat)} className={`px-4 py-2 rounded-full font-medium transition-all text-sm ${activeCategory === cat ? "bg-stone-900 text-white shadow-md" : "text-stone-600 hover:bg-stone-200"}`}>{categoryConfig[cat].emoji} {categoryConfig[cat].label}</button>
+              ))}
+            </div>
+            <div className="flex items-center gap-2 flex-wrap">
+              {Array.from({ length: maxStep }, (_, i) => i + 1).map(s => (
+                <div key={s} className="flex items-center gap-2">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${step >= s ? "bg-stone-900 text-white" : "bg-stone-200 text-stone-500"}`}>{step > s ? <Check className="h-4 w-4" /> : s}</div>
+                  <span className={`text-sm hidden sm:inline ${step >= s ? "text-stone-900" : "text-stone-400"}`}>{stepLabels[s as keyof typeof stepLabels]}</span>
+                  {s < maxStep && <div className="w-4 sm:w-8 h-0.5 bg-stone-200" />}
+                </div>
+              ))}
+            </div>
+            {step === 1 && (
+              <div className="space-y-6">
+                <div>
+                  <h2 className="text-2xl font-bold text-stone-900">{isNanny ? "Select 4 Menus for Your Course" : "Choose Your Menu Package"}</h2>
+                  <p className="text-stone-500 mt-1">{currentConfig.description}</p>
+                  {isNanny ? <div className="mt-3 p-4 bg-amber-50 rounded-lg border border-amber-200"><p className="text-lg font-bold text-amber-800">AED 1,200 for 4 classes</p><p className="text-sm text-amber-700 mt-1">Select any 4 menus. Each class is 1.5 hours. Available Monday and Tuesday at 11am</p></div> : <p className="text-sm text-stone-400 mt-2">Min: {currentConfig.minGuests} • Max: {currentConfig.maxGuests} guests • Price per person</p>}
+                </div>
+                {!isNanny && (
+                  <Card><CardContent className="p-5">
+                    <label className="block text-sm font-medium text-stone-700 mb-3">Number of Guests</label>
+                    <div className="flex items-center gap-4">
+                      <Button variant="outline" size="icon" onClick={() => setGuestCount(Math.max(currentConfig.minGuests, guestCount - 1))} disabled={guestCount <= currentConfig.minGuests}><Minus className="h-4 w-4" /></Button>
+                      <span className="text-2xl font-bold w-12 text-center">{guestCount}</span>
+                      <Button variant="outline" size="icon" onClick={() => setGuestCount(Math.min(currentConfig.maxGuests, guestCount + 1))} disabled={guestCount >= currentConfig.maxGuests}><Plus className="h-4 w-4" /></Button>
+                      <span className="text-sm text-stone-500">(Min: {currentConfig.minGuests}, Max: {currentConfig.maxGuests})</span>
+                    </div>
+                  </CardContent></Card>
+                )}
+                {isNanny && <div className="p-4 bg-stone-100 rounded-lg"><p className="font-medium text-stone-900">Selected: {selectedNannyMenus.length}/4 menus {selectedNannyMenus.length === 4 && <span className="text-green-600 ml-2">✓ Ready</span>}</p>{selectedNannyMenus.length > 0 && <div className="mt-2 flex flex-wrap gap-2">{selectedNannyMenus.map(m => <Badge key={m.id} className="bg-stone-900 text-white">{m.name}<button onClick={() => toggleNannyMenu(m)} className="ml-1">×</button></Badge>)}</div>}</div>}
+                <div className={isNanny ? "grid md:grid-cols-2 lg:grid-cols-3 gap-4" : "grid md:grid-cols-2 gap-4"}>
+                  {getCurrentMenus().map(menu => {
+                    const isSelected = isNanny ? selectedNannyMenus.some(m => m.id === menu.id) : selectedMenu?.id === menu.id;
+                    const isDisabled = isNanny && selectedNannyMenus.length >= 4 && !isSelected;
+                    return (
+                      <Card key={menu.id} className={`cursor-pointer transition-all ${isSelected ? "ring-2 ring-stone-900 shadow-lg" : isDisabled ? "opacity-50" : "hover:shadow-md"}`} onClick={() => { if (!isDisabled) { if (isNanny) toggleNannyMenu(menu); else setSelectedMenu(menu); } }}>
+                        <CardContent className="p-0 overflow-hidden">
+                          <div className="relative h-36 w-full bg-stone-200"><Image src={menu.image} alt={menu.name} fill className="object-cover" />{isSelected && <div className="absolute top-2 right-2 bg-stone-900 text-white p-1 rounded-full"><Check className="h-4 w-4" /></div>}</div>
+                          <div className="p-5">
+                            <div className="flex items-start justify-between mb-3"><h3 className="text-lg font-bold text-stone-900">{menu.name}</h3>{!isNanny && <div className="text-right"><div className="text-xl font-bold text-stone-900">AED {menu.price}</div><div className="text-xs text-stone-500">per person</div></div>}</div>
+                            <div className="space-y-1">{menu.dishes.map((d, i) => <div key={i} className="flex items-center gap-2 text-sm text-stone-600"><Check className="h-3 w-3 text-green-500" /><span>{d}</span></div>)}</div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+            {hasExtras && step === 2 && (
+              <div className="space-y-6">
+                <div><h2 className="text-2xl font-bold text-stone-900">Customize Your Event</h2><p className="text-stone-500 mt-1">Add extras (optional)</p></div>
+                {["custom", "cake", "decor", "snacks"].map(cat => {
+                  const catExtras = corporateExtras.filter(e => e.category === cat);
+                  if (!catExtras.length) return null;
+                  const labels: Record<string, string> = { custom: "Personalized Items", cake: "Cakes", decor: "Decorations & Setup", snacks: "Snacks & Drinks" };
+                  return (
+                    <div key={cat}><h3 className="font-semibold text-stone-900 mb-3">{labels[cat]}</h3>
+                      <div className="grid sm:grid-cols-2 gap-3">
+                        {catExtras.map(extra => {
+                          const Icon = extra.icon;
+                          const qty = selectedExtras[extra.id] || 0;
+                          return (
+                            <Card key={extra.id} className={qty > 0 ? "ring-2 ring-stone-900" : ""}>
+                              <CardContent className="p-4 flex items-start gap-3">
+                                <div className="p-2 bg-stone-100 rounded-lg"><Icon className="h-5 w-5 text-stone-600" /></div>
+                                <div className="flex-1"><h4 className="font-medium text-stone-900">{extra.name}</h4><p className="text-xs text-stone-500">{extra.description}</p><p className="text-sm font-bold text-stone-900 mt-1">AED {extra.price}</p></div>
+                                <div className="flex items-center gap-2">
+                                  <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setSelectedExtras(p => ({ ...p, [extra.id]: Math.max(0, (p[extra.id] || 0) - 1) }))} disabled={qty === 0}><Minus className="h-3 w-3" /></Button>
+                                  <span className="w-6 text-center font-bold">{qty}</span>
+                                  <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setSelectedExtras(p => ({ ...p, [extra.id]: (p[extra.id] || 0) + 1 }))}><Plus className="h-3 w-3" /></Button>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            {step === (hasExtras ? 3 : 2) && (
+              <div className="space-y-6">
+                <div><h2 className="text-2xl font-bold text-stone-900">Your Details</h2><p className="text-stone-500 mt-1">Tell us about you and your event</p></div>
+                <Card><CardContent className="p-6 space-y-4">
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div><label className="block text-sm font-medium text-stone-700 mb-1">Your Name *</label><input type="text" value={customerName} onChange={e => setCustomerName(e.target.value)} className="w-full px-4 py-2 border border-stone-300 rounded-lg" required /></div>
+                    <div><label className="block text-sm font-medium text-stone-700 mb-1">Email *</label><input type="email" value={customerEmail} onChange={e => setCustomerEmail(e.target.value)} className="w-full px-4 py-2 border border-stone-300 rounded-lg" required /></div>
+                  </div>
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div><label className="block text-sm font-medium text-stone-700 mb-1">Phone</label><input type="tel" value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} className="w-full px-4 py-2 border border-stone-300 rounded-lg" /></div>
+                    {isCorporate && <div><label className="block text-sm font-medium text-stone-700 mb-1">Company Name</label><input type="text" value={companyName} onChange={e => setCompanyName(e.target.value)} className="w-full px-4 py-2 border border-stone-300 rounded-lg" /></div>}
+                  </div>
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div><label className="block text-sm font-medium text-stone-700 mb-1"><Calendar className="inline h-4 w-4 mr-1" />Event Date *</label><input type="date" value={eventDate} onChange={e => setEventDate(e.target.value)} min={today} className="w-full px-4 py-2 border border-stone-300 rounded-lg" required /></div>
+                    <div><label className="block text-sm font-medium text-stone-700 mb-1"><Clock className="inline h-4 w-4 mr-1" />Time Slot *</label>
+                      {loadingSlots ? <div className="flex items-center gap-2 py-2 text-stone-500"><Loader2 className="h-4 w-4 animate-spin" />Loading...</div> : eventDate && allTimeSlots.length > 0 ? (
+                        <div className="grid grid-cols-2 gap-2">{allTimeSlots.map((slot: any) => { const isAvailable = availableTimeSlots.some((s: any) => s.start === slot.start); return (<button key={slot.start} type="button" disabled={!isAvailable} onClick={() => setEventTime(slot.start)} className={`px-3 py-2 text-sm rounded-lg border ${eventTime === slot.start ? "bg-stone-900 text-white" : isAvailable ? "border-stone-300 hover:border-stone-900" : "bg-stone-100 text-stone-400 cursor-not-allowed line-through"}`}>{slot.label}</button>); })}</div>
+                      ) : <p className="text-sm text-stone-500 py-2">{eventDate ? "No slots available" : "Select a date first"}</p>}
+                    </div>
+                  </div>
+                  <div><label className="block text-sm font-medium text-stone-700 mb-1">Special Requests</label><textarea value={specialRequests} onChange={e => setSpecialRequests(e.target.value)} rows={3} placeholder="Any dietary restrictions or special requests..." className="w-full px-4 py-2 border border-stone-300 rounded-lg" /></div>
+                </CardContent></Card>
+              </div>
+            )}
+            {step === maxStep && (
+              <div className="space-y-6">
+                <div><h2 className="text-2xl font-bold text-stone-900">Confirm Your Booking</h2></div>
+                <Card><CardContent className="p-6 space-y-4">
+                  <div className="grid sm:grid-cols-2 gap-4 text-sm">
+                    <div><span className="text-stone-500">Category:</span><span className="ml-2 font-medium">{currentConfig.label}</span></div>
+                    <div><span className="text-stone-500">Package:</span><span className="ml-2 font-medium">{isNanny ? `${selectedNannyMenus.length} Menus` : selectedMenu?.name}</span></div>
+                    {!isNanny && <div><span className="text-stone-500">Guests:</span><span className="ml-2 font-medium">{guestCount}</span></div>}
+                    <div><span className="text-stone-500">Date:</span><span className="ml-2 font-medium">{eventDate}</span></div>
+                    <div><span className="text-stone-500">Time:</span><span className="ml-2 font-medium">{eventTime}</span></div>
+                  </div>
+                  {requiresDeposit ? <div className="mt-4 p-4 bg-amber-50 rounded-lg border border-amber-200"><div className="flex items-start gap-2"><AlertTriangle className="h-5 w-5 text-amber-600" /><div><p className="font-medium text-amber-800">50% Deposit Required</p><p className="text-sm text-amber-700 mt-1">Pay <strong>AED {depositAmount}</strong> now. Balance of <strong>AED {balanceAmount}</strong> due 48 hours before.</p></div></div></div> : <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200"><p className="text-green-800"><strong>Full Payment:</strong> AED {totalAmount}</p></div>}
+                </CardContent></Card>
+              </div>
+            )}
+          </div>
+          <div className="lg:col-span-1">
+            <div className="sticky top-24">
+              <Card><CardContent className="p-6">
+                <h3 className="font-bold text-lg text-stone-900 mb-4">Order Summary</h3>
+                {(selectedMenu || (isNanny && selectedNannyMenus.length > 0)) ? (
+                  <div className="space-y-4">
+                    {isNanny ? <><div className="text-sm text-stone-600">Nanny Class (4 Sessions)</div>{selectedNannyMenus.map(m => <div key={m.id} className="text-sm text-stone-500 pl-2">• {m.name}</div>)}<div className="flex justify-between text-sm font-medium pt-2 border-t"><span>Package Price</span><span>AED 1,200</span></div></> : <><div className="flex justify-between text-sm"><span className="text-stone-600">{selectedMenu?.name}</span><span>AED {selectedMenu?.price} × {guestCount}</span></div><div className="flex justify-between text-sm font-medium"><span>Subtotal</span><span>AED {baseAmount}</span></div></>}
+                    {extrasTotal > 0 && <><div className="border-t pt-3"><p className="text-sm text-stone-500 mb-2">Extras:</p>{Object.entries(selectedExtras).map(([id, qty]) => { if (qty === 0) return null; const e = corporateExtras.find(x => x.id === id); if (!e) return null; return <div key={id} className="flex justify-between text-sm"><span>{e.name} × {qty}</span><span>AED {e.price * qty}</span></div>; })}</div><div className="flex justify-between text-sm"><span>Extras Total</span><span>AED {extrasTotal}</span></div></>}
+                    <div className="border-t pt-3"><div className="flex justify-between text-lg font-bold"><span>Total</span><span>AED {totalAmount}</span></div>{requiresDeposit && <div className="mt-3 space-y-1 text-sm"><div className="flex justify-between text-amber-700 font-medium"><span>Due Now (50%)</span><span>AED {depositAmount}</span></div><div className="flex justify-between text-stone-500"><span>Balance Due Later</span><span>AED {balanceAmount}</span></div></div>}</div>
+                  </div>
+                ) : <p className="text-stone-500 text-sm">Select a menu to see pricing</p>}
+                {/* Navigation Buttons */}
+                <div className="flex flex-col gap-2 mt-4 pt-4 border-t">
+                  {step < maxStep ? <Button onClick={() => setStep(step + 1)} disabled={!canProceed()} className="w-full bg-stone-900 hover:bg-stone-800">Continue<ArrowRight className="h-4 w-4 ml-2" /></Button> : <Button onClick={handleSubmit} disabled={submitting || !canProceed()} className="w-full bg-stone-900 hover:bg-stone-800">{submitting ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Processing...</> : <>{requiresDeposit ? `Pay Deposit (AED ${depositAmount})` : `Pay (AED ${totalAmount})`}<ArrowRight className="h-4 w-4 ml-2" /></>}</Button>}
+                  {step > 1 && <Button variant="outline" onClick={() => setStep(step - 1)} className="w-full"><ArrowLeft className="h-4 w-4 mr-2" />Back</Button>}
+                </div>
+              </CardContent></Card>
+              <Card className="mt-4"><CardContent className="p-4"><p className="text-sm text-stone-600 mb-2">Need help?</p><a href="https://wa.me/971527479512" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-green-600 hover:text-green-700 font-medium text-sm"><MessageCircle className="h-4 w-4" />Chat on WhatsApp</a></CardContent></Card>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

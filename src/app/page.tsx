@@ -185,7 +185,7 @@ export default function HomePage() {
             </Link>
             
             {/* Big Chef */}
-            <Link href="/book/corporate-deck" className="group relative overflow-hidden rounded-3xl aspect-[4/3] block">
+            <Link href="/bigchef" className="group relative overflow-hidden rounded-3xl aspect-[4/3] block">
               <Image
                 src="/images/adult-classes.png"
                 alt="Big Chef Classes"
