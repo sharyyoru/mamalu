@@ -121,7 +121,7 @@ export default function RentalsPage() {
           <div className="w-24 h-24 mx-auto mb-8 rounded-full bg-green-100 flex items-center justify-center">
             <CheckCircle2 className="w-12 h-12 text-green-600" />
           </div>
-          <h1 className="text-4xl font-bold mb-4" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>
+          <h1 className="text-4xl font-bold mb-4" style={{ fontFamily: 'var(--font-mossy), cursive' }}>
             Inquiry Received!
           </h1>
           <p className="text-lg text-gray-600 mb-8">
@@ -150,7 +150,7 @@ export default function RentalsPage() {
             <ArrowLeft className="w-4 h-4" />
             Back to Booking
           </Link>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4" style={{ fontFamily: 'var(--font-mossy), cursive' }}>
             KITCHEN STUDIO RENTAL 🍳
           </h1>
           <p className="text-lg text-gray-600 max-w-2xl">
@@ -163,7 +163,7 @@ export default function RentalsPage() {
           <div className="lg:col-span-2 space-y-8">
             {/* Rental Options */}
             <div>
-              <h2 className="text-2xl font-bold mb-6" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>
+              <h2 className="text-2xl font-bold mb-6" style={{ fontFamily: 'var(--font-mossy), cursive' }}>
                 Choose Your Rental Duration
               </h2>
               <div className="grid sm:grid-cols-2 gap-4">
@@ -194,7 +194,7 @@ export default function RentalsPage() {
 
             {/* Add-ons */}
             <div>
-              <h2 className="text-2xl font-bold mb-6" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>
+              <h2 className="text-2xl font-bold mb-6" style={{ fontFamily: 'var(--font-mossy), cursive' }}>
                 Add-ons
               </h2>
               <div className="space-y-3">
@@ -235,7 +235,7 @@ export default function RentalsPage() {
             {/* Booking Form */}
             {selectedOption && (
               <form onSubmit={handleSubmit} className="space-y-6">
-                <h2 className="text-2xl font-bold" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>
+                <h2 className="text-2xl font-bold" style={{ fontFamily: 'var(--font-mossy), cursive' }}>
                   Your Details
                 </h2>
                 
@@ -333,7 +333,7 @@ export default function RentalsPage() {
           {/* Right: Summary */}
           <div className="lg:col-span-1">
             <div className="sticky top-32 bg-gray-50 rounded-3xl p-6">
-              <h3 className="text-xl font-bold mb-6" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>
+              <h3 className="text-xl font-bold mb-6" style={{ fontFamily: 'var(--font-mossy), cursive' }}>
                 Booking Summary
               </h3>
               

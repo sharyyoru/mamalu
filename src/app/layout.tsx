@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
-import { Geist, Geist_Mono, Patrick_Hand, Poppins } from "next/font/google";
+import { Geist, Geist_Mono, Poppins } from "next/font/google";
+import localFont from "next/font/local";
 import { Header, Footer } from "@/components/layout";
 import { SocialSidebar } from "@/components/layout/SocialSidebar";
 import { WalkInButton } from "@/components/layout/WalkInButton";
@@ -17,10 +18,9 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const patrickHand = Patrick_Hand({
-  weight: "400",
-  variable: "--font-patrick-hand",
-  subsets: ["latin"],
+const mossy = localFont({
+  src: "../../public/fonts/Mossy.ttf",
+  variable: "--font-mossy",
   display: "swap",
 });
 
@@ -66,7 +66,7 @@ export default async function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${patrickHand.variable} ${poppins.variable} antialiased min-h-screen flex flex-col`}
+        className={`${geistSans.variable} ${geistMono.variable} ${mossy.variable} ${poppins.variable} antialiased min-h-screen flex flex-col`}
       >
         {!isAdminOrStudio && <LoadingScreen />}
         {!isAdminOrStudio && <Header />}

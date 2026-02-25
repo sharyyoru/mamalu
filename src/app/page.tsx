@@ -127,8 +127,8 @@ export default function HomePage() {
                   unoptimized
                 />
               </div>
-              <div className="font-bold text-[var(--c-black)] text-sm sm:text-base md:text-xl lg:text-3xl" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>Happy Kids</div>
-              <div className="text-sm sm:text-base md:text-lg lg:text-2xl text-[var(--c-gray)]" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>2000+</div>
+              <div className="font-bold text-[var(--c-black)] text-sm sm:text-base md:text-xl lg:text-3xl" style={{ fontFamily: 'var(--font-mossy), cursive' }}>Happy Kids</div>
+              <div className="text-sm sm:text-base md:text-lg lg:text-2xl text-[var(--c-gray)]" style={{ fontFamily: 'var(--font-mossy), cursive' }}>2000+</div>
             </div>
             <div className="flex flex-col items-center text-center">
               <div className="w-20 h-20 sm:w-28 sm:h-28 md:w-40 md:h-40 lg:w-52 lg:h-52 flex items-center justify-center mb-2 md:mb-3">
@@ -141,8 +141,8 @@ export default function HomePage() {
                   unoptimized
                 />
               </div>
-              <div className="font-bold text-[var(--c-black)] text-sm sm:text-base md:text-xl lg:text-3xl" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>Classes Held</div>
-              <div className="text-sm sm:text-base md:text-lg lg:text-2xl text-[var(--c-gray)]" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>500+</div>
+              <div className="font-bold text-[var(--c-black)] text-sm sm:text-base md:text-xl lg:text-3xl" style={{ fontFamily: 'var(--font-mossy), cursive' }}>Classes Held</div>
+              <div className="text-sm sm:text-base md:text-lg lg:text-2xl text-[var(--c-gray)]" style={{ fontFamily: 'var(--font-mossy), cursive' }}>500+</div>
             </div>
             <div className="flex flex-col items-center text-center">
               <div className="w-20 h-20 sm:w-28 sm:h-28 md:w-40 md:h-40 lg:w-52 lg:h-52 flex items-center justify-center mb-2 md:mb-3">
@@ -155,8 +155,8 @@ export default function HomePage() {
                   unoptimized
                 />
               </div>
-              <div className="font-bold text-[var(--c-black)] text-sm sm:text-base md:text-xl lg:text-3xl" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>Star Rating</div>
-              <div className="text-sm sm:text-base md:text-lg lg:text-2xl text-[var(--c-gray)]" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>4.9</div>
+              <div className="font-bold text-[var(--c-black)] text-sm sm:text-base md:text-xl lg:text-3xl" style={{ fontFamily: 'var(--font-mossy), cursive' }}>Star Rating</div>
+              <div className="text-sm sm:text-base md:text-lg lg:text-2xl text-[var(--c-gray)]" style={{ fontFamily: 'var(--font-mossy), cursive' }}>4.9</div>
             </div>
           </div>
         </div>
@@ -177,7 +177,7 @@ export default function HomePage() {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
               <div className="absolute bottom-4 left-4 right-4 md:bottom-6 md:left-6 md:right-6">
-                <h3 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl text-white font-bold" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>
+                <h3 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl text-white font-bold" style={{ fontFamily: 'var(--font-mossy), cursive' }}>
                   Mini Chef
                 </h3>
                 <p className="text-white/80 mt-1 md:mt-2 text-sm md:text-base">Fun cooking classes for kids</p>
@@ -194,7 +194,7 @@ export default function HomePage() {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
               <div className="absolute bottom-4 left-4 right-4 md:bottom-6 md:left-6 md:right-6">
-                <h3 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl text-white font-bold" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>
+                <h3 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl text-white font-bold" style={{ fontFamily: 'var(--font-mossy), cursive' }}>
                   Big Chef
                 </h3>
                 <p className="text-white/80 mt-1 md:mt-2 text-sm md:text-base">Corporate events & nanny classes</p>
@@ -207,7 +207,7 @@ export default function HomePage() {
       {/* Gallery Section - Life at Mamalu - Hidden on mobile */}
       <section className="gallery-section section py-12 md:py-24 lg:py-32 bg-white hidden md:block">
         <div className="container px-4 md:px-6">
-          <h2 className="section-title text-3xl md:text-4xl lg:text-6xl text-center mb-8 md:mb-16" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>
+          <h2 className="section-title text-3xl md:text-4xl lg:text-6xl text-center mb-8 md:mb-16" style={{ fontFamily: 'var(--font-mossy), cursive' }}>
             Life at Mamalu
           </h2>
           
@@ -236,7 +236,7 @@ export default function HomePage() {
       <section className="founder-section section py-12 md:py-24 lg:py-32 bg-white">
         <div className="container px-4 md:px-6">
           {/* Section Title */}
-          <h2 className="text-center mb-8 md:mb-16" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>
+          <h2 className="text-center mb-8 md:mb-16" style={{ fontFamily: 'var(--font-mossy), cursive' }}>
             <span className="text-3xl md:text-4xl lg:text-5xl tracking-wide text-[var(--c-black)]">OUR STORY</span>
             <span className="inline-block ml-2 text-[#f5d5d0]">❤</span>
           </h2>
@@ -257,10 +257,10 @@ export default function HomePage() {
 
             {/* Content */}
             <div className="founder-content flex flex-col justify-center text-center lg:text-left">
-              <p className="text-base md:text-lg lg:text-xl text-[var(--c-gray)] mb-4 md:mb-6 leading-relaxed" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>
+              <p className="text-base md:text-lg lg:text-xl text-[var(--c-gray)] mb-4 md:mb-6 leading-relaxed" style={{ fontFamily: 'var(--font-mossy), cursive' }}>
                 Mamalu Kitchen was inspired by her 3 boys and the need to help fellow mums and families simplify their day-to-day lives without having to worry about feeding their family fuss-free healthy food.
               </p>
-              <p className="text-base md:text-lg lg:text-xl text-[var(--c-gray)] mb-6 md:mb-8 leading-relaxed" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>
+              <p className="text-base md:text-lg lg:text-xl text-[var(--c-gray)] mb-6 md:mb-8 leading-relaxed" style={{ fontFamily: 'var(--font-mossy), cursive' }}>
                 Mamalu Kitchen is creating a cooking movement under the slogan <span className="text-[var(--c-black)] font-semibold">#feedingfamilies</span>.
               </p>
               <Link href="/about" className="btn-primary group w-fit mx-auto lg:mx-0">

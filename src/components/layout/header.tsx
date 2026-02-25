@@ -81,7 +81,7 @@ export function Header() {
                   <Link
                     href={link.href}
                     className="text-xl font-bold text-[var(--c-black)] hover:opacity-60 transition-opacity uppercase whitespace-nowrap"
-                    style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}
+                    style={{ fontFamily: 'var(--font-mossy), cursive' }}
                   >
                     {link.name}
                   </Link>
@@ -231,7 +231,7 @@ export function Header() {
                 )}
                 style={{ 
                   transitionDelay: menuOpen ? `${300 + i * 100}ms` : '0ms',
-                  fontFamily: 'var(--font-patrick-hand), cursive'
+                  fontFamily: 'var(--font-mossy), cursive'
                 }}
               >
                 <span className="relative z-10">{link.name}</span>

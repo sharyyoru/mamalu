@@ -1452,7 +1452,7 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
             <div className="sticky top-36">
               <Card className="shadow-lg max-h-[calc(100vh-10rem)] flex flex-col">
                 <CardContent className="p-6 flex flex-col min-h-0">
-                  <h3 className="text-lg font-bold text-stone-900 mb-4 flex-shrink-0" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>Order Summary</h3>
+                  <h3 className="text-lg font-bold text-stone-900 mb-4 flex-shrink-0" style={{ fontFamily: 'var(--font-mossy), cursive' }}>Order Summary</h3>
                   
                   {/* Scrollable content area */}
                   <div className="flex-1 overflow-y-auto min-h-0 pr-1">

@@ -23,7 +23,7 @@
   --c-accent-dark: #ffddcc;
   
   /* Typography */
-  --font-display: var(--font-patrick-hand), 'Patrick Hand', cursive;
+  --font-display: var(--font-mossy), 'Mossy', cursive;
   --font-body: var(--font-poppins), 'Poppins', sans-serif;
   
   /* Animation Easings - Matching mybird.com */
@@ -70,7 +70,7 @@ body {
 
 /* ===== TYPOGRAPHY - MAMALU STYLE ===== */
 h1, h2, h3, .font-display {
-  font-family: var(--font-patrick-hand), 'Patrick Hand', cursive;
+  font-family: var(--font-mossy), 'Mossy', cursive;
   font-weight: 400;
   line-height: 1.1;
   letter-spacing: 0.01em;
