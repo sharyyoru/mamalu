@@ -111,10 +111,10 @@ export function Header() {
               "absolute left-1/2 -translate-x-1/2 flex flex-col items-center transition-all duration-500 z-0",
               scrolled ? "top-1" : "top-2"
             )}>
-              {/* White rounded rectangle background on scroll only */}
+              {/* White background on scroll - full width on mobile, rounded on desktop */}
               <div className={cn(
                 "flex flex-col items-center transition-all duration-500 cursor-pointer",
-                scrolled ? "bg-white rounded-2xl px-6 py-3" : ""
+                scrolled ? "bg-white px-6 py-3 w-screen lg:w-auto lg:rounded-2xl" : ""
               )}
               onClick={() => scrolled && setMenuOpen(true)}
               >

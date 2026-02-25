@@ -396,6 +396,71 @@ export default function BigChefPage() {
           </div>
         </div>
       </div>
+
+      {/* Mobile Floating Order Summary Bar - Deliveroo Style */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-stone-200 shadow-[0_-4px_20px_rgba(0,0,0,0.1)]">
+        <div className="px-4 py-3">
+          {(selectedMenu || (isNanny && selectedNannyMenus.length > 0)) ? (
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs text-stone-500">
+                  {isNanny ? `Nanny Class • ${selectedNannyMenus.length} menus` : `${selectedMenu?.name} • ${guestCount} guests`}
+                </p>
+                <p className="text-lg font-bold text-stone-900">
+                  AED {totalAmount.toLocaleString()}
+                  {requiresDeposit && (
+                    <span className="text-xs font-normal text-stone-500 ml-1">(50% deposit: AED {depositAmount})</span>
+                  )}
+                </p>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                {step > 1 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setStep(step - 1)}
+                    className="px-3"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                  </Button>
+                )}
+                
+                {step < maxStep ? (
+                  <Button
+                    className="bg-stone-900 hover:bg-stone-800"
+                    onClick={() => setStep(step + 1)}
+                    disabled={!canProceed()}
+                  >
+                    Continue
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                ) : (
+                  <Button
+                    className="bg-stone-900 hover:bg-stone-800"
+                    onClick={handleSubmit}
+                    disabled={submitting || !canProceed()}
+                  >
+                    {submitting ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <>
+                        Pay Now
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </>
+                    )}
+                  </Button>
+                )}
+              </div>
+            </div>
+          ) : (
+            <p className="text-center text-stone-500 text-sm py-2">Select a menu to continue</p>
+          )}
+        </div>
+      </div>
+
+      {/* Bottom padding for mobile to account for floating bar */}
+      <div className="lg:hidden h-24" />
     </div>
   );
 }

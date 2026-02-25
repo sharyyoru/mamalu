@@ -204,8 +204,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Gallery Section - Life at Mamalu */}
-      <section className="gallery-section section py-12 md:py-24 lg:py-32 bg-white">
+      {/* Gallery Section - Life at Mamalu - Hidden on mobile */}
+      <section className="gallery-section section py-12 md:py-24 lg:py-32 bg-white hidden md:block">
         <div className="container px-4 md:px-6">
           <h2 className="section-title text-3xl md:text-4xl lg:text-6xl text-center mb-8 md:mb-16" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>
             Life at Mamalu
