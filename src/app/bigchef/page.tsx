@@ -292,7 +292,7 @@ export default function BigChefPage() {
                           <div className="relative h-36 w-full bg-stone-200"><Image src={menu.image} alt={menu.name} fill className="object-cover" />{isSelected && <div className="absolute top-2 right-2 bg-stone-900 text-white p-1 rounded-full"><Check className="h-4 w-4" /></div>}</div>
                           <div className="p-5">
                             <div className="flex items-start justify-between mb-3"><h3 className="text-lg font-bold text-stone-900">{menu.name}</h3>{!isNanny && <div className="text-right"><div className="text-xl font-bold text-stone-900">AED {menu.price}</div><div className="text-xs text-stone-500">per person</div></div>}</div>
-                            <div className="space-y-1">{menu.dishes.map((d, i) => <div key={i} className="flex items-center gap-2 text-sm text-stone-600"><Check className="h-3 w-3 text-green-500" /><span>{d}</span></div>)}</div>
+                            <div className="space-y-1">{menu.dishes.map((d, i) => <div key={i} className="flex items-center gap-2 text-sm text-stone-600"><Check className="h-3 w-3 text-green-500" /><span className="font-bold">{d}</span></div>)}</div>
                           </div>
                         </CardContent>
                       </Card>

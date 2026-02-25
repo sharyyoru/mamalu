@@ -727,7 +727,7 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
                                   {menu.dishes.map((dish, idx) => (
                                     <div key={idx} className="flex items-center gap-2 text-sm text-stone-600">
                                       <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
-                                      <span>{dish}</span>
+                                      <span className="font-bold">{dish}</span>
                                     </div>
                                   ))}
                                 </div>
@@ -848,7 +848,7 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
                             {menu.dishes.map((dish, idx) => (
                               <div key={idx} className="flex items-center gap-2 text-sm text-stone-600">
                                 <Check className="h-3 w-3 text-green-500 flex-shrink-0" />
-                                <span>{dish}</span>
+                                <span className="font-bold">{dish}</span>
                               </div>
                             ))}
                           </div>
@@ -896,7 +896,7 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
                             {menu.dishes.map((dish, idx) => (
                               <div key={idx} className="flex items-center gap-2 text-xs text-stone-600">
                                 <Check className="h-3 w-3 text-green-500 flex-shrink-0" />
-                                <span>{dish}</span>
+                                <span className="font-bold">{dish}</span>
                               </div>
                             ))}
                           </div>
