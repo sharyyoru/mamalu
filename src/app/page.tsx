@@ -112,12 +112,12 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Stats Section - moved higher, 1.5x bigger icons/text */}
-      <section className="-mt-8 py-8 bg-white relative z-20">
-        <div className="container mx-auto px-6 lg:px-8">
-          <div className="hero-stats grid grid-cols-3 gap-8 md:gap-16">
-            <div className="text-center">
-              <div className="w-40 h-40 md:w-52 md:h-52 mx-auto mb-3">
+      {/* Stats Section - mobile optimized with centered icons */}
+      <section className="-mt-4 md:-mt-8 py-6 md:py-8 bg-white relative z-20">
+        <div className="container mx-auto px-4 md:px-6 lg:px-8">
+          <div className="hero-stats grid grid-cols-3 gap-2 sm:gap-4 md:gap-16">
+            <div className="flex flex-col items-center text-center">
+              <div className="w-20 h-20 sm:w-28 sm:h-28 md:w-40 md:h-40 lg:w-52 lg:h-52 flex items-center justify-center mb-2 md:mb-3">
                 <Image 
                   src="/graphics/happy-kids.gif"
                   alt="Happy Kids"
@@ -127,11 +127,11 @@ export default function HomePage() {
                   unoptimized
                 />
               </div>
-              <div className="font-bold text-[var(--c-black)] text-xl md:text-3xl" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>Happy Kids</div>
-              <div className="text-lg md:text-2xl text-[var(--c-gray)]" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>2000+</div>
+              <div className="font-bold text-[var(--c-black)] text-sm sm:text-base md:text-xl lg:text-3xl" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>Happy Kids</div>
+              <div className="text-sm sm:text-base md:text-lg lg:text-2xl text-[var(--c-gray)]" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>2000+</div>
             </div>
-            <div className="text-center">
-              <div className="w-40 h-40 md:w-52 md:h-52 mx-auto mb-3">
+            <div className="flex flex-col items-center text-center">
+              <div className="w-20 h-20 sm:w-28 sm:h-28 md:w-40 md:h-40 lg:w-52 lg:h-52 flex items-center justify-center mb-2 md:mb-3">
                 <Image 
                   src="/graphics/classes.gif"
                   alt="Classes Held"
@@ -141,11 +141,11 @@ export default function HomePage() {
                   unoptimized
                 />
               </div>
-              <div className="font-bold text-[var(--c-black)] text-xl md:text-3xl" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>Classes Held</div>
-              <div className="text-lg md:text-2xl text-[var(--c-gray)]" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>500+</div>
+              <div className="font-bold text-[var(--c-black)] text-sm sm:text-base md:text-xl lg:text-3xl" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>Classes Held</div>
+              <div className="text-sm sm:text-base md:text-lg lg:text-2xl text-[var(--c-gray)]" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>500+</div>
             </div>
-            <div className="text-center">
-              <div className="w-40 h-40 md:w-52 md:h-52 mx-auto mb-3">
+            <div className="flex flex-col items-center text-center">
+              <div className="w-20 h-20 sm:w-28 sm:h-28 md:w-40 md:h-40 lg:w-52 lg:h-52 flex items-center justify-center mb-2 md:mb-3">
                 <Image 
                   src="/graphics/reviews.gif"
                   alt="Star Rating"
@@ -155,8 +155,8 @@ export default function HomePage() {
                   unoptimized
                 />
               </div>
-              <div className="font-bold text-[var(--c-black)] text-xl md:text-3xl" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>Star Rating</div>
-              <div className="text-lg md:text-2xl text-[var(--c-gray)]" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>4.9</div>
+              <div className="font-bold text-[var(--c-black)] text-sm sm:text-base md:text-xl lg:text-3xl" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>Star Rating</div>
+              <div className="text-sm sm:text-base md:text-lg lg:text-2xl text-[var(--c-gray)]" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>4.9</div>
             </div>
           </div>
         </div>
@@ -164,11 +164,11 @@ export default function HomePage() {
 
 
       {/* Class Categories Section */}
-      <section className="py-20 md:py-28 bg-[var(--c-warm)]">
-        <div className="container">
-          <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
+      <section className="py-12 md:py-20 lg:py-28 bg-[var(--c-warm)]">
+        <div className="container px-4 md:px-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 lg:gap-12">
             {/* Mini Chef */}
-            <Link href="/minichef" className="group relative overflow-hidden rounded-3xl aspect-[4/3] block">
+            <Link href="/minichef" className="group relative overflow-hidden rounded-2xl md:rounded-3xl aspect-[16/10] md:aspect-[4/3] block">
               <Image
                 src="/images/kids-classes.png"
                 alt="Mini Chef Classes"
@@ -176,16 +176,16 @@ export default function HomePage() {
                 className="object-cover transition-transform duration-700 group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-              <div className="absolute bottom-6 left-6 right-6">
-                <h3 className="text-3xl md:text-4xl lg:text-5xl text-white font-bold" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>
+              <div className="absolute bottom-4 left-4 right-4 md:bottom-6 md:left-6 md:right-6">
+                <h3 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl text-white font-bold" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>
                   Mini Chef
                 </h3>
-                <p className="text-white/80 mt-2">Fun cooking classes for kids</p>
+                <p className="text-white/80 mt-1 md:mt-2 text-sm md:text-base">Fun cooking classes for kids</p>
               </div>
             </Link>
             
             {/* Big Chef */}
-            <Link href="/bigchef" className="group relative overflow-hidden rounded-3xl aspect-[4/3] block">
+            <Link href="/bigchef" className="group relative overflow-hidden rounded-2xl md:rounded-3xl aspect-[16/10] md:aspect-[4/3] block">
               <Image
                 src="/images/adult-classes.png"
                 alt="Big Chef Classes"
@@ -193,11 +193,11 @@ export default function HomePage() {
                 className="object-cover transition-transform duration-700 group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-              <div className="absolute bottom-6 left-6 right-6">
-                <h3 className="text-3xl md:text-4xl lg:text-5xl text-white font-bold" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>
+              <div className="absolute bottom-4 left-4 right-4 md:bottom-6 md:left-6 md:right-6">
+                <h3 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl text-white font-bold" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>
                   Big Chef
                 </h3>
-                <p className="text-white/80 mt-2">Corporate events & nanny classes</p>
+                <p className="text-white/80 mt-1 md:mt-2 text-sm md:text-base">Corporate events & nanny classes</p>
               </div>
             </Link>
           </div>
@@ -205,17 +205,18 @@ export default function HomePage() {
       </section>
 
       {/* Gallery Section - Life at Mamalu */}
-      <section className="gallery-section section py-24 md:py-32 bg-white">
-        <div className="container">
-          <h2 className="section-title text-4xl md:text-6xl text-center mb-16" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>
+      <section className="gallery-section section py-12 md:py-24 lg:py-32 bg-white">
+        <div className="container px-4 md:px-6">
+          <h2 className="section-title text-3xl md:text-4xl lg:text-6xl text-center mb-8 md:mb-16" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>
             Life at Mamalu
           </h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+          {/* Mobile: 3 images in a row, smaller with equal gap */}
+          <div className="grid grid-cols-3 gap-2 sm:gap-4 md:gap-6 max-w-5xl mx-auto">
             {galleryImages.map((src, i) => (
               <div
                 key={i}
-                className="gallery-item aspect-[4/5] rounded-2xl overflow-hidden"
+                className="gallery-item aspect-square md:aspect-[4/5] rounded-lg md:rounded-2xl overflow-hidden"
               >
                 <Image
                   src={src}
@@ -232,18 +233,18 @@ export default function HomePage() {
       </section>
 
       {/* Founder Section */}
-      <section className="founder-section section py-24 md:py-32 bg-white">
-        <div className="container">
+      <section className="founder-section section py-12 md:py-24 lg:py-32 bg-white">
+        <div className="container px-4 md:px-6">
           {/* Section Title */}
-          <h2 className="text-center mb-16" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>
-            <span className="text-4xl md:text-5xl tracking-wide text-[var(--c-black)]">OUR STORY</span>
+          <h2 className="text-center mb-8 md:mb-16" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>
+            <span className="text-3xl md:text-4xl lg:text-5xl tracking-wide text-[var(--c-black)]">OUR STORY</span>
             <span className="inline-block ml-2 text-[#f5d5d0]">❤</span>
           </h2>
           
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-start">
+          <div className="grid lg:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-start">
             {/* Image */}
             <div className="founder-image relative">
-              <div className="aspect-[3/4] max-w-sm mx-auto overflow-hidden">
+              <div className="aspect-[3/4] max-w-[280px] sm:max-w-sm mx-auto overflow-hidden rounded-2xl">
                 <Image
                   src="/images/Lama_Jammal_pic.jpeg"
                   alt="Lama - Founder of Mamalu Kitchen"
@@ -255,14 +256,14 @@ export default function HomePage() {
             </div>
 
             {/* Content */}
-            <div className="founder-content flex flex-col justify-center">
-              <p className="text-lg md:text-xl text-[var(--c-gray)] mb-6 leading-relaxed" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>
+            <div className="founder-content flex flex-col justify-center text-center lg:text-left">
+              <p className="text-base md:text-lg lg:text-xl text-[var(--c-gray)] mb-4 md:mb-6 leading-relaxed" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>
                 Mamalu Kitchen was inspired by her 3 boys and the need to help fellow mums and families simplify their day-to-day lives without having to worry about feeding their family fuss-free healthy food.
               </p>
-              <p className="text-lg md:text-xl text-[var(--c-gray)] mb-8 leading-relaxed" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>
+              <p className="text-base md:text-lg lg:text-xl text-[var(--c-gray)] mb-6 md:mb-8 leading-relaxed" style={{ fontFamily: 'var(--font-patrick-hand), cursive' }}>
                 Mamalu Kitchen is creating a cooking movement under the slogan <span className="text-[var(--c-black)] font-semibold">#feedingfamilies</span>.
               </p>
-              <Link href="/our-story" className="btn-primary group w-fit">
+              <Link href="/our-story" className="btn-primary group w-fit mx-auto lg:mx-0">
                 <span>Our Story</span>
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
