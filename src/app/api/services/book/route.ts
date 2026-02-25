@@ -129,8 +129,8 @@ export async function POST(request: NextRequest) {
       currency: "aed",
     });
 
-    // Use production URL, fallback to NEXT_PUBLIC_URL, then localhost
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_URL || "https://mamalu.vercel.app";
+    // Always use production URL for Stripe redirects
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://mamalu.vercel.app";
     
     const checkoutSession = await stripe.checkout.sessions.create({
       line_items: [{ price: price.id, quantity: 1 }],
