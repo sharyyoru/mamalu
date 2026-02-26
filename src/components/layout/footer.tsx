@@ -205,7 +205,7 @@ export function Footer() {
                 Payments powered by
               </span>
               <Image 
-                src="/images/stripe-logo.svg" 
+                src="/images/stripe-logo.png" 
                 alt="Stripe" 
                 width={60} 
                 height={25}

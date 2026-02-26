@@ -8,6 +8,7 @@ import { Calendar, ArrowRight, BookOpen, Search, Clock, User, TrendingUp } from 
 import { formatDate } from "@/lib/utils";
 import { getBlogs } from "@/lib/sanity/queries";
 import { urlFor } from "@/lib/sanity/client";
+import NewsletterSection from "@/components/ui/NewsletterSection";
 
 export const metadata: Metadata = {
   title: "Blog | Mamalu Kitchen - Cooking Tips, Recipes & Family Stories",
@@ -204,26 +205,7 @@ export default async function BlogsPage() {
       </section>
 
       {/* Newsletter CTA */}
-      <section className="py-16 bg-gradient-to-r from-[#ff8c6b] to-[#e67854]">
-        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-            Get Cooking Tips in Your Inbox
-          </h2>
-          <p className="text-white/90 text-lg mb-8">
-            Subscribe for weekly recipes, meal prep ideas, and family cooking inspiration.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-            <Input
-              type="email"
-              placeholder="Enter your email"
-              className="h-12 rounded-full bg-white/95 border-0 text-stone-900 placeholder:text-stone-500"
-            />
-            <button className="h-12 px-8 bg-stone-900 text-white rounded-full font-semibold hover:bg-stone-800 transition-colors whitespace-nowrap">
-              Subscribe
-            </button>
-          </div>
-        </div>
-      </section>
+      <NewsletterSection />
     </div>
   );
 }
