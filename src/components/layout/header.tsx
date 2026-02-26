@@ -68,7 +68,7 @@ export function Header() {
         <nav className="container mx-auto px-6 lg:px-8">
           <div className={cn(
             "flex items-center justify-between relative transition-all duration-500",
-            scrolled ? "py-2" : "py-4"
+            scrolled ? "py-2" : "py-8"
           )}>
             
             {/* Left: Nav Links - Horizontal layout, 2x bigger text, line separators */}
@@ -135,7 +135,7 @@ export function Header() {
                       alt="Mamalu Kitchen" 
                       width={200} 
                       height={200}
-                      className="w-60 h-60 lg:w-72 lg:h-72 transition-all duration-500"
+                      className="w-36 h-36 lg:w-44 lg:h-44 transition-all duration-500"
                       priority
                     />
                   </Link>
