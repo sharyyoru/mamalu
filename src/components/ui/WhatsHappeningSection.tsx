@@ -49,28 +49,26 @@ export default function WhatsHappeningSection() {
           What&apos;s Happening at Mamalu Kitchen
         </h2>
 
-        {/* Logo and Feeding Families */}
-        <div className="flex items-center justify-center gap-8 md:gap-16 mb-8">
+        {/* Feeding Families */}
+        <div className="flex items-center justify-center gap-4 mb-8">
           <div className="hidden md:block">
             <Image 
               src="/images/arrow 2-01.png" 
               alt="" 
-              width={100} 
-              height={50} 
+              width={80} 
+              height={40} 
               className="opacity-70"
             />
           </div>
           
-          <div className="w-28 h-28 md:w-36 md:h-36 relative bg-[#fef3e2] rounded-full flex items-center justify-center p-4">
-            <Image 
-              src="/logo.png" 
-              alt="Mamalu Kitchen" 
-              fill 
-              className="object-contain p-2"
-            />
-          </div>
+          <span 
+            className="text-xl md:text-2xl text-stone-700 italic"
+            style={{ fontFamily: 'var(--font-mossy), cursive' }}
+          >
+            Feeding Families
+          </span>
 
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden md:block">
             <Image 
               src="/images/arrow-01.png" 
               alt="" 
@@ -78,12 +76,6 @@ export default function WhatsHappeningSection() {
               height={40} 
               className="opacity-70"
             />
-            <span 
-              className="text-xl text-stone-700 italic"
-              style={{ fontFamily: 'var(--font-mossy), cursive' }}
-            >
-              Feeding Families
-            </span>
           </div>
         </div>
 
