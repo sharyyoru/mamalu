@@ -1,11 +1,13 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
-import { Instagram, Facebook, Youtube, Mail, Phone, MapPin, Heart, ArrowRight } from "lucide-react";
+import { Instagram, Facebook, Youtube, Mail, Phone, MapPin, Heart, ArrowRight, CreditCard, Ban } from "lucide-react";
 
 const primaryLinks = [
-  { name: "Home", href: "/" },
-  { name: "Classes", href: "/book" },
-  { name: "Shop", href: "/products" },
+  { name: "Home", href: "/", openMenu: false },
+  { name: "Classes", href: "#", openMenu: true },
+  { name: "Shop", href: "/products", openMenu: false },
 ];
 
 const secondaryLinks = {
@@ -44,31 +46,31 @@ export function Footer() {
                 <Image 
                   src="/graphics/mamalu-logo-transparent.png" 
                   alt="Mamalu Kitchen" 
-                  width={80} 
-                  height={80}
-                  className="h-16 w-16 transition-transform group-hover:scale-105"
+                  width={160} 
+                  height={160}
+                  className="h-32 w-32 transition-transform group-hover:scale-105"
                 />
               </Link>
-              <p className="mt-4 text-stone-700 max-w-sm">
+              <p className="mt-4 text-stone-700 max-w-sm" style={{ fontFamily: 'var(--font-mossy), cursive' }}>
                 Fun, healthy cooking classes for kids and families in Dubai. 
                 Creating delicious memories since 2020.
               </p>
               
               {/* Contact Info */}
               <div className="mt-6 space-y-3">
-                <a href="mailto:info@mamalukitchen.com" className="flex items-center gap-3 text-stone-700 hover:text-[#ff8c6b] transition-colors">
+                <a href="mailto:info@mamalukitchen.com" className="flex items-center gap-3 text-stone-700 hover:text-[#ff8c6b] transition-colors font-bold" style={{ fontFamily: 'var(--font-mossy), cursive' }}>
                   <div className="w-8 h-8 rounded-full bg-stone-200 flex items-center justify-center">
                     <Mail className="h-4 w-4" />
                   </div>
                   info@mamalukitchen.com
                 </a>
-                <a href="https://wa.me/971527479512" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-stone-700 hover:text-[#ff8c6b] transition-colors">
+                <a href="https://wa.me/971527479512" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-stone-700 hover:text-[#ff8c6b] transition-colors font-bold" style={{ fontFamily: 'var(--font-mossy), cursive' }}>
                   <div className="w-8 h-8 rounded-full bg-stone-200 flex items-center justify-center">
                     <Phone className="h-4 w-4" />
                   </div>
                   +971 52 747 9512
                 </a>
-                <div className="flex items-center gap-3 text-stone-700">
+                <div className="flex items-center gap-3 text-stone-700 font-bold" style={{ fontFamily: 'var(--font-mossy), cursive' }}>
                   <div className="w-8 h-8 rounded-full bg-stone-200 flex items-center justify-center">
                     <MapPin className="h-4 w-4" />
                   </div>
@@ -95,17 +97,29 @@ export function Footer() {
 
             {/* Primary Links */}
             <div>
-              <h3 className="text-sm font-semibold text-stone-900 uppercase tracking-wider mb-4">Main</h3>
+              <h3 className="text-sm font-semibold text-stone-900 uppercase tracking-wider mb-4" style={{ fontFamily: 'var(--font-mossy), cursive' }}>Main</h3>
               <ul className="space-y-3">
                 {primaryLinks.map((link) => (
                   <li key={link.name}>
-                    <Link
-                      href={link.href}
-                      className="text-stone-700 hover:text-[#ff8c6b] transition-colors flex items-center gap-1 group"
-                    >
-                      <span>{link.name}</span>
-                      <ArrowRight className="h-3 w-3 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
-                    </Link>
+                    {link.openMenu ? (
+                      <button
+                        onClick={() => window.dispatchEvent(new CustomEvent("openMamaluMenu"))}
+                        className="text-stone-700 hover:text-[#ff8c6b] transition-colors flex items-center gap-1 group"
+                        style={{ fontFamily: 'var(--font-mossy), cursive' }}
+                      >
+                        <span>{link.name}</span>
+                        <ArrowRight className="h-3 w-3 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+                      </button>
+                    ) : (
+                      <Link
+                        href={link.href}
+                        className="text-stone-700 hover:text-[#ff8c6b] transition-colors flex items-center gap-1 group"
+                        style={{ fontFamily: 'var(--font-mossy), cursive' }}
+                      >
+                        <span>{link.name}</span>
+                        <ArrowRight className="h-3 w-3 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+                      </Link>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -113,13 +127,14 @@ export function Footer() {
 
             {/* Explore */}
             <div>
-              <h3 className="text-sm font-semibold text-stone-900 uppercase tracking-wider mb-4">Explore</h3>
+              <h3 className="text-sm font-semibold text-stone-900 uppercase tracking-wider mb-4" style={{ fontFamily: 'var(--font-mossy), cursive' }}>Explore</h3>
             <ul className="space-y-3">
               {secondaryLinks.explore.map((link) => (
                 <li key={link.name}>
                   <Link
                     href={link.href}
                     className="text-stone-700 hover:text-[#ff8c6b] transition-colors"
+                    style={{ fontFamily: 'var(--font-mossy), cursive' }}
                   >
                     {link.name}
                   </Link>
@@ -130,13 +145,14 @@ export function Footer() {
 
           {/* Services */}
           <div>
-            <h3 className="text-sm font-semibold text-stone-900 uppercase tracking-wider mb-4">Services</h3>
+            <h3 className="text-sm font-semibold text-stone-900 uppercase tracking-wider mb-4" style={{ fontFamily: 'var(--font-mossy), cursive' }}>Services</h3>
             <ul className="space-y-3">
               {secondaryLinks.services.map((link) => (
                 <li key={link.name}>
                   <Link
                     href={link.href}
                     className="text-stone-700 hover:text-[#ff8c6b] transition-colors"
+                    style={{ fontFamily: 'var(--font-mossy), cursive' }}
                   >
                     {link.name}
                   </Link>
@@ -147,13 +163,14 @@ export function Footer() {
 
           {/* Support */}
           <div>
-            <h3 className="text-sm font-semibold text-stone-900 uppercase tracking-wider mb-4">Support</h3>
+            <h3 className="text-sm font-semibold text-stone-900 uppercase tracking-wider mb-4" style={{ fontFamily: 'var(--font-mossy), cursive' }}>Support</h3>
             <ul className="space-y-3">
               {secondaryLinks.support.map((link) => (
                 <li key={link.name}>
                   <Link
                     href={link.href}
                     className="text-stone-700 hover:text-[#ff8c6b] transition-colors"
+                    style={{ fontFamily: 'var(--font-mossy), cursive' }}
                   >
                     {link.name}
                   </Link>
@@ -165,16 +182,50 @@ export function Footer() {
         </div>
       </div>
 
+      {/* Cashless & Payment Info */}
+      <div className="bg-[#fff5eb] border-t border-stone-300">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex flex-col md:flex-row justify-center items-center gap-6 md:gap-12">
+            {/* Cashless Business */}
+            <div className="flex items-center gap-3 px-5 py-3 bg-white/60 rounded-full border border-stone-200">
+              <div className="w-10 h-10 rounded-full bg-[#ff8c6b]/10 flex items-center justify-center">
+                <Ban className="h-5 w-5 text-[#ff8c6b]" />
+              </div>
+              <span className="text-stone-800 font-semibold" style={{ fontFamily: 'var(--font-mossy), cursive' }}>
+                Mamalu Kitchen is a fully Cashless Business
+              </span>
+            </div>
+            
+            {/* Stripe Payments */}
+            <div className="flex items-center gap-3 px-5 py-3 bg-white/60 rounded-full border border-stone-200">
+              <div className="w-10 h-10 rounded-full bg-[#635bff]/10 flex items-center justify-center">
+                <CreditCard className="h-5 w-5 text-[#635bff]" />
+              </div>
+              <span className="text-stone-800" style={{ fontFamily: 'var(--font-mossy), cursive' }}>
+                Payments powered by
+              </span>
+              <Image 
+                src="/images/stripe-logo.svg" 
+                alt="Stripe" 
+                width={60} 
+                height={25}
+                className="h-6 w-auto"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Bottom Bar */}
       <div className="bg-[#fff5eb] border-t border-stone-300">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-            <p className="text-sm text-stone-700 flex items-center gap-1">
+            <p className="text-sm text-stone-700 flex items-center gap-1" style={{ fontFamily: 'var(--font-mossy), cursive' }}>
               &copy; {new Date().getFullYear()} Mamalu Kitchen. Made with 
               <Heart className="h-4 w-4 text-[#ff8c6b] fill-[#ff8c6b]" /> 
               in Dubai
             </p>
-            <p className="text-sm text-stone-700">
+            <p className="text-sm text-stone-700" style={{ fontFamily: 'var(--font-mossy), cursive' }}>
               Powered by <span className="text-[#ff8c6b]">Mutant</span>
             </p>
           </div>

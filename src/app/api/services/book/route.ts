@@ -136,7 +136,7 @@ export async function POST(request: NextRequest) {
       line_items: [{ price: price.id, quantity: 1 }],
       mode: "payment",
       success_url: `${baseUrl}/booking/success?booking=${booking.booking_number}`,
-      cancel_url: `${baseUrl}/book?cancelled=true`,
+      cancel_url: `${baseUrl}/booking/cancelled`,
       customer_email: customerEmail,
       metadata: {
         booking_id: booking.id,
