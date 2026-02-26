@@ -424,8 +424,8 @@ export default function MiniChefPage() {
                 <ArrowLeft className="h-5 w-5" />
               </Link>
               <div>
-                <h1 className="text-2xl font-bold text-stone-900" style={{ fontFamily: 'var(--font-mossy), cursive' }}>MINI CHEF</h1>
-                <p className="text-stone-600 text-sm" style={{ fontFamily: 'var(--font-mossy), cursive' }}>
+                <h1 className="text-2xl text-black" style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 900 }}>MINI CHEF</h1>
+                <p className="text-black text-sm" style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 700 }}>
                   Fun cooking experiences for little chefs
                 </p>
               </div>
@@ -440,15 +440,15 @@ export default function MiniChefPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3 text-stone-800">
               <ChefHat className="h-5 w-5" />
-              <span className="font-bold text-sm" style={{ fontFamily: 'var(--font-mossy), cursive' }}>Walk-In Customers Welcome!</span>
-              <span className="text-stone-600 text-sm hidden sm:inline" style={{ fontFamily: 'var(--font-mossy), cursive' }}>Feeling spontaneous? Check our last-minute availability</span>
+              <span className="text-sm text-black" style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 900 }}>Walk-In Customers Welcome!</span>
+              <span className="text-black text-sm hidden sm:inline" style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 700 }}>Feeling spontaneous? Check our last-minute availability</span>
             </div>
             <a
               href="https://wa.me/971527479512?text=Hi!%20I%27d%20like%20to%20check%20walk-in%20availability"
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-stone-800 hover:bg-stone-900 text-white text-sm font-medium px-4 py-1.5 rounded-full transition-colors flex items-center gap-1.5"
-              style={{ fontFamily: 'var(--font-mossy), cursive' }}
+              className="bg-stone-800 hover:bg-stone-900 text-white text-sm px-4 py-1.5 rounded-full transition-colors flex items-center gap-1.5"
+              style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 900 }}
             >
               <MessageCircle className="h-3.5 w-3.5" />
               WhatsApp Us
@@ -503,7 +503,7 @@ export default function MiniChefPage() {
             {step === 1 && (
               <div className="space-y-6">
                 <div>
-                  <h2 className="text-2xl font-bold text-stone-900" style={{ fontFamily: 'var(--font-mossy), cursive' }}>Choose Your Menu Package</h2>
+                  <h2 className="text-2xl text-black" style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 900 }}>Choose Your Menu Package</h2>
                   <p className="text-stone-500 mt-1">{currentConfig.description}</p>
                   <p className="text-sm text-stone-400 mt-2">
                     Min: {currentConfig.minGuests} {isBirthday ? "kids" : "guest(s)"} • Max: {currentConfig.maxGuests} {isBirthday ? "kids" : "guests"} • Price per person

@@ -182,7 +182,7 @@ export default function HomePage() {
       {/* Gallery Section - Life at Mamalu - Hidden on mobile */}
       <section className="gallery-section section py-12 md:py-24 lg:py-32 bg-white hidden md:block">
         <div className="container px-4 md:px-6">
-          <h2 className="section-title text-3xl md:text-4xl lg:text-6xl text-center mb-8 md:mb-16" style={{ fontFamily: 'var(--font-mossy), cursive' }}>
+          <h2 className="section-title text-3xl md:text-4xl lg:text-6xl text-center mb-8 md:mb-16 text-black" style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 900 }}>
             Life at Mamalu
           </h2>
           
@@ -211,8 +211,8 @@ export default function HomePage() {
       <section className="founder-section section py-12 md:py-24 lg:py-32 bg-white">
         <div className="container px-4 md:px-6">
           {/* Section Title */}
-          <h2 className="text-center mb-8 md:mb-16" style={{ fontFamily: 'var(--font-mossy), cursive' }}>
-            <span className="text-3xl md:text-4xl lg:text-5xl tracking-wide text-[var(--c-black)]">OUR STORY</span>
+          <h2 className="text-center mb-8 md:mb-16" style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 900 }}>
+            <span className="text-3xl md:text-4xl lg:text-5xl tracking-wide text-black">OUR STORY</span>
             <span className="inline-block ml-2 text-[#f5d5d0]">❤</span>
           </h2>
           
@@ -232,11 +232,11 @@ export default function HomePage() {
 
             {/* Content */}
             <div className="founder-content flex flex-col justify-center text-center lg:text-left">
-              <p className="text-base md:text-lg lg:text-xl text-[var(--c-gray)] mb-4 md:mb-6 leading-relaxed" style={{ fontFamily: 'var(--font-mossy), cursive' }}>
+              <p className="text-base md:text-lg lg:text-xl text-black mb-4 md:mb-6 leading-relaxed" style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 700 }}>
                 Mamalu Kitchen was inspired by her 3 boys and the need to help fellow mums and families simplify their day-to-day lives without having to worry about feeding their family fuss-free healthy food.
               </p>
-              <p className="text-base md:text-lg lg:text-xl text-[var(--c-gray)] mb-6 md:mb-8 leading-relaxed" style={{ fontFamily: 'var(--font-mossy), cursive' }}>
-                Mamalu Kitchen is creating a cooking movement under the slogan <span className="text-[var(--c-black)] font-semibold">#feedingfamilies</span>.
+              <p className="text-base md:text-lg lg:text-xl text-black mb-6 md:mb-8 leading-relaxed" style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 700 }}>
+                Mamalu Kitchen is creating a cooking movement under the slogan <span className="text-black" style={{ fontWeight: 900 }}>#feedingfamilies</span>.
               </p>
               <Link href="/about" className="btn-primary group w-fit mx-auto lg:mx-0">
                 <span>Our Story</span>

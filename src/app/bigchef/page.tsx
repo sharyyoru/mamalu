@@ -236,14 +236,14 @@ export default function BigChefPage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center gap-4">
             <Link href="/book" className="p-2 hover:bg-stone-100 rounded-full"><ArrowLeft className="h-5 w-5" /></Link>
-            <div><h1 className="text-2xl font-bold text-stone-900" style={{ fontFamily: 'var(--font-mossy), cursive' }}>BIG CHEF</h1><p className="text-stone-600 text-sm" style={{ fontFamily: 'var(--font-mossy), cursive' }}>Professional cooking experiences for adults</p></div>
+            <div><h1 className="text-2xl text-black" style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 900 }}>BIG CHEF</h1><p className="text-black text-sm" style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 700 }}>Professional cooking experiences for adults</p></div>
           </div>
         </div>
       </div>
       <div className="bg-[#fff5eb]">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3 text-stone-800"><ChefHat className="h-5 w-5" /><span className="font-bold text-sm" style={{ fontFamily: 'var(--font-mossy), cursive' }}>Corporate Events Welcome!</span></div>
-          <a href="https://wa.me/971527479512" target="_blank" rel="noopener noreferrer" className="bg-stone-800 hover:bg-stone-900 text-white text-sm font-medium px-4 py-1.5 rounded-full flex items-center gap-1.5" style={{ fontFamily: 'var(--font-mossy), cursive' }}><MessageCircle className="h-3.5 w-3.5" />WhatsApp Us</a>
+          <div className="flex items-center gap-3 text-black"><ChefHat className="h-5 w-5" /><span className="text-sm text-black" style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 900 }}>Corporate Events Welcome!</span></div>
+          <a href="https://wa.me/971527479512" target="_blank" rel="noopener noreferrer" className="bg-stone-800 hover:bg-stone-900 text-white text-sm px-4 py-1.5 rounded-full flex items-center gap-1.5" style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 900 }}><MessageCircle className="h-3.5 w-3.5" />WhatsApp Us</a>
         </div>
       </div>
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
@@ -266,7 +266,7 @@ export default function BigChefPage() {
             {step === 1 && (
               <div className="space-y-6">
                 <div>
-                  <h2 className="text-2xl font-bold text-stone-900" style={{ fontFamily: 'var(--font-mossy), cursive' }}>{isNanny ? "Select 4 Menus for Your Course" : "Choose Your Menu Package"}</h2>
+                  <h2 className="text-2xl text-black" style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 900 }}>{isNanny ? "Select 4 Menus for Your Course" : "Choose Your Menu Package"}</h2>
                   <p className="text-stone-500 mt-1">{currentConfig.description}</p>
                   {isNanny ? <div className="mt-3 p-4 bg-amber-50 rounded-lg border border-amber-200"><p className="text-lg font-bold text-amber-800">AED 1,200 for 4 classes</p><p className="text-sm text-amber-700 mt-1">Select any 4 menus. Each class is 1.5 hours. Available Monday and Tuesday at 11am</p></div> : <p className="text-sm text-stone-400 mt-2">Min: {currentConfig.minGuests} • Max: {currentConfig.maxGuests} guests • Price per person</p>}
                 </div>

@@ -71,10 +71,20 @@ body {
 /* ===== TYPOGRAPHY - MAMALU STYLE ===== */
 h1, h2, h3, .font-display {
   font-family: var(--font-mossy), 'Mossy', cursive;
-  font-weight: 700;
+  font-weight: 900;
   line-height: 1.1;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.02em;
   text-transform: none;
+  color: #1c1917;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Make all Mossy font text bolder and more legible */
+[style*="font-mossy"], [style*="--font-mossy"] {
+  font-weight: 900 !important;
+  color: #1c1917;
+  -webkit-font-smoothing: antialiased;
 }
 
 h1 {
