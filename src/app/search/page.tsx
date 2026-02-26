@@ -202,13 +202,13 @@ function SearchContent() {
               </div>
               <h2 className="text-2xl font-bold text-stone-900 mb-2">No results found</h2>
               <p className="text-stone-500 mb-6">Try a different search term or filter</p>
-              <Link
-                href="/book"
+              <button
+                onClick={() => window.dispatchEvent(new CustomEvent("openMamaluMenu"))}
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-[#ff8c6b] to-[#ffa891] text-white font-semibold shadow-lg shadow-[#ff8c6b]/25 hover:shadow-xl transition-all"
               >
                 Browse Classes
                 <ArrowRight className="h-4 w-4" />
-              </Link>
+              </button>
             </div>
           ) : (
             <div className="grid gap-4 sm:gap-6">

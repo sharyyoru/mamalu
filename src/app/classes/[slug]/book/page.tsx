@@ -169,9 +169,7 @@ export default function BookingPage({ params }: BookingPageProps) {
             <CardContent className="p-8 text-center">
               <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
               <h2 className="text-xl font-semibold text-stone-900 mb-2">{error}</h2>
-              <Link href="/book">
-                <Button variant="outline">Back to Classes</Button>
-              </Link>
+              <Button variant="outline" onClick={() => window.dispatchEvent(new CustomEvent("openMamaluMenu"))}>Back to Classes</Button>
             </CardContent>
           </Card>
         </div>
@@ -194,9 +192,7 @@ export default function BookingPage({ params }: BookingPageProps) {
                 Thank you for booking. You will receive a confirmation email shortly.
               </p>
               <div className="flex gap-3 justify-center">
-                <Link href="/book">
-                  <Button variant="outline">Browse More Classes</Button>
-                </Link>
+                <Button variant="outline" onClick={() => window.dispatchEvent(new CustomEvent("openMamaluMenu"))}>Browse More Classes</Button>
                 <Link href="/account">
                   <Button>View My Bookings</Button>
                 </Link>

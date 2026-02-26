@@ -524,8 +524,8 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
     return (
       <div className="min-h-screen flex flex-col items-center justify-center">
         <h1 className="text-2xl font-bold text-stone-900 mb-4">Service not found</h1>
-        <Button asChild>
-          <Link href="/book">Back to Services</Link>
+        <Button onClick={() => window.dispatchEvent(new CustomEvent("openMamaluMenu"))}>
+          Back to Services
         </Button>
       </div>
     );
@@ -538,11 +538,9 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Button variant="ghost" size="sm" asChild>
-                <Link href="/book">
+              <Button variant="ghost" size="sm" onClick={() => window.dispatchEvent(new CustomEvent("openMamaluMenu"))}>
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Back
-                </Link>
               </Button>
               <div>
                 <h1 className="text-xl font-bold text-stone-900">{service.name}</h1>

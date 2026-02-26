@@ -52,6 +52,13 @@ export function Header() {
     };
   }, []);
 
+  // Listen for custom event to open menu from other components
+  useEffect(() => {
+    const handleOpenMenu = () => setMenuOpen(true);
+    window.addEventListener("openMamaluMenu", handleOpenMenu);
+    return () => window.removeEventListener("openMamaluMenu", handleOpenMenu);
+  }, []);
+
   // Prevent body scroll when menu is open
   useEffect(() => {
     if (menuOpen) {

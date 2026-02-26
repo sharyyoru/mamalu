@@ -33,9 +33,7 @@ function CancelledContent() {
             </div>
 
             <div className="flex gap-3 justify-center">
-              <Link href="/book">
-                <Button variant="outline">Browse Classes</Button>
-              </Link>
+              <Button variant="outline" onClick={() => window.dispatchEvent(new CustomEvent("openMamaluMenu"))}>Browse Classes</Button>
               {bookingId && (
                 <Link href={`/account/bookings/${bookingId}`}>
                   <Button>Complete Payment</Button>

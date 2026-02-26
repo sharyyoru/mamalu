@@ -143,13 +143,13 @@ export default function RentalsPage() {
       <div className="container max-w-6xl mx-auto px-6">
         {/* Header */}
         <div className="mb-12">
-          <Link
-            href="/book"
+          <button
+            onClick={() => window.dispatchEvent(new CustomEvent("openMamaluMenu"))}
             className="inline-flex items-center gap-2 text-gray-600 hover:text-black transition-colors mb-6"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to Booking
-          </Link>
+          </button>
           <h1 className="text-4xl md:text-5xl font-bold mb-4" style={{ fontFamily: 'var(--font-mossy), cursive' }}>
             KITCHEN STUDIO RENTAL 🍳
           </h1>

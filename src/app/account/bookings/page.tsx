@@ -257,9 +257,7 @@ export default function MyBookingsPage() {
               <p className="text-stone-500 mb-4">
                 You haven&apos;t booked any classes yet. Browse our classes to get started!
               </p>
-              <Link href="/book">
-                <Button>Browse Classes</Button>
-              </Link>
+              <Button onClick={() => window.dispatchEvent(new CustomEvent("openMamaluMenu"))}>Browse Classes</Button>
             </CardContent>
           </Card>
         ) : (

@@ -235,7 +235,7 @@ export default function BigChefPage() {
       <div className="bg-white border-b">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center gap-4">
-            <Link href="/book" className="p-2 hover:bg-stone-100 rounded-full"><ArrowLeft className="h-5 w-5" /></Link>
+            <button onClick={() => window.dispatchEvent(new CustomEvent("openMamaluMenu"))} className="p-2 hover:bg-stone-100 rounded-full"><ArrowLeft className="h-5 w-5" /></button>
             <div><h1 className="text-2xl text-black" style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 900 }}>BIG CHEF</h1><p className="text-black text-sm" style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 700 }}>Professional cooking experiences for adults</p></div>
           </div>
         </div>

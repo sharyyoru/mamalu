@@ -109,12 +109,10 @@ export default async function ClassPage({ params }: ClassPageProps) {
       {/* Hero */}
       <section className="bg-gradient-to-br from-amber-50 to-stone-100 py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <Link href="/book">
-            <Button variant="ghost" className="mb-6">
+          <Button variant="ghost" className="mb-6" onClick={() => window.dispatchEvent(new CustomEvent("openMamaluMenu"))}>
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Classes
             </Button>
-          </Link>
           
           <div className="grid lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
