@@ -135,7 +135,7 @@ export function Header() {
                       alt="Mamalu Kitchen" 
                       width={200} 
                       height={200}
-                      className="w-24 h-24 lg:w-28 lg:h-28 transition-all duration-500"
+                      className="w-60 h-60 lg:w-72 lg:h-72 transition-all duration-500"
                       priority
                     />
                   </Link>
