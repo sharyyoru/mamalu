@@ -14,33 +14,33 @@ export default function WhatsHappeningSection() {
 
   return (
     <section className="py-16 md:py-24 bg-stone-100 relative overflow-hidden">
-      {/* Decorative doodles - bigger sizes */}
-      <div className="absolute top-6 left-4 md:left-16 w-16 h-16 md:w-24 md:h-24 opacity-70">
+      {/* Decorative doodles - hidden on mobile to prevent text overlap */}
+      <div className="hidden md:block absolute top-6 left-16 lg:left-20 w-24 h-24 opacity-70">
         <Image src="/images/recipe-01.png" alt="" fill className="object-contain" />
       </div>
-      <div className="absolute top-20 left-24 md:left-44 w-14 h-14 md:w-20 md:h-20 opacity-60">
+      <div className="hidden md:block absolute top-20 left-44 lg:left-48 w-20 h-20 opacity-60">
         <Image src="/images/whisk-01.png" alt="" fill className="object-contain" />
       </div>
-      <div className="absolute top-4 right-8 md:right-24 w-20 h-20 md:w-28 md:h-28 opacity-70">
+      <div className="hidden md:block absolute top-4 right-24 lg:right-28 w-28 h-28 opacity-70">
         <Image src="/images/girl-01.png" alt="" fill className="object-contain" />
       </div>
-      <div className="absolute top-24 right-4 md:right-12 w-14 h-14 md:w-18 md:h-18 opacity-60">
+      <div className="hidden md:block absolute top-24 right-12 lg:right-16 w-18 h-18 opacity-60">
         <Image src="/images/potato-01.png" alt="" fill className="object-contain" />
       </div>
-      <div className="absolute bottom-8 left-8 md:left-20 w-16 h-16 md:w-24 md:h-24 opacity-60">
+      <div className="hidden md:block absolute bottom-8 left-20 lg:left-24 w-24 h-24 opacity-60">
         <Image src="/images/pot-01.png" alt="" fill className="object-contain" />
       </div>
-      <div className="absolute bottom-6 right-8 md:right-28 w-18 h-18 md:w-24 md:h-24 opacity-70">
+      <div className="hidden md:block absolute bottom-6 right-28 lg:right-32 w-24 h-24 opacity-70">
         <Image src="/images/skewers-01.png" alt="" fill className="object-contain" />
       </div>
-      <div className="absolute top-1/2 left-2 md:left-10 w-14 h-14 md:w-20 md:h-20 opacity-50 -translate-y-1/2">
+      <div className="hidden lg:block absolute top-1/2 left-10 w-20 h-20 opacity-50 -translate-y-1/2">
         <Image src="/images/gloves 2-01.png" alt="" fill className="object-contain" />
       </div>
-      <div className="absolute top-1/2 right-2 md:right-10 w-16 h-16 md:w-22 md:h-22 opacity-60 -translate-y-1/2">
+      <div className="hidden lg:block absolute top-1/2 right-10 w-22 h-22 opacity-60 -translate-y-1/2">
         <Image src="/images/salt-01.png" alt="" fill className="object-contain" />
       </div>
 
-      <div className="container mx-auto px-4 text-center relative z-10">
+      <div className="container mx-auto px-6 md:px-8 lg:px-4 text-center relative z-10 max-w-3xl">
         {/* Title */}
         <h2 
           className="text-2xl md:text-3xl lg:text-4xl text-stone-900 mb-10 uppercase tracking-wider"

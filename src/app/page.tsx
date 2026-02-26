@@ -32,7 +32,7 @@ const stats = [
 
 const galleryImages = [
   "/images/image0.png",
-  "/images/IMG_3079_edited.jpg",
+  "/images/File_017.jpeg.jpg",
   "/images/File_000-2.jpeg",
 ];
 
@@ -226,7 +226,7 @@ export default function HomePage() {
             <div className="founder-image relative">
               <div className="aspect-[3/4] max-w-[280px] sm:max-w-sm mx-auto overflow-hidden rounded-2xl">
                 <Image
-                  src="/images/Lama_Jammal_pic.jpeg"
+                  src="/images/IMG_4756_edited.jpg"
                   alt="Lama - Founder of Mamalu Kitchen"
                   fill
                   quality={100}
