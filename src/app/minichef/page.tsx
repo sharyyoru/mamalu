@@ -189,7 +189,7 @@ function WaiverModal({ isOpen, onClose, onAccept }: { isOpen: boolean; onClose: 
             <Button 
               onClick={onAccept} 
               disabled={!hasRead}
-              className="flex-1 bg-stone-900 hover:bg-stone-800"
+              className="flex-1 bg-[#f5e6dc] hover:bg-[#f0ddd0] text-stone-800 border border-stone-300"
             >
               I Accept & Continue
             </Button>
@@ -447,11 +447,11 @@ export default function MiniChefPage() {
               href="https://wa.me/971527479512?text=Hi!%20I%27d%20like%20to%20check%20walk-in%20availability"
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-stone-800 hover:bg-stone-900 text-white text-sm px-4 py-1.5 rounded-full transition-colors flex items-center gap-1.5"
+              className="bg-[#f5e6dc] hover:bg-[#f0ddd0] text-stone-800 border border-stone-300 text-sm px-4 py-1.5 rounded-full transition-colors flex items-center gap-1.5"
               style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 900 }}
             >
-              <MessageCircle className="h-3.5 w-3.5 text-white" />
-              <span className="text-white">WhatsApp Us</span>
+              <MessageCircle className="h-3.5 w-3.5 text-stone-800" />
+              <span className="text-stone-800">WhatsApp Us</span>
             </a>
           </div>
         </div>
@@ -469,7 +469,7 @@ export default function MiniChefPage() {
                   onClick={() => setActiveCategory(cat)}
                   className={`px-4 py-2 rounded-full font-medium transition-all text-sm ${
                     activeCategory === cat
-                      ? "bg-stone-900 text-white shadow-md"
+                      ? "bg-[#f5e6dc] text-stone-800 border border-stone-300 shadow-md"
                       : "text-stone-600 hover:bg-stone-200"
                   }`}
                 >
@@ -485,7 +485,7 @@ export default function MiniChefPage() {
                   <div
                     className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
                       step >= s
-                        ? "bg-stone-900 text-white"
+                        ? "bg-[#f5e6dc] text-stone-800 border border-stone-300"
                         : "bg-stone-200 text-stone-500"
                     }`}
                   >
@@ -761,7 +761,7 @@ export default function MiniChefPage() {
                                   onClick={() => setEventTime(slot.start)}
                                   className={`px-3 py-2 text-sm rounded-lg border transition-all ${
                                     eventTime === slot.start
-                                      ? "bg-stone-900 text-white border-stone-900"
+                                      ? "bg-[#f5e6dc] text-stone-800 border-stone-300"
                                       : isAvailable
                                       ? "border-stone-300 hover:border-stone-900"
                                       : "border-stone-200 bg-stone-100 text-stone-400 cursor-not-allowed line-through"
@@ -932,12 +932,12 @@ export default function MiniChefPage() {
                   {/* Navigation Buttons */}
                   <div className="flex flex-col gap-2 mt-4 pt-4 border-t">
                     {step < maxStep ? (
-                      <Button onClick={() => setStep(step + 1)} disabled={!canProceed()} className="w-full bg-stone-900 hover:bg-stone-800">
+                      <Button onClick={() => setStep(step + 1)} disabled={!canProceed()} className="w-full bg-[#f5e6dc] hover:bg-[#f0ddd0] text-stone-800 border border-stone-300">
                         Continue
                         <ArrowRight className="h-4 w-4 ml-2" />
                       </Button>
                     ) : (
-                      <Button onClick={handleSubmit} disabled={submitting || !canProceed()} className="w-full bg-stone-900 hover:bg-stone-800">
+                      <Button onClick={handleSubmit} disabled={submitting || !canProceed()} className="w-full bg-[#f5e6dc] hover:bg-[#f0ddd0] text-stone-800 border border-stone-300">
                         {submitting ? (
                           <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Processing...</>
                         ) : (
@@ -1005,7 +1005,7 @@ export default function MiniChefPage() {
                 
                 {step < maxStep ? (
                   <Button
-                    className="bg-stone-900 hover:bg-stone-800"
+                    className="bg-[#f5e6dc] hover:bg-[#f0ddd0] text-stone-800 border border-stone-300"
                     onClick={() => setStep(step + 1)}
                     disabled={!canProceed()}
                   >
@@ -1014,7 +1014,7 @@ export default function MiniChefPage() {
                   </Button>
                 ) : (
                   <Button
-                    className="bg-stone-900 hover:bg-stone-800"
+                    className="bg-[#f5e6dc] hover:bg-[#f0ddd0] text-stone-800 border border-stone-300"
                     onClick={handleSubmit}
                     disabled={submitting || !canProceed()}
                   >

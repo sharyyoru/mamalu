@@ -603,7 +603,7 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
                       <div
                         className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
                           step >= s
-                            ? "bg-stone-900 text-white"
+                            ? "bg-[#f5e6dc] text-stone-800 border border-stone-300"
                             : "bg-stone-200 text-stone-500"
                         }`}
                       >
@@ -651,7 +651,7 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
                     onClick={() => setActiveCorporateCategory("classics")}
                     className={`px-4 py-2 rounded-full font-medium transition-all ${
                       activeCorporateCategory === "classics"
-                        ? "bg-stone-900 text-white"
+                        ? "bg-[#f5e6dc] text-stone-800 border border-stone-300"
                         : "bg-stone-100 text-stone-600 hover:bg-stone-200"
                     }`}
                   >
@@ -661,7 +661,7 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
                     onClick={() => setActiveCorporateCategory("masterclass")}
                     className={`px-4 py-2 rounded-full font-medium transition-all ${
                       activeCorporateCategory === "masterclass"
-                        ? "bg-stone-900 text-white"
+                        ? "bg-[#f5e6dc] text-stone-800 border border-stone-300"
                         : "bg-stone-100 text-stone-600 hover:bg-stone-200"
                     }`}
                   >
@@ -671,7 +671,7 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
                     onClick={() => setActiveCorporateCategory("monthly")}
                     className={`px-4 py-2 rounded-full font-medium transition-all ${
                       activeCorporateCategory === "monthly"
-                        ? "bg-stone-900 text-white"
+                        ? "bg-[#f5e6dc] text-stone-800 border border-stone-300"
                         : "bg-stone-100 text-stone-600 hover:bg-stone-200"
                     }`}
                   >
@@ -780,7 +780,7 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
                     onClick={() => setActiveMenuCategory("classics")}
                     className={`px-4 py-2 rounded-full font-medium transition-all ${
                       activeMenuCategory === "classics"
-                        ? "bg-stone-900 text-white"
+                        ? "bg-[#f5e6dc] text-stone-800 border border-stone-300"
                         : "bg-stone-100 text-stone-600 hover:bg-stone-200"
                     }`}
                   >
@@ -790,7 +790,7 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
                     onClick={() => setActiveMenuCategory("monthly")}
                     className={`px-4 py-2 rounded-full font-medium transition-all ${
                       activeMenuCategory === "monthly"
-                        ? "bg-stone-900 text-white"
+                        ? "bg-[#f5e6dc] text-stone-800 border border-stone-300"
                         : "bg-stone-100 text-stone-600 hover:bg-stone-200"
                     }`}
                   >
@@ -800,7 +800,7 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
                     onClick={() => setActiveMenuCategory("mommy_me")}
                     className={`px-4 py-2 rounded-full font-medium transition-all ${
                       activeMenuCategory === "mommy_me"
-                        ? "bg-stone-900 text-white"
+                        ? "bg-[#f5e6dc] text-stone-800 border border-stone-300"
                         : "bg-stone-100 text-stone-600 hover:bg-stone-200"
                     }`}
                   >
@@ -1029,7 +1029,7 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
                             >
                               <CardContent className="p-4">
                                 <div className="flex items-center gap-4">
-                                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isSelected ? "bg-stone-900 text-white" : "bg-stone-100 text-stone-600"}`}>
+                                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isSelected ? "bg-[#f5e6dc] text-stone-800 border border-stone-300" : "bg-stone-100 text-stone-600"}`}>
                                     <Icon className="h-5 w-5" />
                                   </div>
                                   <div className="flex-1">
@@ -1168,7 +1168,7 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
                                     onClick={() => setEventTime(slot.start)}
                                     className={`py-3 px-4 rounded-lg text-sm font-medium transition-all text-left ${
                                       isSelected
-                                        ? "bg-stone-900 text-white"
+                                        ? "bg-[#f5e6dc] text-stone-800 border border-stone-300"
                                         : isAvailable
                                           ? "bg-stone-100 text-stone-700 hover:bg-stone-200"
                                           : "bg-stone-50 text-stone-300 cursor-not-allowed line-through"
@@ -1203,7 +1203,7 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
                               onClick={() => setAgeRange(range)}
                               className={`py-3 px-4 rounded-lg text-sm font-medium transition-all ${
                                 ageRange === range
-                                  ? "bg-stone-900 text-white"
+                                  ? "bg-[#f5e6dc] text-stone-800 border border-stone-300"
                                   : "bg-stone-100 text-stone-700 hover:bg-stone-200"
                               }`}
                             >
@@ -1627,7 +1627,7 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
 
                       {isWalkin && (
                         <Button
-                          className="w-full mt-4 bg-stone-900 hover:bg-stone-800"
+                          className="w-full mt-4 bg-[#f5e6dc] hover:bg-[#f0ddd0] text-stone-800 border border-stone-300"
                           size="lg"
                           onClick={handleSubmit}
                           disabled={!customerName || !customerEmail || submitting}
@@ -1664,7 +1664,7 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
                       {/* Step 1: Continue to next step */}
                       {step === 1 && (
                         <Button
-                          className="w-full bg-stone-900 hover:bg-stone-800"
+                          className="w-full bg-[#f5e6dc] hover:bg-[#f0ddd0] text-stone-800 border border-stone-300"
                           size="lg"
                           onClick={() => setStep(2)}
                         >
@@ -1677,7 +1677,7 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
                       {hasExtras && step === 2 && (
                         <>
                           <Button
-                            className="w-full bg-stone-900 hover:bg-stone-800"
+                            className="w-full bg-[#f5e6dc] hover:bg-[#f0ddd0] text-stone-800 border border-stone-300"
                             size="lg"
                             onClick={() => setStep(3)}
                           >
@@ -1695,7 +1695,7 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
                       {step === (hasExtras ? 3 : 2) && (
                         <>
                           <Button
-                            className="w-full bg-stone-900 hover:bg-stone-800"
+                            className="w-full bg-[#f5e6dc] hover:bg-[#f0ddd0] text-stone-800 border border-stone-300"
                             size="lg"
                             onClick={() => setStep(hasExtras ? 4 : 3)}
                             disabled={!waiverAccepted || (isBirthday && !ageRange)}
@@ -1714,7 +1714,7 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
                       {step === (hasExtras ? 4 : 3) && (
                         <>
                           <Button
-                            className="w-full bg-stone-900 hover:bg-stone-800"
+                            className="w-full bg-[#f5e6dc] hover:bg-[#f0ddd0] text-stone-800 border border-stone-300"
                             size="lg"
                             onClick={handleSubmit}
                             disabled={!customerName || !customerEmail || !customerPhone || submitting}
@@ -1782,7 +1782,7 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
                   
                   {step === 1 && (
                     <Button
-                      className="bg-stone-900 hover:bg-stone-800"
+                      className="bg-[#f5e6dc] hover:bg-[#f0ddd0] text-stone-800 border border-stone-300"
                       onClick={() => setStep(2)}
                     >
                       Continue
@@ -1792,7 +1792,7 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
 
                   {hasExtras && step === 2 && (
                     <Button
-                      className="bg-stone-900 hover:bg-stone-800"
+                      className="bg-[#f5e6dc] hover:bg-[#f0ddd0] text-stone-800 border border-stone-300"
                       onClick={() => setStep(3)}
                     >
                       {Object.keys(selectedExtras).length > 0 ? "Continue" : "Skip"}
@@ -1802,7 +1802,7 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
 
                   {step === (hasExtras ? 3 : 2) && (
                     <Button
-                      className="bg-stone-900 hover:bg-stone-800"
+                      className="bg-[#f5e6dc] hover:bg-[#f0ddd0] text-stone-800 border border-stone-300"
                       onClick={() => setStep(hasExtras ? 4 : 3)}
                       disabled={!waiverAccepted || (isBirthday && !ageRange)}
                     >
@@ -1813,7 +1813,7 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
 
                   {step === (hasExtras ? 4 : 3) && (
                     <Button
-                      className="bg-stone-900 hover:bg-stone-800"
+                      className="bg-[#f5e6dc] hover:bg-[#f0ddd0] text-stone-800 border border-stone-300"
                       onClick={handleSubmit}
                       disabled={!customerName || !customerEmail || !customerPhone || submitting}
                     >
@@ -1840,7 +1840,7 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
                 <p className="text-lg font-bold text-stone-900">AED {calculateTotal().toLocaleString()}</p>
               </div>
               <Button
-                className="bg-stone-900 hover:bg-stone-800"
+                className="bg-[#f5e6dc] hover:bg-[#f0ddd0] text-stone-800 border border-stone-300"
                 onClick={handleSubmit}
                 disabled={!customerName || !customerEmail || submitting}
               >

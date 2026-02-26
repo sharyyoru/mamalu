@@ -71,7 +71,7 @@ export default function NewsletterSection() {
           <button
             type="submit"
             disabled={status === "loading" || !email}
-            className="w-full sm:w-auto px-8 py-3 bg-stone-900 text-white rounded-full font-semibold hover:bg-stone-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full sm:w-auto px-8 py-3 bg-[#c9977a] text-white rounded-full font-semibold hover:bg-[#b8866a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             style={{ fontFamily: 'var(--font-mossy), cursive' }}
           >
             {status === "loading" ? (

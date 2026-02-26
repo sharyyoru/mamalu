@@ -106,7 +106,7 @@ export default function WhatsHappeningPage() {
               </p>
               <button
                 onClick={() => window.dispatchEvent(new CustomEvent("openMamaluMenu"))}
-                className="inline-block px-8 py-3 bg-stone-900 text-white rounded-full hover:bg-stone-800 transition-colors"
+                className="inline-block px-8 py-3 bg-[#f5e6dc] text-stone-800 border border-stone-300 rounded-full hover:bg-[#f0ddd0] transition-colors uppercase tracking-wider"
                 style={{ fontFamily: 'var(--font-mossy), cursive' }}
               >
                 Book a Class

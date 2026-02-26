@@ -121,7 +121,7 @@ function WaiverModal({ isOpen, onClose, onAccept }: { isOpen: boolean; onClose: 
           </label>
           <div className="flex gap-3">
             <Button variant="outline" onClick={onClose} className="flex-1">Cancel</Button>
-            <Button onClick={onAccept} disabled={!hasRead} className="flex-1 bg-stone-900 hover:bg-stone-800">I Accept & Continue</Button>
+            <Button onClick={onAccept} disabled={!hasRead} className="flex-1 bg-[#f5e6dc] hover:bg-[#f0ddd0] text-stone-800 border border-stone-300">I Accept & Continue</Button>
           </div>
         </div>
       </div>
@@ -243,7 +243,7 @@ export default function BigChefPage() {
       <div className="bg-[#fff5eb]">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3 text-black"><ChefHat className="h-5 w-5" /><span className="text-sm text-black" style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 900 }}>Corporate Events Welcome!</span></div>
-          <a href="https://wa.me/971527479512" target="_blank" rel="noopener noreferrer" className="bg-stone-800 hover:bg-stone-900 text-white text-sm px-4 py-1.5 rounded-full flex items-center gap-1.5" style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 900 }}><MessageCircle className="h-3.5 w-3.5 text-white" /><span className="text-white">WhatsApp Us</span></a>
+          <a href="https://wa.me/971527479512" target="_blank" rel="noopener noreferrer" className="bg-[#f5e6dc] hover:bg-[#f0ddd0] text-stone-800 border border-stone-300 text-sm px-4 py-1.5 rounded-full flex items-center gap-1.5" style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 900 }}><MessageCircle className="h-3.5 w-3.5 text-stone-800" /><span className="text-stone-800">WhatsApp Us</span></a>
         </div>
       </div>
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
@@ -251,13 +251,13 @@ export default function BigChefPage() {
           <div className="lg:col-span-2 space-y-6">
             <div className="flex flex-wrap gap-2 p-1 bg-stone-100 rounded-full">
               {(Object.keys(categoryConfig) as CategoryType[]).map(cat => (
-                <button key={cat} onClick={() => setActiveCategory(cat)} className={`px-4 py-2 rounded-full font-medium transition-all text-sm ${activeCategory === cat ? "bg-stone-900 text-white shadow-md" : "text-stone-600 hover:bg-stone-200"}`}>{categoryConfig[cat].emoji} {categoryConfig[cat].label}</button>
+                <button key={cat} onClick={() => setActiveCategory(cat)} className={`px-4 py-2 rounded-full font-medium transition-all text-sm ${activeCategory === cat ? "bg-[#f5e6dc] text-stone-800 border border-stone-300 shadow-md" : "text-stone-600 hover:bg-stone-200"}`}>{categoryConfig[cat].emoji} {categoryConfig[cat].label}</button>
               ))}
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               {Array.from({ length: maxStep }, (_, i) => i + 1).map(s => (
                 <div key={s} className="flex items-center gap-2">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${step >= s ? "bg-stone-900 text-white" : "bg-stone-200 text-stone-500"}`}>{step > s ? <Check className="h-4 w-4" /> : s}</div>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${step >= s ? "bg-[#f5e6dc] text-stone-800 border border-stone-300" : "bg-stone-200 text-stone-500"}`}>{step > s ? <Check className="h-4 w-4" /> : s}</div>
                   <span className={`text-sm hidden sm:inline ${step >= s ? "text-stone-900" : "text-stone-400"}`}>{stepLabels[s as keyof typeof stepLabels]}</span>
                   {s < maxStep && <div className="w-4 sm:w-8 h-0.5 bg-stone-200" />}
                 </div>
@@ -289,7 +289,7 @@ export default function BigChefPage() {
                     return (
                       <Card key={menu.id} className={`cursor-pointer transition-all ${isSelected ? "ring-2 ring-stone-900 shadow-lg" : isDisabled ? "opacity-50" : "hover:shadow-md"}`} onClick={() => { if (!isDisabled) { if (isNanny) toggleNannyMenu(menu); else setSelectedMenu(menu); } }}>
                         <CardContent className="p-0 overflow-hidden">
-                          <div className="relative h-36 w-full bg-stone-200"><Image src={menu.image} alt={menu.name} fill className="object-cover" />{isSelected && <div className="absolute top-2 right-2 bg-stone-900 text-white p-1 rounded-full"><Check className="h-4 w-4" /></div>}</div>
+                          <div className="relative h-36 w-full bg-stone-200"><Image src={menu.image} alt={menu.name} fill className="object-cover" />{isSelected && <div className="absolute top-2 right-2 bg-[#f5e6dc] text-stone-800 p-1 rounded-full"><Check className="h-4 w-4" /></div>}</div>
                           <div className="p-5">
                             <div className="flex items-start justify-between mb-3"><h3 className="text-lg font-bold text-stone-900">{menu.name}</h3>{!isNanny && <div className="text-right"><div className="text-xl font-bold text-stone-900">AED {menu.price}</div><div className="text-xs text-stone-500">per person</div></div>}</div>
                             <div className="space-y-1">{menu.dishes.map((d, i) => <div key={i} className="flex items-center gap-2 text-sm text-stone-600"><Check className="h-3 w-3 text-green-500" /><span className="font-bold">{d}</span></div>)}</div>
@@ -350,7 +350,7 @@ export default function BigChefPage() {
                     <div><label className="block text-sm font-medium text-stone-700 mb-1"><Calendar className="inline h-4 w-4 mr-1" />Event Date *</label><input type="date" value={eventDate} onChange={e => setEventDate(e.target.value)} min={today} className="w-full px-4 py-2 border border-stone-300 rounded-lg" required /></div>
                     <div><label className="block text-sm font-medium text-stone-700 mb-1"><Clock className="inline h-4 w-4 mr-1" />Time Slot *</label>
                       {loadingSlots ? <div className="flex items-center gap-2 py-2 text-stone-500"><Loader2 className="h-4 w-4 animate-spin" />Loading...</div> : eventDate && allTimeSlots.length > 0 ? (
-                        <div className="grid grid-cols-2 gap-2">{allTimeSlots.map((slot: any) => { const isAvailable = availableTimeSlots.some((s: any) => s.start === slot.start); return (<button key={slot.start} type="button" disabled={!isAvailable} onClick={() => setEventTime(slot.start)} className={`px-3 py-2 text-sm rounded-lg border ${eventTime === slot.start ? "bg-stone-900 text-white" : isAvailable ? "border-stone-300 hover:border-stone-900" : "bg-stone-100 text-stone-400 cursor-not-allowed line-through"}`}>{slot.label}</button>); })}</div>
+                        <div className="grid grid-cols-2 gap-2">{allTimeSlots.map((slot: any) => { const isAvailable = availableTimeSlots.some((s: any) => s.start === slot.start); return (<button key={slot.start} type="button" disabled={!isAvailable} onClick={() => setEventTime(slot.start)} className={`px-3 py-2 text-sm rounded-lg border ${eventTime === slot.start ? "bg-[#f5e6dc] text-stone-800 border border-stone-300" : isAvailable ? "border-stone-300 hover:border-stone-900" : "bg-stone-100 text-stone-400 cursor-not-allowed line-through"}`}>{slot.label}</button>); })}</div>
                       ) : <p className="text-sm text-stone-500 py-2">{eventDate ? "No slots available" : "Select a date first"}</p>}
                     </div>
                   </div>
@@ -387,7 +387,7 @@ export default function BigChefPage() {
                 ) : <p className="text-stone-500 text-sm">Select a menu to see pricing</p>}
                 {/* Navigation Buttons */}
                 <div className="flex flex-col gap-2 mt-4 pt-4 border-t">
-                  {step < maxStep ? <Button onClick={() => setStep(step + 1)} disabled={!canProceed()} className="w-full bg-stone-900 hover:bg-stone-800">Continue<ArrowRight className="h-4 w-4 ml-2" /></Button> : <Button onClick={handleSubmit} disabled={submitting || !canProceed()} className="w-full bg-stone-900 hover:bg-stone-800">{submitting ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Processing...</> : <>{requiresDeposit ? `Pay Deposit (AED ${depositAmount})` : `Pay (AED ${totalAmount})`}<ArrowRight className="h-4 w-4 ml-2" /></>}</Button>}
+                  {step < maxStep ? <Button onClick={() => setStep(step + 1)} disabled={!canProceed()} className="w-full bg-[#f5e6dc] hover:bg-[#f0ddd0] text-stone-800 border border-stone-300">Continue<ArrowRight className="h-4 w-4 ml-2" /></Button> : <Button onClick={handleSubmit} disabled={submitting || !canProceed()} className="w-full bg-[#f5e6dc] hover:bg-[#f0ddd0] text-stone-800 border border-stone-300">{submitting ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Processing...</> : <>{requiresDeposit ? `Pay Deposit (AED ${depositAmount})` : `Pay (AED ${totalAmount})`}<ArrowRight className="h-4 w-4 ml-2" /></>}</Button>}
                   {step > 1 && <Button variant="outline" onClick={() => setStep(step - 1)} className="w-full"><ArrowLeft className="h-4 w-4 mr-2" />Back</Button>}
                 </div>
               </CardContent></Card>
@@ -428,7 +428,7 @@ export default function BigChefPage() {
                 
                 {step < maxStep ? (
                   <Button
-                    className="bg-stone-900 hover:bg-stone-800"
+                    className="bg-[#f5e6dc] hover:bg-[#f0ddd0] text-stone-800 border border-stone-300"
                     onClick={() => setStep(step + 1)}
                     disabled={!canProceed()}
                   >
@@ -437,7 +437,7 @@ export default function BigChefPage() {
                   </Button>
                 ) : (
                   <Button
-                    className="bg-stone-900 hover:bg-stone-800"
+                    className="bg-[#f5e6dc] hover:bg-[#f0ddd0] text-stone-800 border border-stone-300"
                     onClick={handleSubmit}
                     disabled={submitting || !canProceed()}
                   >
