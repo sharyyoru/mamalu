@@ -70,7 +70,8 @@ export default function HeroSlider({ images, autoPlayInterval = 5000 }: HeroSlid
       <div className="absolute bottom-12 sm:bottom-14 md:bottom-16 left-1/2 -translate-x-1/2 z-10">
         <Link
           href="/book"
-          className="inline-flex items-center gap-2 px-5 py-2.5 sm:px-6 sm:py-3 md:px-8 md:py-4 bg-[var(--c-black)] text-white text-xs sm:text-sm md:text-base font-bold uppercase tracking-wide rounded-full shadow-lg hover:bg-stone-800 hover:scale-105 transition-all duration-300"
+          className="inline-flex items-center gap-2 px-5 py-2.5 sm:px-6 sm:py-3 md:px-8 md:py-4 bg-[#ffeee8] text-stone-800 text-xs sm:text-sm md:text-base font-bold uppercase tracking-wide rounded-full shadow-lg hover:bg-[#ffe0d1] hover:scale-105 transition-all duration-300 border-2 border-stone-800"
+          style={{ fontFamily: 'var(--font-mossy), cursive' }}
         >
           Book A Class
         </Link>
