@@ -50,14 +50,14 @@ interface ExtraItem {
 }
 
 // Category type
-type CategoryType = "birthdays" | "classics" | "monthly" | "mommy_me";
+type CategoryType = "classics" | "monthly" | "mommy_me" | "birthdays";
 
-// Category configuration with min guests
+// Category configuration with min guests - Birthdays last
 const categoryConfig: Record<CategoryType, { label: string; emoji: string; minGuests: number; maxGuests: number; description: string }> = {
-  birthdays: { label: "Birthdays", emoji: "🎂", minGuests: 6, maxGuests: 35, description: "2-hour private birthday cooking experience" },
   classics: { label: "Our Classics", emoji: "🍭", minGuests: 1, maxGuests: 35, description: "Fun cooking classes for kids" },
   monthly: { label: "Monthly Specials", emoji: "🌟", minGuests: 1, maxGuests: 35, description: "Seasonal rotating menus" },
   mommy_me: { label: "Mommy & Me", emoji: "👩‍👧", minGuests: 1, maxGuests: 20, description: "Mom and kid share their own station" },
+  birthdays: { label: "Birthdays", emoji: "🎂", minGuests: 6, maxGuests: 35, description: "2-hour private birthday cooking experience" },
 };
 
 // Birthday Menus (min 6 kids)
@@ -206,7 +206,7 @@ export default function MiniChefPage() {
   const [step, setStep] = useState(1);
   
   // Category and menu selection
-  const [activeCategory, setActiveCategory] = useState<CategoryType>("birthdays");
+  const [activeCategory, setActiveCategory] = useState<CategoryType>("classics");
   const [selectedMenu, setSelectedMenu] = useState<MenuItem | null>(null);
   const [guestCount, setGuestCount] = useState(6);
   
@@ -475,27 +475,6 @@ export default function MiniChefPage() {
                 >
                   {categoryConfig[cat].emoji} {categoryConfig[cat].label}
                 </button>
-              ))}
-            </div>
-
-            {/* Step Indicator - AFTER Categories */}
-            <div className="flex items-center gap-2 flex-wrap">
-              {Array.from({ length: maxStep }, (_, i) => i + 1).map((s) => (
-                <div key={s} className="flex items-center gap-2">
-                  <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                      step >= s
-                        ? "bg-[#f5e6dc] text-stone-800 border border-stone-300"
-                        : "bg-stone-200 text-stone-500"
-                    }`}
-                  >
-                    {step > s ? <Check className="h-4 w-4" /> : s}
-                  </div>
-                  <span className={`text-sm hidden sm:inline ${step >= s ? "text-stone-900" : "text-stone-400"}`}>
-                    {stepLabels[s as keyof typeof stepLabels]}
-                  </span>
-                  {s < maxStep && <div className="w-4 sm:w-8 h-0.5 bg-stone-200" />}
-                </div>
               ))}
             </div>
 
@@ -874,57 +853,66 @@ export default function MiniChefPage() {
                   
                   {selectedMenu ? (
                     <div className="space-y-4">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-stone-600">{selectedMenu.name}</span>
-                        <span>AED {selectedMenu.price} × {guestCount}</span>
+                      {/* Simple summary for all steps */}
+                      <div className="text-sm text-stone-600">
+                        {selectedMenu.name} • {guestCount} guests
                       </div>
-                      <div className="flex justify-between text-sm font-medium">
-                        <span>Subtotal</span>
-                        <span>AED {calculateBaseAmount()}</span>
+                      <div className="flex justify-between text-lg font-bold">
+                        <span>Total</span>
+                        <span>AED {totalAmount}</span>
                       </div>
 
-                      {calculateExtrasTotal() > 0 && (
+                      {/* Full details only on final step */}
+                      {step === maxStep && (
                         <>
-                          <div className="border-t pt-3">
-                            <p className="text-sm text-stone-500 mb-2">Extras:</p>
-                            {Object.entries(selectedExtras).map(([id, qty]) => {
-                              if (qty === 0) return null;
-                              const extra = birthdayExtras.find(e => e.id === id);
-                              if (!extra) return null;
-                              return (
-                                <div key={id} className="flex justify-between text-sm">
-                                  <span className="text-stone-600">{extra.name} × {qty}</span>
-                                  <span>AED {extra.price * qty}</span>
+                          <div className="border-t pt-3 space-y-2">
+                            <div className="flex justify-between text-sm">
+                              <span className="text-stone-600">{selectedMenu.name}</span>
+                              <span>AED {selectedMenu.price} × {guestCount}</span>
+                            </div>
+                            <div className="flex justify-between text-sm font-medium">
+                              <span>Subtotal</span>
+                              <span>AED {calculateBaseAmount()}</span>
+                            </div>
+
+                            {calculateExtrasTotal() > 0 && (
+                              <>
+                                <div className="border-t pt-2 mt-2">
+                                  <p className="text-sm text-stone-500 mb-2">Extras:</p>
+                                  {Object.entries(selectedExtras).map(([id, qty]) => {
+                                    if (qty === 0) return null;
+                                    const extra = birthdayExtras.find(e => e.id === id);
+                                    if (!extra) return null;
+                                    return (
+                                      <div key={id} className="flex justify-between text-sm">
+                                        <span className="text-stone-600">{extra.name} × {qty}</span>
+                                        <span>AED {extra.price * qty}</span>
+                                      </div>
+                                    );
+                                  })}
                                 </div>
-                              );
-                            })}
+                                <div className="flex justify-between text-sm">
+                                  <span>Extras Total</span>
+                                  <span>AED {calculateExtrasTotal()}</span>
+                                </div>
+                              </>
+                            )}
                           </div>
-                          <div className="flex justify-between text-sm">
-                            <span>Extras Total</span>
-                            <span>AED {calculateExtrasTotal()}</span>
-                          </div>
+                          
+                          {requiresDeposit && (
+                            <div className="border-t pt-3 space-y-1 text-sm">
+                              <div className="flex justify-between text-amber-700 font-medium">
+                                <span>Due Now (50%)</span>
+                                <span>AED {depositAmount}</span>
+                              </div>
+                              <div className="flex justify-between text-stone-500">
+                                <span>Balance Due (48hrs before event)</span>
+                                <span>AED {balanceAmount}</span>
+                              </div>
+                            </div>
+                          )}
                         </>
                       )}
-
-                      <div className="border-t pt-3">
-                        <div className="flex justify-between text-lg font-bold">
-                          <span>Total</span>
-                          <span>AED {totalAmount}</span>
-                        </div>
-                        
-                        {requiresDeposit && (
-                          <div className="mt-3 space-y-1 text-sm">
-                            <div className="flex justify-between text-amber-700 font-medium">
-                              <span>Due Now (50%)</span>
-                              <span>AED {depositAmount}</span>
-                            </div>
-                            <div className="flex justify-between text-stone-500">
-                              <span>Balance Due Later</span>
-                              <span>AED {balanceAmount}</span>
-                            </div>
-                          </div>
-                        )}
-                      </div>
                     </div>
                   ) : (
                     <p className="text-stone-500 text-sm">Select a menu to see pricing</p>

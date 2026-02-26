@@ -590,35 +590,6 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-8">
-            {/* Step Indicator */}
-            {!isWalkin && (
-              <div className="flex items-center gap-2 flex-wrap">
-                {(hasExtras ? [1, 2, 3, 4] : [1, 2, 3]).map((s) => {
-                  const stepLabels = hasExtras 
-                    ? { 1: "Package", 2: "Customize", 3: "Details", 4: "Confirm" }
-                    : { 1: "Package", 2: "Details", 3: "Confirm" };
-                  const maxStep = hasExtras ? 4 : 3;
-                  return (
-                    <div key={s} className="flex items-center gap-2">
-                      <div
-                        className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                          step >= s
-                            ? "bg-[#f5e6dc] text-stone-800 border border-stone-300"
-                            : "bg-stone-200 text-stone-500"
-                        }`}
-                      >
-                        {step > s ? <Check className="h-4 w-4" /> : s}
-                      </div>
-                      <span className={`text-sm hidden sm:inline ${step >= s ? "text-stone-900" : "text-stone-400"}`}>
-                        {stepLabels[s as keyof typeof stepLabels]}
-                      </span>
-                      {s < maxStep && <div className="w-4 sm:w-8 h-0.5 bg-stone-200" />}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
             {/* Step 1: Menu Selection (Corporate) */}
             {isCorporate && step === 1 && (
               <div className="space-y-6">

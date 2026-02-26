@@ -254,15 +254,6 @@ export default function BigChefPage() {
                 <button key={cat} onClick={() => setActiveCategory(cat)} className={`px-4 py-2 rounded-full font-medium transition-all text-sm ${activeCategory === cat ? "bg-[#f5e6dc] text-stone-800 border border-stone-300 shadow-md" : "text-stone-600 hover:bg-stone-200"}`}>{categoryConfig[cat].emoji} {categoryConfig[cat].label}</button>
               ))}
             </div>
-            <div className="flex items-center gap-2 flex-wrap">
-              {Array.from({ length: maxStep }, (_, i) => i + 1).map(s => (
-                <div key={s} className="flex items-center gap-2">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${step >= s ? "bg-[#f5e6dc] text-stone-800 border border-stone-300" : "bg-stone-200 text-stone-500"}`}>{step > s ? <Check className="h-4 w-4" /> : s}</div>
-                  <span className={`text-sm hidden sm:inline ${step >= s ? "text-stone-900" : "text-stone-400"}`}>{stepLabels[s as keyof typeof stepLabels]}</span>
-                  {s < maxStep && <div className="w-4 sm:w-8 h-0.5 bg-stone-200" />}
-                </div>
-              ))}
-            </div>
             {step === 1 && (
               <div className="space-y-6">
                 <div>
@@ -380,9 +371,15 @@ export default function BigChefPage() {
                 <h3 className="font-bold text-lg text-stone-900 mb-4">Order Summary</h3>
                 {(selectedMenu || (isNanny && selectedNannyMenus.length > 0)) ? (
                   <div className="space-y-4">
-                    {isNanny ? <><div className="text-sm text-stone-600">Nanny Class (4 Sessions)</div>{selectedNannyMenus.map(m => <div key={m.id} className="text-sm text-stone-500 pl-2">• {m.name}</div>)}<div className="flex justify-between text-sm font-medium pt-2 border-t"><span>Package Price</span><span>AED 1,200</span></div></> : <><div className="flex justify-between text-sm"><span className="text-stone-600">{selectedMenu?.name}</span><span>AED {selectedMenu?.price} × {guestCount}</span></div><div className="flex justify-between text-sm font-medium"><span>Subtotal</span><span>AED {baseAmount}</span></div></>}
-                    {extrasTotal > 0 && <><div className="border-t pt-3"><p className="text-sm text-stone-500 mb-2">Extras:</p>{Object.entries(selectedExtras).map(([id, qty]) => { if (qty === 0) return null; const e = corporateExtras.find(x => x.id === id); if (!e) return null; return <div key={id} className="flex justify-between text-sm"><span>{e.name} × {qty}</span><span>AED {e.price * qty}</span></div>; })}</div><div className="flex justify-between text-sm"><span>Extras Total</span><span>AED {extrasTotal}</span></div></>}
-                    <div className="border-t pt-3"><div className="flex justify-between text-lg font-bold"><span>Total</span><span>AED {totalAmount}</span></div>{requiresDeposit && <div className="mt-3 space-y-1 text-sm"><div className="flex justify-between text-amber-700 font-medium"><span>Due Now (50%)</span><span>AED {depositAmount}</span></div><div className="flex justify-between text-stone-500"><span>Balance Due Later</span><span>AED {balanceAmount}</span></div></div>}</div>
+                    {/* Simple summary */}
+                    <div className="text-sm text-stone-600">{isNanny ? `Nanny Class • ${selectedNannyMenus.length}/4 menus` : `${selectedMenu?.name} • ${guestCount} guests`}</div>
+                    <div className="flex justify-between text-lg font-bold"><span>Total</span><span>AED {totalAmount}</span></div>
+                    {/* Full details only on final step */}
+                    {step === maxStep && (<>
+                      {isNanny ? <div className="border-t pt-3"><div className="text-sm text-stone-600 mb-2">Selected Menus:</div>{selectedNannyMenus.map(m => <div key={m.id} className="text-sm text-stone-500 pl-2">• {m.name}</div>)}<div className="flex justify-between text-sm font-medium pt-2 border-t"><span>Package Price</span><span>AED 1,200</span></div></div> : <div className="border-t pt-3 space-y-2"><div className="flex justify-between text-sm"><span className="text-stone-600">{selectedMenu?.name}</span><span>AED {selectedMenu?.price} × {guestCount}</span></div><div className="flex justify-between text-sm font-medium"><span>Subtotal</span><span>AED {baseAmount}</span></div></div>}
+                      {extrasTotal > 0 && <><div className="border-t pt-3"><p className="text-sm text-stone-500 mb-2">Extras:</p>{Object.entries(selectedExtras).map(([id, qty]) => { if (qty === 0) return null; const e = corporateExtras.find(x => x.id === id); if (!e) return null; return <div key={id} className="flex justify-between text-sm"><span>{e.name} × {qty}</span><span>AED {e.price * qty}</span></div>; })}</div><div className="flex justify-between text-sm"><span>Extras Total</span><span>AED {extrasTotal}</span></div></>}
+                      {requiresDeposit && <div className="border-t pt-3 space-y-1 text-sm"><div className="flex justify-between text-amber-700 font-medium"><span>Due Now (50%)</span><span>AED {depositAmount}</span></div><div className="flex justify-between text-stone-500"><span>Balance Due (48hrs before event)</span><span>AED {balanceAmount}</span></div></div>}
+                    </>)}
                   </div>
                 ) : <p className="text-stone-500 text-sm">Select a menu to see pricing</p>}
                 {/* Navigation Buttons */}
