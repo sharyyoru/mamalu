@@ -286,32 +286,30 @@ export function Header() {
           </div>
         </div>
 
-        {/* Decorative floating GIFs - 2.5x bigger, closer to center, visible on all screens */}
+        {/* Decorative floating doodles - visible on all screens */}
         <div className={cn(
-          "absolute top-1/2 -translate-y-1/2 left-[10%] md:left-[15%] lg:left-[20%] w-24 h-24 md:w-48 md:h-48 lg:w-56 lg:h-56 transition-all duration-700 delay-500 pointer-events-none",
-          menuOpen ? "opacity-70 translate-x-0" : "opacity-0 -translate-x-12"
+          "absolute top-1/2 -translate-y-1/2 left-[10%] md:left-[15%] lg:left-[20%] w-24 h-24 md:w-40 md:h-40 lg:w-48 lg:h-48 transition-all duration-700 delay-500 pointer-events-none",
+          menuOpen ? "opacity-80 translate-x-0" : "opacity-0 -translate-x-12"
         )}>
           <Image 
-            src="/graphics/happy-kids.gif" 
+            src="/images/gloves-01.png" 
             alt="" 
-            width={224}
-            height={224}
+            width={192}
+            height={192}
             className="w-full h-full object-contain"
-            unoptimized
           />
         </div>
         
         <div className={cn(
-          "absolute top-1/2 -translate-y-1/2 right-[10%] md:right-[15%] lg:right-[20%] w-24 h-24 md:w-48 md:h-48 lg:w-56 lg:h-56 transition-all duration-700 delay-600 pointer-events-none",
-          menuOpen ? "opacity-70 translate-x-0" : "opacity-0 translate-x-12"
+          "absolute top-1/2 -translate-y-1/2 right-[10%] md:right-[15%] lg:right-[20%] w-24 h-24 md:w-40 md:h-40 lg:w-48 lg:h-48 transition-all duration-700 delay-600 pointer-events-none",
+          menuOpen ? "opacity-80 translate-x-0" : "opacity-0 translate-x-12"
         )}>
           <Image 
-            src="/graphics/classes.gif" 
+            src="/images/rolling pin-01.png" 
             alt="" 
-            width={224}
-            height={224}
+            width={192}
+            height={192}
             className="w-full h-full object-contain"
-            unoptimized
           />
         </div>
       </div>
