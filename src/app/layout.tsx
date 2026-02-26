@@ -3,7 +3,6 @@ import { headers } from "next/headers";
 import { Geist, Geist_Mono, Poppins } from "next/font/google";
 import localFont from "next/font/local";
 import { Header, Footer } from "@/components/layout";
-import { SocialSidebar } from "@/components/layout/SocialSidebar";
 import { WalkInButton } from "@/components/layout/WalkInButton";
 import LoadingScreen from "@/components/layout/LoadingScreen";
 import "./globals.css";
@@ -72,12 +71,7 @@ export default async function RootLayout({
         {!isAdminOrStudio && <Header />}
         <main className="flex-1 pt-32 lg:pt-36">{children}</main>
         {!isAdminOrStudio && <Footer />}
-        {!isAdminOrStudio && (
-          <>
-            <SocialSidebar />
-            <WalkInButton />
-          </>
-        )}
+        {!isAdminOrStudio && <WalkInButton />}
       </body>
     </html>
   );

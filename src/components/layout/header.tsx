@@ -3,13 +3,19 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect } from "react";
-import { X } from "lucide-react";
+import { X, Instagram, Facebook, Youtube } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
   { name: "Mini Chef", href: "/minichef" },
   { name: "Big Chef", href: "/bigchef" },
   { name: "Rentals", href: "/book/rentals" },
+];
+
+const socialLinks = [
+  { name: "Instagram", href: "https://www.instagram.com/mamalukitchen/", icon: Instagram },
+  { name: "Facebook", href: "https://www.facebook.com/MAMALUSKITCHEN/", icon: Facebook },
+  { name: "YouTube", href: "https://www.youtube.com/channel/UCBmhc9N-9imnv_CAITvp6oA", icon: Youtube },
 ];
 
 export function Header() {
@@ -90,6 +96,22 @@ export function Header() {
                   )}
                 </div>
               ))}
+              {/* Social Links */}
+              <div className="w-px h-5 bg-[var(--c-black)]/20" />
+              <div className="flex items-center gap-3">
+                {socialLinks.map((social) => (
+                  <a
+                    key={social.name}
+                    href={social.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center text-stone-600 hover:bg-[#ff8c6b] hover:text-white transition-all"
+                  >
+                    <social.icon className="h-4 w-4" />
+                    <span className="sr-only">{social.name}</span>
+                  </a>
+                ))}
+              </div>
             </div>
 
             {/* Mobile: Menu button on left (hidden on desktop, hidden on scroll) */}
@@ -185,7 +207,7 @@ export function Header() {
         {/* White Background */}
         <div 
           className={cn(
-            "absolute inset-0 bg-white transition-transform duration-700 ease-out",
+            "absolute inset-0 bg-[#fff5eb] transition-transform duration-700 ease-out",
             menuOpen ? "translate-y-0" : "-translate-y-full"
           )}
         />
@@ -240,14 +262,20 @@ export function Header() {
             ))}
           </div>
 
-          {/* Bottom Info - Contact details */}
-          <div className="flex items-center justify-between px-6 lg:px-12 py-6 text-sm">
-            <a href="tel:+971585003031" className="text-[var(--c-black)] hover:text-[var(--c-peach-dark)] transition-colors">
-              +971 58 500 3031
-            </a>
-            <a href="mailto:info@mamalukitchen.com" className="text-[var(--c-black)] hover:text-[var(--c-peach-dark)] transition-colors">
-              info@mamalukitchen.com
-            </a>
+          {/* Social Links */}
+          <div className="flex items-center justify-center gap-6 py-6">
+            {socialLinks.map((social) => (
+              <a
+                key={social.name}
+                href={social.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-12 h-12 rounded-full bg-stone-200 flex items-center justify-center text-stone-700 hover:bg-[#ff8c6b] hover:text-white transition-all hover:scale-110"
+              >
+                <social.icon className="h-6 w-6" />
+                <span className="sr-only">{social.name}</span>
+              </a>
+            ))}
           </div>
         </div>
 
