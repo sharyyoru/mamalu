@@ -12,8 +12,8 @@ export function WalkInButton() {
         <div className="bg-white rounded-2xl shadow-2xl border border-stone-200 p-5 w-72 animate-in slide-in-from-bottom-2 fade-in duration-200">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <ChefHat className="h-5 w-5 text-amber-600" />
-              <h3 className="font-bold text-stone-900">Walk-In Customers</h3>
+              <ChefHat className="h-5 w-5 text-stone-800" />
+              <h3 className="font-bold text-stone-900" style={{ fontFamily: 'var(--font-mossy), cursive' }}>Walk-In Customers</h3>
             </div>
             <button
               onClick={() => setExpanded(false)}
@@ -22,7 +22,7 @@ export function WalkInButton() {
               <X className="h-4 w-4" />
             </button>
           </div>
-          <p className="text-sm text-stone-600 mb-4">
+          <p className="text-sm text-stone-600 mb-4 leading-relaxed" style={{ fontFamily: 'var(--font-mossy), cursive' }}>
             Feeling spontaneous? Contact us on WhatsApp to check our last-minute availability!
           </p>
           <a
@@ -30,6 +30,7 @@ export function WalkInButton() {
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center justify-center gap-2 w-full bg-green-500 hover:bg-green-600 text-white font-medium py-3 px-4 rounded-xl transition-colors"
+            style={{ fontFamily: 'var(--font-mossy), cursive' }}
           >
             <MessageCircle className="h-4 w-4" />
             Chat on WhatsApp
@@ -38,7 +39,7 @@ export function WalkInButton() {
       )}
       <button
         onClick={() => setExpanded(!expanded)}
-        className="w-16 h-16 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-110 animate-bounce"
+        className="w-16 h-16 bg-[#fff5eb] hover:bg-[#ffe8d9] text-stone-800 rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-110 animate-bounce border-2 border-stone-300"
         style={{ animationDuration: "2s" }}
         aria-label="Walk-in Customers"
       >
