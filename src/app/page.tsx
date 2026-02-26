@@ -113,11 +113,11 @@ export default function HomePage() {
       </section>
 
       {/* Services Section - 3 boxes with image backgrounds and circles */}
-      <section className="py-8 md:py-12 bg-white">
+      <section className="py-5 md:py-12 bg-white">
         <div className="container mx-auto px-0">
           <div className="grid grid-cols-3">
             {/* Mini Chef */}
-            <Link href="/minichef" className="group relative aspect-[4/3] md:aspect-[3/2] block overflow-hidden">
+            <Link href="/minichef" className="group relative aspect-[3/4] sm:aspect-square md:aspect-[3/2] block overflow-hidden">
               <Image
                 src="/images/taco tuesday.jpg"
                 alt="Mini Chef"
@@ -137,7 +137,7 @@ export default function HomePage() {
             </Link>
 
             {/* Big Chef */}
-            <Link href="/bigchef" className="group relative aspect-[4/3] md:aspect-[3/2] block overflow-hidden">
+            <Link href="/bigchef" className="group relative aspect-[3/4] sm:aspect-square md:aspect-[3/2] block overflow-hidden">
               <Image
                 src="/images/File_000-2_edited.jpg"
                 alt="Big Chef"
@@ -157,7 +157,7 @@ export default function HomePage() {
             </Link>
 
             {/* Rentals */}
-            <Link href="/book/rentals" className="group relative aspect-[4/3] md:aspect-[3/2] block overflow-hidden">
+            <Link href="/book/rentals" className="group relative aspect-[3/4] sm:aspect-square md:aspect-[3/2] block overflow-hidden">
               <Image
                 src="/images/_C3A0998.JPG"
                 alt="Kitchen Rentals"
