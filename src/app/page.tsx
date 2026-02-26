@@ -243,7 +243,7 @@ export default function HomePage() {
               <p className="text-base md:text-lg lg:text-xl text-black mb-6 md:mb-8 leading-relaxed" style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 700 }}>
                 Mamalu Kitchen is creating a cooking movement under the slogan <span className="text-black" style={{ fontWeight: 900 }}>#feedingfamilies</span>.
               </p>
-              <Link href="/about" className="inline-flex items-center gap-3 px-8 py-4 bg-stone-900 text-white rounded-full hover:bg-stone-800 transition-colors uppercase tracking-wider text-sm group w-fit mx-auto lg:mx-0" style={{ fontFamily: 'var(--font-mossy), cursive' }}>
+              <Link href="/about" className="inline-flex items-center gap-3 px-8 py-4 bg-[#f5e6dc] text-stone-800 border border-stone-300 rounded-full hover:bg-[#f0ddd0] transition-colors uppercase tracking-wider text-sm group w-fit mx-auto lg:mx-0" style={{ fontFamily: 'var(--font-mossy), cursive' }}>
                 <span>Our Story</span>
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
