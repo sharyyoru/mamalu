@@ -450,8 +450,8 @@ export default function MiniChefPage() {
               className="bg-stone-800 hover:bg-stone-900 text-white text-sm px-4 py-1.5 rounded-full transition-colors flex items-center gap-1.5"
               style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 900 }}
             >
-              <MessageCircle className="h-3.5 w-3.5" />
-              WhatsApp Us
+              <MessageCircle className="h-3.5 w-3.5 text-white" />
+              <span className="text-white">WhatsApp Us</span>
             </a>
           </div>
         </div>

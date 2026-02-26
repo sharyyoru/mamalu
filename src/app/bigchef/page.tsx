@@ -243,7 +243,7 @@ export default function BigChefPage() {
       <div className="bg-[#fff5eb]">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3 text-black"><ChefHat className="h-5 w-5" /><span className="text-sm text-black" style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 900 }}>Corporate Events Welcome!</span></div>
-          <a href="https://wa.me/971527479512" target="_blank" rel="noopener noreferrer" className="bg-stone-800 hover:bg-stone-900 text-white text-sm px-4 py-1.5 rounded-full flex items-center gap-1.5" style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 900 }}><MessageCircle className="h-3.5 w-3.5" />WhatsApp Us</a>
+          <a href="https://wa.me/971527479512" target="_blank" rel="noopener noreferrer" className="bg-stone-800 hover:bg-stone-900 text-white text-sm px-4 py-1.5 rounded-full flex items-center gap-1.5" style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 900 }}><MessageCircle className="h-3.5 w-3.5 text-white" /><span className="text-white">WhatsApp Us</span></a>
         </div>
       </div>
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
