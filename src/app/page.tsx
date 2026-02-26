@@ -112,92 +112,58 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Stats Section - mobile optimized with centered icons */}
-      <section className="-mt-4 md:-mt-8 py-6 md:py-8 bg-white relative z-20">
-        <div className="container mx-auto px-4 md:px-6 lg:px-8">
-          <div className="hero-stats grid grid-cols-3 gap-2 sm:gap-4 md:gap-16">
-            <div className="flex flex-col items-center text-center">
-              <div className="w-20 h-20 sm:w-28 sm:h-28 md:w-40 md:h-40 lg:w-52 lg:h-52 flex items-center justify-center mb-2 md:mb-3">
-                <Image 
-                  src="/graphics/happy-kids.gif"
-                  alt="Happy Kids"
-                  width={208}
-                  height={208}
-                  className="w-full h-full object-contain"
-                  unoptimized
-                />
-              </div>
-              <div className="font-bold text-[var(--c-black)] text-sm sm:text-base md:text-xl lg:text-3xl" style={{ fontFamily: 'var(--font-mossy), cursive' }}>Happy Kids</div>
-              <div className="text-sm sm:text-base md:text-lg lg:text-2xl text-[var(--c-gray)]" style={{ fontFamily: 'var(--font-mossy), cursive' }}>2000+</div>
-            </div>
-            <div className="flex flex-col items-center text-center">
-              <div className="w-20 h-20 sm:w-28 sm:h-28 md:w-40 md:h-40 lg:w-52 lg:h-52 flex items-center justify-center mb-2 md:mb-3">
-                <Image 
-                  src="/graphics/classes.gif"
-                  alt="Classes Held"
-                  width={208}
-                  height={208}
-                  className="w-full h-full object-contain"
-                  unoptimized
-                />
-              </div>
-              <div className="font-bold text-[var(--c-black)] text-sm sm:text-base md:text-xl lg:text-3xl" style={{ fontFamily: 'var(--font-mossy), cursive' }}>Classes Held</div>
-              <div className="text-sm sm:text-base md:text-lg lg:text-2xl text-[var(--c-gray)]" style={{ fontFamily: 'var(--font-mossy), cursive' }}>500+</div>
-            </div>
-            <div className="flex flex-col items-center text-center">
-              <div className="w-20 h-20 sm:w-28 sm:h-28 md:w-40 md:h-40 lg:w-52 lg:h-52 flex items-center justify-center mb-2 md:mb-3">
-                <Image 
-                  src="/graphics/reviews.gif"
-                  alt="Star Rating"
-                  width={208}
-                  height={208}
-                  className="w-full h-full object-contain"
-                  unoptimized
-                />
-              </div>
-              <div className="font-bold text-[var(--c-black)] text-sm sm:text-base md:text-xl lg:text-3xl" style={{ fontFamily: 'var(--font-mossy), cursive' }}>Star Rating</div>
-              <div className="text-sm sm:text-base md:text-lg lg:text-2xl text-[var(--c-gray)]" style={{ fontFamily: 'var(--font-mossy), cursive' }}>4.9</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-
-      {/* Class Categories Section */}
-      <section className="py-12 md:py-20 lg:py-28 bg-[var(--c-warm)]">
-        <div className="container px-4 md:px-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 lg:gap-12">
+      {/* Services Section - 3 boxes with image backgrounds and circles */}
+      <section className="py-8 md:py-12 bg-white">
+        <div className="container mx-auto px-0">
+          <div className="grid grid-cols-3">
             {/* Mini Chef */}
-            <Link href="/minichef" className="group relative overflow-hidden rounded-2xl md:rounded-3xl aspect-[16/10] md:aspect-[4/3] block">
+            <Link href="/minichef" className="group relative aspect-[4/3] md:aspect-[3/2] block overflow-hidden">
               <Image
                 src="/images/kids-classes.png"
-                alt="Mini Chef Classes"
+                alt="Mini Chef"
                 fill
                 className="object-cover transition-transform duration-700 group-hover:scale-105"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-              <div className="absolute bottom-4 left-4 right-4 md:bottom-6 md:left-6 md:right-6">
-                <h3 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl text-white font-bold" style={{ fontFamily: 'var(--font-mossy), cursive' }}>
-                  Mini Chef
-                </h3>
-                <p className="text-white/80 mt-1 md:mt-2 text-sm md:text-base">Fun cooking classes for kids</p>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 lg:w-48 lg:h-48 rounded-full bg-[#ffeee8] border-2 border-stone-800 flex items-center justify-center transition-transform duration-500 group-hover:scale-110">
+                  <span className="text-sm sm:text-base md:text-xl lg:text-2xl font-bold text-stone-800 uppercase tracking-wider" style={{ fontFamily: 'var(--font-mossy), cursive' }}>
+                    Mini Chef
+                  </span>
+                </div>
               </div>
             </Link>
-            
+
             {/* Big Chef */}
-            <Link href="/bigchef" className="group relative overflow-hidden rounded-2xl md:rounded-3xl aspect-[16/10] md:aspect-[4/3] block">
+            <Link href="/bigchef" className="group relative aspect-[4/3] md:aspect-[3/2] block overflow-hidden">
               <Image
                 src="/images/adult-classes.png"
-                alt="Big Chef Classes"
+                alt="Big Chef"
                 fill
                 className="object-cover transition-transform duration-700 group-hover:scale-105"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-              <div className="absolute bottom-4 left-4 right-4 md:bottom-6 md:left-6 md:right-6">
-                <h3 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl text-white font-bold" style={{ fontFamily: 'var(--font-mossy), cursive' }}>
-                  Big Chef
-                </h3>
-                <p className="text-white/80 mt-1 md:mt-2 text-sm md:text-base">Corporate events & nanny classes</p>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 lg:w-48 lg:h-48 rounded-full bg-[#ffeee8] border-2 border-stone-800 flex items-center justify-center transition-transform duration-500 group-hover:scale-110">
+                  <span className="text-sm sm:text-base md:text-xl lg:text-2xl font-bold text-stone-800 uppercase tracking-wider" style={{ fontFamily: 'var(--font-mossy), cursive' }}>
+                    Big Chef
+                  </span>
+                </div>
+              </div>
+            </Link>
+
+            {/* Rentals */}
+            <Link href="/book/rentals" className="group relative aspect-[4/3] md:aspect-[3/2] block overflow-hidden">
+              <Image
+                src="/images/Mamalou Kitchen - 101.jpg"
+                alt="Kitchen Rentals"
+                fill
+                className="object-cover transition-transform duration-700 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 lg:w-48 lg:h-48 rounded-full bg-[#ffeee8] border-2 border-stone-800 flex items-center justify-center transition-transform duration-500 group-hover:scale-110">
+                  <span className="text-sm sm:text-base md:text-xl lg:text-2xl font-bold text-stone-800 uppercase tracking-wider" style={{ fontFamily: 'var(--font-mossy), cursive' }}>
+                    Rentals
+                  </span>
+                </div>
               </div>
             </Link>
           </div>
