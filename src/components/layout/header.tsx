@@ -68,7 +68,7 @@ export function Header() {
         <nav className="container mx-auto px-6 lg:px-8">
           <div className={cn(
             "flex items-center justify-between relative transition-all duration-500",
-            scrolled ? "py-2" : "py-8"
+            scrolled ? "py-2" : "py-20"
           )}>
             
             {/* Left: Nav Links - Horizontal layout, 2x bigger text, line separators */}
@@ -108,8 +108,7 @@ export function Header() {
 
             {/* Center: Logo + Open Menu (on scroll) */}
             <div className={cn(
-              "absolute left-1/2 -translate-x-1/2 flex flex-col items-center transition-all duration-500 z-0",
-              scrolled ? "top-1" : "top-2"
+              "absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 flex flex-col items-center transition-all duration-500 z-0"
             )}>
               {/* White background on scroll - full width on mobile, rounded on desktop */}
               <div className={cn(
@@ -164,7 +163,7 @@ export function Header() {
                 <span className="text-[var(--c-black)] sm:hidden">{cartCount}</span>
                 <div className="w-6 h-6 sm:w-8 sm:h-8 relative">
                   <Image 
-                    src="/images/lunch-bag.png" 
+                    src="/recent/cart-icon.png" 
                     alt="Cart" 
                     fill 
                     className="object-contain"
