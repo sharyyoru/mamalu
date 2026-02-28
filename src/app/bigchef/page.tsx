@@ -16,11 +16,11 @@ interface MenuItem { id: string; name: string; price: number; image: string; dis
 interface ExtraItem { id: string; name: string; description: string; price: number; icon: any; category: string; }
 type CategoryType = "corporate" | "classics" | "monthly" | "nanny";
 
-const categoryConfig: Record<CategoryType, { label: string; emoji: string; minGuests: number; maxGuests: number; description: string }> = {
-  corporate: { label: "Corporate / Private", emoji: "🏢", minGuests: 6, maxGuests: 35, description: "2-hour hands-on cooking experience with professional chefs" },
-  classics: { label: "Our Classics", emoji: "🍝", minGuests: 1, maxGuests: 35, description: "Classic cooking experiences for groups" },
-  monthly: { label: "Monthly Specials", emoji: "🌟", minGuests: 1, maxGuests: 35, description: "Seasonal rotating menus" },
-  nanny: { label: "Nanny Class", emoji: "👩‍🍳", minGuests: 1, maxGuests: 10, description: "Mummy's Fabulous Helpers - Turn your housekeeper into a chef" },
+const categoryConfig: Record<CategoryType, { label: string; icon: string; minGuests: number; maxGuests: number; description: string }> = {
+  corporate: { label: "Corporate / Private", icon: "/image-updates/corporate.png", minGuests: 6, maxGuests: 35, description: "2-hour hands-on cooking experience with professional chefs" },
+  classics: { label: "Our Classics", icon: "/image-updates/our-classics.png", minGuests: 1, maxGuests: 35, description: "Classic cooking experiences for groups" },
+  monthly: { label: "Monthly Specials", icon: "/image-updates/monthly-specials.png", minGuests: 1, maxGuests: 35, description: "Seasonal rotating menus" },
+  nanny: { label: "Nanny Class", icon: "/image-updates/nanny-class.png", minGuests: 1, maxGuests: 10, description: "Mummy's Fabulous Helpers - Turn your housekeeper into a chef" },
 };
 
 const corporateMenus: MenuItem[] = [
@@ -251,7 +251,7 @@ export default function BigChefPage() {
           <div className="lg:col-span-2 space-y-6">
             <div className="flex flex-wrap gap-2 p-1 bg-stone-100 rounded-full">
               {(Object.keys(categoryConfig) as CategoryType[]).map(cat => (
-                <button key={cat} onClick={() => setActiveCategory(cat)} className={`px-4 py-2 rounded-full font-medium transition-all text-sm ${activeCategory === cat ? "bg-[#f5e6dc] text-stone-800 border border-stone-300 shadow-md" : "text-stone-600 hover:bg-stone-200"}`}>{categoryConfig[cat].emoji} {categoryConfig[cat].label}</button>
+                <button key={cat} onClick={() => setActiveCategory(cat)} className={`px-4 py-2 rounded-full font-medium transition-all text-sm flex items-center gap-1 ${activeCategory === cat ? "bg-[#f5e6dc] text-stone-800 border border-stone-300 shadow-md" : "text-stone-600 hover:bg-stone-200"}`}><Image src={categoryConfig[cat].icon} alt="" width={20} height={20} /> {categoryConfig[cat].label}</button>
               ))}
             </div>
             {step === 1 && (

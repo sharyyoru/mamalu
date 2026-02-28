@@ -21,7 +21,7 @@ const rentalOptions: RentalOption[] = [
     duration: "8 hours",
     price: 5000,
     description: "Complete access to our professional kitchen studio for a full day of cooking, filming, or events.",
-    icon: "☀️",
+    icon: "/image-updates/kitchen-01.png",
   },
   {
     id: "half-day",
@@ -29,7 +29,7 @@ const rentalOptions: RentalOption[] = [
     duration: "4 hours",
     price: 2500,
     description: "Perfect for shorter sessions, workshops, or intimate cooking events.",
-    icon: "🌤",
+    icon: "/image-updates/kitchen-02.png",
   },
 ];
 
@@ -151,7 +151,7 @@ export default function RentalsPage() {
             Back to Booking
           </button>
           <h1 className="text-4xl md:text-5xl font-bold mb-4" style={{ fontFamily: 'var(--font-mossy), cursive' }}>
-            KITCHEN STUDIO RENTAL 🍳
+            KITCHEN STUDIO RENTAL <Image src="/image-updates/kitchen-03.png" alt="" width={40} height={40} className="inline-block ml-2" />
           </h1>
           <p className="text-lg text-gray-600 max-w-2xl">
             Rent our fully-equipped professional kitchen for your cooking sessions, content creation, private events, or corporate team building.
@@ -177,7 +177,7 @@ export default function RentalsPage() {
                         : "border-gray-200 hover:border-gray-300"
                     }`}
                   >
-                    <span className="text-3xl mb-3 block">{option.icon}</span>
+                    <Image src={option.icon} alt="" width={48} height={48} className="mb-3" />
                     <h3 className="text-xl font-bold mb-1">{option.name}</h3>
                     <div className="flex items-center gap-2 text-gray-600 mb-3">
                       <Clock className="w-4 h-4" />

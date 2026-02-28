@@ -53,11 +53,11 @@ interface ExtraItem {
 type CategoryType = "classics" | "monthly" | "mommy_me" | "birthdays";
 
 // Category configuration with min guests - Birthdays last
-const categoryConfig: Record<CategoryType, { label: string; emoji: string; minGuests: number; maxGuests: number; description: string }> = {
-  classics: { label: "Our Classics", emoji: "🍭", minGuests: 1, maxGuests: 35, description: "Fun cooking classes for kids" },
-  monthly: { label: "Monthly Specials", emoji: "🌟", minGuests: 1, maxGuests: 35, description: "Seasonal rotating menus" },
-  mommy_me: { label: "Mommy & Me", emoji: "👩‍👧", minGuests: 1, maxGuests: 20, description: "Mom and kid share their own station" },
-  birthdays: { label: "Birthdays", emoji: "🎂", minGuests: 6, maxGuests: 35, description: "2-hour private birthday cooking experience" },
+const categoryConfig: Record<CategoryType, { label: string; icon: string; minGuests: number; maxGuests: number; description: string }> = {
+  classics: { label: "Our Classics", icon: "/image-updates/mini-our-classics.png", minGuests: 1, maxGuests: 35, description: "Fun cooking classes for kids" },
+  monthly: { label: "Monthly Specials", icon: "/image-updates/mini-monthly-specials.png", minGuests: 1, maxGuests: 35, description: "Seasonal rotating menus" },
+  mommy_me: { label: "Mommy & Me", icon: "/image-updates/mommy-and-me.png", minGuests: 1, maxGuests: 20, description: "Mom and kid share their own station" },
+  birthdays: { label: "Birthdays", icon: "/image-updates/birthdays.png", minGuests: 6, maxGuests: 35, description: "2-hour private birthday cooking experience" },
 };
 
 // Birthday Menus (min 6 kids)
@@ -473,7 +473,7 @@ export default function MiniChefPage() {
                       : "text-stone-600 hover:bg-stone-200"
                   }`}
                 >
-                  {categoryConfig[cat].emoji} {categoryConfig[cat].label}
+                  <Image src={categoryConfig[cat].icon} alt="" width={20} height={20} className="inline-block mr-1" /> {categoryConfig[cat].label}
                 </button>
               ))}
             </div>
