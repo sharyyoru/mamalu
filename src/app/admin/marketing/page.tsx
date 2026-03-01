@@ -171,6 +171,9 @@ export default function MarketingPage() {
     first_order_only: false,
   });
   const [editingDiscount, setEditingDiscount] = useState<Discount | null>(null);
+  const [successModal, setSuccessModal] = useState<{ show: boolean; title: string; message: string }>({ show: false, title: "", message: "" });
+  const [sendModal, setSendModal] = useState<{ show: boolean; campaign: Campaign | null }>({ show: false, campaign: null });
+  const [sendingCampaign, setSendingCampaign] = useState(false);
 
   const fetchCampaigns = useCallback(async () => {
     try {
@@ -313,11 +316,13 @@ export default function MarketingPage() {
         setCampaignName("");
         setEmailSubject("");
         setEmailDesign(null);
-        alert("Campaign created successfully!");
+        setSuccessModal({ show: true, title: "Campaign Saved!", message: "Your campaign has been saved as a draft. You can now send it from the campaigns list." });
+      } else {
+        setSuccessModal({ show: true, title: "Error", message: data.error || "Failed to create campaign" });
       }
     } catch (error) {
       console.error("Error creating campaign:", error);
-      alert("Failed to create campaign");
+      setSuccessModal({ show: true, title: "Error", message: "Failed to create campaign" });
     }
     setSending(false);
   };
@@ -393,6 +398,53 @@ export default function MarketingPage() {
     setSending(false);
   };
 
+  const handleSendCampaign = async (campaignId: string, sendToAll: boolean) => {
+    setSendingCampaign(true);
+    try {
+      const res = await fetch("/api/admin/marketing/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ campaignId, sendToAll }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        await fetchCampaigns();
+        setSendModal({ show: false, campaign: null });
+        setSuccessModal({ 
+          show: true, 
+          title: "Campaign Sent!", 
+          message: `Successfully sent to ${data.sent} recipients. ${data.failed > 0 ? `${data.failed} failed.` : ''}` 
+        });
+      } else {
+        setSuccessModal({ show: true, title: "Error", message: data.error || "Failed to send campaign" });
+      }
+    } catch (error) {
+      console.error("Error sending campaign:", error);
+      setSuccessModal({ show: true, title: "Error", message: "Failed to send campaign" });
+    }
+    setSendingCampaign(false);
+  };
+
+  const handleTestSendCampaign = async (campaignId: string, email: string) => {
+    setSendingCampaign(true);
+    try {
+      const res = await fetch("/api/admin/marketing/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ campaignId, testEmail: email, sendTest: true }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSuccessModal({ show: true, title: "Test Sent!", message: `Test email sent to ${email}` });
+      } else {
+        setSuccessModal({ show: true, title: "Error", message: data.error || "Failed to send test" });
+      }
+    } catch (error) {
+      setSuccessModal({ show: true, title: "Error", message: "Failed to send test email" });
+    }
+    setSendingCampaign(false);
+  };
+
   const stats = [
     { label: 'Active Campaigns', value: campaigns.filter(c => c.status === 'active').length.toString(), icon: Megaphone, color: 'from-violet-500 to-purple-600' },
     { label: 'Total Reach', value: campaigns.reduce((sum, c) => sum + c.total_sent, 0).toLocaleString(), icon: Users, color: 'from-emerald-500 to-teal-600' },
@@ -466,11 +518,14 @@ export default function MarketingPage() {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    {campaign.status === 'active' ? (
-                      <Button variant="outline" size="sm"><Pause className="h-4 w-4 mr-1" /> Pause</Button>
-                    ) : campaign.status === 'scheduled' ? (
-                      <Button variant="outline" size="sm"><Play className="h-4 w-4 mr-1" /> Start</Button>
-                    ) : null}
+                    {campaign.status === 'draft' && (
+                      <Button size="sm" onClick={() => setSendModal({ show: true, campaign })}>
+                        <Send className="h-4 w-4 mr-1" /> Send
+                      </Button>
+                    )}
+                    {campaign.status === 'completed' && (
+                      <Badge className="bg-green-100 text-green-700">Sent</Badge>
+                    )}
                     <Button variant="ghost" size="sm"><BarChart3 className="h-4 w-4" /></Button>
                   </div>
                 </div>
@@ -867,6 +922,85 @@ export default function MarketingPage() {
                 {sending ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : <Check className="h-4 w-4 mr-2" />}
                 Save Changes
               </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Success Modal */}
+      {successModal.show && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 text-center">
+            <div className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 ${successModal.title.includes('Error') ? 'bg-red-100' : 'bg-green-100'}`}>
+              {successModal.title.includes('Error') ? (
+                <X className="h-8 w-8 text-red-600" />
+              ) : (
+                <Check className="h-8 w-8 text-green-600" />
+              )}
+            </div>
+            <h2 className="text-xl font-bold text-stone-900 mb-2">{successModal.title}</h2>
+            <p className="text-stone-600 mb-6">{successModal.message}</p>
+            <Button onClick={() => setSuccessModal({ show: false, title: "", message: "" })} className="w-full">
+              Close
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Send Campaign Modal */}
+      {sendModal.show && sendModal.campaign && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-lg w-full">
+            <div className="border-b border-stone-200 p-6 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-stone-900">Send Campaign</h2>
+              <Button variant="ghost" size="sm" onClick={() => setSendModal({ show: false, campaign: null })}>
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+            
+            <div className="p-6 space-y-6">
+              <div className="p-4 bg-amber-50 rounded-xl">
+                <p className="font-medium text-stone-900">{sendModal.campaign.name}</p>
+                <p className="text-sm text-stone-500 mt-1">Subject: {sendModal.campaign.subject}</p>
+              </div>
+
+              <div>
+                <h3 className="font-medium text-stone-900 mb-3">Send Test Email</h3>
+                <div className="flex gap-2">
+                  <input
+                    type="email"
+                    value={testEmail}
+                    onChange={(e) => setTestEmail(e.target.value)}
+                    placeholder="Enter test email address"
+                    className="flex-1 px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                  />
+                  <Button 
+                    variant="outline" 
+                    onClick={() => handleTestSendCampaign(sendModal.campaign!.id, testEmail)}
+                    disabled={!testEmail || sendingCampaign}
+                  >
+                    {sendingCampaign ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
+                  </Button>
+                </div>
+              </div>
+
+              <div className="border-t border-stone-200 pt-6">
+                <h3 className="font-medium text-stone-900 mb-3">Send to All Contacts</h3>
+                <p className="text-sm text-stone-500 mb-4">
+                  This will send the campaign to all subscribed contacts in your CRM ({audienceCount.toLocaleString()} contacts).
+                </p>
+                <Button 
+                  className="w-full" 
+                  onClick={() => handleSendCampaign(sendModal.campaign!.id, true)}
+                  disabled={sendingCampaign}
+                >
+                  {sendingCampaign ? (
+                    <><RefreshCw className="h-4 w-4 mr-2 animate-spin" /> Sending...</>
+                  ) : (
+                    <><Send className="h-4 w-4 mr-2" /> Send to All Contacts</>
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
         </div>

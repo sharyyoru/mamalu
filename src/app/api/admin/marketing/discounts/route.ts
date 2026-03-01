@@ -13,10 +13,7 @@ export async function GET(request: NextRequest) {
 
     let query = supabase
       .from("discount_codes")
-      .select(`
-        *,
-        usage:discount_usage(count)
-      `)
+      .select("*")
       .order("created_at", { ascending: false });
 
     if (status && status !== "all") {
