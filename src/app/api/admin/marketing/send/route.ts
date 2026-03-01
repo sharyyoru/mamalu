@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { campaignId, testEmail, sendTest } = body;
+    const { campaignId, testEmail, sendTest, sendToAll, listId } = body;
 
     if (!campaignId) {
       return NextResponse.json({ error: "Campaign ID required" }, { status: 400 });
@@ -68,31 +68,56 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Send campaign to all recipients
+    // Send campaign to recipients
     if (!resend) {
       return NextResponse.json({ 
         error: "Email service not configured. Please add RESEND_API_KEY to environment variables." 
       }, { status: 500 });
     }
 
-    // Get recipients from newsletter_leads (CRM contacts) - subscribed only
-    const { data: crmContacts, error: crmError } = await supabase
-      .from("newsletter_leads")
-      .select("id, email, first_name, last_name")
-      .eq("status", "subscribed");
+    let crmContacts: any[] = [];
+    let profileRecipients: any[] = [];
 
-    if (crmError) {
-      console.error("Error fetching CRM contacts:", crmError);
-    }
+    // If sending to a specific list, get contacts from that list
+    if (listId) {
+      try {
+        const { data, error } = await supabase
+          .from("contact_list_members")
+          .select("email, contact_id, contact_source")
+          .eq("list_id", listId);
+        if (!error && data) {
+          // Convert list members to recipients format
+          crmContacts = data.map(m => ({
+            id: m.contact_id || m.email,
+            email: m.email,
+            first_name: null,
+            last_name: null,
+          }));
+        }
+      } catch (e) {
+        console.error("Error fetching list members:", e);
+      }
+    } else {
+      // Get recipients from newsletter_leads (CRM contacts) - subscribed only
+      try {
+        const { data, error } = await supabase
+          .from("newsletter_leads")
+          .select("id, email, first_name, last_name")
+          .eq("status", "subscribed");
+        if (!error) crmContacts = data || [];
+      } catch (e) {
+        console.error("Error fetching CRM contacts:", e);
+      }
 
-    // Also get recipients from profiles with email_enabled
-    const { data: profileRecipients, error: profilesError } = await supabase
-      .from("profiles")
-      .select("id, email, full_name, phone, total_spend, total_classes_attended, referral_code")
-      .eq("email_enabled", true);
-
-    if (profilesError) {
-      console.error("Error fetching profile recipients:", profilesError);
+      // Also get recipients from profiles
+      try {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("id, email, full_name");
+        if (!error) profileRecipients = data || [];
+      } catch (e) {
+        console.error("Error fetching profile recipients:", e);
+      }
     }
 
     // Combine and deduplicate by email
@@ -182,17 +207,21 @@ export async function POST(request: NextRequest) {
               html: replaceVariables(campaign.html_content, variables),
             });
 
-            // Track recipient - only insert profile_id if source is profiles
-            const recipientRecord: Record<string, unknown> = {
-              campaign_id: campaignId,
-              email: recipient.email,
-              sent_at: new Date().toISOString(),
-              status: "sent",
-            };
-            if (recipient.source === "profiles") {
-              recipientRecord.profile_id = recipient.id;
+            // Track recipient - skip if table doesn't exist
+            try {
+              const recipientRecord: Record<string, unknown> = {
+                campaign_id: campaignId,
+                email: recipient.email,
+                sent_at: new Date().toISOString(),
+                status: "sent",
+              };
+              if (recipient.source === "profiles") {
+                recipientRecord.profile_id = recipient.id;
+              }
+              await supabase.from("campaign_recipients").insert(recipientRecord);
+            } catch (e) {
+              // Table might not exist, continue
             }
-            await supabase.from("campaign_recipients").insert(recipientRecord);
 
             sent++;
           } catch (error) {

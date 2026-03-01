@@ -118,6 +118,15 @@ interface TopReferrer {
   revenue: number;
 }
 
+interface ContactList {
+  id: string;
+  name: string;
+  description?: string;
+  color: string;
+  contact_count: number;
+  created_at: string;
+}
+
 const CUSTOMER_VARIABLES: CustomerVariable[] = [
   { name: "first_name", label: "First Name", example: "John" },
   { name: "full_name", label: "Full Name", example: "John Smith" },
@@ -141,7 +150,11 @@ const AUDIENCE_PRESETS = [
 
 
 export default function MarketingPage() {
-  const [tab, setTab] = useState<'campaigns' | 'discounts' | 'referrals'>('campaigns');
+  const [tab, setTab] = useState<'campaigns' | 'discounts' | 'referrals' | 'lists'>('campaigns');
+  const [lists, setLists] = useState<ContactList[]>([]);
+  const [showListModal, setShowListModal] = useState(false);
+  const [listForm, setListForm] = useState({ name: '', description: '', color: '#8B5CF6' });
+  const [selectedListId, setSelectedListId] = useState<string | null>(null);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [discounts, setDiscounts] = useState<Discount[]>([]);
   const [loading, setLoading] = useState(true);
@@ -174,6 +187,7 @@ export default function MarketingPage() {
   const [successModal, setSuccessModal] = useState<{ show: boolean; title: string; message: string }>({ show: false, title: "", message: "" });
   const [sendModal, setSendModal] = useState<{ show: boolean; campaign: Campaign | null }>({ show: false, campaign: null });
   const [sendingCampaign, setSendingCampaign] = useState(false);
+  const [sendTarget, setSendTarget] = useState<'all' | 'list'>('all');
 
   const fetchCampaigns = useCallback(async () => {
     try {
@@ -215,6 +229,16 @@ export default function MarketingPage() {
     }
   }, []);
 
+  const fetchLists = useCallback(async () => {
+    try {
+      const res = await fetch("/api/admin/marketing/lists");
+      const data = await res.json();
+      setLists(data.lists || []);
+    } catch (error) {
+      console.error("Error fetching lists:", error);
+    }
+  }, []);
+
   const fetchAudienceCount = useCallback(async (filters: Record<string, any>) => {
     try {
       const res = await fetch("/api/admin/marketing/customers", {
@@ -232,11 +256,11 @@ export default function MarketingPage() {
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
-      await Promise.all([fetchCampaigns(), fetchDiscounts(), fetchReferralData()]);
+      await Promise.all([fetchCampaigns(), fetchDiscounts(), fetchReferralData(), fetchLists()]);
       setLoading(false);
     };
     loadData();
-  }, [fetchCampaigns, fetchDiscounts, fetchReferralData]);
+  }, [fetchCampaigns, fetchDiscounts, fetchReferralData, fetchLists]);
 
   useEffect(() => {
     fetchAudienceCount(selectedAudience.filters);
@@ -404,7 +428,11 @@ export default function MarketingPage() {
       const res = await fetch("/api/admin/marketing/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ campaignId, sendToAll }),
+        body: JSON.stringify({ 
+          campaignId, 
+          sendToAll,
+          listId: sendTarget === 'list' ? selectedListId : null 
+        }),
       });
       const data = await res.json();
       if (data.success) {
@@ -445,6 +473,43 @@ export default function MarketingPage() {
     setSendingCampaign(false);
   };
 
+  const handleCreateList = async () => {
+    if (!listForm.name) return;
+    setSending(true);
+    try {
+      const res = await fetch("/api/admin/marketing/lists", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(listForm),
+      });
+      const data = await res.json();
+      if (data.list) {
+        await fetchLists();
+        setShowListModal(false);
+        setListForm({ name: '', description: '', color: '#8B5CF6' });
+        setSuccessModal({ show: true, title: "List Created!", message: `"${listForm.name}" has been created.` });
+      } else {
+        setSuccessModal({ show: true, title: "Error", message: data.error || "Failed to create list" });
+      }
+    } catch (error) {
+      setSuccessModal({ show: true, title: "Error", message: "Failed to create list" });
+    }
+    setSending(false);
+  };
+
+  const handleDeleteList = async (listId: string) => {
+    if (!confirm("Are you sure you want to delete this list?")) return;
+    try {
+      const res = await fetch(`/api/admin/marketing/lists?id=${listId}`, { method: "DELETE" });
+      if (res.ok) {
+        await fetchLists();
+        setSuccessModal({ show: true, title: "Deleted", message: "List has been deleted." });
+      }
+    } catch (error) {
+      console.error("Error deleting list:", error);
+    }
+  };
+
   const stats = [
     { label: 'Active Campaigns', value: campaigns.filter(c => c.status === 'active').length.toString(), icon: Megaphone, color: 'from-violet-500 to-purple-600' },
     { label: 'Total Reach', value: campaigns.reduce((sum, c) => sum + c.total_sent, 0).toLocaleString(), icon: Users, color: 'from-emerald-500 to-teal-600' },
@@ -482,7 +547,7 @@ export default function MarketingPage() {
 
       {/* Tabs */}
       <div className="flex gap-2 border-b border-stone-200">
-        {['campaigns', 'discounts', 'referrals'].map((t) => (
+        {['campaigns', 'lists', 'discounts', 'referrals'].map((t) => (
           <button
             key={t}
             onClick={() => setTab(t as any)}
@@ -557,6 +622,59 @@ export default function MarketingPage() {
               </CardContent>
             </Card>
           ))}
+        </div>
+      )}
+
+      {tab === 'lists' && (
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <p className="text-stone-600">Create contact lists to target specific groups in your campaigns.</p>
+            <Button onClick={() => setShowListModal(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              New List
+            </Button>
+          </div>
+          
+          {lists.length === 0 ? (
+            <Card className="p-12 text-center">
+              <Users className="h-12 w-12 text-stone-300 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-stone-900 mb-2">No lists yet</h3>
+              <p className="text-stone-500 mb-4">Create your first contact list to organize your audience.</p>
+              <Button onClick={() => setShowListModal(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Create List
+              </Button>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {lists.map((list) => (
+                <Card key={list.id} className="hover:shadow-md transition-shadow">
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-3">
+                        <div 
+                          className="w-10 h-10 rounded-xl flex items-center justify-center"
+                          style={{ backgroundColor: `${list.color}20` }}
+                        >
+                          <Users className="h-5 w-5" style={{ color: list.color }} />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-stone-900">{list.name}</h3>
+                          <p className="text-sm text-stone-500">{list.contact_count} contacts</p>
+                        </div>
+                      </div>
+                      <Button variant="ghost" size="sm" onClick={() => handleDeleteList(list.id)}>
+                        <Trash2 className="h-4 w-4 text-stone-400" />
+                      </Button>
+                    </div>
+                    {list.description && (
+                      <p className="text-sm text-stone-500 mt-3">{list.description}</p>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -985,22 +1103,125 @@ export default function MarketingPage() {
               </div>
 
               <div className="border-t border-stone-200 pt-6">
-                <h3 className="font-medium text-stone-900 mb-3">Send to All Contacts</h3>
-                <p className="text-sm text-stone-500 mb-4">
-                  This will send the campaign to all subscribed contacts in your CRM ({audienceCount.toLocaleString()} contacts).
-                </p>
+                <h3 className="font-medium text-stone-900 mb-3">Send To</h3>
+                
+                <div className="space-y-3 mb-4">
+                  <label className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-stone-50">
+                    <input 
+                      type="radio" 
+                      name="sendTarget" 
+                      checked={sendTarget === 'all'} 
+                      onChange={() => setSendTarget('all')}
+                      className="w-4 h-4 text-amber-600"
+                    />
+                    <div className="flex-1">
+                      <p className="font-medium text-stone-900">All Contacts</p>
+                      <p className="text-sm text-stone-500">{audienceCount.toLocaleString()} subscribed contacts</p>
+                    </div>
+                  </label>
+                  
+                  {lists.length > 0 && (
+                    <label className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-stone-50">
+                      <input 
+                        type="radio" 
+                        name="sendTarget" 
+                        checked={sendTarget === 'list'} 
+                        onChange={() => setSendTarget('list')}
+                        className="w-4 h-4 text-amber-600"
+                      />
+                      <div className="flex-1">
+                        <p className="font-medium text-stone-900">Specific List</p>
+                        <p className="text-sm text-stone-500">Send to a custom list</p>
+                      </div>
+                    </label>
+                  )}
+                </div>
+
+                {sendTarget === 'list' && lists.length > 0 && (
+                  <select 
+                    value={selectedListId || ''} 
+                    onChange={(e) => setSelectedListId(e.target.value)}
+                    className="w-full px-4 py-2 border border-stone-300 rounded-lg mb-4"
+                  >
+                    <option value="">Select a list...</option>
+                    {lists.map((list) => (
+                      <option key={list.id} value={list.id}>{list.name} ({list.contact_count} contacts)</option>
+                    ))}
+                  </select>
+                )}
+
                 <Button 
                   className="w-full" 
-                  onClick={() => handleSendCampaign(sendModal.campaign!.id, true)}
-                  disabled={sendingCampaign}
+                  onClick={() => handleSendCampaign(sendModal.campaign!.id, sendTarget === 'all')}
+                  disabled={sendingCampaign || (sendTarget === 'list' && !selectedListId)}
                 >
                   {sendingCampaign ? (
                     <><RefreshCw className="h-4 w-4 mr-2 animate-spin" /> Sending...</>
                   ) : (
-                    <><Send className="h-4 w-4 mr-2" /> Send to All Contacts</>
+                    <><Send className="h-4 w-4 mr-2" /> Send Campaign</>
                   )}
                 </Button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create List Modal */}
+      {showListModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full">
+            <div className="border-b border-stone-200 p-6 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-stone-900">Create New List</h2>
+              <Button variant="ghost" size="sm" onClick={() => setShowListModal(false)}>
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+            
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-2">List Name *</label>
+                <input
+                  type="text"
+                  value={listForm.name}
+                  onChange={(e) => setListForm({ ...listForm, name: e.target.value })}
+                  placeholder="e.g., VIP Customers, Event Attendees"
+                  className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-2">Description</label>
+                <textarea
+                  value={listForm.description}
+                  onChange={(e) => setListForm({ ...listForm, description: e.target.value })}
+                  placeholder="What is this list for?"
+                  rows={2}
+                  className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-2">Color</label>
+                <div className="flex gap-2">
+                  {['#8B5CF6', '#F59E0B', '#10B981', '#3B82F6', '#EF4444', '#EC4899'].map((color) => (
+                    <button
+                      key={color}
+                      onClick={() => setListForm({ ...listForm, color })}
+                      className={`w-8 h-8 rounded-full ${listForm.color === color ? 'ring-2 ring-offset-2 ring-stone-900' : ''}`}
+                      style={{ backgroundColor: color }}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="border-t border-stone-200 p-6 flex justify-end gap-3">
+              <Button variant="outline" onClick={() => setShowListModal(false)}>Cancel</Button>
+              <Button onClick={handleCreateList} disabled={!listForm.name || sending}>
+                {sending ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : <Plus className="h-4 w-4 mr-2" />}
+                Create List
+              </Button>
             </div>
           </div>
         </div>
