@@ -57,22 +57,27 @@ export async function POST(request: NextRequest) {
       end_date,
     } = body;
 
+    // Build insert object with only provided fields
+    const insertData: Record<string, unknown> = {
+      name,
+      type: type || "email",
+      subject,
+      html_content,
+      status: "draft",
+    };
+    
+    // Add optional fields if provided
+    if (description) insertData.description = description;
+    if (email_design) insertData.email_design = email_design;
+    if (audience_filter) insertData.audience_filter = audience_filter;
+    if (audience_name) insertData.audience_name = audience_name;
+    if (scheduled_at) insertData.scheduled_at = scheduled_at;
+    if (start_date) insertData.start_date = start_date;
+    if (end_date) insertData.end_date = end_date;
+
     const { data, error } = await supabase
       .from("marketing_campaigns")
-      .insert({
-        name,
-        description,
-        type: type || "email",
-        subject,
-        html_content,
-        email_design,
-        audience_filter: audience_filter || {},
-        audience_name,
-        scheduled_at,
-        start_date,
-        end_date,
-        status: "draft",
-      })
+      .insert(insertData)
       .select()
       .single();
 
