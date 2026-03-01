@@ -66,7 +66,7 @@ function parseTags(tagsStr: string | undefined): string[] {
 // Parse contacts-2.csv (Wix format)
 function parseWixContacts(filePath: string): Contact[] {
   const content = fs.readFileSync(filePath, "utf-8");
-  const records = parse(content, { columns: true, skip_empty_lines: true });
+  const records = parse(content, { columns: true, skip_empty_lines: true }) as Record<string, string>[];
   
   const contacts: Contact[] = [];
   for (const record of records) {
@@ -100,7 +100,7 @@ function parseWixContacts(filePath: string): Contact[] {
 // Parse Mailchimp subscribed export
 function parseMailchimpSubscribed(filePath: string): Contact[] {
   const content = fs.readFileSync(filePath, "utf-8");
-  const records = parse(content, { columns: true, skip_empty_lines: true });
+  const records = parse(content, { columns: true, skip_empty_lines: true }) as Record<string, string>[];
   
   const contacts: Contact[] = [];
   for (const record of records) {
@@ -126,7 +126,7 @@ function parseMailchimpSubscribed(filePath: string): Contact[] {
 // Parse Mailchimp unsubscribed export
 function parseMailchimpUnsubscribed(filePath: string): Contact[] {
   const content = fs.readFileSync(filePath, "utf-8");
-  const records = parse(content, { columns: true, skip_empty_lines: true });
+  const records = parse(content, { columns: true, skip_empty_lines: true }) as Record<string, string>[];
   
   const contacts: Contact[] = [];
   for (const record of records) {
@@ -152,7 +152,7 @@ function parseMailchimpUnsubscribed(filePath: string): Contact[] {
 // Parse Mailchimp cleaned export
 function parseMailchimpCleaned(filePath: string): Contact[] {
   const content = fs.readFileSync(filePath, "utf-8");
-  const records = parse(content, { columns: true, skip_empty_lines: true });
+  const records = parse(content, { columns: true, skip_empty_lines: true }) as Record<string, string>[];
   
   const contacts: Contact[] = [];
   for (const record of records) {
@@ -178,7 +178,7 @@ function parseMailchimpCleaned(filePath: string): Contact[] {
 // Parse Mailchimp non-subscribed export
 function parseMailchimpNonsubscribed(filePath: string): Contact[] {
   const content = fs.readFileSync(filePath, "utf-8");
-  const records = parse(content, { columns: true, skip_empty_lines: true });
+  const records = parse(content, { columns: true, skip_empty_lines: true }) as Record<string, string>[];
   
   const contacts: Contact[] = [];
   for (const record of records) {
