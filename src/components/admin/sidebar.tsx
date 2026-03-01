@@ -56,6 +56,7 @@ const navigation = [
   { name: "Orders", href: "/admin/orders", icon: ShoppingBag },
   { name: "Marketing", href: "/admin/marketing", icon: Tags, children: [
     { name: "Campaigns", href: "/admin/marketing" },
+    { name: "Lists", href: "/admin/marketing/lists" },
     { name: "Discounts", href: "/admin/marketing/discounts" },
     { name: "Referrals", href: "/admin/marketing/referrals" },
   ]},

@@ -11,6 +11,8 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
     const type = searchParams.get("type");
+    const startDate = searchParams.get("startDate");
+    const endDate = searchParams.get("endDate");
 
     let query = supabase
       .from("marketing_campaigns")
@@ -22,6 +24,12 @@ export async function GET(request: NextRequest) {
     }
     if (type && type !== "all") {
       query = query.eq("type", type);
+    }
+    if (startDate) {
+      query = query.gte("created_at", startDate);
+    }
+    if (endDate) {
+      query = query.lte("created_at", endDate + "T23:59:59");
     }
 
     const { data, error } = await query;

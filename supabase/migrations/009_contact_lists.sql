@@ -46,13 +46,12 @@ CREATE TRIGGER trigger_update_list_count
 AFTER INSERT OR DELETE ON contact_list_members
 FOR EACH ROW EXECUTE FUNCTION update_list_contact_count();
 
--- RLS Policies
-ALTER TABLE contact_lists ENABLE ROW LEVEL SECURITY;
-ALTER TABLE contact_list_members ENABLE ROW LEVEL SECURITY;
+-- RLS Policies - Disable RLS for these admin tables since we use service role
+ALTER TABLE contact_lists DISABLE ROW LEVEL SECURITY;
+ALTER TABLE contact_list_members DISABLE ROW LEVEL SECURITY;
 
--- Allow service role full access
-CREATE POLICY "Service role full access to contact_lists" ON contact_lists
-  FOR ALL USING (true) WITH CHECK (true);
-
-CREATE POLICY "Service role full access to contact_list_members" ON contact_list_members
-  FOR ALL USING (true) WITH CHECK (true);
+-- Grant full access to authenticated and service roles
+GRANT ALL ON contact_lists TO authenticated;
+GRANT ALL ON contact_list_members TO authenticated;
+GRANT ALL ON contact_lists TO service_role;
+GRANT ALL ON contact_list_members TO service_role;

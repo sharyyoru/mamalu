@@ -188,16 +188,22 @@ export default function MarketingPage() {
   const [sendModal, setSendModal] = useState<{ show: boolean; campaign: Campaign | null }>({ show: false, campaign: null });
   const [sendingCampaign, setSendingCampaign] = useState(false);
   const [sendTarget, setSendTarget] = useState<'all' | 'list'>('all');
+  const [dateRange, setDateRange] = useState<{ start: string; end: string }>({ start: '', end: '' });
+  const [statusFilter, setStatusFilter] = useState('all');
 
   const fetchCampaigns = useCallback(async () => {
     try {
-      const res = await fetch("/api/admin/marketing/campaigns");
+      const params = new URLSearchParams();
+      if (statusFilter !== 'all') params.set('status', statusFilter);
+      if (dateRange.start) params.set('startDate', dateRange.start);
+      if (dateRange.end) params.set('endDate', dateRange.end);
+      const res = await fetch(`/api/admin/marketing/campaigns?${params.toString()}`);
       const data = await res.json();
       setCampaigns(data.campaigns || []);
     } catch (error) {
       console.error("Error fetching campaigns:", error);
     }
-  }, []);
+  }, [statusFilter, dateRange]);
 
   const fetchDiscounts = useCallback(async () => {
     try {
@@ -510,11 +516,12 @@ export default function MarketingPage() {
     }
   };
 
+  const totalRevenue = campaigns.reduce((sum, c) => sum + (c.total_revenue || 0), 0);
   const stats = [
     { label: 'Active Campaigns', value: campaigns.filter(c => c.status === 'active').length.toString(), icon: Megaphone, color: 'from-violet-500 to-purple-600' },
-    { label: 'Total Reach', value: campaigns.reduce((sum, c) => sum + c.total_sent, 0).toLocaleString(), icon: Users, color: 'from-emerald-500 to-teal-600' },
+    { label: 'Total Reach', value: campaigns.reduce((sum, c) => sum + (c.total_sent || 0), 0).toLocaleString(), icon: Users, color: 'from-emerald-500 to-teal-600' },
     { label: 'Active Discounts', value: discounts.filter(d => d.status === 'active').length.toString(), icon: Target, color: 'from-amber-500 to-orange-600' },
-    { label: 'Campaign Revenue', value: formatPrice(campaigns.reduce((sum, c) => sum + c.total_revenue, 0)), icon: DollarSign, color: 'from-cyan-500 to-blue-600' },
+    { label: 'Campaign Revenue', value: totalRevenue > 0 ? formatPrice(totalRevenue) : 'AED 0', icon: DollarSign, color: 'from-cyan-500 to-blue-600' },
   ];
 
   return (
@@ -562,6 +569,51 @@ export default function MarketingPage() {
 
       {tab === 'campaigns' && (
         <div className="space-y-4">
+          {/* Filters */}
+          <div className="flex flex-wrap gap-4 items-center p-4 bg-stone-50 rounded-xl">
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-stone-500" />
+              <span className="text-sm font-medium text-stone-700">Filters:</span>
+            </div>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-3 py-1.5 text-sm border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500"
+            >
+              <option value="all">All Status</option>
+              <option value="draft">Draft</option>
+              <option value="active">Active</option>
+              <option value="completed">Completed</option>
+              <option value="paused">Paused</option>
+            </select>
+            <div className="flex items-center gap-2">
+              <input
+                type="date"
+                value={dateRange.start}
+                onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
+                className="px-3 py-1.5 text-sm border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500"
+                placeholder="From"
+              />
+              <span className="text-stone-400">to</span>
+              <input
+                type="date"
+                value={dateRange.end}
+                onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
+                className="px-3 py-1.5 text-sm border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500"
+                placeholder="To"
+              />
+            </div>
+            {(statusFilter !== 'all' || dateRange.start || dateRange.end) && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => { setStatusFilter('all'); setDateRange({ start: '', end: '' }); }}
+              >
+                Clear Filters
+              </Button>
+            )}
+          </div>
+
           {campaigns.map((campaign) => (
             <Card key={campaign.id} className="hover:shadow-md transition-shadow">
               <CardContent className="p-6">
