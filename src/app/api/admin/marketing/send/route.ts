@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/server";
 import { Resend } from "resend";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    const supabase = createServiceClient();
     if (!supabase) {
       return NextResponse.json({ error: "Database not configured" }, { status: 500 });
     }
@@ -75,15 +75,72 @@ export async function POST(request: NextRequest) {
       }, { status: 500 });
     }
 
-    // Get recipients based on audience filter
-    const { data: recipients, error: recipientsError } = await supabase
+    // Get recipients from newsletter_leads (CRM contacts) - subscribed only
+    const { data: crmContacts, error: crmError } = await supabase
+      .from("newsletter_leads")
+      .select("id, email, first_name, last_name")
+      .eq("status", "subscribed");
+
+    if (crmError) {
+      console.error("Error fetching CRM contacts:", crmError);
+    }
+
+    // Also get recipients from profiles with email_enabled
+    const { data: profileRecipients, error: profilesError } = await supabase
       .from("profiles")
       .select("id, email, full_name, phone, total_spend, total_classes_attended, referral_code")
       .eq("email_enabled", true);
 
-    if (recipientsError) throw recipientsError;
+    if (profilesError) {
+      console.error("Error fetching profile recipients:", profilesError);
+    }
 
-    if (!recipients || recipients.length === 0) {
+    // Combine and deduplicate by email
+    const emailSet = new Set<string>();
+    const recipients: Array<{
+      id: string;
+      email: string;
+      first_name?: string;
+      full_name?: string;
+      total_spend?: number;
+      total_classes_attended?: number;
+      referral_code?: string;
+      source: string;
+    }> = [];
+
+    // Add CRM contacts first
+    (crmContacts || []).forEach(contact => {
+      if (contact.email && !emailSet.has(contact.email.toLowerCase())) {
+        emailSet.add(contact.email.toLowerCase());
+        recipients.push({
+          id: contact.id,
+          email: contact.email,
+          first_name: contact.first_name || undefined,
+          full_name: contact.first_name && contact.last_name 
+            ? `${contact.first_name} ${contact.last_name}` 
+            : contact.first_name || undefined,
+          source: "newsletter_leads"
+        });
+      }
+    });
+
+    // Add profile recipients (will skip duplicates)
+    (profileRecipients || []).forEach(profile => {
+      if (profile.email && !emailSet.has(profile.email.toLowerCase())) {
+        emailSet.add(profile.email.toLowerCase());
+        recipients.push({
+          id: profile.id,
+          email: profile.email,
+          full_name: profile.full_name || undefined,
+          total_spend: profile.total_spend,
+          total_classes_attended: profile.total_classes_attended,
+          referral_code: profile.referral_code,
+          source: "profiles"
+        });
+      }
+    });
+
+    if (recipients.length === 0) {
       return NextResponse.json({ error: "No recipients found" }, { status: 400 });
     }
 
@@ -108,10 +165,10 @@ export async function POST(request: NextRequest) {
       await Promise.all(
         batch.map(async (recipient) => {
           try {
-            const firstName = recipient.full_name?.split(" ")[0] || "Friend";
+            const firstName = recipient.first_name || recipient.full_name?.split(" ")[0] || "Friend";
             const variables = {
               first_name: firstName,
-              full_name: recipient.full_name || "Valued Customer",
+              full_name: recipient.full_name || firstName || "Valued Customer",
               email: recipient.email,
               total_spend: `AED ${(recipient.total_spend || 0).toLocaleString()}`,
               total_classes: String(recipient.total_classes_attended || 0),
@@ -125,13 +182,17 @@ export async function POST(request: NextRequest) {
               html: replaceVariables(campaign.html_content, variables),
             });
 
-            // Track recipient
-            await supabase.from("campaign_recipients").insert({
+            // Track recipient - only insert profile_id if source is profiles
+            const recipientRecord: Record<string, unknown> = {
               campaign_id: campaignId,
-              profile_id: recipient.id,
               email: recipient.email,
               sent_at: new Date().toISOString(),
-            });
+              status: "sent",
+            };
+            if (recipient.source === "profiles") {
+              recipientRecord.profile_id = recipient.id;
+            }
+            await supabase.from("campaign_recipients").insert(recipientRecord);
 
             sent++;
           } catch (error) {

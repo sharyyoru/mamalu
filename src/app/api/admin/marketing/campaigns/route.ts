@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/server";
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    const supabase = createServiceClient();
     if (!supabase) {
       return NextResponse.json({ error: "Database not configured" }, { status: 500 });
     }
@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    const supabase = createServiceClient();
     if (!supabase) {
       return NextResponse.json({ error: "Database not configured" }, { status: 500 });
     }
@@ -48,19 +48,14 @@ export async function POST(request: NextRequest) {
       description,
       type,
       subject,
-      preview_text,
       html_content,
-      json_content,
+      email_design,
       audience_filter,
       audience_name,
       scheduled_at,
       start_date,
       end_date,
-      discount_id,
     } = body;
-
-    // Get current user
-    const { data: { user } } = await supabase.auth.getUser();
 
     const { data, error } = await supabase
       .from("marketing_campaigns")
@@ -69,16 +64,13 @@ export async function POST(request: NextRequest) {
         description,
         type: type || "email",
         subject,
-        preview_text,
         html_content,
-        json_content,
+        email_design,
         audience_filter: audience_filter || {},
         audience_name,
         scheduled_at,
         start_date,
         end_date,
-        discount_id,
-        created_by: user?.id,
         status: "draft",
       })
       .select()
@@ -95,7 +87,7 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    const supabase = createServiceClient();
     if (!supabase) {
       return NextResponse.json({ error: "Database not configured" }, { status: 500 });
     }
@@ -125,7 +117,7 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    const supabase = createServiceClient();
     if (!supabase) {
       return NextResponse.json({ error: "Database not configured" }, { status: 500 });
     }

@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/server";
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    const supabase = createServiceClient();
     if (!supabase) {
       return NextResponse.json({ error: "Database not configured" }, { status: 500 });
     }
@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    const supabase = createServiceClient();
     if (!supabase) {
       return NextResponse.json({ error: "Database not configured" }, { status: 500 });
     }
@@ -59,9 +59,6 @@ export async function POST(request: NextRequest) {
       first_order_only,
     } = body;
 
-    // Get current user
-    const { data: { user } } = await supabase.auth.getUser();
-
     // Generate code if not provided
     const discountCode = code || generateDiscountCode();
 
@@ -75,14 +72,9 @@ export async function POST(request: NextRequest) {
         min_order_amount,
         max_discount_amount,
         usage_limit,
-        usage_per_customer: usage_per_customer || 1,
         valid_from: valid_from || new Date().toISOString(),
         valid_until,
-        applies_to: applies_to || "all",
-        applies_to_ids,
-        customer_segments,
         first_order_only: first_order_only || false,
-        created_by: user?.id,
         status: "active",
       })
       .select()
@@ -99,7 +91,7 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    const supabase = createServiceClient();
     if (!supabase) {
       return NextResponse.json({ error: "Database not configured" }, { status: 500 });
     }
@@ -134,7 +126,7 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    const supabase = createServiceClient();
     if (!supabase) {
       return NextResponse.json({ error: "Database not configured" }, { status: 500 });
     }
