@@ -5,7 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { bookingId, successUrl, cancelUrl } = body;
+    const { bookingId, successUrl, cancelUrl, campaign_id, utm_source, utm_medium, utm_campaign } = body;
 
     if (!bookingId) {
       return NextResponse.json(
@@ -73,13 +73,21 @@ export async function POST(request: NextRequest) {
       cancel_url: finalCancelUrl,
     });
 
-    // Update booking with checkout session ID
+    // Update booking with checkout session ID and campaign attribution
+    const updateData: Record<string, any> = {
+      stripe_checkout_session_id: session.id,
+      payment_method: "stripe",
+    };
+    
+    // Add campaign attribution if provided
+    if (campaign_id) updateData.campaign_id = campaign_id;
+    if (utm_source) updateData.utm_source = utm_source;
+    if (utm_medium) updateData.utm_medium = utm_medium;
+    if (utm_campaign) updateData.utm_campaign = utm_campaign;
+    
     await supabase
       .from("class_bookings")
-      .update({
-        stripe_checkout_session_id: session.id,
-        payment_method: "stripe",
-      })
+      .update(updateData)
       .eq("id", bookingId);
 
     return NextResponse.json({

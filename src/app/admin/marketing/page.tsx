@@ -37,6 +37,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatPrice, formatDate } from "@/lib/utils";
 import dynamic from "next/dynamic";
+import { Link as LinkIcon } from "lucide-react";
 
 const EmailBuilder = dynamic(() => import("@/components/email-editor/EmailBuilder"), {
   ssr: false,
@@ -64,6 +65,8 @@ interface Campaign {
   start_date?: string;
   end_date?: string;
   created_at: string;
+  short_code?: string;
+  utm_campaign?: string;
 }
 
 interface Discount {
@@ -291,6 +294,13 @@ export default function MarketingPage() {
       case 'draft': return 'bg-violet-100 text-violet-700';
       default: return 'bg-stone-100 text-stone-700';
     }
+  };
+
+  const copyTrackingLink = (campaign: Campaign, destination: string = "/classes") => {
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://mamalu.ae";
+    const trackingUrl = `${siteUrl}/api/track/click?c=${campaign.short_code}&url=${encodeURIComponent(destination)}&utm_source=email&utm_medium=campaign`;
+    navigator.clipboard.writeText(trackingUrl);
+    setSuccessModal({ show: true, title: "Copied!", message: "Tracking link copied to clipboard" });
   };
 
   const handleSendTest = async () => {
@@ -635,6 +645,11 @@ export default function MarketingPage() {
                     </div>
                   </div>
                   <div className="flex gap-2">
+                    {campaign.short_code && (
+                      <Button variant="outline" size="sm" onClick={() => copyTrackingLink(campaign)}>
+                        <LinkIcon className="h-4 w-4 mr-1" /> Copy Link
+                      </Button>
+                    )}
                     {campaign.status === 'draft' && (
                       <Button size="sm" onClick={() => setSendModal({ show: true, campaign })}>
                         <Send className="h-4 w-4 mr-1" /> Send
@@ -643,7 +658,6 @@ export default function MarketingPage() {
                     {campaign.status === 'completed' && (
                       <Badge className="bg-green-100 text-green-700">Sent</Badge>
                     )}
-                    <Button variant="ghost" size="sm"><BarChart3 className="h-4 w-4" /></Button>
                   </div>
                 </div>
 
