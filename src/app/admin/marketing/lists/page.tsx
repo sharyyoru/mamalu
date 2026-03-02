@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Plus, Users, Search, Trash2, X, Check, UserPlus } from "lucide-react";
+import { Plus, Users, Search, Trash2, X, Check, UserPlus, Filter, ChevronDown, Sparkles, DollarSign, Clock, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -24,6 +24,17 @@ interface Contact {
   full_name?: string;
   source: string;
   selected?: boolean;
+  total_spend?: number;
+  booking_count?: number;
+  last_booking?: string;
+}
+
+interface FilterOptions {
+  classTitles: string[];
+  serviceNames: string[];
+  months: string[];
+  serviceTypes: { value: string; label: string }[];
+  smartFilters: { value: string; label: string }[];
 }
 
 export default function ListsPage() {
@@ -37,6 +48,14 @@ export default function ListsPage() {
   const [selectedContacts, setSelectedContacts] = useState<Set<string>>(new Set());
   const [loadingContacts, setLoadingContacts] = useState(false);
   const [saving, setSaving] = useState(false);
+  
+  // Smart filter state
+  const [filterOptions, setFilterOptions] = useState<FilterOptions | null>(null);
+  const [activeSmartFilter, setActiveSmartFilter] = useState<string>("");
+  const [activeServiceType, setActiveServiceType] = useState<string>("");
+  const [activeMonth, setActiveMonth] = useState<string>("");
+  const [activeClassTitle, setActiveClassTitle] = useState<string>("");
+  const [showFilters, setShowFilters] = useState(false);
 
   const fetchLists = useCallback(async () => {
     try {
@@ -50,16 +69,41 @@ export default function ListsPage() {
     }
   }, []);
 
-  const fetchContacts = useCallback(async () => {
+  const fetchContacts = useCallback(async (filters?: {
+    smartFilter?: string;
+    serviceType?: string;
+    month?: string;
+    classTitle?: string;
+  }) => {
     setLoadingContacts(true);
     try {
-      const res = await fetch("/api/admin/marketing/contacts");
+      const params = new URLSearchParams();
+      if (filters?.smartFilter) params.set("filter", filters.smartFilter);
+      if (filters?.serviceType) params.set("serviceType", filters.serviceType);
+      if (filters?.month) params.set("bookingMonth", filters.month);
+      if (filters?.classTitle) params.set("classTitle", filters.classTitle);
+      
+      const res = await fetch(`/api/admin/marketing/contacts?${params.toString()}`);
       const data = await res.json();
       setContacts(data.contacts || []);
     } catch (error) {
       console.error("Error fetching contacts:", error);
     } finally {
       setLoadingContacts(false);
+    }
+  }, []);
+
+  const fetchFilterOptions = useCallback(async () => {
+    try {
+      const res = await fetch("/api/admin/marketing/contacts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "getFilterOptions" }),
+      });
+      const data = await res.json();
+      setFilterOptions(data);
+    } catch (error) {
+      console.error("Error fetching filter options:", error);
     }
   }, []);
 
@@ -102,8 +146,33 @@ export default function ListsPage() {
     setShowAddContactsModal({ show: true, list });
     setSelectedContacts(new Set());
     setContactSearch("");
+    setActiveSmartFilter("");
+    setActiveServiceType("");
+    setActiveMonth("");
+    setActiveClassTitle("");
+    setShowFilters(false);
+    fetchContacts();
+    fetchFilterOptions();
+  };
+
+  const applyFilters = () => {
+    fetchContacts({
+      smartFilter: activeSmartFilter,
+      serviceType: activeServiceType,
+      month: activeMonth,
+      classTitle: activeClassTitle,
+    });
+  };
+
+  const clearFilters = () => {
+    setActiveSmartFilter("");
+    setActiveServiceType("");
+    setActiveMonth("");
+    setActiveClassTitle("");
     fetchContacts();
   };
+
+  const hasActiveFilters = activeSmartFilter || activeServiceType || activeMonth || activeClassTitle;
 
   const toggleContact = (email: string) => {
     const newSelected = new Set(selectedContacts);
@@ -306,19 +375,122 @@ export default function ListsPage() {
               </Button>
             </div>
 
-            <div className="flex items-center gap-2 mb-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" />
-                <Input
-                  value={contactSearch}
-                  onChange={(e) => setContactSearch(e.target.value)}
-                  placeholder="Search contacts by name or email..."
-                  className="pl-10"
-                />
+            {/* Smart Filters Section */}
+            <div className="mb-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" />
+                  <Input
+                    value={contactSearch}
+                    onChange={(e) => setContactSearch(e.target.value)}
+                    placeholder="Search contacts by name or email..."
+                    className="pl-10"
+                  />
+                </div>
+                <Button 
+                  variant={showFilters ? "default" : "outline"} 
+                  size="sm" 
+                  onClick={() => setShowFilters(!showFilters)}
+                  className={showFilters ? "bg-amber-500 hover:bg-amber-600" : ""}
+                >
+                  <Filter className="h-4 w-4 mr-1" />
+                  Filters
+                  {hasActiveFilters && <Badge className="ml-1 bg-white text-amber-600 text-xs">!</Badge>}
+                </Button>
+                <Button variant="outline" size="sm" onClick={selectAllFiltered}>
+                  Select All
+                </Button>
               </div>
-              <Button variant="outline" size="sm" onClick={selectAllFiltered}>
-                Select All
-              </Button>
+
+              {/* Expandable Filter Panel */}
+              {showFilters && filterOptions && (
+                <div className="p-4 bg-stone-50 rounded-lg border space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-medium text-stone-700 flex items-center gap-2">
+                      <Sparkles className="h-4 w-4 text-amber-500" />
+                      Smart Filters
+                    </h4>
+                    {hasActiveFilters && (
+                      <Button variant="ghost" size="sm" onClick={clearFilters} className="text-stone-500">
+                        Clear All
+                      </Button>
+                    )}
+                  </div>
+
+                  {/* Quick Filter Buttons */}
+                  <div className="flex flex-wrap gap-2">
+                    {filterOptions.smartFilters.map((f) => (
+                      <Button
+                        key={f.value}
+                        variant={activeSmartFilter === f.value ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setActiveSmartFilter(activeSmartFilter === f.value ? "" : f.value)}
+                        className={activeSmartFilter === f.value ? "bg-amber-500 hover:bg-amber-600" : ""}
+                      >
+                        {f.value === "top100_spend" && <DollarSign className="h-3 w-3 mr-1" />}
+                        {f.value === "top100_recent" && <Clock className="h-3 w-3 mr-1" />}
+                        {f.value === "top100_orders" && <ShoppingBag className="h-3 w-3 mr-1" />}
+                        {f.label}
+                      </Button>
+                    ))}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    {/* Service Type Filter */}
+                    <div>
+                      <label className="block text-sm font-medium text-stone-600 mb-1">Service Type</label>
+                      <select
+                        value={activeServiceType}
+                        onChange={(e) => setActiveServiceType(e.target.value)}
+                        className="w-full px-3 py-2 border rounded-lg text-sm bg-white"
+                      >
+                        <option value="">All Types</option>
+                        {filterOptions.serviceTypes.map((t) => (
+                          <option key={t.value} value={t.value}>{t.label}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Month Filter */}
+                    <div>
+                      <label className="block text-sm font-medium text-stone-600 mb-1">Booking Month</label>
+                      <select
+                        value={activeMonth}
+                        onChange={(e) => setActiveMonth(e.target.value)}
+                        className="w-full px-3 py-2 border rounded-lg text-sm bg-white"
+                      >
+                        <option value="">All Time</option>
+                        {filterOptions.months.map((m) => (
+                          <option key={m} value={m}>
+                            {new Date(m + "-01").toLocaleDateString("en-US", { year: "numeric", month: "long" })}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Class/Menu Search */}
+                  {(filterOptions.classTitles.length > 0 || filterOptions.serviceNames.length > 0) && (
+                    <div>
+                      <label className="block text-sm font-medium text-stone-600 mb-1">Class/Menu Name</label>
+                      <select
+                        value={activeClassTitle}
+                        onChange={(e) => setActiveClassTitle(e.target.value)}
+                        className="w-full px-3 py-2 border rounded-lg text-sm bg-white"
+                      >
+                        <option value="">All Classes/Menus</option>
+                        {[...filterOptions.classTitles, ...filterOptions.serviceNames].map((title) => (
+                          <option key={title} value={title}>{title}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  <Button onClick={applyFilters} className="w-full bg-amber-500 hover:bg-amber-600">
+                    Apply Filters
+                  </Button>
+                </div>
+              )}
             </div>
 
             {selectedContacts.size > 0 && (
@@ -366,8 +538,21 @@ export default function ListsPage() {
                         </p>
                         <p className="text-sm text-stone-500 truncate">{contact.email}</p>
                       </div>
+                      {/* Show stats when using smart filters */}
+                      {hasActiveFilters && contact.total_spend !== undefined && (
+                        <div className="text-right text-xs">
+                          <p className="font-medium text-emerald-600">AED {contact.total_spend?.toLocaleString()}</p>
+                          <p className="text-stone-500">{contact.booking_count} orders</p>
+                        </div>
+                      )}
                       <Badge variant="outline" className="text-xs">
-                        {contact.source}
+                        {contact.source === "birthday_deck" ? "Birthday" :
+                         contact.source === "corporate_deck" ? "Corporate" :
+                         contact.source === "nanny_class" ? "Nanny" :
+                         contact.source === "walkin_menu" ? "Walk-in" :
+                         contact.source === "rental" ? "Rental" :
+                         contact.source === "class_booking" ? "Class" :
+                         contact.source}
                       </Badge>
                     </div>
                   ))}
