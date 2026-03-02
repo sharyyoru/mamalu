@@ -62,7 +62,6 @@ const navigation = [
   ]},
   { name: "Inquiries", href: "/admin/inquiries", icon: MessageSquare },
   { name: "Sales Report", href: "/admin/sales", icon: TrendingUp },
-  { name: "Reports", href: "/admin/reports", icon: PieChart },
   { name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
   { name: "Settings", href: "/admin/settings", icon: Settings },
 ];

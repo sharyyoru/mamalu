@@ -319,9 +319,25 @@ export default function AdminSalesPage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <Button 
+            variant={period === "today" ? "default" : "outline"} 
+            size="sm"
+            onClick={() => {
+              const today = new Date().toISOString().split("T")[0];
+              setStartDate(today);
+              setEndDate(today);
+              setPeriod("today");
+            }}
+          >
+            Today
+          </Button>
           <select
             value={period}
-            onChange={(e) => setPeriod(e.target.value)}
+            onChange={(e) => {
+              setPeriod(e.target.value);
+              setStartDate("");
+              setEndDate("");
+            }}
             className="px-4 py-2 border border-stone-200 rounded-lg bg-white"
           >
             <option value="week">Last 7 Days</option>
@@ -334,6 +350,36 @@ export default function AdminSalesPage() {
             Refresh
           </Button>
         </div>
+      </div>
+
+      {/* Custom Date Range */}
+      <div className="flex items-center gap-4 p-4 bg-stone-50 rounded-lg">
+        <div className="flex items-center gap-2">
+          <label className="text-sm font-medium text-stone-600">From:</label>
+          <input
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            className="px-3 py-2 border rounded-lg text-sm"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <label className="text-sm font-medium text-stone-600">To:</label>
+          <input
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            className="px-3 py-2 border rounded-lg text-sm"
+          />
+        </div>
+        <Button onClick={fetchWithDateRange} disabled={!startDate || !endDate}>
+          Apply Date Range
+        </Button>
+        {(startDate || endDate) && (
+          <Button variant="ghost" onClick={() => { setStartDate(""); setEndDate(""); setPeriod("month"); }}>
+            Clear
+          </Button>
+        )}
       </div>
 
       {/* Tabs */}
@@ -547,11 +593,9 @@ export default function AdminSalesPage() {
                       <th className="border border-stone-200 px-3 py-2 text-left">Customer Name</th>
                       <th className="border border-stone-200 px-3 py-2 text-right">Price/Person</th>
                       <th className="border border-stone-200 px-3 py-2 text-right">Attendees</th>
-                      <th className="border border-stone-200 px-3 py-2 text-right">Base Amount</th>
-                      <th className="border border-stone-200 px-3 py-2 text-right">Extras</th>
                       <th className="border border-stone-200 px-3 py-2 text-right">Total</th>
+                      <th className="border border-stone-200 px-3 py-2 text-center">Source</th>
                       <th className="border border-stone-200 px-3 py-2 text-center">Payment</th>
-                      <th className="border border-stone-200 px-3 py-2 text-center">Stripe</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -589,9 +633,20 @@ export default function AdminSalesPage() {
                             {booking.guest_count > 0 ? Math.round(booking.base_amount / booking.guest_count) : booking.base_amount}
                           </td>
                           <td className="border border-stone-200 px-3 py-2 text-right">{booking.guest_count}</td>
-                          <td className="border border-stone-200 px-3 py-2 text-right">{booking.base_amount}</td>
-                          <td className="border border-stone-200 px-3 py-2 text-right">{booking.extras_amount || 0}</td>
                           <td className="border border-stone-200 px-3 py-2 text-right font-bold">{booking.total_amount}</td>
+                          <td className="border border-stone-200 px-3 py-2 text-center">
+                            <Badge className={
+                              (booking as any).booking_source === "website" ? "bg-blue-100 text-blue-700" :
+                              (booking as any).booking_source === "admin" ? "bg-violet-100 text-violet-700" :
+                              (booking as any).booking_source === "payment_link" ? "bg-amber-100 text-amber-700" :
+                              "bg-stone-100 text-stone-600"
+                            }>
+                              {(booking as any).booking_source === "website" ? "Website" :
+                               (booking as any).booking_source === "admin" ? (booking as any).created_by_name || "Admin" :
+                               (booking as any).booking_source === "payment_link" ? "Payment Link" :
+                               "Website"}
+                            </Badge>
+                          </td>
                           <td className="border border-stone-200 px-3 py-2 text-center">
                             <Badge className={
                               booking.payment_status === "paid" ? "bg-green-100 text-green-700" :
@@ -604,20 +659,6 @@ export default function AdminSalesPage() {
                                booking.payment_status || "Pending"}
                             </Badge>
                           </td>
-                          <td className="border border-stone-200 px-3 py-2 text-center">
-                            {booking.stripe_checkout_session_id ? (
-                              <a
-                                href={`https://dashboard.stripe.com/checkout/sessions/${booking.stripe_checkout_session_id}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-blue-600 hover:text-blue-800 text-xs underline"
-                              >
-                                View
-                              </a>
-                            ) : (
-                              <span className="text-stone-400 text-xs">-</span>
-                            )}
-                          </td>
                         </tr>
                       ));
                     })()}
@@ -626,12 +667,6 @@ export default function AdminSalesPage() {
                     <tfoot>
                       <tr className="bg-stone-100 font-bold">
                         <td colSpan={7} className="border border-stone-200 px-3 py-2 text-right">TOTALS:</td>
-                        <td className="border border-stone-200 px-3 py-2 text-right">
-                          {formatCurrency(salesData.bookings.reduce((sum, b) => sum + (b.base_amount || 0), 0))}
-                        </td>
-                        <td className="border border-stone-200 px-3 py-2 text-right">
-                          {formatCurrency(salesData.bookings.reduce((sum, b) => sum + (b.extras_amount || 0), 0))}
-                        </td>
                         <td className="border border-stone-200 px-3 py-2 text-right">
                           {formatCurrency(salesData.bookings.reduce((sum, b) => sum + (b.total_amount || 0), 0))}
                         </td>

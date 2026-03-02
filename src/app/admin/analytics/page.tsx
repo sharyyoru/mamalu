@@ -1,78 +1,112 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { 
-  BarChart3, 
   TrendingUp,
-  TrendingDown,
   DollarSign,
   Users,
-  ShoppingBag,
   CalendarDays,
-  Warehouse,
-  CreditCard,
   ArrowUpRight,
   ArrowDownRight,
   Target,
   PieChart,
-  Activity
+  Activity,
+  Download,
+  RefreshCw,
+  Ticket
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { formatPrice } from "@/lib/utils";
 
-const revenueData = {
-  total: 156800,
-  change: 18.5,
-  breakdown: [
-    { name: 'Classes', value: 78400, percentage: 50, color: 'bg-violet-500' },
-    { name: 'Kitchen Rental', value: 47040, percentage: 30, color: 'bg-emerald-500' },
-    { name: 'Products', value: 23520, percentage: 15, color: 'bg-amber-500' },
-    { name: 'Memberships', value: 7840, percentage: 5, color: 'bg-cyan-500' },
-  ],
-};
-
-const monthlyRevenue = [
-  { month: 'Jan', value: 45000 },
-  { month: 'Feb', value: 52000 },
-  { month: 'Mar', value: 48000 },
-  { month: 'Apr', value: 61000 },
-  { month: 'May', value: 55000 },
-  { month: 'Jun', value: 67000 },
-  { month: 'Jul', value: 72000 },
-  { month: 'Aug', value: 69000 },
-  { month: 'Sep', value: 78000 },
-  { month: 'Oct', value: 84000 },
-  { month: 'Nov', value: 92000 },
-  { month: 'Dec', value: 156800 },
-];
-
-const topClasses = [
-  { name: 'Middle Eastern Essentials', bookings: 145, revenue: 65250, rating: 4.9 },
-  { name: 'Artisan Bread Masterclass', bookings: 98, revenue: 53900, rating: 4.8 },
-  { name: 'Sushi & Japanese Cuisine', bookings: 87, revenue: 56550, rating: 4.9 },
-  { name: 'French Pastry Basics', bookings: 76, revenue: 57000, rating: 4.7 },
-  { name: 'Kids Cooking Adventure', bookings: 124, revenue: 31000, rating: 4.8 },
-];
-
-const stats = [
-  { label: 'Total Revenue', value: 'AED 156,800', change: '+18.5%', positive: true, icon: DollarSign, color: 'from-emerald-500 to-teal-600' },
-  { label: 'New Customers', value: '234', change: '+12%', positive: true, icon: Users, color: 'from-violet-500 to-purple-600' },
-  { label: 'Class Bookings', value: '456', change: '+8%', positive: true, icon: CalendarDays, color: 'from-amber-500 to-orange-600' },
-  { label: 'Rental Hours', value: '892', change: '-3%', positive: false, icon: Warehouse, color: 'from-cyan-500 to-blue-600' },
-];
-
-const kpis = [
-  { label: 'Customer Retention', value: 78, target: 80, unit: '%' },
-  { label: 'Class Fill Rate', value: 82, target: 85, unit: '%' },
-  { label: 'Avg Order Value', value: 342, target: 400, unit: 'AED' },
-  { label: 'NPS Score', value: 72, target: 70, unit: '' },
-];
+interface AnalyticsData {
+  period: { from: string; to: string };
+  stats: {
+    totalRevenue: number;
+    revenueChange: number;
+    totalBookings: number;
+    bookingsChange: number;
+    totalGuests: number;
+    guestsChange: number;
+    newCustomers: number;
+    customerChange: number;
+  };
+  revenueBreakdown: Array<{ name: string; value: number; percentage: number; color: string }>;
+  monthlyRevenue: Array<{ month: string; value: number }>;
+  topPerformers: Array<{ name: string; bookings: number; revenue: number }>;
+  kpis: {
+    avgOrderValue: number;
+    prevAvgOrderValue: number;
+  };
+}
 
 export default function AnalyticsPage() {
-  const [period, setPeriod] = useState('month');
-  const maxRevenue = Math.max(...monthlyRevenue.map(m => m.value));
+  const [data, setData] = useState<AnalyticsData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [period, setPeriod] = useState("month");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const reportRef = useRef<HTMLDivElement>(null);
+
+  const fetchAnalytics = useCallback(async () => {
+    setLoading(true);
+    try {
+      let url = `/api/admin/analytics?period=${period}`;
+      if (startDate && endDate) {
+        url = `/api/admin/analytics?startDate=${startDate}&endDate=${endDate}`;
+      }
+      const res = await fetch(url);
+      if (res.ok) {
+        const result = await res.json();
+        setData(result);
+      }
+    } catch (error) {
+      console.error("Failed to fetch analytics:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [period, startDate, endDate]);
+
+  useEffect(() => {
+    fetchAnalytics();
+  }, [fetchAnalytics]);
+
+  const exportToPDF = async () => {
+    if (!reportRef.current || !data) return;
+    
+    // Dynamic import for PDF generation
+    const html2canvas = (await import("html2canvas")).default;
+    const jsPDF = (await import("jspdf")).default;
+    
+    const canvas = await html2canvas(reportRef.current, {
+      scale: 2,
+      useCORS: true,
+      logging: false,
+    });
+    
+    const imgData = canvas.toDataURL("image/png");
+    const pdf = new jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: "a4",
+    });
+    
+    const imgWidth = 210;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    
+    pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
+    pdf.save(`Analytics-Report-${new Date().toISOString().split("T")[0]}.pdf`);
+  };
+
+  const maxRevenue = data?.monthlyRevenue ? Math.max(...data.monthlyRevenue.map(m => m.value), 1) : 1;
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <RefreshCw className="h-8 w-8 animate-spin text-stone-400" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -82,206 +116,318 @@ export default function AnalyticsPage() {
           <h1 className="text-3xl font-bold text-stone-900">Analytics</h1>
           <p className="text-stone-500 mt-1">Business performance and insights</p>
         </div>
-        <div className="flex gap-2">
-          {['week', 'month', 'quarter', 'year'].map((p) => (
+        <div className="flex gap-2 items-center">
+          <Button 
+            variant={period === "today" ? "default" : "outline"} 
+            size="sm"
+            onClick={() => {
+              const today = new Date().toISOString().split("T")[0];
+              setStartDate(today);
+              setEndDate(today);
+              setPeriod("today");
+            }}
+          >
+            Today
+          </Button>
+          {["week", "month", "quarter", "year"].map((p) => (
             <Button
               key={p}
-              variant={period === p ? 'default' : 'outline'}
+              variant={period === p && !startDate ? "default" : "outline"}
               size="sm"
-              onClick={() => setPeriod(p)}
+              onClick={() => {
+                setPeriod(p);
+                setStartDate("");
+                setEndDate("");
+              }}
             >
               {p.charAt(0).toUpperCase() + p.slice(1)}
             </Button>
           ))}
+          <Button variant="outline" size="sm" onClick={fetchAnalytics}>
+            <RefreshCw className="h-4 w-4" />
+          </Button>
+          <Button onClick={exportToPDF} className="bg-red-600 hover:bg-red-700">
+            <Download className="h-4 w-4 mr-2" />
+            Export PDF
+          </Button>
         </div>
       </div>
 
-      {/* Main Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((stat) => {
-          const Icon = stat.icon;
-          return (
-            <div key={stat.label} className={`rounded-2xl bg-gradient-to-br ${stat.color} p-5 text-white`}>
-              <div className="flex items-center justify-between mb-3">
-                <Icon className="h-6 w-6 opacity-80" />
-                <span className={`flex items-center text-sm ${stat.positive ? 'text-green-200' : 'text-red-200'}`}>
-                  {stat.positive ? <ArrowUpRight className="h-4 w-4 mr-1" /> : <ArrowDownRight className="h-4 w-4 mr-1" />}
-                  {stat.change}
-                </span>
-              </div>
-              <p className="text-2xl font-bold">{stat.value}</p>
-              <p className="text-sm opacity-80">{stat.label}</p>
-            </div>
-          );
-        })}
+      {/* Custom Date Range */}
+      <div className="flex items-center gap-4 p-4 bg-stone-50 rounded-lg">
+        <div className="flex items-center gap-2">
+          <label className="text-sm font-medium text-stone-600">From:</label>
+          <input
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            className="px-3 py-2 border rounded-lg text-sm"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <label className="text-sm font-medium text-stone-600">To:</label>
+          <input
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            className="px-3 py-2 border rounded-lg text-sm"
+          />
+        </div>
+        <Button onClick={fetchAnalytics} disabled={!startDate || !endDate}>
+          Apply Date Range
+        </Button>
+        {(startDate || endDate) && (
+          <Button variant="ghost" onClick={() => { setStartDate(""); setEndDate(""); setPeriod("month"); }}>
+            Clear
+          </Button>
+        )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Revenue Chart */}
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Activity className="h-5 w-5 text-amber-500" />
-              Revenue Trend
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-end gap-2 h-64">
-              {monthlyRevenue.map((month, i) => (
-                <div key={month.month} className="flex-1 flex flex-col items-center gap-2">
-                  <div 
-                    className={`w-full rounded-t-lg transition-all hover:opacity-80 ${
-                      i === monthlyRevenue.length - 1 
-                        ? 'bg-gradient-to-t from-amber-500 to-orange-400' 
-                        : 'bg-gradient-to-t from-stone-300 to-stone-200'
-                    }`}
-                    style={{ height: `${(month.value / maxRevenue) * 100}%` }}
-                    title={formatPrice(month.value)}
-                  />
-                  <span className="text-xs text-stone-500">{month.month}</span>
-                </div>
-              ))}
+      {/* Report Content */}
+      <div ref={reportRef} className="space-y-6 bg-white p-4 rounded-xl">
+        {/* Main Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 p-5 text-white">
+            <div className="flex items-center justify-between mb-3">
+              <DollarSign className="h-6 w-6 opacity-80" />
+              <span className={`flex items-center text-sm ${(data?.stats.revenueChange || 0) >= 0 ? "text-green-200" : "text-red-200"}`}>
+                {(data?.stats.revenueChange || 0) >= 0 ? <ArrowUpRight className="h-4 w-4 mr-1" /> : <ArrowDownRight className="h-4 w-4 mr-1" />}
+                {(data?.stats.revenueChange || 0) >= 0 ? "+" : ""}{data?.stats.revenueChange || 0}%
+              </span>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Revenue Breakdown */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <PieChart className="h-5 w-5 text-amber-500" />
-              Revenue Breakdown
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center mb-6">
-              <p className="text-3xl font-bold text-stone-900">{formatPrice(revenueData.total)}</p>
-              <p className="text-sm text-emerald-600 flex items-center justify-center gap-1 mt-1">
-                <TrendingUp className="h-4 w-4" />
-                +{revenueData.change}% vs last period
-              </p>
-            </div>
-            
-            {/* Simple donut representation */}
-            <div className="flex h-4 rounded-full overflow-hidden mb-6">
-              {revenueData.breakdown.map((item) => (
-                <div
-                  key={item.name}
-                  className={`${item.color}`}
-                  style={{ width: `${item.percentage}%` }}
-                />
-              ))}
-            </div>
-
-            <div className="space-y-3">
-              {revenueData.breakdown.map((item) => (
-                <div key={item.name} className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className={`h-3 w-3 rounded-full ${item.color}`} />
-                    <span className="text-sm text-stone-600">{item.name}</span>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-medium text-stone-900">{formatPrice(item.value)}</p>
-                    <p className="text-xs text-stone-500">{item.percentage}%</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Top Classes */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Top Performing Classes</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {topClasses.map((cls, i) => (
-                <div key={cls.name} className="flex items-center gap-4">
-                  <div className="h-8 w-8 rounded-lg bg-amber-100 flex items-center justify-center text-amber-600 font-bold text-sm">
-                    {i + 1}
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-medium text-stone-900">{cls.name}</p>
-                    <p className="text-sm text-stone-500">{cls.bookings} bookings • ⭐ {cls.rating}</p>
-                  </div>
-                  <p className="font-semibold text-stone-900">{formatPrice(cls.revenue)}</p>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* KPIs */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Target className="h-5 w-5 text-amber-500" />
-              Key Performance Indicators
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-6">
-              {kpis.map((kpi) => {
-                const percentage = (kpi.value / kpi.target) * 100;
-                const isAchieved = kpi.value >= kpi.target;
-                return (
-                  <div key={kpi.label}>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm text-stone-600">{kpi.label}</span>
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-stone-900">
-                          {kpi.unit === 'AED' ? formatPrice(kpi.value) : `${kpi.value}${kpi.unit}`}
-                        </span>
-                        <span className="text-xs text-stone-400">
-                          / {kpi.unit === 'AED' ? formatPrice(kpi.target) : `${kpi.target}${kpi.unit}`}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="h-2 bg-stone-100 rounded-full overflow-hidden">
-                      <div 
-                        className={`h-full rounded-full transition-all ${
-                          isAchieved ? 'bg-emerald-500' : 'bg-amber-500'
-                        }`}
-                        style={{ width: `${Math.min(percentage, 100)}%` }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Quick Insights */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Quick Insights</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-100">
-              <TrendingUp className="h-6 w-6 text-emerald-600 mb-2" />
-              <p className="font-medium text-stone-900">Strong Month</p>
-              <p className="text-sm text-stone-600 mt-1">Revenue is up 18.5% compared to last month. Keep up the momentum!</p>
-            </div>
-            <div className="p-4 bg-amber-50 rounded-xl border border-amber-100">
-              <CalendarDays className="h-6 w-6 text-amber-600 mb-2" />
-              <p className="font-medium text-stone-900">Class Demand</p>
-              <p className="text-sm text-stone-600 mt-1">Middle Eastern classes are your best performers. Consider adding more sessions.</p>
-            </div>
-            <div className="p-4 bg-violet-50 rounded-xl border border-violet-100">
-              <Users className="h-6 w-6 text-violet-600 mb-2" />
-              <p className="font-medium text-stone-900">Customer Growth</p>
-              <p className="text-sm text-stone-600 mt-1">234 new customers this month. Referral program contributing 35%.</p>
-            </div>
+            <p className="text-2xl font-bold">{formatPrice(data?.stats.totalRevenue || 0)}</p>
+            <p className="text-sm opacity-80">Total Revenue</p>
           </div>
-        </CardContent>
-      </Card>
+
+          <div className="rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 p-5 text-white">
+            <div className="flex items-center justify-between mb-3">
+              <Users className="h-6 w-6 opacity-80" />
+              <span className={`flex items-center text-sm ${(data?.stats.customerChange || 0) >= 0 ? "text-green-200" : "text-red-200"}`}>
+                {(data?.stats.customerChange || 0) >= 0 ? <ArrowUpRight className="h-4 w-4 mr-1" /> : <ArrowDownRight className="h-4 w-4 mr-1" />}
+                {(data?.stats.customerChange || 0) >= 0 ? "+" : ""}{data?.stats.customerChange || 0}%
+              </span>
+            </div>
+            <p className="text-2xl font-bold">{data?.stats.newCustomers || 0}</p>
+            <p className="text-sm opacity-80">New Customers</p>
+          </div>
+
+          <div className="rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 p-5 text-white">
+            <div className="flex items-center justify-between mb-3">
+              <CalendarDays className="h-6 w-6 opacity-80" />
+              <span className={`flex items-center text-sm ${(data?.stats.bookingsChange || 0) >= 0 ? "text-green-200" : "text-red-200"}`}>
+                {(data?.stats.bookingsChange || 0) >= 0 ? <ArrowUpRight className="h-4 w-4 mr-1" /> : <ArrowDownRight className="h-4 w-4 mr-1" />}
+                {(data?.stats.bookingsChange || 0) >= 0 ? "+" : ""}{data?.stats.bookingsChange || 0}%
+              </span>
+            </div>
+            <p className="text-2xl font-bold">{data?.stats.totalBookings || 0}</p>
+            <p className="text-sm opacity-80">Total Bookings</p>
+          </div>
+
+          <div className="rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 p-5 text-white">
+            <div className="flex items-center justify-between mb-3">
+              <Ticket className="h-6 w-6 opacity-80" />
+              <span className={`flex items-center text-sm ${(data?.stats.guestsChange || 0) >= 0 ? "text-green-200" : "text-red-200"}`}>
+                {(data?.stats.guestsChange || 0) >= 0 ? <ArrowUpRight className="h-4 w-4 mr-1" /> : <ArrowDownRight className="h-4 w-4 mr-1" />}
+                {(data?.stats.guestsChange || 0) >= 0 ? "+" : ""}{data?.stats.guestsChange || 0}%
+              </span>
+            </div>
+            <p className="text-2xl font-bold">{data?.stats.totalGuests || 0}</p>
+            <p className="text-sm opacity-80">Total Guests</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Revenue Chart */}
+          <Card className="lg:col-span-2">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Activity className="h-5 w-5 text-amber-500" />
+                Revenue Trend (Last 12 Months)
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-end gap-2 h-64">
+                {data?.monthlyRevenue?.map((month, i) => (
+                  <div key={month.month} className="flex-1 flex flex-col items-center gap-2">
+                    <div 
+                      className={`w-full rounded-t-lg transition-all hover:opacity-80 ${
+                        i === (data?.monthlyRevenue?.length || 0) - 1 
+                          ? "bg-gradient-to-t from-amber-500 to-orange-400" 
+                          : "bg-gradient-to-t from-stone-300 to-stone-200"
+                      }`}
+                      style={{ height: `${(month.value / maxRevenue) * 100}%`, minHeight: month.value > 0 ? "4px" : "0" }}
+                      title={formatPrice(month.value)}
+                    />
+                    <span className="text-xs text-stone-500">{month.month}</span>
+                  </div>
+                ))}
+                {(!data?.monthlyRevenue || data.monthlyRevenue.length === 0) && (
+                  <div className="flex-1 flex items-center justify-center text-stone-400">
+                    No data available
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Revenue Breakdown */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <PieChart className="h-5 w-5 text-amber-500" />
+                Revenue Breakdown
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center mb-6">
+                <p className="text-3xl font-bold text-stone-900">{formatPrice(data?.stats.totalRevenue || 0)}</p>
+                <p className="text-sm text-emerald-600 flex items-center justify-center gap-1 mt-1">
+                  <TrendingUp className="h-4 w-4" />
+                  {(data?.stats.revenueChange || 0) >= 0 ? "+" : ""}{data?.stats.revenueChange || 0}% vs last period
+                </p>
+              </div>
+              
+              {data?.revenueBreakdown && data.revenueBreakdown.length > 0 && (
+                <div className="flex h-4 rounded-full overflow-hidden mb-6">
+                  {data.revenueBreakdown.map((item) => (
+                    <div
+                      key={item.name}
+                      className={item.color}
+                      style={{ width: `${item.percentage}%` }}
+                    />
+                  ))}
+                </div>
+              )}
+
+              <div className="space-y-3">
+                {data?.revenueBreakdown?.map((item) => (
+                  <div key={item.name} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className={`h-3 w-3 rounded-full ${item.color}`} />
+                      <span className="text-sm text-stone-600">{item.name}</span>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-medium text-stone-900">{formatPrice(item.value)}</p>
+                      <p className="text-xs text-stone-500">{item.percentage}%</p>
+                    </div>
+                  </div>
+                ))}
+                {(!data?.revenueBreakdown || data.revenueBreakdown.length === 0) && (
+                  <p className="text-stone-400 text-center">No revenue data</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Top Performers */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Top Performing Services</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {data?.topPerformers?.map((item, i) => (
+                  <div key={item.name} className="flex items-center gap-4">
+                    <div className="h-8 w-8 rounded-lg bg-amber-100 flex items-center justify-center text-amber-600 font-bold text-sm">
+                      {i + 1}
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium text-stone-900">{item.name}</p>
+                      <p className="text-sm text-stone-500">{item.bookings} bookings</p>
+                    </div>
+                    <p className="font-semibold text-stone-900">{formatPrice(item.revenue)}</p>
+                  </div>
+                ))}
+                {(!data?.topPerformers || data.topPerformers.length === 0) && (
+                  <p className="text-stone-400 text-center py-4">No data available</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* KPIs */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Target className="h-5 w-5 text-amber-500" />
+                Key Performance Indicators
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-stone-600">Average Order Value</span>
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-stone-900">
+                        {formatPrice(data?.kpis.avgOrderValue || 0)}
+                      </span>
+                      {data?.kpis.prevAvgOrderValue && data.kpis.prevAvgOrderValue > 0 && (
+                        <span className={`text-xs ${(data?.kpis.avgOrderValue || 0) >= data.kpis.prevAvgOrderValue ? "text-emerald-600" : "text-red-600"}`}>
+                          {(data?.kpis.avgOrderValue || 0) >= data.kpis.prevAvgOrderValue ? "↑" : "↓"}
+                          {Math.abs(Math.round(((data?.kpis.avgOrderValue || 0) - data.kpis.prevAvgOrderValue) / data.kpis.prevAvgOrderValue * 100))}%
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="h-2 bg-stone-100 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full rounded-full bg-amber-500"
+                      style={{ width: `${Math.min(100, (data?.kpis.avgOrderValue || 0) / 5)}%` }}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-stone-600">Bookings This Period</span>
+                    <span className="font-semibold text-stone-900">{data?.stats.totalBookings || 0}</span>
+                  </div>
+                  <div className="h-2 bg-stone-100 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full rounded-full bg-violet-500"
+                      style={{ width: `${Math.min(100, (data?.stats.totalBookings || 0))}%` }}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-stone-600">New Customers</span>
+                    <span className="font-semibold text-stone-900">{data?.stats.newCustomers || 0}</span>
+                  </div>
+                  <div className="h-2 bg-stone-100 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full rounded-full bg-emerald-500"
+                      style={{ width: `${Math.min(100, (data?.stats.newCustomers || 0))}%` }}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-stone-600">Total Guests</span>
+                    <span className="font-semibold text-stone-900">{data?.stats.totalGuests || 0}</span>
+                  </div>
+                  <div className="h-2 bg-stone-100 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full rounded-full bg-cyan-500"
+                      style={{ width: `${Math.min(100, (data?.stats.totalGuests || 0) / 2)}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Period Info */}
+        <div className="text-center text-sm text-stone-400 mt-4">
+          Report Period: {data?.period?.from ? new Date(data.period.from).toLocaleDateString() : "-"} to {data?.period?.to ? new Date(data.period.to).toLocaleDateString() : "-"}
+        </div>
+      </div>
     </div>
   );
 }

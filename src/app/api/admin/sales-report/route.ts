@@ -184,6 +184,30 @@ export async function GET(request: NextRequest) {
       return names[type] || type;
     };
 
+    // Get user profiles for created_by lookup
+    const userIds = new Set<string>();
+    bookings?.forEach((b: any) => { if (b.created_by) userIds.add(b.created_by); });
+    classBookings?.forEach((b: any) => { if (b.created_by) userIds.add(b.created_by); });
+    
+    let userMap: Record<string, string> = {};
+    if (userIds.size > 0) {
+      const { data: users } = await supabase
+        .from("profiles")
+        .select("id, full_name, email")
+        .in("id", Array.from(userIds));
+      users?.forEach((u: any) => {
+        userMap[u.id] = u.full_name || u.email || "Unknown";
+      });
+    }
+
+    // Determine booking source
+    const getBookingSource = (booking: any) => {
+      if (booking.payment_link_id) return "payment_link";
+      if (booking.created_by) return "admin";
+      if (booking.stripe_checkout_session_id) return "website";
+      return "website";
+    };
+
     // Format bookings for Depachika report
     const formattedBookings = (bookings || [])
       .filter((b: any) => b.status === "confirmed" || b.status === "completed")
@@ -212,6 +236,8 @@ export async function GET(request: NextRequest) {
         deposit_paid: b.deposit_paid || false,
         balance_paid: b.balance_paid || false,
         age_range: b.age_range || null,
+        booking_source: getBookingSource(b),
+        created_by_name: b.created_by ? userMap[b.created_by] || "Admin" : null,
       }))
       .sort((a: any, b: any) => new Date(a.event_date || a.created_at).getTime() - new Date(b.event_date || b.created_at).getTime());
 
