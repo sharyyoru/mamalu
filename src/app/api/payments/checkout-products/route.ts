@@ -65,11 +65,22 @@ export async function POST(request: NextRequest) {
       metadata: {
         order_type: "product_purchase",
         items_count: items.length.toString(),
+        items_json: JSON.stringify(items.map((item: CartItem) => ({
+          id: item.id,
+          title: item.title,
+          price: item.price,
+          quantity: item.quantity,
+        }))),
+        subtotal: subtotal.toString(),
+        shipping_cost: shippingCost.toString(),
       },
       success_url: finalSuccessUrl,
       cancel_url: finalCancelUrl,
       shipping_address_collection: {
         allowed_countries: ["AE"],
+      },
+      phone_number_collection: {
+        enabled: true,
       },
     });
 

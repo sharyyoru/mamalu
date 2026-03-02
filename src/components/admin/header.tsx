@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -13,7 +13,9 @@ import {
   User,
   Settings,
   ExternalLink,
+  ShoppingBag,
 } from "lucide-react";
+import { formatPrice } from "@/lib/utils";
 
 interface AdminHeaderProps {
   user: {
@@ -24,9 +26,40 @@ interface AdminHeaderProps {
   };
 }
 
+interface RecentOrder {
+  id: string;
+  order_number: string;
+  customer_name: string;
+  total_amount: number;
+  created_at: string;
+}
+
 export function AdminHeader({ user }: AdminHeaderProps) {
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [newOrdersCount, setNewOrdersCount] = useState(0);
+  const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
   const router = useRouter();
+
+  const fetchNotifications = useCallback(async () => {
+    try {
+      const res = await fetch("/api/admin/notifications");
+      if (res.ok) {
+        const data = await res.json();
+        setNewOrdersCount(data.newOrdersCount || 0);
+        setRecentOrders(data.recentOrders || []);
+      }
+    } catch (error) {
+      console.error("Failed to fetch notifications:", error);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchNotifications();
+    // Poll for new notifications every 30 seconds
+    const interval = setInterval(fetchNotifications, 30000);
+    return () => clearInterval(interval);
+  }, [fetchNotifications]);
 
   const handleSignOut = async () => {
     const supabase = createClient();
@@ -69,10 +102,76 @@ export function AdminHeader({ user }: AdminHeaderProps) {
         </Link>
 
         {/* Notifications */}
-        <button className="relative p-2 text-stone-600 hover:bg-stone-100 rounded-lg">
-          <Bell className="h-5 w-5" />
-          <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full" />
-        </button>
+        <div className="relative">
+          <button 
+            className="relative p-2 text-stone-600 hover:bg-stone-100 rounded-lg"
+            onClick={() => setShowNotifications(!showNotifications)}
+          >
+            <Bell className="h-5 w-5" />
+            {newOrdersCount > 0 && (
+              <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 rounded-full text-white text-xs flex items-center justify-center font-medium">
+                {newOrdersCount > 9 ? "9+" : newOrdersCount}
+              </span>
+            )}
+          </button>
+
+          {showNotifications && (
+            <>
+              <div
+                className="fixed inset-0 z-10"
+                onClick={() => setShowNotifications(false)}
+              />
+              <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-stone-200 z-20 overflow-hidden">
+                <div className="px-4 py-3 bg-stone-50 border-b flex items-center justify-between">
+                  <h3 className="font-semibold text-stone-900">Notifications</h3>
+                  {newOrdersCount > 0 && (
+                    <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded-full">
+                      {newOrdersCount} new
+                    </span>
+                  )}
+                </div>
+                <div className="max-h-80 overflow-y-auto">
+                  {recentOrders.length > 0 ? (
+                    recentOrders.map((order) => (
+                      <Link
+                        key={order.id}
+                        href="/admin/orders"
+                        onClick={() => setShowNotifications(false)}
+                        className="flex items-start gap-3 px-4 py-3 hover:bg-stone-50 border-b border-stone-100"
+                      >
+                        <div className="p-2 bg-amber-100 rounded-lg">
+                          <ShoppingBag className="h-4 w-4 text-amber-600" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-stone-900">New Order {order.order_number}</p>
+                          <p className="text-xs text-stone-500 truncate">{order.customer_name}</p>
+                          <p className="text-xs font-medium text-amber-600">{formatPrice(order.total_amount)}</p>
+                        </div>
+                        <span className="text-xs text-stone-400">
+                          {new Date(order.created_at).toLocaleDateString()}
+                        </span>
+                      </Link>
+                    ))
+                  ) : (
+                    <div className="px-4 py-8 text-center text-stone-500">
+                      <Bell className="h-8 w-8 mx-auto mb-2 text-stone-300" />
+                      <p className="text-sm">No new notifications</p>
+                    </div>
+                  )}
+                </div>
+                {recentOrders.length > 0 && (
+                  <Link
+                    href="/admin/orders"
+                    onClick={() => setShowNotifications(false)}
+                    className="block px-4 py-3 text-center text-sm text-amber-600 hover:bg-stone-50 border-t"
+                  >
+                    View all orders
+                  </Link>
+                )}
+              </div>
+            </>
+          )}
+        </div>
 
         {/* User menu */}
         <div className="relative">

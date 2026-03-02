@@ -130,6 +130,45 @@ export async function POST(request: NextRequest) {
           }
         }
 
+        // Handle product purchases
+        if (session.metadata?.order_type === "product_purchase") {
+          try {
+            const itemsJson = session.metadata.items_json;
+            const items = itemsJson ? JSON.parse(itemsJson) : [];
+            const subtotal = parseFloat(session.metadata.subtotal || "0");
+            const shippingCost = parseFloat(session.metadata.shipping_cost || "0");
+            
+            // Get shipping details from session (cast to any for shipping_details access)
+            const sessionAny = session as any;
+            const shippingDetails = sessionAny.shipping_details;
+            const customerDetails = session.customer_details;
+
+            // Create product order
+            await supabase.from("product_orders").insert({
+              customer_name: shippingDetails?.name || customerDetails?.name || "Customer",
+              customer_email: customerDetails?.email || session.customer_email || "",
+              customer_phone: customerDetails?.phone || "",
+              shipping_address: shippingDetails?.address || null,
+              shipping_city: shippingDetails?.address?.city || "",
+              shipping_country: shippingDetails?.address?.country || "AE",
+              items: items,
+              subtotal: subtotal,
+              shipping_cost: shippingCost,
+              total_amount: (session.amount_total || 0) / 100,
+              status: "processing",
+              payment_status: "paid",
+              stripe_checkout_session_id: session.id,
+              stripe_payment_intent_id: session.payment_intent as string,
+              paid_at: new Date().toISOString(),
+              is_new: true,
+            });
+
+            console.log(`Product order created for ${customerDetails?.email}`);
+          } catch (orderError) {
+            console.error("Failed to create product order:", orderError);
+          }
+        }
+
         // Handle custom payment link payments
         if (isCustomPaymentLink || session.payment_link) {
           const stripePaymentLinkId = session.payment_link as string;
