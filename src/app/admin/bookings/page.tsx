@@ -25,6 +25,10 @@ import {
   Building2,
   X,
   LinkIcon,
+  List,
+  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -139,6 +143,11 @@ export default function AdminBookingsPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [copiedLink, setCopiedLink] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  
+  // View mode: list or calendar
+  const [viewMode, setViewMode] = useState<"list" | "calendar">("list");
+  const [calendarView, setCalendarView] = useState<"day" | "week" | "month">("week");
+  const [calendarDate, setCalendarDate] = useState(new Date());
   
   // Date range filters
   const [startDate, setStartDate] = useState("");
@@ -300,6 +309,27 @@ export default function AdminBookingsPage() {
           <p className="text-stone-500 mt-1">Manage all service bookings and payments</p>
         </div>
         <div className="flex gap-3">
+          {/* View Toggle */}
+          <div className="flex bg-stone-100 rounded-lg p-1">
+            <button
+              onClick={() => setViewMode("list")}
+              className={`px-3 py-1.5 rounded-md text-sm font-medium flex items-center gap-1 transition-colors ${
+                viewMode === "list" ? "bg-white text-stone-900 shadow-sm" : "text-stone-600 hover:text-stone-900"
+              }`}
+            >
+              <List className="h-4 w-4" />
+              List
+            </button>
+            <button
+              onClick={() => setViewMode("calendar")}
+              className={`px-3 py-1.5 rounded-md text-sm font-medium flex items-center gap-1 transition-colors ${
+                viewMode === "calendar" ? "bg-white text-stone-900 shadow-sm" : "text-stone-600 hover:text-stone-900"
+              }`}
+            >
+              <CalendarDays className="h-4 w-4" />
+              Calendar
+            </button>
+          </div>
           <Button onClick={fetchBookings} variant="outline">
             <RefreshCw className="h-4 w-4 mr-2" />
             Refresh
@@ -492,7 +522,75 @@ export default function AdminBookingsPage() {
         </CardContent>
       </Card>
 
+      {/* Calendar View */}
+      {viewMode === "calendar" && (
+        <Card>
+          <CardContent className="p-4">
+            {/* Calendar Controls */}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" onClick={() => {
+                  const d = new Date(calendarDate);
+                  if (calendarView === "day") d.setDate(d.getDate() - 1);
+                  else if (calendarView === "week") d.setDate(d.getDate() - 7);
+                  else d.setMonth(d.getMonth() - 1);
+                  setCalendarDate(d);
+                }}>
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => setCalendarDate(new Date())}>
+                  Today
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => {
+                  const d = new Date(calendarDate);
+                  if (calendarView === "day") d.setDate(d.getDate() + 1);
+                  else if (calendarView === "week") d.setDate(d.getDate() + 7);
+                  else d.setMonth(d.getMonth() + 1);
+                  setCalendarDate(d);
+                }}>
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+                <h2 className="text-lg font-semibold ml-4">
+                  {calendarView === "day" && calendarDate.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
+                  {calendarView === "week" && `Week of ${calendarDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`}
+                  {calendarView === "month" && calendarDate.toLocaleDateString("en-US", { month: "long", year: "numeric" })}
+                </h2>
+              </div>
+              <div className="flex bg-stone-100 rounded-lg p-1">
+                {(["day", "week", "month"] as const).map((v) => (
+                  <button
+                    key={v}
+                    onClick={() => setCalendarView(v)}
+                    className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                      calendarView === v ? "bg-white shadow-sm text-stone-900" : "text-stone-600 hover:text-stone-900"
+                    }`}
+                  >
+                    {v.charAt(0).toUpperCase() + v.slice(1)}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Calendar Grid */}
+            {loading ? (
+              <div className="flex items-center justify-center h-64">
+                <RefreshCw className="h-8 w-8 animate-spin text-amber-500" />
+              </div>
+            ) : (
+              <CalendarGrid
+                bookings={filteredBookings}
+                date={calendarDate}
+                view={calendarView}
+                timeSlots={MAMALU_TIME_SLOTS}
+                onSelectBooking={(b) => { setSelectedBooking(b); setShowModal(true); }}
+              />
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       {/* Bookings Table */}
+      {viewMode === "list" && (
       <Card>
         <CardContent className="p-0">
           {loading ? (
@@ -626,6 +724,7 @@ export default function AdminBookingsPage() {
           )}
         </CardContent>
       </Card>
+      )}
 
       {/* Booking Detail Modal */}
       {showModal && selectedBooking && (
@@ -1393,6 +1492,209 @@ function CreateBookingModal({ isOpen, onClose, onSuccess, currentUserId }: Creat
             </Button>
           )}
         </div>
+      </div>
+    </div>
+  );
+}
+
+// Calendar Grid Component
+interface CalendarGridProps {
+  bookings: ServiceBooking[];
+  date: Date;
+  view: "day" | "week" | "month";
+  timeSlots: typeof MAMALU_TIME_SLOTS;
+  onSelectBooking: (booking: ServiceBooking) => void;
+}
+
+function CalendarGrid({ bookings, date, view, timeSlots, onSelectBooking }: CalendarGridProps) {
+  const getWeekDates = (d: Date) => {
+    const start = new Date(d);
+    start.setDate(start.getDate() - start.getDay());
+    return Array.from({ length: 7 }, (_, i) => {
+      const day = new Date(start);
+      day.setDate(start.getDate() + i);
+      return day;
+    });
+  };
+
+  const getMonthDates = (d: Date) => {
+    const firstDay = new Date(d.getFullYear(), d.getMonth(), 1);
+    const lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+    const startPad = firstDay.getDay();
+    const dates: Date[] = [];
+    
+    for (let i = startPad - 1; i >= 0; i--) {
+      const day = new Date(firstDay);
+      day.setDate(day.getDate() - i - 1);
+      dates.push(day);
+    }
+    for (let i = 1; i <= lastDay.getDate(); i++) {
+      dates.push(new Date(d.getFullYear(), d.getMonth(), i));
+    }
+    const remaining = 42 - dates.length;
+    for (let i = 1; i <= remaining; i++) {
+      dates.push(new Date(lastDay.getFullYear(), lastDay.getMonth() + 1, i));
+    }
+    return dates;
+  };
+
+  const getBookingsForDate = (d: Date) => {
+    const dateStr = d.toISOString().split("T")[0];
+    return bookings.filter(b => b.event_date === dateStr);
+  };
+
+  const getBookingsForSlot = (d: Date, slot: typeof timeSlots[0]) => {
+    const dateStr = d.toISOString().split("T")[0];
+    return bookings.filter(b => {
+      if (b.event_date !== dateStr) return false;
+      if (!b.event_time) return false;
+      const bookingTime = b.event_time.replace(/[^0-9:]/g, "").substring(0, 5);
+      return bookingTime === slot.start;
+    });
+  };
+
+  const formatShortDate = (d: Date) => d.toLocaleDateString("en-US", { weekday: "short", day: "numeric" });
+  const isToday = (d: Date) => d.toDateString() === new Date().toDateString();
+  const isCurrentMonth = (d: Date) => d.getMonth() === date.getMonth();
+
+  const getServiceColor = (type: string | null) => {
+    switch (type) {
+      case "birthday_deck": return "bg-pink-100 border-pink-300 text-pink-800";
+      case "corporate_deck": return "bg-indigo-100 border-indigo-300 text-indigo-800";
+      case "nanny_class": return "bg-emerald-100 border-emerald-300 text-emerald-800";
+      default: return "bg-amber-100 border-amber-300 text-amber-800";
+    }
+  };
+
+  // Day View
+  if (view === "day") {
+    const dayBookings = getBookingsForDate(date);
+    return (
+      <div className="border rounded-lg overflow-hidden">
+        <div className={`p-3 text-center font-medium ${isToday(date) ? "bg-amber-50" : "bg-stone-50"}`}>
+          {date.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
+        </div>
+        <div className="divide-y">
+          {timeSlots.map((slot) => {
+            const slotBookings = getBookingsForSlot(date, slot);
+            const isAvailable = slot.days.includes(date.getDay());
+            return (
+              <div key={slot.start} className={`flex ${!isAvailable ? "bg-stone-100" : ""}`}>
+                <div className="w-28 p-3 text-sm text-stone-500 border-r bg-stone-50 flex-shrink-0">
+                  {slot.label.split(" - ")[0]}
+                </div>
+                <div className="flex-1 p-2 min-h-[80px]">
+                  {!isAvailable ? (
+                    <span className="text-xs text-stone-400">Not available</span>
+                  ) : slotBookings.length > 0 ? (
+                    <div className="space-y-1">
+                      {slotBookings.map((b) => (
+                        <div
+                          key={b.id}
+                          onClick={() => onSelectBooking(b)}
+                          className={`p-2 rounded border cursor-pointer hover:shadow-md transition-shadow ${getServiceColor(b.service_type)}`}
+                        >
+                          <div className="font-medium text-sm">{b.customer_name}</div>
+                          <div className="text-xs">{b.service_name} • {b.guest_count} guests</div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <span className="text-xs text-green-600">Available</span>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  // Week View
+  if (view === "week") {
+    const weekDates = getWeekDates(date);
+    return (
+      <div className="border rounded-lg overflow-hidden">
+        <div className="grid grid-cols-8 bg-stone-50 border-b">
+          <div className="p-2 border-r text-xs text-stone-500">Time</div>
+          {weekDates.map((d) => (
+            <div key={d.toISOString()} className={`p-2 text-center text-sm ${isToday(d) ? "bg-amber-50 font-bold" : ""}`}>
+              <div>{d.toLocaleDateString("en-US", { weekday: "short" })}</div>
+              <div className={`text-lg ${isToday(d) ? "text-amber-600" : ""}`}>{d.getDate()}</div>
+            </div>
+          ))}
+        </div>
+        <div className="max-h-[500px] overflow-y-auto">
+          {timeSlots.map((slot) => (
+            <div key={slot.start} className="grid grid-cols-8 border-b">
+              <div className="p-2 text-xs text-stone-500 border-r bg-stone-50">
+                {slot.label.split(" - ")[0]}
+              </div>
+              {weekDates.map((d) => {
+                const slotBookings = getBookingsForSlot(d, slot);
+                const isAvailable = slot.days.includes(d.getDay());
+                return (
+                  <div key={d.toISOString()} className={`p-1 min-h-[60px] border-r ${!isAvailable ? "bg-stone-100" : ""}`}>
+                    {slotBookings.map((b) => (
+                      <div
+                        key={b.id}
+                        onClick={() => onSelectBooking(b)}
+                        className={`p-1 rounded text-xs cursor-pointer hover:shadow-md mb-1 ${getServiceColor(b.service_type)}`}
+                      >
+                        <div className="font-medium truncate">{b.customer_name}</div>
+                        <div className="truncate">{b.guest_count}g</div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Month View
+  const monthDates = getMonthDates(date);
+  return (
+    <div className="border rounded-lg overflow-hidden">
+      <div className="grid grid-cols-7 bg-stone-50 border-b">
+        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+          <div key={day} className="p-2 text-center text-sm font-medium text-stone-600">
+            {day}
+          </div>
+        ))}
+      </div>
+      <div className="grid grid-cols-7">
+        {monthDates.map((d, i) => {
+          const dayBookings = getBookingsForDate(d);
+          return (
+            <div
+              key={i}
+              className={`min-h-[100px] p-1 border-b border-r ${!isCurrentMonth(d) ? "bg-stone-50" : ""} ${isToday(d) ? "bg-amber-50" : ""}`}
+            >
+              <div className={`text-sm mb-1 ${isToday(d) ? "font-bold text-amber-600" : isCurrentMonth(d) ? "text-stone-900" : "text-stone-400"}`}>
+                {d.getDate()}
+              </div>
+              <div className="space-y-1">
+                {dayBookings.slice(0, 3).map((b) => (
+                  <div
+                    key={b.id}
+                    onClick={() => onSelectBooking(b)}
+                    className={`p-1 rounded text-xs cursor-pointer truncate ${getServiceColor(b.service_type)}`}
+                  >
+                    {b.customer_name}
+                  </div>
+                ))}
+                {dayBookings.length > 3 && (
+                  <div className="text-xs text-stone-500">+{dayBookings.length - 3} more</div>
+                )}
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
