@@ -98,12 +98,12 @@ export async function POST(request: NextRequest) {
         console.error("Error fetching list members:", e);
       }
     } else {
-      // Get recipients from newsletter_leads (CRM contacts) - subscribed only
+      // Get recipients from newsletter_leads (CRM contacts) - all contacts except unsubscribed
       try {
         const { data, error } = await supabase
           .from("newsletter_leads")
-          .select("id, email, first_name, last_name")
-          .eq("status", "subscribed");
+          .select("id, email, first_name, last_name, status")
+          .neq("status", "unsubscribed");
         if (!error) crmContacts = data || [];
       } catch (e) {
         console.error("Error fetching CRM contacts:", e);

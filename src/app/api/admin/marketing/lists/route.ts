@@ -19,7 +19,18 @@ export async function GET() {
       return NextResponse.json({ lists: [] });
     }
 
-    return NextResponse.json({ lists: data || [] });
+    // Get member counts for each list
+    const listsWithCounts = await Promise.all(
+      (data || []).map(async (list) => {
+        const { count } = await supabase
+          .from("contact_list_members")
+          .select("*", { count: "exact", head: true })
+          .eq("list_id", list.id);
+        return { ...list, member_count: count || 0 };
+      })
+    );
+
+    return NextResponse.json({ lists: listsWithCounts });
   } catch (error: any) {
     console.error("Error fetching lists:", error);
     return NextResponse.json({ lists: [] });

@@ -1182,7 +1182,7 @@ export default function MarketingPage() {
                     />
                     <div className="flex-1">
                       <p className="font-medium text-stone-900">All Contacts</p>
-                      <p className="text-sm text-stone-500">{audienceCount.toLocaleString()} subscribed contacts</p>
+                      <p className="text-sm text-stone-500">{audienceCount.toLocaleString()} contacts</p>
                     </div>
                   </label>
                   

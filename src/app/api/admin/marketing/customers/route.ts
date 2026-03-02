@@ -20,11 +20,11 @@ export async function POST(request: NextRequest) {
 
     if (error) throw error;
 
-    // Also get newsletter leads count for total contacts
+    // Also get newsletter leads count for total contacts (all except unsubscribed)
     const { count: newsletterCount } = await supabase
       .from("newsletter_leads")
       .select("*", { count: "exact", head: true })
-      .eq("status", "subscribed");
+      .neq("status", "unsubscribed");
 
     return NextResponse.json({
       customers: data || [],
