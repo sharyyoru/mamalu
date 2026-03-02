@@ -14,6 +14,7 @@ import {
   Settings,
   ExternalLink,
   ShoppingBag,
+  MessageSquare,
 } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 
@@ -34,11 +35,21 @@ interface RecentOrder {
   created_at: string;
 }
 
+interface RecentInquiry {
+  id: string;
+  name: string;
+  subject: string;
+  created_at: string;
+}
+
 export function AdminHeader({ user }: AdminHeaderProps) {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [newOrdersCount, setNewOrdersCount] = useState(0);
   const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
+  const [newInquiriesCount, setNewInquiriesCount] = useState(0);
+  const [recentInquiries, setRecentInquiries] = useState<RecentInquiry[]>([]);
+  const [totalNotifications, setTotalNotifications] = useState(0);
   const router = useRouter();
 
   const fetchNotifications = useCallback(async () => {
@@ -48,6 +59,9 @@ export function AdminHeader({ user }: AdminHeaderProps) {
         const data = await res.json();
         setNewOrdersCount(data.newOrdersCount || 0);
         setRecentOrders(data.recentOrders || []);
+        setNewInquiriesCount(data.newInquiriesCount || 0);
+        setRecentInquiries(data.recentInquiries || []);
+        setTotalNotifications(data.totalNotifications || 0);
       }
     } catch (error) {
       console.error("Failed to fetch notifications:", error);
@@ -108,9 +122,9 @@ export function AdminHeader({ user }: AdminHeaderProps) {
             onClick={() => setShowNotifications(!showNotifications)}
           >
             <Bell className="h-5 w-5" />
-            {newOrdersCount > 0 && (
+            {totalNotifications > 0 && (
               <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 rounded-full text-white text-xs flex items-center justify-center font-medium">
-                {newOrdersCount > 9 ? "9+" : newOrdersCount}
+                {totalNotifications > 9 ? "9+" : totalNotifications}
               </span>
             )}
           </button>
@@ -124,49 +138,81 @@ export function AdminHeader({ user }: AdminHeaderProps) {
               <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-stone-200 z-20 overflow-hidden">
                 <div className="px-4 py-3 bg-stone-50 border-b flex items-center justify-between">
                   <h3 className="font-semibold text-stone-900">Notifications</h3>
-                  {newOrdersCount > 0 && (
+                  {totalNotifications > 0 && (
                     <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded-full">
-                      {newOrdersCount} new
+                      {totalNotifications} new
                     </span>
                   )}
                 </div>
                 <div className="max-h-80 overflow-y-auto">
-                  {recentOrders.length > 0 ? (
-                    recentOrders.map((order) => (
-                      <Link
-                        key={order.id}
-                        href="/admin/orders"
-                        onClick={() => setShowNotifications(false)}
-                        className="flex items-start gap-3 px-4 py-3 hover:bg-stone-50 border-b border-stone-100"
-                      >
-                        <div className="p-2 bg-amber-100 rounded-lg">
-                          <ShoppingBag className="h-4 w-4 text-amber-600" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-stone-900">New Order {order.order_number}</p>
-                          <p className="text-xs text-stone-500 truncate">{order.customer_name}</p>
-                          <p className="text-xs font-medium text-amber-600">{formatPrice(order.total_amount)}</p>
-                        </div>
-                        <span className="text-xs text-stone-400">
-                          {new Date(order.created_at).toLocaleDateString()}
-                        </span>
-                      </Link>
-                    ))
-                  ) : (
+                  {/* Orders */}
+                  {recentOrders.map((order) => (
+                    <Link
+                      key={order.id}
+                      href="/admin/orders"
+                      onClick={() => setShowNotifications(false)}
+                      className="flex items-start gap-3 px-4 py-3 hover:bg-stone-50 border-b border-stone-100"
+                    >
+                      <div className="p-2 bg-amber-100 rounded-lg">
+                        <ShoppingBag className="h-4 w-4 text-amber-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-stone-900">New Order {order.order_number}</p>
+                        <p className="text-xs text-stone-500 truncate">{order.customer_name}</p>
+                        <p className="text-xs font-medium text-amber-600">{formatPrice(order.total_amount)}</p>
+                      </div>
+                      <span className="text-xs text-stone-400">
+                        {new Date(order.created_at).toLocaleDateString()}
+                      </span>
+                    </Link>
+                  ))}
+                  
+                  {/* Inquiries */}
+                  {recentInquiries.map((inquiry) => (
+                    <Link
+                      key={inquiry.id}
+                      href="/admin/inquiries"
+                      onClick={() => setShowNotifications(false)}
+                      className="flex items-start gap-3 px-4 py-3 hover:bg-stone-50 border-b border-stone-100"
+                    >
+                      <div className="p-2 bg-blue-100 rounded-lg">
+                        <MessageSquare className="h-4 w-4 text-blue-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-stone-900">New Inquiry</p>
+                        <p className="text-xs text-stone-500 truncate">{inquiry.name}</p>
+                        <p className="text-xs text-stone-600 truncate">{inquiry.subject}</p>
+                      </div>
+                      <span className="text-xs text-stone-400">
+                        {new Date(inquiry.created_at).toLocaleDateString()}
+                      </span>
+                    </Link>
+                  ))}
+
+                  {totalNotifications === 0 && (
                     <div className="px-4 py-8 text-center text-stone-500">
                       <Bell className="h-8 w-8 mx-auto mb-2 text-stone-300" />
                       <p className="text-sm">No new notifications</p>
                     </div>
                   )}
                 </div>
-                {recentOrders.length > 0 && (
-                  <Link
-                    href="/admin/orders"
-                    onClick={() => setShowNotifications(false)}
-                    className="block px-4 py-3 text-center text-sm text-amber-600 hover:bg-stone-50 border-t"
-                  >
-                    View all orders
-                  </Link>
+                {totalNotifications > 0 && (
+                  <div className="flex border-t">
+                    <Link
+                      href="/admin/orders"
+                      onClick={() => setShowNotifications(false)}
+                      className="flex-1 px-4 py-3 text-center text-sm text-amber-600 hover:bg-stone-50 border-r"
+                    >
+                      Orders ({newOrdersCount})
+                    </Link>
+                    <Link
+                      href="/admin/inquiries"
+                      onClick={() => setShowNotifications(false)}
+                      className="flex-1 px-4 py-3 text-center text-sm text-blue-600 hover:bg-stone-50"
+                    >
+                      Inquiries ({newInquiriesCount})
+                    </Link>
+                  </div>
                 )}
               </div>
             </>

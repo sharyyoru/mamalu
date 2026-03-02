@@ -20,12 +20,30 @@ export async function GET(request: NextRequest) {
       .select("id, order_number, customer_name, total_amount, created_at")
       .eq("is_new", true)
       .order("created_at", { ascending: false })
-      .limit(5);
+      .limit(3);
+
+    // Get count of unread inquiries
+    const { count: newInquiriesCount } = await supabase
+      .from("contact_submissions")
+      .select("*", { count: "exact", head: true })
+      .eq("is_read", false);
+
+    // Get recent unread inquiries for preview
+    const { data: recentInquiries } = await supabase
+      .from("contact_submissions")
+      .select("id, name, subject, created_at")
+      .eq("is_read", false)
+      .order("created_at", { ascending: false })
+      .limit(3);
+
+    const totalNotifications = (newOrdersCount || 0) + (newInquiriesCount || 0);
 
     return NextResponse.json({
       newOrdersCount: newOrdersCount || 0,
       recentOrders: recentOrders || [],
-      totalNotifications: newOrdersCount || 0,
+      newInquiriesCount: newInquiriesCount || 0,
+      recentInquiries: recentInquiries || [],
+      totalNotifications,
     });
   } catch (error: any) {
     console.error("Notifications API error:", error);
