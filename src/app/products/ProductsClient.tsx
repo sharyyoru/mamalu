@@ -132,8 +132,8 @@ export default function ProductsClient({
               onClick={() => setActiveCategory(category.slug.current)}
               className={`block w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
                 activeCategory === category.slug.current
-                  ? "bg-[#ff8c6b] text-white font-medium"
-                  : "text-stone-600 hover:bg-[#ff8c6b]/10 hover:text-[#ff8c6b]"
+                  ? "bg-[#ff7f5c] text-white font-medium"
+                  : "text-stone-600 hover:bg-[#ff7f5c]/10 hover:text-[#ff7f5c]"
               }`}
             >
               {category.title}
@@ -157,9 +157,9 @@ export default function ProductsClient({
                 value={option.value}
                 checked={sortBy === option.value}
                 onChange={() => setSortBy(option.value)}
-                className="w-4 h-4 text-[#ff8c6b] border-stone-300 focus:ring-[#ff8c6b]"
+                className="w-4 h-4 text-[#ff7f5c] border-stone-300 focus:ring-[#ff7f5c]"
               />
-              <span className={`text-sm ${sortBy === option.value ? "text-[#ff8c6b] font-medium" : "text-stone-600 group-hover:text-[#ff8c6b]"}`}>
+              <span className={`text-sm ${sortBy === option.value ? "text-[#ff7f5c] font-medium" : "text-stone-600 group-hover:text-[#ff7f5c]"}`}>
                 {option.label}
               </span>
             </label>
@@ -186,13 +186,13 @@ export default function ProductsClient({
             <div className="flex flex-col sm:flex-row gap-4 mb-6">
               {/* Search */}
               <div className="relative flex-1">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#ff8c6b]" />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#ff7f5c]" />
                 <Input
                   type="text"
                   placeholder="Search products..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-12 pr-12 h-14 glass border-0 rounded-full focus:ring-2 focus:ring-[#ff8c6b]/30 text-base"
+                  className="pl-12 pr-12 h-14 glass border-0 rounded-full focus:ring-2 focus:ring-[#ff7f5c]/30 text-base"
                 />
                 {searchQuery && (
                   <button
@@ -221,7 +221,7 @@ export default function ProductsClient({
                 <span className="text-sm text-stone-500">Active filters:</span>
                 {activeCategory !== "all" && (
                   <Badge 
-                    className="bg-[#ff8c6b]/10 text-[#ff8c6b] hover:bg-[#ff8c6b]/20 cursor-pointer"
+                    className="bg-[#ff7f5c]/10 text-[#ff7f5c] hover:bg-[#ff7f5c]/20 cursor-pointer"
                     onClick={() => setActiveCategory("all")}
                   >
                     {allCategories.find(c => c.slug.current === activeCategory)?.title}
@@ -230,7 +230,7 @@ export default function ProductsClient({
                 )}
                 {searchQuery && (
                   <Badge 
-                    className="bg-[#ff8c6b]/10 text-[#ff8c6b] hover:bg-[#ff8c6b]/20 cursor-pointer"
+                    className="bg-[#ff7f5c]/10 text-[#ff7f5c] hover:bg-[#ff7f5c]/20 cursor-pointer"
                     onClick={() => setSearchQuery("")}
                   >
                     &quot;{searchQuery}&quot;
@@ -242,7 +242,7 @@ export default function ProductsClient({
                     setActiveCategory("all");
                     setSearchQuery("");
                   }}
-                  className="text-sm text-stone-500 hover:text-[#ff8c6b] underline"
+                  className="text-sm text-stone-500 hover:text-[#ff7f5c] underline"
                 >
                   Clear all
                 </button>
@@ -272,8 +272,8 @@ export default function ProductsClient({
                           className="object-cover group-hover:scale-110 transition-transform duration-500"
                         />
                       ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-[#ff8c6b]/20 to-[#ffa891]/30 flex items-center justify-center">
-                          <ShoppingBag className="h-16 w-16 text-[#ff8c6b]/40" />
+                        <div className="w-full h-full bg-gradient-to-br from-[#ff7f5c]/20 to-[#ffa891]/30 flex items-center justify-center">
+                          <ShoppingBag className="h-16 w-16 text-[#ff7f5c]/40" />
                         </div>
                       )}
                       {!product.inStock && (
@@ -296,14 +296,14 @@ export default function ProductsClient({
                           e.preventDefault();
                           addToCart(product);
                         }}
-                        className="absolute bottom-3 right-3 w-12 h-12 bg-white rounded-full shadow-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-gradient-to-r hover:from-[#ff8c6b] hover:to-[#ffa891] hover:text-white hover:scale-110"
+                        className="absolute bottom-3 right-3 w-12 h-12 bg-white rounded-full shadow-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-gradient-to-r hover:from-[#ff7f5c] hover:to-[#ffa891] hover:text-white hover:scale-110"
                         disabled={!product.inStock}
                       >
                         <ShoppingCart className="h-5 w-5" />
                       </button>
                     </div>
                     <div className="p-4 sm:p-5">
-                      <h3 className="font-bold text-stone-900 text-sm sm:text-base mb-2 group-hover:text-[#ff8c6b] transition-colors line-clamp-1">
+                      <h3 className="font-bold text-stone-900 text-sm sm:text-base mb-2 group-hover:text-[#ff7f5c] transition-colors line-clamp-1">
                         {product.title}
                       </h3>
                       <div className="flex items-center gap-2 mb-4">
@@ -333,8 +333,8 @@ export default function ProductsClient({
               </div>
             ) : (
               <div className="text-center py-20">
-                <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-[#ff8c6b]/20 to-[#ffa891]/10 flex items-center justify-center">
-                  <ShoppingBag className="h-10 w-10 text-[#ff8c6b]" />
+                <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-[#ff7f5c]/20 to-[#ffa891]/10 flex items-center justify-center">
+                  <ShoppingBag className="h-10 w-10 text-[#ff7f5c]" />
                 </div>
                 <h2 className="text-xl font-bold text-stone-900 mb-2">No products found</h2>
                 <p className="text-stone-500 mb-6">Try adjusting your search or filters</p>
@@ -366,7 +366,7 @@ export default function ProductsClient({
             </div>
             <Sidebar />
             <Button
-              className="w-full mt-6 bg-[#ff8c6b] hover:bg-[#e67854]"
+              className="w-full mt-6 bg-[#ff7f5c] hover:bg-[#e67854]"
               onClick={() => setShowMobileFilters(false)}
             >
               Apply Filters

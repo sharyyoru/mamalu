@@ -108,7 +108,7 @@ export function Header() {
                     href={social.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center text-stone-600 hover:bg-[#ff8c6b] hover:text-white transition-all"
+                    className="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center text-stone-600 hover:bg-[#ff7f5c] hover:text-white transition-all"
                   >
                     <social.icon className="h-4 w-4" />
                     <span className="sr-only">{social.name}</span>
@@ -142,8 +142,15 @@ export function Header() {
               </Link>
             </div>
 
-            {/* Right: Cart Button */}
+            {/* Right: Eazy Freezy + Cart */}
             <div className="flex items-center gap-4">
+              <Link
+                href="/products"
+                className="text-xl font-bold text-[#ff7f5c] hover:opacity-70 transition-opacity uppercase whitespace-nowrap hidden sm:block"
+                style={{ fontFamily: 'var(--font-mossy), cursive' }}
+              >
+                Eazy Freezy
+              </Link>
               <Link
                 href="/cart"
                 className="relative flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[var(--c-black)]/20 bg-white text-xs font-bold uppercase tracking-wide transition-all duration-300 hover:border-[var(--c-black)]"
@@ -237,7 +244,7 @@ export function Header() {
                 href={social.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-12 h-12 rounded-full bg-stone-200 flex items-center justify-center text-stone-700 hover:bg-[#ff8c6b] hover:text-white transition-all hover:scale-110"
+                className="w-12 h-12 rounded-full bg-stone-200 flex items-center justify-center text-stone-700 hover:bg-[#ff7f5c] hover:text-white transition-all hover:scale-110"
               >
                 <social.icon className="h-6 w-6" />
                 <span className="sr-only">{social.name}</span>

@@ -43,15 +43,15 @@ export default async function BlogsPage() {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-stone-50 via-[#ff8c6b]/5 to-stone-100 py-16 lg:py-20">
+      <section className="bg-gradient-to-br from-stone-50 via-[#ff7f5c]/5 to-stone-100 py-16 lg:py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto text-center">
-            <Badge className="bg-[#ff8c6b]/10 text-[#ff8c6b] mb-4">
+            <Badge className="bg-[#ff7f5c]/10 text-[#ff7f5c] mb-4">
               <TrendingUp className="h-3 w-3 mr-1" />
               Our Blog
             </Badge>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-stone-900 mb-6">
-              Stories from <span className="text-[#ff8c6b]">Our Kitchen</span>
+              Stories from <span className="text-[#ff7f5c]">Our Kitchen</span>
             </h1>
             <p className="text-lg text-stone-600 mb-8">
               Discover cooking tips, healthy recipes, and inspiring stories about 
@@ -64,7 +64,7 @@ export default async function BlogsPage() {
               <Input
                 type="text"
                 placeholder="Search articles..."
-                className="pl-12 h-14 rounded-full border-stone-200 focus:border-[#ff8c6b] focus:ring-[#ff8c6b] text-base"
+                className="pl-12 h-14 rounded-full border-stone-200 focus:border-[#ff7f5c] focus:ring-[#ff7f5c] text-base"
               />
             </div>
           </div>
@@ -75,10 +75,10 @@ export default async function BlogsPage() {
       {featuredBlog && (
         <section className="py-12 bg-white">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <h2 className="text-sm font-semibold text-[#ff8c6b] uppercase tracking-wide mb-6">Featured Article</h2>
+            <h2 className="text-sm font-semibold text-[#ff7f5c] uppercase tracking-wide mb-6">Featured Article</h2>
             <Link href={`/blogs/${featuredBlog.slug.current}`} className="group block">
               <div className="grid lg:grid-cols-2 gap-8 items-center">
-                <div className="aspect-[16/10] lg:aspect-[4/3] bg-gradient-to-br from-[#ff8c6b]/20 to-[#ff8c6b]/30 rounded-2xl overflow-hidden relative">
+                <div className="aspect-[16/10] lg:aspect-[4/3] bg-gradient-to-br from-[#ff7f5c]/20 to-[#ff7f5c]/30 rounded-2xl overflow-hidden relative">
                   {featuredBlog.mainImage ? (
                     <Image
                       src={urlFor(featuredBlog.mainImage).width(800).height(600).url()}
@@ -88,10 +88,10 @@ export default async function BlogsPage() {
                     />
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <BookOpen className="h-20 w-20 text-[#ff8c6b]/30" />
+                      <BookOpen className="h-20 w-20 text-[#ff7f5c]/30" />
                     </div>
                   )}
-                  <Badge className="absolute top-4 left-4 bg-[#ff8c6b] text-white">Featured</Badge>
+                  <Badge className="absolute top-4 left-4 bg-[#ff7f5c] text-white">Featured</Badge>
                 </div>
                 <div className="space-y-4">
                   <div className="flex items-center gap-4 text-sm text-stone-500">
@@ -106,7 +106,7 @@ export default async function BlogsPage() {
                       </span>
                     )}
                   </div>
-                  <h3 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-stone-900 group-hover:text-[#ff8c6b] transition-colors">
+                  <h3 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-stone-900 group-hover:text-[#ff7f5c] transition-colors">
                     {featuredBlog.title}
                   </h3>
                   <p className="text-stone-600 text-lg line-clamp-3">
@@ -114,14 +114,14 @@ export default async function BlogsPage() {
                   </p>
                   {featuredBlog.author && (
                     <div className="flex items-center gap-3 pt-2">
-                      <div className="w-10 h-10 rounded-full bg-[#ff8c6b]/10 flex items-center justify-center">
-                        <User className="h-5 w-5 text-[#ff8c6b]" />
+                      <div className="w-10 h-10 rounded-full bg-[#ff7f5c]/10 flex items-center justify-center">
+                        <User className="h-5 w-5 text-[#ff7f5c]" />
                       </div>
                       <span className="font-medium text-stone-700">{featuredBlog.author.name}</span>
                     </div>
                   )}
                   <div className="pt-2">
-                    <span className="inline-flex items-center text-[#ff8c6b] font-semibold group-hover:gap-3 gap-2 transition-all">
+                    <span className="inline-flex items-center text-[#ff7f5c] font-semibold group-hover:gap-3 gap-2 transition-all">
                       Read Full Article
                       <ArrowRight className="h-5 w-5" />
                     </span>
@@ -139,10 +139,10 @@ export default async function BlogsPage() {
           <div className="flex items-center justify-between mb-10">
             <h2 className="text-2xl sm:text-3xl font-bold text-stone-900">Latest Articles</h2>
             <div className="flex gap-2">
-              <Badge variant="outline" className="cursor-pointer hover:bg-[#ff8c6b] hover:text-white hover:border-[#ff8c6b]">All</Badge>
-              <Badge variant="outline" className="cursor-pointer hover:bg-[#ff8c6b] hover:text-white hover:border-[#ff8c6b]">Recipes</Badge>
-              <Badge variant="outline" className="cursor-pointer hover:bg-[#ff8c6b] hover:text-white hover:border-[#ff8c6b]">Tips</Badge>
-              <Badge variant="outline" className="cursor-pointer hover:bg-[#ff8c6b] hover:text-white hover:border-[#ff8c6b] hidden sm:inline-flex">Family</Badge>
+              <Badge variant="outline" className="cursor-pointer hover:bg-[#ff7f5c] hover:text-white hover:border-[#ff7f5c]">All</Badge>
+              <Badge variant="outline" className="cursor-pointer hover:bg-[#ff7f5c] hover:text-white hover:border-[#ff7f5c]">Recipes</Badge>
+              <Badge variant="outline" className="cursor-pointer hover:bg-[#ff7f5c] hover:text-white hover:border-[#ff7f5c]">Tips</Badge>
+              <Badge variant="outline" className="cursor-pointer hover:bg-[#ff7f5c] hover:text-white hover:border-[#ff7f5c] hidden sm:inline-flex">Family</Badge>
             </div>
           </div>
 
@@ -154,7 +154,7 @@ export default async function BlogsPage() {
                   className="group overflow-hidden hover:shadow-xl transition-all duration-300 bg-white border-0"
                 >
                   <Link href={`/blogs/${blog.slug.current}`}>
-                    <div className="aspect-[16/10] bg-gradient-to-br from-[#ff8c6b]/20 to-[#ff8c6b]/30 flex items-center justify-center relative overflow-hidden">
+                    <div className="aspect-[16/10] bg-gradient-to-br from-[#ff7f5c]/20 to-[#ff7f5c]/30 flex items-center justify-center relative overflow-hidden">
                       {blog.mainImage ? (
                         <Image
                           src={urlFor(blog.mainImage).width(600).height(375).url()}
@@ -163,7 +163,7 @@ export default async function BlogsPage() {
                           className="object-cover group-hover:scale-110 transition-transform duration-500"
                         />
                       ) : (
-                        <BookOpen className="h-12 w-12 text-[#ff8c6b]/30" />
+                        <BookOpen className="h-12 w-12 text-[#ff7f5c]/30" />
                       )}
                     </div>
                     <CardContent className="p-5">
@@ -179,13 +179,13 @@ export default async function BlogsPage() {
                           </span>
                         )}
                       </div>
-                      <h3 className="text-lg font-semibold text-stone-900 mb-2 group-hover:text-[#ff8c6b] transition-colors line-clamp-2">
+                      <h3 className="text-lg font-semibold text-stone-900 mb-2 group-hover:text-[#ff7f5c] transition-colors line-clamp-2">
                         {blog.title}
                       </h3>
                       <p className="text-stone-600 text-sm line-clamp-2 mb-4">
                         {blog.excerpt}
                       </p>
-                      <span className="inline-flex items-center text-sm font-medium text-[#ff8c6b]">
+                      <span className="inline-flex items-center text-sm font-medium text-[#ff7f5c]">
                         Read more
                         <ArrowRight className="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform" />
                       </span>

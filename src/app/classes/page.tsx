@@ -24,7 +24,7 @@ export default async function ClassesPage({
       {/* Hero Section */}
       <section className="relative gradient-mesh py-16 lg:py-24 overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-20 left-10 w-64 h-64 bg-gradient-to-br from-[#ff8c6b]/20 to-transparent rounded-full blur-3xl" />
+          <div className="absolute top-20 left-10 w-64 h-64 bg-gradient-to-br from-[#ff7f5c]/20 to-transparent rounded-full blur-3xl" />
           <div className="absolute bottom-10 right-10 w-80 h-80 bg-gradient-to-br from-[#ffa891]/15 to-transparent rounded-full blur-3xl" />
           <Image src="/images/whisk-01.png" alt="" width={80} height={80} className="absolute top-[10%] left-[3%] opacity-[0.07] animate-doodle-float" />
           <Image src="/images/pot-01.png" alt="" width={70} height={70} className="absolute top-[15%] right-[4%] opacity-[0.06] animate-doodle-wiggle" style={{animationDelay: '1s'}} />
@@ -34,7 +34,7 @@ export default async function ClassesPage({
 
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="max-w-3xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 glass-peach text-[#ff8c6b] px-4 py-2 rounded-full text-sm font-medium mb-6">
+            <div className="inline-flex items-center gap-2 glass-peach text-[#ff7f5c] px-4 py-2 rounded-full text-sm font-medium mb-6">
               <Sparkles className="h-4 w-4" />
               Learn. Cook. Create.
             </div>
@@ -77,7 +77,7 @@ export default async function ClassesPage({
 
                   {/* Content */}
                   <div className="p-6">
-                    <h3 className="text-2xl font-bold text-stone-900 mb-3 group-hover:text-[#ff8c6b] transition-colors">
+                    <h3 className="text-2xl font-bold text-stone-900 mb-3 group-hover:text-[#ff7f5c] transition-colors">
                       {cat.label}
                     </h3>
                     <p className="text-stone-600 text-sm mb-6">
@@ -89,7 +89,7 @@ export default async function ClassesPage({
                       <span className="text-sm text-stone-500">
                         Click to explore
                       </span>
-                      <span className="flex items-center gap-1 text-[#ff8c6b] font-semibold group-hover:gap-2 transition-all">
+                      <span className="flex items-center gap-1 text-[#ff7f5c] font-semibold group-hover:gap-2 transition-all">
                         Explore
                         <ArrowRight className="h-4 w-4" />
                       </span>

@@ -274,14 +274,14 @@ export default function KidsBookingPage() {
       <div className="sticky top-0 z-50 glass-card border-b border-stone-200">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
-            <button onClick={() => window.dispatchEvent(new CustomEvent("openMamaluMenu"))} className="flex items-center gap-2 text-stone-600 hover:text-[#ff8c6b] transition-colors">
+            <button onClick={() => window.dispatchEvent(new CustomEvent("openMamaluMenu"))} className="flex items-center gap-2 text-stone-600 hover:text-[#ff7f5c] transition-colors">
               <ArrowLeft className="h-5 w-5" />
               <span className="font-medium">Back to Classes</span>
             </button>
             <div className="flex items-center gap-4">
               <div className="text-right hidden sm:block">
                 <div className="text-sm text-stone-500">Total</div>
-                <div className="text-2xl font-bold text-[#ff8c6b]">{calculateTotal()} AED</div>
+                <div className="text-2xl font-bold text-[#ff7f5c]">{calculateTotal()} AED</div>
               </div>
               <Button className="gradient-peach-glow text-white rounded-full px-6">
                 <ShoppingCart className="h-4 w-4 mr-2" />
@@ -296,7 +296,7 @@ export default function KidsBookingPage() {
       <section className="py-12 lg:py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 glass-peach text-[#ff8c6b] px-4 py-2 rounded-full text-sm font-medium mb-4">
+            <div className="inline-flex items-center gap-2 glass-peach text-[#ff7f5c] px-4 py-2 rounded-full text-sm font-medium mb-4">
               <ChefHat className="h-4 w-4" />
               Kids Birthday Party
             </div>
@@ -310,15 +310,15 @@ export default function KidsBookingPage() {
             {/* Quick Info */}
             <div className="flex flex-wrap justify-center gap-6 text-sm">
               <div className="glass px-4 py-2 rounded-full flex items-center gap-2">
-                <Users className="h-4 w-4 text-[#ff8c6b]" />
+                <Users className="h-4 w-4 text-[#ff7f5c]" />
                 <span className="text-stone-700">Minimum: 6 | Maximum: 35</span>
               </div>
               <div className="glass px-4 py-2 rounded-full flex items-center gap-2">
-                <Clock className="h-4 w-4 text-[#ff8c6b]" />
+                <Clock className="h-4 w-4 text-[#ff7f5c]" />
                 <span className="text-stone-700">2 hour private birthday experience</span>
               </div>
               <div className="glass px-4 py-2 rounded-full flex items-center gap-2">
-                <Check className="h-4 w-4 text-[#ff8c6b]" />
+                <Check className="h-4 w-4 text-[#ff7f5c]" />
                 <span className="text-stone-700">Starting at 180 AED per person</span>
               </div>
             </div>
@@ -334,20 +334,20 @@ export default function KidsBookingPage() {
                 <Button
                   variant="outline"
                   size="icon"
-                  className="h-12 w-12 rounded-full border-2 border-[#ff8c6b] hover:bg-[#ff8c6b] hover:text-white"
+                  className="h-12 w-12 rounded-full border-2 border-[#ff7f5c] hover:bg-[#ff7f5c] hover:text-white"
                   onClick={() => setNumberOfKids(Math.max(6, numberOfKids - 1))}
                   disabled={numberOfKids <= 6}
                 >
                   <Minus className="h-5 w-5" />
                 </Button>
                 <div className="text-center flex-1">
-                  <div className="text-4xl font-bold text-[#ff8c6b]">{numberOfKids}</div>
+                  <div className="text-4xl font-bold text-[#ff7f5c]">{numberOfKids}</div>
                   <div className="text-sm text-stone-500">kids</div>
                 </div>
                 <Button
                   variant="outline"
                   size="icon"
-                  className="h-12 w-12 rounded-full border-2 border-[#ff8c6b] hover:bg-[#ff8c6b] hover:text-white"
+                  className="h-12 w-12 rounded-full border-2 border-[#ff7f5c] hover:bg-[#ff7f5c] hover:text-white"
                   onClick={() => setNumberOfKids(Math.min(35, numberOfKids + 1))}
                   disabled={numberOfKids >= 35}
                 >
@@ -373,13 +373,13 @@ export default function KidsBookingPage() {
                     key={pkg.id}
                     onClick={() => setSelectedPackage(pkg.id)}
                     className={`glass-card rounded-2xl p-6 text-left transition-all card-hover ${
-                      isSelected ? "ring-4 ring-[#ff8c6b] ring-offset-2" : ""
+                      isSelected ? "ring-4 ring-[#ff7f5c] ring-offset-2" : ""
                     }`}
                   >
                     <div className="flex items-start justify-between mb-4">
                       <div className="text-5xl">{pkg.emoji}</div>
                       {isSelected && (
-                        <div className="bg-[#ff8c6b] text-white rounded-full p-1.5">
+                        <div className="bg-[#ff7f5c] text-white rounded-full p-1.5">
                           <Check className="h-5 w-5" />
                         </div>
                       )}
@@ -388,14 +388,14 @@ export default function KidsBookingPage() {
                     <ul className="space-y-2 mb-4">
                       {pkg.items.map((item, idx) => (
                         <li key={idx} className="text-sm text-stone-600 flex items-start gap-2">
-                          <span className="text-[#ff8c6b] mt-0.5">•</span>
+                          <span className="text-[#ff7f5c] mt-0.5">•</span>
                           {item}
                         </li>
                       ))}
                     </ul>
                     <div className="pt-4 border-t border-stone-100">
                       <div className="text-sm text-stone-500">Price per person</div>
-                      <div className="text-2xl font-bold text-[#ff8c6b]">{pkg.price} AED</div>
+                      <div className="text-2xl font-bold text-[#ff7f5c]">{pkg.price} AED</div>
                     </div>
                   </button>
                 );
@@ -423,7 +423,7 @@ export default function KidsBookingPage() {
                           <div className="flex-1">
                             <h4 className="font-bold text-stone-900 mb-1">{addOn.name}</h4>
                             <p className="text-sm text-stone-500">{addOn.unit}</p>
-                            <p className="text-lg font-bold text-[#ff8c6b] mt-2">
+                            <p className="text-lg font-bold text-[#ff7f5c] mt-2">
                               {addOn.price} AED
                             </p>
                           </div>
@@ -442,18 +442,18 @@ export default function KidsBookingPage() {
                               <Button
                                 variant="outline"
                                 size="icon"
-                                className="h-10 w-10 rounded-full border-2 border-[#ff8c6b]"
+                                className="h-10 w-10 rounded-full border-2 border-[#ff7f5c]"
                                 onClick={() => handleAddOnChange(addOn.id, false)}
                               >
                                 <Minus className="h-4 w-4" />
                               </Button>
-                              <div className="flex-1 text-center font-bold text-lg text-[#ff8c6b]">
+                              <div className="flex-1 text-center font-bold text-lg text-[#ff7f5c]">
                                 {quantity}
                               </div>
                               <Button
                                 variant="outline"
                                 size="icon"
-                                className="h-10 w-10 rounded-full border-2 border-[#ff8c6b]"
+                                className="h-10 w-10 rounded-full border-2 border-[#ff7f5c]"
                                 onClick={() => handleAddOnChange(addOn.id, true)}
                               >
                                 <Plus className="h-4 w-4" />
@@ -484,7 +484,7 @@ export default function KidsBookingPage() {
                           <div className="flex-1">
                             <h4 className="font-bold text-stone-900 mb-1">{addOn.name}</h4>
                             <p className="text-sm text-stone-500">{addOn.unit}</p>
-                            <p className="text-lg font-bold text-[#ff8c6b] mt-2">
+                            <p className="text-lg font-bold text-[#ff7f5c] mt-2">
                               {addOn.price} AED
                             </p>
                           </div>
@@ -503,18 +503,18 @@ export default function KidsBookingPage() {
                               <Button
                                 variant="outline"
                                 size="icon"
-                                className="h-10 w-10 rounded-full border-2 border-[#ff8c6b]"
+                                className="h-10 w-10 rounded-full border-2 border-[#ff7f5c]"
                                 onClick={() => handleAddOnChange(addOn.id, false)}
                               >
                                 <Minus className="h-4 w-4" />
                               </Button>
-                              <div className="flex-1 text-center font-bold text-lg text-[#ff8c6b]">
+                              <div className="flex-1 text-center font-bold text-lg text-[#ff7f5c]">
                                 {quantity}
                               </div>
                               <Button
                                 variant="outline"
                                 size="icon"
-                                className="h-10 w-10 rounded-full border-2 border-[#ff8c6b]"
+                                className="h-10 w-10 rounded-full border-2 border-[#ff7f5c]"
                                 onClick={() => handleAddOnChange(addOn.id, true)}
                               >
                                 <Plus className="h-4 w-4" />
@@ -541,7 +541,7 @@ export default function KidsBookingPage() {
                       <div className="font-semibold text-stone-900">{selectedPkg?.name}</div>
                       <div className="text-sm text-stone-500">{numberOfKids} kids × {selectedPkg?.price} AED</div>
                     </div>
-                    <div className="font-bold text-[#ff8c6b]">
+                    <div className="font-bold text-[#ff7f5c]">
                       {selectedPkg && (selectedPkg.price * numberOfKids).toFixed(0)} AED
                     </div>
                   </div>
@@ -570,7 +570,7 @@ export default function KidsBookingPage() {
 
                   <div className="border-t border-stone-200 pt-4 flex justify-between items-center">
                     <div className="text-xl font-bold text-stone-900">Total</div>
-                    <div className="text-3xl font-bold text-[#ff8c6b]">{calculateTotal()} AED</div>
+                    <div className="text-3xl font-bold text-[#ff7f5c]">{calculateTotal()} AED</div>
                   </div>
                 </div>
 
@@ -594,7 +594,7 @@ export default function KidsBookingPage() {
             <div className="mt-12 max-w-2xl mx-auto space-y-6">
               <div className="glass-card rounded-3xl p-8">
                 <h3 className="text-2xl font-bold text-stone-900 mb-6 flex items-center gap-2">
-                  <CalendarDays className="h-6 w-6 text-[#ff8c6b]" />
+                  <CalendarDays className="h-6 w-6 text-[#ff7f5c]" />
                   Booking Details
                 </h3>
 
@@ -611,7 +611,7 @@ export default function KidsBookingPage() {
                         onClick={() => setAgeRange(range)}
                         className={`py-3 px-4 rounded-xl text-sm font-medium transition-all ${
                           ageRange === range
-                            ? "bg-[#ff8c6b] text-white shadow-lg"
+                            ? "bg-[#ff7f5c] text-white shadow-lg"
                             : "glass text-stone-700 hover:bg-stone-100"
                         }`}
                       >
@@ -632,7 +632,7 @@ export default function KidsBookingPage() {
                       value={eventDate}
                       onChange={(e) => setEventDate(e.target.value)}
                       min={new Date().toISOString().split("T")[0]}
-                      className="w-full px-4 py-3 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#ff8c6b]"
+                      className="w-full px-4 py-3 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#ff7f5c]"
                     />
                   </div>
                   <div>
@@ -662,7 +662,7 @@ export default function KidsBookingPage() {
                               onClick={() => setEventTime(slot.start)}
                               className={`w-full py-2.5 px-4 rounded-xl text-sm font-medium transition-all text-left ${
                                 isSelected
-                                  ? "bg-[#ff8c6b] text-white"
+                                  ? "bg-[#ff7f5c] text-white"
                                   : isAvailable
                                     ? "glass text-stone-700 hover:bg-stone-100"
                                     : "bg-stone-50 text-stone-300 cursor-not-allowed line-through"
@@ -688,7 +688,7 @@ export default function KidsBookingPage() {
                         value={customerName}
                         onChange={(e) => setCustomerName(e.target.value)}
                         placeholder="Your full name"
-                        className="w-full px-4 py-3 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#ff8c6b]"
+                        className="w-full px-4 py-3 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#ff7f5c]"
                       />
                     </div>
                     <div>
@@ -698,7 +698,7 @@ export default function KidsBookingPage() {
                         value={customerEmail}
                         onChange={(e) => setCustomerEmail(e.target.value)}
                         placeholder="email@example.com"
-                        className="w-full px-4 py-3 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#ff8c6b]"
+                        className="w-full px-4 py-3 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#ff7f5c]"
                       />
                     </div>
                   </div>
@@ -710,7 +710,7 @@ export default function KidsBookingPage() {
                         value={customerPhone}
                         onChange={(e) => setCustomerPhone(e.target.value)}
                         placeholder="+971 50 123 4567"
-                        className="w-full px-4 py-3 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#ff8c6b]"
+                        className="w-full px-4 py-3 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#ff7f5c]"
                       />
                     </div>
                     <div>
@@ -720,7 +720,7 @@ export default function KidsBookingPage() {
                         value={specialRequests}
                         onChange={(e) => setSpecialRequests(e.target.value)}
                         placeholder="Allergies, dietary needs..."
-                        className="w-full px-4 py-3 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#ff8c6b]"
+                        className="w-full px-4 py-3 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#ff7f5c]"
                       />
                     </div>
                   </div>
@@ -733,7 +733,7 @@ export default function KidsBookingPage() {
                       type="checkbox"
                       checked={waiverAccepted}
                       onChange={(e) => setWaiverAccepted(e.target.checked)}
-                      className="mt-1 h-4 w-4 rounded border-stone-300 text-[#ff8c6b] focus:ring-[#ff8c6b]"
+                      className="mt-1 h-4 w-4 rounded border-stone-300 text-[#ff7f5c] focus:ring-[#ff7f5c]"
                     />
                     <div>
                       <p className="text-sm font-medium text-stone-900">

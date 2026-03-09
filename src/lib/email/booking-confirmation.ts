@@ -128,7 +128,7 @@ function generateEmailHtml(booking: BookingDetails, qrCodes: QRCodeInfo[]): stri
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
     <!-- Header -->
     <tr>
-      <td style="background-color: #ff8c6b; padding: 30px; text-align: center;">
+      <td style="background-color: #ff7f5c; padding: 30px; text-align: center;">
         <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: bold;">Mamalu Kitchen</h1>
         <p style="color: #ffffff; margin: 10px 0 0 0; font-size: 14px;">Authentic Home-Cooked Flavors</p>
       </td>
@@ -148,7 +148,7 @@ function generateEmailHtml(booking: BookingDetails, qrCodes: QRCodeInfo[]): stri
     <!-- Booking Details -->
     <tr>
       <td style="padding: 30px;">
-        <h3 style="color: #1c1917; margin: 0 0 20px 0; font-size: 18px; border-bottom: 2px solid #ff8c6b; padding-bottom: 10px;">Booking Details</h3>
+        <h3 style="color: #1c1917; margin: 0 0 20px 0; font-size: 18px; border-bottom: 2px solid #ff7f5c; padding-bottom: 10px;">Booking Details</h3>
         
         <table role="presentation" width="100%" cellspacing="0" cellpadding="8" style="font-size: 14px;">
           <tr>

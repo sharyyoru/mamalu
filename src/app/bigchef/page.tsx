@@ -240,15 +240,9 @@ export default function BigChefPage() {
           </div>
         </div>
       </div>
-      <div className="bg-[#fff5eb]">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3 text-black"><ChefHat className="h-5 w-5" /><span className="text-sm text-black" style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 900 }}>Corporate Events Welcome!</span></div>
-          <a href="https://wa.me/971527479512" target="_blank" rel="noopener noreferrer" className="bg-[#f5e6dc] hover:bg-[#f0ddd0] text-stone-800 border border-stone-300 text-sm px-4 py-1.5 rounded-full flex items-center gap-1.5" style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 900 }}><MessageCircle className="h-3.5 w-3.5 text-stone-800" /><span className="text-stone-800">WhatsApp Us</span></a>
-        </div>
-      </div>
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-6">
+        <div className="space-y-6">
+          <div className="space-y-6">
             <div className="flex flex-wrap gap-2 p-1 bg-stone-100 rounded-full">
               {(Object.keys(categoryConfig) as CategoryType[]).map(cat => (
                 <button key={cat} onClick={() => setActiveCategory(cat)} className={`px-4 py-2 rounded-full font-medium transition-all text-sm flex items-center gap-1 ${activeCategory === cat ? "bg-[#f5e6dc] text-stone-800 border border-stone-300 shadow-md" : "text-stone-600 hover:bg-stone-200"}`}><Image src={categoryConfig[cat].icon} alt="" width={20} height={20} /> {categoryConfig[cat].label}</button>
@@ -257,7 +251,7 @@ export default function BigChefPage() {
             {step === 1 && (
               <div className="space-y-6">
                 <div>
-                  <h2 className="text-2xl text-black" style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 900 }}>{isNanny ? "Select 4 Menus for Your Course" : "Choose Your Menu Package"}</h2>
+                  <h2 className="text-2xl text-black" style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 900 }}>{isNanny ? "Select 4 Menus for Your Course" : "Pick your perfect Menu"}</h2>
                   <p className="text-stone-500 mt-1">{currentConfig.description}</p>
                   {isNanny ? <div className="mt-3 p-4 bg-amber-50 rounded-lg border border-amber-200"><p className="text-lg font-bold text-amber-800">AED 1,200 for 4 classes</p><p className="text-sm text-amber-700 mt-1">Select any 4 menus. Each class is 1.5 hours. Available Monday and Tuesday at 11am</p></div> : <p className="text-sm text-stone-400 mt-2">Min: {currentConfig.minGuests} • Max: {currentConfig.maxGuests} guests • Price per person</p>}
                 </div>
@@ -273,18 +267,19 @@ export default function BigChefPage() {
                   </CardContent></Card>
                 )}
                 {isNanny && <div className="p-4 bg-stone-100 rounded-lg"><p className="font-medium text-stone-900">Selected: {selectedNannyMenus.length}/4 menus {selectedNannyMenus.length === 4 && <span className="text-green-600 ml-2">✓ Ready</span>}</p>{selectedNannyMenus.length > 0 && <div className="mt-2 flex flex-wrap gap-2">{selectedNannyMenus.map(m => <Badge key={m.id} className="bg-stone-900 text-white">{m.name}<button onClick={() => toggleNannyMenu(m)} className="ml-1">×</button></Badge>)}</div>}</div>}
-                <div className={isNanny ? "grid md:grid-cols-2 lg:grid-cols-3 gap-4" : "grid md:grid-cols-2 gap-4"}>
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {getCurrentMenus().map(menu => {
                     const isSelected = isNanny ? selectedNannyMenus.some(m => m.id === menu.id) : selectedMenu?.id === menu.id;
                     const isDisabled = isNanny && selectedNannyMenus.length >= 4 && !isSelected;
                     return (
                       <Card key={menu.id} className={`cursor-pointer transition-all ${isSelected ? "ring-2 ring-stone-900 shadow-lg" : isDisabled ? "opacity-50" : "hover:shadow-md"}`} onClick={() => { if (!isDisabled) { if (isNanny) toggleNannyMenu(menu); else setSelectedMenu(menu); } }}>
-                        <CardContent className="p-0 overflow-hidden">
-                          <div className="relative h-36 w-full bg-stone-200"><Image src={menu.image} alt={menu.name} fill className="object-cover" />{isSelected && <div className="absolute top-2 right-2 bg-[#f5e6dc] text-stone-800 p-1 rounded-full"><Check className="h-4 w-4" /></div>}</div>
-                          <div className="p-5">
-                            <div className="flex items-start justify-between mb-3"><h3 className="text-lg font-bold text-stone-900">{menu.name}</h3>{!isNanny && <div className="text-right"><div className="text-xl font-bold text-stone-900">AED {menu.price}</div><div className="text-xs text-stone-500">per person</div></div>}</div>
-                            <div className="space-y-1">{menu.dishes.map((d, i) => <div key={i} className="flex items-center gap-2 text-sm text-stone-600"><Check className="h-3 w-3 text-green-500" /><span className="font-bold">{d}</span></div>)}</div>
+                        <CardContent className="p-0 overflow-hidden flex flex-col h-full">
+                          <div className="relative h-40 w-full bg-stone-200"><Image src={menu.image} alt={menu.name} fill className="object-cover" />{isSelected && <div className="absolute top-2 right-2 bg-[#f5e6dc] text-stone-800 p-1 rounded-full"><Check className="h-4 w-4" /></div>}</div>
+                          <div className="p-4 flex-1 flex flex-col">
+                            <h3 className="text-xl font-bold text-stone-900 mb-3">{menu.name}</h3>
+                            <div className="space-y-1 flex-1">{menu.dishes.map((d, i) => <div key={i} className="flex items-center gap-2 text-sm text-stone-600"><Check className="h-3 w-3 text-[#ff7f5c]" /><span>{d}</span></div>)}</div>
                           </div>
+                          {!isNanny && <div className="bg-stone-50 border-t px-4 py-3"><div className="flex items-center justify-between"><span className="text-sm text-stone-500">per person</span><span className="text-xl font-bold text-stone-900">AED {menu.price}</span></div></div>}
                         </CardContent>
                       </Card>
                     );
@@ -364,32 +359,6 @@ export default function BigChefPage() {
                 </CardContent></Card>
               </div>
             )}
-          </div>
-          <div className="lg:col-span-1">
-            <div className="sticky top-24">
-              <Card><CardContent className="p-6">
-                <h3 className="font-bold text-lg text-stone-900 mb-4">Order Summary</h3>
-                {(selectedMenu || (isNanny && selectedNannyMenus.length > 0)) ? (
-                  <div className="space-y-4">
-                    {/* Simple summary */}
-                    <div className="text-sm text-stone-600">{isNanny ? `Nanny Class • ${selectedNannyMenus.length}/4 menus` : `${selectedMenu?.name} • ${guestCount} guests`}</div>
-                    <div className="flex justify-between text-lg font-bold"><span>Total</span><span>AED {totalAmount}</span></div>
-                    {/* Full details only on final step */}
-                    {step === maxStep && (<>
-                      {isNanny ? <div className="border-t pt-3"><div className="text-sm text-stone-600 mb-2">Selected Menus:</div>{selectedNannyMenus.map(m => <div key={m.id} className="text-sm text-stone-500 pl-2">• {m.name}</div>)}<div className="flex justify-between text-sm font-medium pt-2 border-t"><span>Package Price</span><span>AED 1,200</span></div></div> : <div className="border-t pt-3 space-y-2"><div className="flex justify-between text-sm"><span className="text-stone-600">{selectedMenu?.name}</span><span>AED {selectedMenu?.price} × {guestCount}</span></div><div className="flex justify-between text-sm font-medium"><span>Subtotal</span><span>AED {baseAmount}</span></div></div>}
-                      {extrasTotal > 0 && <><div className="border-t pt-3"><p className="text-sm text-stone-500 mb-2">Extras:</p>{Object.entries(selectedExtras).map(([id, qty]) => { if (qty === 0) return null; const e = corporateExtras.find(x => x.id === id); if (!e) return null; return <div key={id} className="flex justify-between text-sm"><span>{e.name} × {qty}</span><span>AED {e.price * qty}</span></div>; })}</div><div className="flex justify-between text-sm"><span>Extras Total</span><span>AED {extrasTotal}</span></div></>}
-                      {requiresDeposit && <div className="border-t pt-3 space-y-1 text-sm"><div className="flex justify-between text-amber-700 font-medium"><span>Due Now (50%)</span><span>AED {depositAmount}</span></div><div className="flex justify-between text-stone-500"><span>Balance Due (48hrs before event)</span><span>AED {balanceAmount}</span></div></div>}
-                    </>)}
-                  </div>
-                ) : <p className="text-stone-500 text-sm">Select a menu to see pricing</p>}
-                {/* Navigation Buttons */}
-                <div className="flex flex-col gap-2 mt-4 pt-4 border-t">
-                  {step < maxStep ? <Button onClick={() => setStep(step + 1)} disabled={!canProceed()} className="w-full bg-[#f5e6dc] hover:bg-[#f0ddd0] text-stone-800 border border-stone-300">Continue<ArrowRight className="h-4 w-4 ml-2" /></Button> : <Button onClick={handleSubmit} disabled={submitting || !canProceed()} className="w-full bg-[#f5e6dc] hover:bg-[#f0ddd0] text-stone-800 border border-stone-300">{submitting ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Processing...</> : <>{requiresDeposit ? `Pay Deposit (AED ${depositAmount})` : `Pay (AED ${totalAmount})`}<ArrowRight className="h-4 w-4 ml-2" /></>}</Button>}
-                  {step > 1 && <Button variant="outline" onClick={() => setStep(step - 1)} className="w-full"><ArrowLeft className="h-4 w-4 mr-2" />Back</Button>}
-                </div>
-              </CardContent></Card>
-              <Card className="mt-4"><CardContent className="p-4"><p className="text-sm text-stone-600 mb-2">Need help?</p><a href="https://wa.me/971527479512" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-green-600 hover:text-green-700 font-medium text-sm"><MessageCircle className="h-4 w-4" />Chat on WhatsApp</a></CardContent></Card>
-            </div>
           </div>
         </div>
       </div>

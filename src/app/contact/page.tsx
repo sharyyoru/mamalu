@@ -92,7 +92,7 @@ export default function ContactPage() {
   return (
     <div>
       {/* Hero */}
-      <section className="bg-gradient-to-br from-stone-50 via-[#ff8c6b]/5 to-stone-100 py-16 lg:py-20 relative overflow-hidden">
+      <section className="bg-gradient-to-br from-stone-50 via-[#ff7f5c]/5 to-stone-100 py-16 lg:py-20 relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           <Image src="/images/speech-bubble.png" alt="" width={70} height={70} className="absolute top-[10%] left-[4%] opacity-[0.06] animate-doodle-float" />
           <Image src="/images/pot-01.png" alt="" width={60} height={60} className="absolute top-[15%] right-[5%] opacity-[0.05] animate-doodle-wiggle" style={{animationDelay: '1s'}} />
@@ -148,7 +148,7 @@ export default function ContactPage() {
                         onChange={handleChange}
                         placeholder="John" 
                         required
-                        className="border-stone-200 focus:border-[#ff8c6b] focus:ring-[#ff8c6b]"
+                        className="border-stone-200 focus:border-[#ff7f5c] focus:ring-[#ff7f5c]"
                       />
                     </div>
                     <div>
@@ -161,7 +161,7 @@ export default function ContactPage() {
                         onChange={handleChange}
                         placeholder="Doe" 
                         required
-                        className="border-stone-200 focus:border-[#ff8c6b] focus:ring-[#ff8c6b]"
+                        className="border-stone-200 focus:border-[#ff7f5c] focus:ring-[#ff7f5c]"
                       />
                     </div>
                   </div>
@@ -176,7 +176,7 @@ export default function ContactPage() {
                       onChange={handleChange}
                       placeholder="john@example.com" 
                       required
-                      className="border-stone-200 focus:border-[#ff8c6b] focus:ring-[#ff8c6b]"
+                      className="border-stone-200 focus:border-[#ff7f5c] focus:ring-[#ff7f5c]"
                     />
                   </div>
                   <div>
@@ -189,7 +189,7 @@ export default function ContactPage() {
                       value={formData.phone}
                       onChange={handleChange}
                       placeholder="+971 50 123 4567" 
-                      className="border-stone-200 focus:border-[#ff8c6b] focus:ring-[#ff8c6b]"
+                      className="border-stone-200 focus:border-[#ff7f5c] focus:ring-[#ff7f5c]"
                     />
                   </div>
                   <div>
@@ -202,7 +202,7 @@ export default function ContactPage() {
                       onChange={handleChange}
                       placeholder="How can we help?" 
                       required
-                      className="border-stone-200 focus:border-[#ff8c6b] focus:ring-[#ff8c6b]"
+                      className="border-stone-200 focus:border-[#ff7f5c] focus:ring-[#ff7f5c]"
                     />
                   </div>
                   <div>
@@ -215,7 +215,7 @@ export default function ContactPage() {
                       onChange={handleChange}
                       rows={4}
                       required
-                      className="flex w-full rounded-md border border-stone-200 bg-white px-3 py-2 text-sm placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-[#ff8c6b] focus:border-[#ff8c6b]"
+                      className="flex w-full rounded-md border border-stone-200 bg-white px-3 py-2 text-sm placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-[#ff7f5c] focus:border-[#ff7f5c]"
                       placeholder="Tell us more about your inquiry..."
                     />
                   </div>
@@ -228,7 +228,7 @@ export default function ContactPage() {
                   
                   <Button 
                     type="submit" 
-                    className="w-full bg-[#ff8c6b] hover:bg-[#e67854] text-white h-12"
+                    className="w-full bg-[#ff7f5c] hover:bg-[#e67854] text-white h-12"
                     disabled={isSubmitting}
                   >
                     {isSubmitting ? (
@@ -255,8 +255,8 @@ export default function ContactPage() {
               <div className="space-y-6">
                 {contactInfo.map((item) => (
                   <div key={item.title} className="flex gap-4">
-                    <div className="h-12 w-12 rounded-xl bg-[#ff8c6b]/10 flex items-center justify-center flex-shrink-0">
-                      <item.icon className="h-6 w-6 text-[#ff8c6b]" />
+                    <div className="h-12 w-12 rounded-xl bg-[#ff7f5c]/10 flex items-center justify-center flex-shrink-0">
+                      <item.icon className="h-6 w-6 text-[#ff7f5c]" />
                     </div>
                     <div>
                       <h3 className="font-semibold text-stone-900">
@@ -265,7 +265,7 @@ export default function ContactPage() {
                       {item.details.map((detail, idx) => (
                         <p key={idx} className="text-stone-600">
                           {(item as any).href ? (
-                            <a href={(item as any).href} target={((item as any).href as string).startsWith('http') ? '_blank' : undefined} rel="noopener noreferrer" className="hover:text-[#ff8c6b] transition-colors">{detail}</a>
+                            <a href={(item as any).href} target={((item as any).href as string).startsWith('http') ? '_blank' : undefined} rel="noopener noreferrer" className="hover:text-[#ff7f5c] transition-colors">{detail}</a>
                           ) : detail}
                         </p>
                       ))}
@@ -275,7 +275,7 @@ export default function ContactPage() {
               </div>
 
               {/* Map or Additional CTA */}
-              <div className="mt-10 p-6 bg-gradient-to-br from-[#ff8c6b]/10 to-[#ff8c6b]/5 rounded-2xl">
+              <div className="mt-10 p-6 bg-gradient-to-br from-[#ff7f5c]/10 to-[#ff7f5c]/5 rounded-2xl">
                 <h3 className="font-semibold text-stone-900 mb-2">Prefer WhatsApp?</h3>
                 <p className="text-stone-600 text-sm mb-4">
                   Chat with us directly for quick responses about classes and bookings.

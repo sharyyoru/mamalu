@@ -106,13 +106,13 @@ function SearchContent() {
       {/* Hero Section */}
       <section className="relative py-16 overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-20 left-10 w-64 h-64 bg-gradient-to-br from-[#ff8c6b]/20 to-transparent rounded-full blur-3xl" />
+          <div className="absolute top-20 left-10 w-64 h-64 bg-gradient-to-br from-[#ff7f5c]/20 to-transparent rounded-full blur-3xl" />
           <div className="absolute bottom-10 right-10 w-80 h-80 bg-gradient-to-br from-[#ffa891]/15 to-transparent rounded-full blur-3xl" />
         </div>
 
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center mb-8">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-peach text-[#ff8c6b] text-sm font-medium mb-4">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-peach text-[#ff7f5c] text-sm font-medium mb-4">
               <Sparkles className="h-4 w-4" />
               Search Results
             </div>
@@ -134,7 +134,7 @@ function SearchContent() {
           <div className="relative max-w-2xl mx-auto">
             <div className="glass-card rounded-2xl p-2 shadow-xl">
               <div className="flex items-center gap-3 px-4">
-                <Search className="h-5 w-5 text-[#ff8c6b]" />
+                <Search className="h-5 w-5 text-[#ff7f5c]" />
                 <input
                   type="text"
                   defaultValue={query}
@@ -160,7 +160,7 @@ function SearchContent() {
                 className={cn(
                   "px-5 py-2.5 rounded-full text-sm font-medium transition-all",
                   activeFilter === filter.id
-                    ? "bg-gradient-to-r from-[#ff8c6b] to-[#ffa891] text-white shadow-lg shadow-[#ff8c6b]/25"
+                    ? "bg-gradient-to-r from-[#ff7f5c] to-[#ffa891] text-white shadow-lg shadow-[#ff7f5c]/25"
                     : "glass hover:bg-white/90 text-stone-600"
                 )}
               >
@@ -184,13 +184,13 @@ function SearchContent() {
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-20">
-              <Loader2 className="h-12 w-12 text-[#ff8c6b] animate-spin mb-4" />
+              <Loader2 className="h-12 w-12 text-[#ff7f5c] animate-spin mb-4" />
               <p className="text-stone-500">Searching...</p>
             </div>
           ) : !query ? (
             <div className="text-center py-20">
-              <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-[#ff8c6b]/20 to-[#ffa891]/10 flex items-center justify-center">
-                <Search className="h-10 w-10 text-[#ff8c6b]" />
+              <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-[#ff7f5c]/20 to-[#ffa891]/10 flex items-center justify-center">
+                <Search className="h-10 w-10 text-[#ff7f5c]" />
               </div>
               <h2 className="text-2xl font-bold text-stone-900 mb-2">Start your search</h2>
               <p className="text-stone-500">Type something to search for classes, products, recipes, and more</p>
@@ -204,7 +204,7 @@ function SearchContent() {
               <p className="text-stone-500 mb-6">Try a different search term or filter</p>
               <button
                 onClick={() => window.dispatchEvent(new CustomEvent("openMamaluMenu"))}
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-[#ff8c6b] to-[#ffa891] text-white font-semibold shadow-lg shadow-[#ff8c6b]/25 hover:shadow-xl transition-all"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-[#ff7f5c] to-[#ffa891] text-white font-semibold shadow-lg shadow-[#ff7f5c]/25 hover:shadow-xl transition-all"
               >
                 Browse Classes
                 <ArrowRight className="h-4 w-4" />
@@ -246,7 +246,7 @@ function SearchContent() {
                               <Icon className="h-3 w-3" />
                               {typeLabels[result.type]}
                             </span>
-                            <h3 className="text-xl font-bold text-stone-900 group-hover:text-[#ff8c6b] transition-colors">
+                            <h3 className="text-xl font-bold text-stone-900 group-hover:text-[#ff7f5c] transition-colors">
                               {result.title}
                             </h3>
                           </div>
@@ -272,7 +272,7 @@ function SearchContent() {
                               </span>
                             )}
                           </div>
-                          <span className="flex items-center gap-1 text-[#ff8c6b] font-medium group-hover:gap-2 transition-all">
+                          <span className="flex items-center gap-1 text-[#ff7f5c] font-medium group-hover:gap-2 transition-all">
                             View Details
                             <ArrowRight className="h-4 w-4" />
                           </span>
@@ -294,7 +294,7 @@ export default function SearchPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen gradient-mesh flex items-center justify-center">
-        <Loader2 className="h-12 w-12 text-[#ff8c6b] animate-spin" />
+        <Loader2 className="h-12 w-12 text-[#ff7f5c] animate-spin" />
       </div>
     }>
       <SearchContent />
