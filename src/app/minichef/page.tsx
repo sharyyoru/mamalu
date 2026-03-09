@@ -183,13 +183,13 @@ function WaiverModal({ isOpen, onClose, onAccept }: { isOpen: boolean; onClose: 
           </label>
           
           <div className="flex gap-3">
-            <Button variant="outline" onClick={onClose} className="flex-1">
+            <Button variant="outline" onClick={onClose} className="flex-1 font-bold">
               Cancel
             </Button>
             <Button 
               onClick={onAccept} 
               disabled={!hasRead}
-              className="flex-1 bg-[#f5e6dc] hover:bg-[#f0ddd0] text-stone-800 border border-stone-300"
+              className="flex-1 bg-[#f5e6dc] hover:bg-[#f0ddd0] text-stone-800 border border-stone-300 font-bold"
             >
               I Accept & Continue
             </Button>
@@ -644,13 +644,13 @@ export default function MiniChefPage() {
                   <Button
                     variant="outline"
                     onClick={() => setStep(step - 1)}
-                    className="px-6"
+                    className="px-6 font-bold"
                   >
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     Back
                   </Button>
                   <Button
-                    className="bg-stone-900 hover:bg-stone-800 text-white px-8"
+                    className="bg-stone-900 hover:bg-stone-800 text-white px-8 font-bold"
                     onClick={() => setStep(step + 1)}
                   >
                     Continue
@@ -672,7 +672,7 @@ export default function MiniChefPage() {
                   <CardContent className="p-6 space-y-4">
                     <div className="grid sm:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-stone-700 mb-1">Your Name *</label>
+                        <label className="block text-base font-bold text-stone-700 mb-1">Your Name *</label>
                         <input
                           type="text"
                           value={customerName}
@@ -682,7 +682,7 @@ export default function MiniChefPage() {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-stone-700 mb-1">Email *</label>
+                        <label className="block text-base font-bold text-stone-700 mb-1">Email *</label>
                         <input
                           type="email"
                           value={customerEmail}
@@ -695,7 +695,7 @@ export default function MiniChefPage() {
 
                     <div className="grid sm:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-stone-700 mb-1">Phone</label>
+                        <label className="block text-base font-bold text-stone-700 mb-1">Phone</label>
                         <input
                           type="tel"
                           value={customerPhone}
@@ -704,7 +704,7 @@ export default function MiniChefPage() {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-stone-700 mb-1">Age Range of Kids</label>
+                        <label className="block text-base font-bold text-stone-700 mb-1">Age Range of Kids</label>
                         <input
                           type="text"
                           value={ageRange}
@@ -717,7 +717,7 @@ export default function MiniChefPage() {
 
                     <div className="grid sm:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-stone-700 mb-1">
+                        <label className="block text-base font-bold text-stone-700 mb-1">
                           <Calendar className="inline h-4 w-4 mr-1" />
                           Event Date *
                         </label>
@@ -731,7 +731,7 @@ export default function MiniChefPage() {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-stone-700 mb-1">
+                        <label className="block text-base font-bold text-stone-700 mb-1">
                           <Clock className="inline h-4 w-4 mr-1" />
                           Time Slot *
                         </label>
@@ -772,7 +772,7 @@ export default function MiniChefPage() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-stone-700 mb-1">Special Requests</label>
+                      <label className="block text-base font-bold text-stone-700 mb-1">Special Requests</label>
                       <textarea
                         value={specialRequests}
                         onChange={(e) => setSpecialRequests(e.target.value)}
@@ -789,13 +789,13 @@ export default function MiniChefPage() {
                   <Button
                     variant="outline"
                     onClick={() => setStep(step - 1)}
-                    className="px-6"
+                    className="px-6 font-bold"
                   >
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     Back
                   </Button>
                   <Button
-                    className="bg-stone-900 hover:bg-stone-800 text-white px-8"
+                    className="bg-stone-900 hover:bg-stone-800 text-white px-8 font-bold"
                     onClick={() => setStep(step + 1)}
                     disabled={!canProceed()}
                   >
@@ -816,34 +816,34 @@ export default function MiniChefPage() {
 
                 <Card>
                   <CardContent className="p-6 space-y-4">
-                    <div className="grid sm:grid-cols-2 gap-4 text-sm">
+                    <div className="grid sm:grid-cols-2 gap-4 text-base">
                       <div>
-                        <span className="text-stone-500">Category:</span>
-                        <span className="ml-2 font-medium">{currentConfig.label}</span>
+                        <span className="font-bold text-stone-700">Category:</span>
+                        <span className="ml-2 font-bold text-stone-900">{currentConfig.label}</span>
                       </div>
                       <div>
-                        <span className="text-stone-500">Package:</span>
-                        <span className="ml-2 font-medium">{selectedMenu?.name}</span>
+                        <span className="font-bold text-stone-700">Package:</span>
+                        <span className="ml-2 font-bold text-stone-900">{selectedMenu?.name}</span>
                       </div>
                       <div>
-                        <span className="text-stone-500">Guests:</span>
-                        <span className="ml-2 font-medium">{guestCount}</span>
+                        <span className="font-bold text-stone-700">Guests:</span>
+                        <span className="ml-2 font-bold text-stone-900">{guestCount}</span>
                       </div>
                       <div>
-                        <span className="text-stone-500">Date:</span>
-                        <span className="ml-2 font-medium">{eventDate}</span>
+                        <span className="font-bold text-stone-700">Date:</span>
+                        <span className="ml-2 font-bold text-stone-900">{eventDate}</span>
                       </div>
                       <div>
-                        <span className="text-stone-500">Time:</span>
-                        <span className="ml-2 font-medium">{eventTime}</span>
+                        <span className="font-bold text-stone-700">Time:</span>
+                        <span className="ml-2 font-bold text-stone-900">{eventTime}</span>
                       </div>
                       <div>
-                        <span className="text-stone-500">Name:</span>
-                        <span className="ml-2 font-medium">{customerName}</span>
+                        <span className="font-bold text-stone-700">Name:</span>
+                        <span className="ml-2 font-bold text-stone-900">{customerName}</span>
                       </div>
                       <div>
-                        <span className="text-stone-500">Email:</span>
-                        <span className="ml-2 font-medium">{customerEmail}</span>
+                        <span className="font-bold text-stone-700">Email:</span>
+                        <span className="ml-2 font-bold text-stone-900">{customerEmail}</span>
                       </div>
                     </div>
 
@@ -877,13 +877,13 @@ export default function MiniChefPage() {
                   <Button
                     variant="outline"
                     onClick={() => setStep(step - 1)}
-                    className="px-6"
+                    className="px-6 font-bold"
                   >
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     Back
                   </Button>
                   <Button
-                    className="bg-stone-900 hover:bg-stone-800 text-white px-8"
+                    className="bg-stone-900 hover:bg-stone-800 text-white px-8 font-bold"
                     onClick={handleSubmit}
                     disabled={submitting || !canProceed()}
                   >

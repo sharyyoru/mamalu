@@ -325,8 +325,8 @@ export default function BigChefPage() {
                 })}
                 {/* Navigation Buttons - Desktop */}
                 <div className="hidden lg:flex justify-between items-center pt-6 border-t">
-                  <Button variant="outline" onClick={() => setStep(step - 1)} className="px-6"><ArrowLeft className="mr-2 h-4 w-4" />Back</Button>
-                  <Button className="bg-stone-900 hover:bg-stone-800 text-white px-8" onClick={() => setStep(step + 1)}>Continue<ArrowRight className="ml-2 h-4 w-4" /></Button>
+                  <Button variant="outline" onClick={() => setStep(step - 1)} className="px-6 font-bold"><ArrowLeft className="mr-2 h-4 w-4" />Back</Button>
+                  <Button className="bg-stone-900 hover:bg-stone-800 text-white px-8 font-bold" onClick={() => setStep(step + 1)}>Continue<ArrowRight className="ml-2 h-4 w-4" /></Button>
                 </div>
               </div>
             )}
@@ -335,27 +335,27 @@ export default function BigChefPage() {
                 <div><h2 className="text-2xl font-bold text-stone-900">Your Details</h2><p className="text-stone-500 mt-1">Tell us about you and your event</p></div>
                 <Card><CardContent className="p-6 space-y-4">
                   <div className="grid sm:grid-cols-2 gap-4">
-                    <div><label className="block text-sm font-medium text-stone-700 mb-1">Your Name *</label><input type="text" value={customerName} onChange={e => setCustomerName(e.target.value)} className="w-full px-4 py-2 border border-stone-300 rounded-lg" required /></div>
-                    <div><label className="block text-sm font-medium text-stone-700 mb-1">Email *</label><input type="email" value={customerEmail} onChange={e => setCustomerEmail(e.target.value)} className="w-full px-4 py-2 border border-stone-300 rounded-lg" required /></div>
+                    <div><label className="block text-base font-bold text-stone-700 mb-1">Your Name *</label><input type="text" value={customerName} onChange={e => setCustomerName(e.target.value)} className="w-full px-4 py-2 border border-stone-300 rounded-lg" required /></div>
+                    <div><label className="block text-base font-bold text-stone-700 mb-1">Email *</label><input type="email" value={customerEmail} onChange={e => setCustomerEmail(e.target.value)} className="w-full px-4 py-2 border border-stone-300 rounded-lg" required /></div>
                   </div>
                   <div className="grid sm:grid-cols-2 gap-4">
-                    <div><label className="block text-sm font-medium text-stone-700 mb-1">Phone</label><input type="tel" value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} className="w-full px-4 py-2 border border-stone-300 rounded-lg" /></div>
-                    {isCorporate && <div><label className="block text-sm font-medium text-stone-700 mb-1">Company Name</label><input type="text" value={companyName} onChange={e => setCompanyName(e.target.value)} className="w-full px-4 py-2 border border-stone-300 rounded-lg" /></div>}
+                    <div><label className="block text-base font-bold text-stone-700 mb-1">Phone</label><input type="tel" value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} className="w-full px-4 py-2 border border-stone-300 rounded-lg" /></div>
+                    {isCorporate && <div><label className="block text-base font-bold text-stone-700 mb-1">Company Name</label><input type="text" value={companyName} onChange={e => setCompanyName(e.target.value)} className="w-full px-4 py-2 border border-stone-300 rounded-lg" /></div>}
                   </div>
                   <div className="grid sm:grid-cols-2 gap-4">
-                    <div><label className="block text-sm font-medium text-stone-700 mb-1"><Calendar className="inline h-4 w-4 mr-1" />Event Date *</label><input type="date" value={eventDate} onChange={e => setEventDate(e.target.value)} min={today} className="w-full px-4 py-2 border border-stone-300 rounded-lg" required /></div>
-                    <div><label className="block text-sm font-medium text-stone-700 mb-1"><Clock className="inline h-4 w-4 mr-1" />Time Slot *</label>
+                    <div><label className="block text-base font-bold text-stone-700 mb-1"><Calendar className="inline h-4 w-4 mr-1" />Event Date *</label><input type="date" value={eventDate} onChange={e => setEventDate(e.target.value)} min={today} className="w-full px-4 py-2 border border-stone-300 rounded-lg" required /></div>
+                    <div><label className="block text-base font-bold text-stone-700 mb-1"><Clock className="inline h-4 w-4 mr-1" />Time Slot *</label>
                       {loadingSlots ? <div className="flex items-center gap-2 py-2 text-stone-500"><Loader2 className="h-4 w-4 animate-spin" />Loading...</div> : eventDate && allTimeSlots.length > 0 ? (
                         <div className="grid grid-cols-2 gap-2">{allTimeSlots.map((slot: any) => { const isAvailable = availableTimeSlots.some((s: any) => s.start === slot.start); return (<button key={slot.start} type="button" disabled={!isAvailable} onClick={() => setEventTime(slot.start)} className={`px-3 py-2 text-sm rounded-lg border ${eventTime === slot.start ? "bg-[#f5e6dc] text-stone-800 border border-stone-300" : isAvailable ? "border-stone-300 hover:border-stone-900" : "bg-stone-100 text-stone-400 cursor-not-allowed line-through"}`}>{slot.label}</button>); })}</div>
                       ) : <p className="text-sm text-stone-500 py-2">{eventDate ? "No slots available" : "Select a date first"}</p>}
                     </div>
                   </div>
-                  <div><label className="block text-sm font-medium text-stone-700 mb-1">Special Requests</label><textarea value={specialRequests} onChange={e => setSpecialRequests(e.target.value)} rows={3} placeholder="Any dietary restrictions or special requests..." className="w-full px-4 py-2 border border-stone-300 rounded-lg" /></div>
+                  <div><label className="block text-base font-bold text-stone-700 mb-1">Special Requests</label><textarea value={specialRequests} onChange={e => setSpecialRequests(e.target.value)} rows={3} placeholder="Any dietary restrictions or special requests..." className="w-full px-4 py-2 border border-stone-300 rounded-lg" /></div>
                 </CardContent></Card>
                 {/* Navigation Buttons - Desktop */}
                 <div className="hidden lg:flex justify-between items-center pt-6 border-t">
-                  <Button variant="outline" onClick={() => setStep(step - 1)} className="px-6"><ArrowLeft className="mr-2 h-4 w-4" />Back</Button>
-                  <Button className="bg-stone-900 hover:bg-stone-800 text-white px-8" onClick={() => setStep(step + 1)} disabled={!canProceed()}>Continue<ArrowRight className="ml-2 h-4 w-4" /></Button>
+                  <Button variant="outline" onClick={() => setStep(step - 1)} className="px-6 font-bold"><ArrowLeft className="mr-2 h-4 w-4" />Back</Button>
+                  <Button className="bg-stone-900 hover:bg-stone-800 text-white px-8 font-bold" onClick={() => setStep(step + 1)} disabled={!canProceed()}>Continue<ArrowRight className="ml-2 h-4 w-4" /></Button>
                 </div>
               </div>
             )}
@@ -363,19 +363,19 @@ export default function BigChefPage() {
               <div className="space-y-6">
                 <div><h2 className="text-2xl font-bold text-stone-900">Confirm Your Booking</h2></div>
                 <Card><CardContent className="p-6 space-y-4">
-                  <div className="grid sm:grid-cols-2 gap-4 text-sm">
-                    <div><span className="text-stone-500">Category:</span><span className="ml-2 font-medium">{currentConfig.label}</span></div>
-                    <div><span className="text-stone-500">Package:</span><span className="ml-2 font-medium">{isNanny ? `${selectedNannyMenus.length} Menus` : selectedMenu?.name}</span></div>
-                    {!isNanny && <div><span className="text-stone-500">Guests:</span><span className="ml-2 font-medium">{guestCount}</span></div>}
-                    <div><span className="text-stone-500">Date:</span><span className="ml-2 font-medium">{eventDate}</span></div>
-                    <div><span className="text-stone-500">Time:</span><span className="ml-2 font-medium">{eventTime}</span></div>
+                  <div className="grid sm:grid-cols-2 gap-4 text-base">
+                    <div><span className="font-bold text-stone-700">Category:</span><span className="ml-2 font-bold text-stone-900">{currentConfig.label}</span></div>
+                    <div><span className="font-bold text-stone-700">Package:</span><span className="ml-2 font-bold text-stone-900">{isNanny ? `${selectedNannyMenus.length} Menus` : selectedMenu?.name}</span></div>
+                    {!isNanny && <div><span className="font-bold text-stone-700">Guests:</span><span className="ml-2 font-bold text-stone-900">{guestCount}</span></div>}
+                    <div><span className="font-bold text-stone-700">Date:</span><span className="ml-2 font-bold text-stone-900">{eventDate}</span></div>
+                    <div><span className="font-bold text-stone-700">Time:</span><span className="ml-2 font-bold text-stone-900">{eventTime}</span></div>
                   </div>
                   {requiresDeposit ? <div className="mt-4 p-4 bg-amber-50 rounded-lg border border-amber-200"><div className="flex items-start gap-2"><AlertTriangle className="h-5 w-5 text-amber-600" /><div><p className="font-medium text-amber-800">50% Deposit Required</p><p className="text-sm text-amber-700 mt-1">Pay <strong>AED {depositAmount}</strong> now. Balance of <strong>AED {balanceAmount}</strong> due 48 hours before.</p></div></div></div> : <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200"><p className="text-green-800"><strong>Full Payment:</strong> AED {totalAmount}</p></div>}
                 </CardContent></Card>
                 {/* Navigation Buttons - Desktop */}
                 <div className="hidden lg:flex justify-between items-center pt-6 border-t">
-                  <Button variant="outline" onClick={() => setStep(step - 1)} className="px-6"><ArrowLeft className="mr-2 h-4 w-4" />Back</Button>
-                  <Button className="bg-stone-900 hover:bg-stone-800 text-white px-8" onClick={handleSubmit} disabled={submitting || !canProceed()}>{submitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}{submitting ? "Processing..." : "Pay Now"}{!submitting && <ArrowRight className="ml-2 h-4 w-4" />}</Button>
+                  <Button variant="outline" onClick={() => setStep(step - 1)} className="px-6 font-bold"><ArrowLeft className="mr-2 h-4 w-4" />Back</Button>
+                  <Button className="bg-stone-900 hover:bg-stone-800 text-white px-8 font-bold" onClick={handleSubmit} disabled={submitting || !canProceed()}>{submitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}{submitting ? "Processing..." : "Pay Now"}{!submitting && <ArrowRight className="ml-2 h-4 w-4" />}</Button>
                 </div>
               </div>
             )}
