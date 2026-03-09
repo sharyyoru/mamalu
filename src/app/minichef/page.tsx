@@ -440,18 +440,18 @@ export default function MiniChefPage() {
           {/* Main Content - Full Width */}
           <div className="space-y-6">
             {/* Category Tabs - BEFORE Steps */}
-            <div className="flex flex-wrap gap-3 p-2 bg-stone-100 rounded-full">
+            <div className="flex flex-wrap gap-2 sm:gap-3 p-1 sm:p-2 bg-stone-100 rounded-2xl sm:rounded-full">
               {(Object.keys(categoryConfig) as CategoryType[]).map((cat) => (
                 <button
                   key={cat}
                   onClick={() => setActiveCategory(cat)}
-                  className={`px-6 py-3 rounded-full font-bold transition-all text-base ${
+                  className={`px-3 py-2 sm:px-6 sm:py-3 rounded-full font-bold transition-all text-xs sm:text-base ${
                     activeCategory === cat
                       ? "bg-[#f5e6dc] text-stone-900 border border-stone-300 shadow-md"
                       : "text-stone-700 hover:bg-stone-200"
                   }`}
                 >
-                  <Image src={categoryConfig[cat].icon} alt="" width={28} height={28} className="inline-block mr-2" /> {categoryConfig[cat].label}
+                  <Image src={categoryConfig[cat].icon} alt="" width={28} height={28} className="inline-block w-5 h-5 sm:w-7 sm:h-7 mr-1 sm:mr-2" /> {categoryConfig[cat].label}
                 </button>
               ))}
             </div>
@@ -547,6 +547,25 @@ export default function MiniChefPage() {
                     </Card>
                   ))}
                 </div>
+
+                {/* Navigation Buttons - Desktop */}
+                <div className="hidden lg:flex justify-between items-center pt-6 border-t">
+                  <div className="text-stone-600">
+                    {selectedMenu && (
+                      <span className="font-medium">
+                        Selected: {selectedMenu.name} • {guestCount} guests • <span className="text-stone-900 font-bold">AED {totalAmount.toLocaleString()}</span>
+                      </span>
+                    )}
+                  </div>
+                  <Button
+                    className="bg-stone-900 hover:bg-stone-800 text-white px-8"
+                    onClick={() => setStep(step + 1)}
+                    disabled={!canProceed()}
+                  >
+                    Continue
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             )}
 
@@ -625,6 +644,25 @@ export default function MiniChefPage() {
                       </div>
                     );
                   })}
+                </div>
+
+                {/* Navigation Buttons - Desktop */}
+                <div className="hidden lg:flex justify-between items-center pt-6 border-t">
+                  <Button
+                    variant="outline"
+                    onClick={() => setStep(step - 1)}
+                    className="px-6"
+                  >
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Back
+                  </Button>
+                  <Button
+                    className="bg-stone-900 hover:bg-stone-800 text-white px-8"
+                    onClick={() => setStep(step + 1)}
+                  >
+                    Continue
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
                 </div>
               </div>
             )}
@@ -752,6 +790,26 @@ export default function MiniChefPage() {
                     </div>
                   </CardContent>
                 </Card>
+
+                {/* Navigation Buttons - Desktop */}
+                <div className="hidden lg:flex justify-between items-center pt-6 border-t">
+                  <Button
+                    variant="outline"
+                    onClick={() => setStep(step - 1)}
+                    className="px-6"
+                  >
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Back
+                  </Button>
+                  <Button
+                    className="bg-stone-900 hover:bg-stone-800 text-white px-8"
+                    onClick={() => setStep(step + 1)}
+                    disabled={!canProceed()}
+                  >
+                    Continue
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             )}
 
@@ -820,6 +878,29 @@ export default function MiniChefPage() {
                     )}
                   </CardContent>
                 </Card>
+
+                {/* Navigation Buttons - Desktop */}
+                <div className="hidden lg:flex justify-between items-center pt-6 border-t">
+                  <Button
+                    variant="outline"
+                    onClick={() => setStep(step - 1)}
+                    className="px-6"
+                  >
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Back
+                  </Button>
+                  <Button
+                    className="bg-stone-900 hover:bg-stone-800 text-white px-8"
+                    onClick={handleSubmit}
+                    disabled={submitting || !canProceed()}
+                  >
+                    {submitting ? (
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    ) : null}
+                    {submitting ? "Processing..." : "Pay Now"}
+                    {!submitting && <ArrowRight className="ml-2 h-4 w-4" />}
+                  </Button>
+                </div>
               </div>
             )}
 

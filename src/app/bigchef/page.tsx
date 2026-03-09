@@ -243,9 +243,9 @@ export default function BigChefPage() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4">
         <div className="space-y-6">
           <div className="space-y-6">
-            <div className="flex flex-wrap gap-3 p-2 bg-stone-100 rounded-full">
+            <div className="flex flex-wrap gap-2 sm:gap-3 p-1 sm:p-2 bg-stone-100 rounded-2xl sm:rounded-full">
               {(Object.keys(categoryConfig) as CategoryType[]).map(cat => (
-                <button key={cat} onClick={() => setActiveCategory(cat)} className={`px-6 py-3 rounded-full font-bold transition-all text-base flex items-center gap-2 ${activeCategory === cat ? "bg-[#f5e6dc] text-stone-900 border border-stone-300 shadow-md" : "text-stone-700 hover:bg-stone-200"}`}><Image src={categoryConfig[cat].icon} alt="" width={28} height={28} /> {categoryConfig[cat].label}</button>
+                <button key={cat} onClick={() => setActiveCategory(cat)} className={`px-3 py-2 sm:px-6 sm:py-3 rounded-full font-bold transition-all text-xs sm:text-base flex items-center gap-1 sm:gap-2 ${activeCategory === cat ? "bg-[#f5e6dc] text-stone-900 border border-stone-300 shadow-md" : "text-stone-700 hover:bg-stone-200"}`}><Image src={categoryConfig[cat].icon} alt="" width={28} height={28} className="w-5 h-5 sm:w-7 sm:h-7" /> {categoryConfig[cat].label}</button>
               ))}
             </div>
             {step === 1 && (
@@ -285,6 +285,25 @@ export default function BigChefPage() {
                     );
                   })}
                 </div>
+
+                {/* Navigation Buttons - Desktop */}
+                <div className="hidden lg:flex justify-between items-center pt-6 border-t">
+                  <div className="text-stone-600">
+                    {(selectedMenu || selectedNannyMenus.length > 0) && (
+                      <span className="font-medium">
+                        {isNanny ? `${selectedNannyMenus.length} menus selected` : `${selectedMenu?.name} • ${guestCount} guests`} • <span className="text-stone-900 font-bold">AED {totalAmount.toLocaleString()}</span>
+                      </span>
+                    )}
+                  </div>
+                  <Button
+                    className="bg-stone-900 hover:bg-stone-800 text-white px-8"
+                    onClick={() => setStep(step + 1)}
+                    disabled={!canProceed()}
+                  >
+                    Continue
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             )}
             {hasExtras && step === 2 && (
@@ -318,6 +337,11 @@ export default function BigChefPage() {
                     </div>
                   );
                 })}
+                {/* Navigation Buttons - Desktop */}
+                <div className="hidden lg:flex justify-between items-center pt-6 border-t">
+                  <Button variant="outline" onClick={() => setStep(step - 1)} className="px-6"><ArrowLeft className="mr-2 h-4 w-4" />Back</Button>
+                  <Button className="bg-stone-900 hover:bg-stone-800 text-white px-8" onClick={() => setStep(step + 1)}>Continue<ArrowRight className="ml-2 h-4 w-4" /></Button>
+                </div>
               </div>
             )}
             {step === (hasExtras ? 3 : 2) && (
@@ -342,6 +366,11 @@ export default function BigChefPage() {
                   </div>
                   <div><label className="block text-sm font-medium text-stone-700 mb-1">Special Requests</label><textarea value={specialRequests} onChange={e => setSpecialRequests(e.target.value)} rows={3} placeholder="Any dietary restrictions or special requests..." className="w-full px-4 py-2 border border-stone-300 rounded-lg" /></div>
                 </CardContent></Card>
+                {/* Navigation Buttons - Desktop */}
+                <div className="hidden lg:flex justify-between items-center pt-6 border-t">
+                  <Button variant="outline" onClick={() => setStep(step - 1)} className="px-6"><ArrowLeft className="mr-2 h-4 w-4" />Back</Button>
+                  <Button className="bg-stone-900 hover:bg-stone-800 text-white px-8" onClick={() => setStep(step + 1)} disabled={!canProceed()}>Continue<ArrowRight className="ml-2 h-4 w-4" /></Button>
+                </div>
               </div>
             )}
             {step === maxStep && (
@@ -357,6 +386,11 @@ export default function BigChefPage() {
                   </div>
                   {requiresDeposit ? <div className="mt-4 p-4 bg-amber-50 rounded-lg border border-amber-200"><div className="flex items-start gap-2"><AlertTriangle className="h-5 w-5 text-amber-600" /><div><p className="font-medium text-amber-800">50% Deposit Required</p><p className="text-sm text-amber-700 mt-1">Pay <strong>AED {depositAmount}</strong> now. Balance of <strong>AED {balanceAmount}</strong> due 48 hours before.</p></div></div></div> : <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200"><p className="text-green-800"><strong>Full Payment:</strong> AED {totalAmount}</p></div>}
                 </CardContent></Card>
+                {/* Navigation Buttons - Desktop */}
+                <div className="hidden lg:flex justify-between items-center pt-6 border-t">
+                  <Button variant="outline" onClick={() => setStep(step - 1)} className="px-6"><ArrowLeft className="mr-2 h-4 w-4" />Back</Button>
+                  <Button className="bg-stone-900 hover:bg-stone-800 text-white px-8" onClick={handleSubmit} disabled={submitting || !canProceed()}>{submitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}{submitting ? "Processing..." : "Pay Now"}{!submitting && <ArrowRight className="ml-2 h-4 w-4" />}</Button>
+                </div>
               </div>
             )}
           </div>

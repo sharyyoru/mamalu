@@ -70,16 +70,16 @@ export default function AboutPage() {
       <section className="py-16 lg:py-20 bg-white">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
           {/* Header with icons */}
-          <div className="flex items-center justify-center gap-8 mb-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 mb-4">
             <Image 
               src="/images/girl-01.png" 
               alt="" 
               width={80} 
               height={100} 
-              className="h-24 w-auto"
+              className="h-16 sm:h-24 w-auto hidden sm:block"
             />
             <h2 
-              className="text-4xl sm:text-5xl"
+              className="text-3xl sm:text-4xl md:text-5xl text-center"
               style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 400, color: '#FF8C6B' }}
             >
               &quot;Feeding Families&quot;
@@ -89,11 +89,11 @@ export default function AboutPage() {
               alt="" 
               width={80} 
               height={80} 
-              className="h-20 w-auto"
+              className="h-16 sm:h-20 w-auto hidden sm:block"
             />
           </div>
           <p 
-            className="text-center text-2xl sm:text-3xl mb-16"
+            className="text-center text-xl sm:text-2xl md:text-3xl mb-8 sm:mb-16 px-4"
             style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 400, color: '#FF8C6B' }}
           >
             &quot;We are creating a cooking movement!&quot;
