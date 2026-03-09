@@ -219,7 +219,7 @@ export default function ReportsPage() {
               label="New Customers"
               value={data.summary.newCustomers.toString()}
               icon={UserPlus}
-              color="from-amber-500 to-orange-600"
+              color="from-[#FF8C6B] to-[#ff7a54]"
             />
             <StatCard
               label="Total Guests"
@@ -264,8 +264,8 @@ export default function ReportsPage() {
                     <p className="text-sm text-stone-500">Pending Bookings</p>
                     <p className="text-2xl font-bold">{data.summary.pendingBookings}</p>
                   </div>
-                  <div className="p-3 rounded-xl bg-orange-100">
-                    <Clock className="h-5 w-5 text-orange-600" />
+                  <div className="p-3 rounded-xl bg-[#FF8C6B]/20">
+                    <Clock className="h-5 w-5 text-[#FF8C6B]" />
                   </div>
                 </div>
               </CardContent>
@@ -537,7 +537,7 @@ export default function ReportsPage() {
                     return (
                       <div key={item.month} className="flex-1 flex flex-col items-center gap-2">
                         <div 
-                          className="w-full rounded-t-lg bg-gradient-to-t from-amber-500 to-orange-400 transition-all hover:opacity-80"
+                          className="w-full rounded-t-lg bg-gradient-to-t from-[#FF8C6B] to-[#ffa891] transition-all hover:opacity-80"
                           style={{ height: `${height}%`, minHeight: item.amount > 0 ? "8px" : "0" }}
                           title={formatPrice(item.amount)}
                         />

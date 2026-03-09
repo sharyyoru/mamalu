@@ -289,7 +289,7 @@ export default function AdminInvoicesPage() {
       case "cancelled":
         return "bg-red-100 text-red-700";
       case "overdue":
-        return "bg-orange-100 text-orange-700";
+        return "bg-gradient-to-r from-[#FF8C6B] to-[#ff7a54]";
       default:
         return "bg-stone-100 text-stone-700";
     }

@@ -39,7 +39,7 @@ const roleColors: Record<string, string> = {
   renter: "bg-purple-100 text-purple-700",
   instructor: "bg-green-100 text-green-700",
   staff: "bg-amber-100 text-amber-700",
-  admin: "bg-orange-100 text-orange-700",
+  admin: "bg-[#FF8C6B]/20 text-[#FF8C6B]",
   super_admin: "bg-red-100 text-red-700",
 };
 

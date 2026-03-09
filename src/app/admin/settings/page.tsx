@@ -52,7 +52,7 @@ export default function SettingsPage() {
   const getRoleBadge = (role: string) => {
     switch (role) {
       case 'super_admin': return 'bg-red-100 text-red-700';
-      case 'admin': return 'bg-orange-100 text-orange-700';
+      case 'admin': return 'bg-[#FF8C6B]/20 text-[#FF8C6B]';
       case 'instructor': return 'bg-green-100 text-green-700';
       case 'staff': return 'bg-blue-100 text-blue-700';
       default: return 'bg-stone-100 text-stone-700';

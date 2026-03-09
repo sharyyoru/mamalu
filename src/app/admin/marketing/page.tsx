@@ -530,7 +530,7 @@ export default function MarketingPage() {
   const stats = [
     { label: 'Active Campaigns', value: campaigns.filter(c => c.status === 'active').length.toString(), icon: Megaphone, color: 'from-violet-500 to-purple-600' },
     { label: 'Total Reach', value: campaigns.reduce((sum, c) => sum + (c.total_sent || 0), 0).toLocaleString(), icon: Users, color: 'from-emerald-500 to-teal-600' },
-    { label: 'Active Discounts', value: discounts.filter(d => d.status === 'active').length.toString(), icon: Target, color: 'from-amber-500 to-orange-600' },
+    { label: 'Active Discounts', value: discounts.filter(d => d.status === 'active').length.toString(), icon: Target, color: 'from-[#FF8C6B] to-[#ff7a54]' },
     { label: 'Campaign Revenue', value: totalRevenue > 0 ? formatPrice(totalRevenue) : 'AED 0', icon: DollarSign, color: 'from-cyan-500 to-blue-600' },
   ];
 

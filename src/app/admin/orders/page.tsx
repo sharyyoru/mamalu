@@ -218,7 +218,7 @@ export default function OrdersPage() {
           <p className="text-2xl font-bold">{formatPrice(stats?.totalRevenue || 0)}</p>
           <p className="text-sm opacity-80">Total Revenue</p>
         </div>
-        <div className="rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 p-5 text-white">
+        <div className="rounded-2xl bg-gradient-to-br from-[#FF8C6B] to-[#ff7a54] p-5 text-white">
           <div className="flex items-center justify-between mb-3">
             <TrendingUp className="h-6 w-6 opacity-80" />
           </div>

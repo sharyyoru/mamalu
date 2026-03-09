@@ -228,7 +228,7 @@ export default function EnhancedPhotoGallery({
               onClick={() => goToPhoto(index)}
               className={`relative flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden transition-all duration-300 ${
                 index === currentIndex 
-                  ? 'ring-2 ring-orange-500 scale-110' 
+                  ? 'ring-2 ring-[#FF8C6B] scale-110' 
                   : 'ring-1 ring-gray-300 hover:ring-gray-400 hover:scale-105'
               }`}
             >

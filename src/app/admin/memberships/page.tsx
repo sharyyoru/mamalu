@@ -40,7 +40,7 @@ const membershipPlans = [
     icon: Crown,
     price: 599,
     period: 'month',
-    color: 'from-amber-500 to-orange-600',
+    color: 'from-[#FF8C6B] to-[#ff7a54]',
     features: ['5 classes/month', '10% product discount', 'Priority booking', 'Free recipe book'],
     activeMembers: 28,
     revenue: 16772,
@@ -69,7 +69,7 @@ const mockMembers = [
 const stats = [
   { label: 'Active Members', value: '85', change: '+12', icon: Users, color: 'from-violet-500 to-purple-600' },
   { label: 'Monthly Revenue', value: 'AED 42,215', change: '+8%', icon: DollarSign, color: 'from-emerald-500 to-teal-600' },
-  { label: 'Retention Rate', value: '94%', change: '+2%', icon: TrendingUp, color: 'from-amber-500 to-orange-600' },
+  { label: 'Retention Rate', value: '94%', change: '+2%', icon: TrendingUp, color: 'from-[#FF8C6B] to-[#ff7a54]' },
   { label: 'Avg Lifetime Value', value: 'AED 4,850', change: '+15%', icon: Gift, color: 'from-cyan-500 to-blue-600' },
 ];
 

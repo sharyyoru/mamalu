@@ -211,7 +211,7 @@ export default function AnalyticsPage() {
             <p className="text-sm opacity-80">New Customers</p>
           </div>
 
-          <div className="rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 p-5 text-white">
+          <div className="rounded-2xl bg-gradient-to-br from-[#FF8C6B] to-[#ff7a54] p-5 text-white">
             <div className="flex items-center justify-between mb-3">
               <CalendarDays className="h-6 w-6 opacity-80" />
               <span className={`flex items-center text-sm ${(data?.stats.bookingsChange || 0) >= 0 ? "text-green-200" : "text-red-200"}`}>

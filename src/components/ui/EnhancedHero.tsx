@@ -57,10 +57,10 @@ export default function EnhancedHero({ onVideoOpen }: EnhancedHeroProps) {
         <div className="space-y-8">
           {/* Animated badge */}
           <div className="animate-hero-text animate-delay-200">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full border border-orange-200 mb-6">
-              <Sparkles className="w-4 h-4 text-orange-500" />
-              <span className="text-sm font-medium text-orange-700">Dubai's #1 Family Cooking Experience</span>
-              <Sparkles className="w-4 h-4 text-orange-500" />
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full border border-[#FF8C6B]/30 mb-6">
+              <Sparkles className="w-4 h-4 text-[#FF8C6B]" />
+              <span className="text-sm font-medium text-[#FF8C6B]">Dubai's #1 Family Cooking Experience</span>
+              <Sparkles className="w-4 h-4 text-[#FF8C6B]" />
             </div>
           </div>
 
@@ -68,7 +68,7 @@ export default function EnhancedHero({ onVideoOpen }: EnhancedHeroProps) {
           <div className="space-y-4">
             <h1 className="text-5xl md:text-7xl lg:text-8xl font-display text-gray-900 leading-tight animate-hero-text">
               <span className="block">Cooking Fun</span>
-              <span className="block text-orange-500">for Everyone!</span>
+              <span className="block text-[#FF8C6B]">for Everyone!</span>
             </h1>
             
             <p className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed animate-hero-text animate-delay-300">
@@ -87,7 +87,7 @@ export default function EnhancedHero({ onVideoOpen }: EnhancedHeroProps) {
                 }`}
               >
                 <div className="flex items-center justify-center gap-2 mb-2">
-                  <stat.icon className="w-5 h-5 text-orange-500" />
+                  <stat.icon className="w-5 h-5 text-[#FF8C6B]" />
                   <span className="text-3xl font-bold text-gray-900">{stat.value}</span>
                 </div>
                 <p className="text-sm text-gray-600">{stat.label}</p>
@@ -99,7 +99,7 @@ export default function EnhancedHero({ onVideoOpen }: EnhancedHeroProps) {
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-hero-button">
             <Button 
                 size="lg" 
-                className="button-glow bg-orange-500 hover:bg-orange-600 text-white px-8 py-4 text-lg rounded-full font-medium shadow-lg hover:shadow-xl transition-all duration-300"
+                className="button-glow bg-[#FF8C6B] hover:bg-[#ff7a54] text-white px-8 py-4 text-lg rounded-full font-medium shadow-lg hover:shadow-xl transition-all duration-300"
                 onClick={() => window.dispatchEvent(new CustomEvent("openMamaluMenu"))}
               >
                 <Calendar className="w-5 h-5 mr-2" />
@@ -111,7 +111,7 @@ export default function EnhancedHero({ onVideoOpen }: EnhancedHeroProps) {
               size="lg" 
               variant="outline" 
               onClick={onVideoOpen}
-              className="button-glow border-2 border-orange-300 text-orange-600 hover:bg-orange-50 px-8 py-4 text-lg rounded-full font-medium shadow-md hover:shadow-lg transition-all duration-300"
+              className="button-glow border-2 border-[#FF8C6B] text-[#FF8C6B] hover:bg-[#FF8C6B]/10 px-8 py-4 text-lg rounded-full font-medium shadow-md hover:shadow-lg transition-all duration-300"
             >
               <Play className="w-5 h-5 mr-2" />
               Watch Video
@@ -143,8 +143,8 @@ export default function EnhancedHero({ onVideoOpen }: EnhancedHeroProps) {
 
       {/* Floating decorative elements */}
       <div className="absolute top-20 right-10 animate-doodle-float">
-        <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center">
-          <ChefHat className="w-8 h-8 text-orange-500" />
+        <div className="w-16 h-16 bg-[#FF8C6B]/20 rounded-full flex items-center justify-center">
+          <ChefHat className="w-8 h-8 text-[#FF8C6B]" />
         </div>
       </div>
       

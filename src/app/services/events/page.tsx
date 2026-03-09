@@ -150,7 +150,7 @@ export default function EventsPage() {
                 ))}
               </ul>
             </div>
-            <div className="bg-gradient-to-br from-amber-100 to-orange-100 rounded-2xl aspect-square flex items-center justify-center">
+            <div className="bg-gradient-to-br from-amber-100 to-[#FF8C6B]/20 rounded-2xl aspect-square flex items-center justify-center">
               <Utensils className="h-32 w-32 text-amber-600/30" />
             </div>
           </div>

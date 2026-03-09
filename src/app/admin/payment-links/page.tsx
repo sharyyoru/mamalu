@@ -438,7 +438,7 @@ export default function AdminPaymentLinksPage() {
       case "active":
         return "bg-blue-100 text-blue-700";
       case "expired":
-        return "bg-orange-100 text-orange-700";
+        return "bg-[#FF8C6B]/20 text-[#FF8C6B]";
       case "cancelled":
         return "bg-red-100 text-red-700";
       default:
@@ -990,7 +990,7 @@ export default function AdminPaymentLinksPage() {
                               disabled={actionLoading === link.id}
                               title="Mark as unpaid"
                             >
-                              <XCircle className="h-4 w-4 text-orange-600" />
+                              <XCircle className="h-4 w-4 text-[#FF8C6B]" />
                             </Button>
                           )}
                         </div>
@@ -1331,8 +1331,8 @@ export default function AdminPaymentLinksPage() {
             </div>
 
             <div className="p-6 space-y-4">
-              <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                <p className="text-sm text-orange-800 font-medium mb-2">
+              <div className="bg-[#FF8C6B]/10 border border-[#FF8C6B]/30 rounded-lg p-4">
+                <p className="text-sm text-[#FF8C6B] font-medium mb-2">
                   You are about to mark this payment link as unpaid:
                 </p>
                 <p className="text-sm text-stone-700">
@@ -1374,7 +1374,7 @@ export default function AdminPaymentLinksPage() {
               <Button
                 onClick={markAsUnpaid}
                 disabled={actionLoading === selectedLinkForUnpaid.id || !unpaidReason.trim()}
-                className="bg-orange-600 hover:bg-orange-700"
+                className="bg-[#FF8C6B] hover:bg-[#ff7a54]"
               >
                 {actionLoading === selectedLinkForUnpaid.id ? (
                   <RefreshCw className="h-4 w-4 animate-spin mr-2" />
@@ -1523,7 +1523,7 @@ export default function AdminPaymentLinksPage() {
                         disabled={actionLoading === selectedLinkForAssign.id}
                         className="w-full p-3 text-left hover:bg-amber-50 transition-colors flex items-center gap-3"
                       >
-                        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white font-semibold flex-shrink-0">
+                        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-[#ffa891] to-[#FF8C6B] flex items-center justify-center text-white font-semibold flex-shrink-0">
                           {lead.name?.charAt(0) || "?"}
                         </div>
                         <div className="flex-1 min-w-0">

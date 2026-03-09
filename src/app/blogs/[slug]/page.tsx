@@ -87,7 +87,7 @@ export default async function BlogPage({ params }: BlogPageProps) {
       <section className="py-16 bg-white">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           {/* Featured Image Placeholder */}
-          <div className="aspect-video bg-gradient-to-br from-amber-100 to-orange-100 rounded-xl flex items-center justify-center mb-8">
+          <div className="aspect-video bg-gradient-to-br from-amber-100 to-[#FF8C6B]/20 rounded-xl flex items-center justify-center mb-8">
             <BookOpen className="h-20 w-20 text-amber-600/30" />
           </div>
 

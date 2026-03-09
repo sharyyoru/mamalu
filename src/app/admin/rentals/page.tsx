@@ -88,7 +88,7 @@ const stations = [
 const stats = [
   { label: 'Active Rentals', value: '8', icon: Warehouse, color: 'from-violet-500 to-purple-600' },
   { label: 'This Month Revenue', value: 'AED 28,400', icon: DollarSign, color: 'from-emerald-500 to-teal-600' },
-  { label: 'Occupancy Rate', value: '72%', icon: CheckCircle, color: 'from-amber-500 to-orange-600' },
+  { label: 'Occupancy Rate', value: '72%', icon: CheckCircle, color: 'from-[#FF8C6B] to-[#ff7a54]' },
   { label: 'Recurring Clients', value: '12', icon: User, color: 'from-cyan-500 to-blue-600' },
 ];
 

@@ -107,7 +107,7 @@ export default function CartPage() {
                 <Card key={item.id}>
                   <CardContent className="p-4">
                     <div className="flex items-center gap-4">
-                      <div className="h-20 w-20 bg-gradient-to-br from-amber-100 to-orange-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <div className="h-20 w-20 bg-gradient-to-br from-amber-100 to-[#FF8C6B]/20 rounded-lg flex items-center justify-center flex-shrink-0">
                         <ShoppingBag className="h-8 w-8 text-amber-600/30" />
                       </div>
                       <div className="flex-1">

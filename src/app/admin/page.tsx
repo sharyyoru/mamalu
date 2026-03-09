@@ -41,7 +41,7 @@ export default async function AdminDashboard() {
 
   const quickActions = [
     { label: "Schedule New Class", icon: Calendar, color: "from-violet-500 to-purple-500", href: "/admin/classes/new" },
-    { label: "Process Order", icon: ShoppingBag, color: "from-amber-500 to-orange-500", href: "/admin/orders" },
+    { label: "Process Order", icon: ShoppingBag, color: "from-[#FF8C6B] to-[#ff7a54]", href: "/admin/orders" },
     { label: "Add Customer", icon: Users, color: "from-emerald-500 to-teal-500", href: "/admin/users/new" },
     { label: "Kitchen Booking", icon: Utensils, color: "from-rose-500 to-pink-500", href: "/admin/rentals" },
     { label: "View Analytics", icon: BarChart3, color: "from-blue-500 to-cyan-500", href: "/admin/analytics" },
@@ -79,7 +79,7 @@ export default async function AdminDashboard() {
           </button>
           <Link 
             href="/admin/classes/new"
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl font-medium hover:shadow-lg hover:shadow-amber-500/25 transition-all"
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#FF8C6B] to-[#ff7a54] text-white rounded-xl font-medium hover:shadow-lg hover:shadow-amber-500/25 transition-all"
           >
             <Plus className="h-4 w-4" />
             New Class
@@ -136,7 +136,7 @@ export default async function AdminDashboard() {
         </div>
 
         {/* Orders Card */}
-        <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 p-6 text-white shadow-lg hover:shadow-xl hover:shadow-amber-500/20 transition-all duration-300">
+        <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#FF8C6B] to-[#ff7a54] p-6 text-white shadow-lg hover:shadow-xl hover:shadow-amber-500/20 transition-all duration-300">
           <div className="absolute top-0 right-0 -mt-4 -mr-4 h-24 w-24 rounded-full bg-white/10 blur-2xl" />
           <div className="relative">
             <div className="flex items-center justify-between mb-4">
@@ -260,7 +260,7 @@ export default async function AdminDashboard() {
         <div className="bg-white rounded-2xl border border-stone-200/60 shadow-sm overflow-hidden">
           <div className="p-6 border-b border-stone-100 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 text-white">
+              <div className="p-2 rounded-xl bg-gradient-to-br from-[#FF8C6B] to-[#ff7a54] text-white">
                 <Activity className="h-4 w-4" />
               </div>
               <h3 className="font-semibold text-stone-900">Recent Activity</h3>
@@ -308,7 +308,7 @@ export default async function AdminDashboard() {
                 </div>
                 <div className="h-2 bg-stone-100 rounded-full overflow-hidden">
                   <div 
-                    className="h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full transition-all group-hover:from-amber-400 group-hover:to-orange-400"
+                    className="h-full bg-gradient-to-r from-[#FF8C6B] to-[#ff7a54] rounded-full transition-all group-hover:from-[#ffa891] group-hover:to-[#FF8C6B]"
                     style={{ width: `${course.fill}%` }}
                   />
                 </div>

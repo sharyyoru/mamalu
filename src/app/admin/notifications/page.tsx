@@ -101,7 +101,7 @@ const recentNotifications = [
 const stats = [
   { label: 'Sent Today', value: '234', icon: Send, color: 'from-violet-500 to-purple-600' },
   { label: 'Delivery Rate', value: '98.5%', icon: CheckCircle, color: 'from-emerald-500 to-teal-600' },
-  { label: 'Active Templates', value: '12', icon: Bell, color: 'from-amber-500 to-orange-600' },
+  { label: 'Active Templates', value: '12', icon: Bell, color: 'from-[#FF8C6B] to-[#ff7a54]' },
   { label: 'Scheduled', value: '8', icon: Clock, color: 'from-cyan-500 to-blue-600' },
 ];
 

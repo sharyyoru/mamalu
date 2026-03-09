@@ -61,7 +61,7 @@ export default async function RecipesPage() {
                   key={recipe._id}
                   className="group overflow-hidden hover:shadow-lg transition-shadow"
                 >
-                  <div className="aspect-video bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center relative overflow-hidden">
+                  <div className="aspect-video bg-gradient-to-br from-amber-100 to-[#FF8C6B]/20 flex items-center justify-center relative overflow-hidden">
                     {recipe.mainImage ? (
                       <Image
                         src={urlFor(recipe.mainImage).width(600).height(340).url()}

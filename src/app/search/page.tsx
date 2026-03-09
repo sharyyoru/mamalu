@@ -35,7 +35,7 @@ const typeLabels = {
 const typeColors = {
   class: "from-violet-500 to-purple-600",
   product: "from-emerald-500 to-teal-600",
-  recipe: "from-amber-500 to-orange-600",
+  recipe: "from-[#FF8C6B] to-[#ff7a54]",
   blog: "from-blue-500 to-indigo-600",
 };
 

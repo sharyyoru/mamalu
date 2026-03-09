@@ -565,7 +565,7 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
       </div>
 
       {/* Walk-In Customers Banner */}
-      <div className="bg-gradient-to-r from-amber-500 to-orange-500">
+      <div className="bg-gradient-to-r from-[#FF8C6B] to-[#ff7a54]">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3 text-white">

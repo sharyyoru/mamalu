@@ -66,7 +66,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
           <div className="grid lg:grid-cols-2 gap-12">
             {/* Product Image */}
-            <div className="aspect-square bg-gradient-to-br from-amber-100 to-orange-100 rounded-2xl flex items-center justify-center">
+            <div className="aspect-square bg-gradient-to-br from-amber-100 to-[#FF8C6B]/20 rounded-2xl flex items-center justify-center">
               <ShoppingBag className="h-32 w-32 text-amber-600/30" />
             </div>
 

@@ -47,7 +47,7 @@ const CATEGORIES = [
   { id: "corporate", name: "Corporate/Private", color: "bg-indigo-100 text-indigo-700" },
   { id: "nanny", name: "Nanny Classes", color: "bg-green-100 text-green-700" },
   { id: "walkin", name: "Walk-In Menu", color: "bg-amber-100 text-amber-700" },
-  { id: "extras_food", name: "Food Add-ons", color: "bg-orange-100 text-orange-700" },
+  { id: "extras_food", name: "Food Add-ons", color: "bg-[#FF8C6B]/20 text-[#FF8C6B]" },
   { id: "extras_merch", name: "Merch Add-ons", color: "bg-purple-100 text-purple-700" },
 ];
 

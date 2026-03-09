@@ -1176,7 +1176,7 @@ export default function LeadDetailPage() {
       {showPaymentLinkModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
-            <div className="p-6 border-b bg-gradient-to-r from-amber-500 to-orange-500">
+            <div className="p-6 border-b bg-gradient-to-r from-[#FF8C6B] to-[#ff7a54]">
               <div className="flex items-center justify-between">
                 <div className="text-white">
                   <h2 className="text-xl font-bold">Generate Payment Link</h2>
@@ -1318,7 +1318,7 @@ export default function LeadDetailPage() {
                   <Button
                     onClick={handleCreatePaymentLink}
                     disabled={creatingPaymentLink || !newPaymentLink.title || !newPaymentLink.amount}
-                    className="bg-gradient-to-r from-amber-500 to-orange-500"
+                    className="bg-gradient-to-r from-[#FF8C6B] to-[#ff7a54]"
                   >
                     {creatingPaymentLink ? (
                       <RefreshCw className="h-4 w-4 animate-spin mr-2" />

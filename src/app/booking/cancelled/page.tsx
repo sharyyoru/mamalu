@@ -3,7 +3,7 @@
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { XCircle, Loader2 } from "lucide-react";
+import { XCircle, Loader2, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -32,19 +32,27 @@ function CancelledContent() {
               </p>
             </div>
 
-            <div className="flex gap-3 justify-center">
-              <Button variant="outline" onClick={() => window.dispatchEvent(new CustomEvent("openMamaluMenu"))}>Browse Classes</Button>
-              {bookingId && (
-                <Link href={`/account/bookings/${bookingId}`}>
-                  <Button>Complete Payment</Button>
-                </Link>
-              )}
-              {!bookingId && (
-                <Link href="/account">
-                  <Button>View My Bookings</Button>
-                </Link>
-              )}
+            <div className="flex flex-wrap gap-3 justify-center mb-4">
+              <Link href="/minichef">
+                <Button variant="outline" className="font-bold">Mini Chef</Button>
+              </Link>
+              <Link href="/bigchef">
+                <Button variant="outline" className="font-bold">Big Chef</Button>
+              </Link>
+              <Link href="/book/rentals">
+                <Button variant="outline" className="font-bold">Rentals</Button>
+              </Link>
             </div>
+
+            <a 
+              href="https://wa.me/971509475595" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-[#FF8C6B] hover:bg-[#ff7a54] text-white font-bold rounded-lg transition-colors"
+            >
+              <MessageCircle className="h-5 w-5" />
+              WhatsApp Us
+            </a>
           </CardContent>
         </Card>
       </div>

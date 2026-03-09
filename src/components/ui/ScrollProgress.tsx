@@ -32,7 +32,7 @@ export default function ScrollProgress({
     <>
       {/* Progress Bar */}
       <div 
-        className={`fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-500 to-orange-600 z-50 transition-all duration-300 ${className}`}
+        className={`fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#FF8C6B] to-[#ff7a54] z-50 transition-all duration-300 ${className}`}
         style={{
           width: `${scrollProgress * 100}%`,
           opacity: scrollProgress > 0.01 ? 1 : 0,
@@ -43,7 +43,7 @@ export default function ScrollProgress({
       {showScrollIndicator && shouldShowScrollIndicator && (
         <button
           onClick={scrollToTop}
-          className={`fixed bottom-8 right-8 w-12 h-12 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 z-40 flex items-center justify-center group ${
+          className={`fixed bottom-8 right-8 w-12 h-12 bg-gradient-to-r from-[#FF8C6B] to-[#ff7a54] text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 z-40 flex items-center justify-center group ${
             isScrollingUp ? "scale-110" : "scale-100"
           } ${
             isScrollingDown ? "animate-bounce" : ""

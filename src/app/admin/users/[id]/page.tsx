@@ -69,7 +69,7 @@ const roleOptions = [
   { value: 'renter', label: 'Kitchen Renter', color: 'bg-purple-100 text-purple-700' },
   { value: 'instructor', label: 'Instructor', color: 'bg-green-100 text-green-700' },
   { value: 'staff', label: 'Staff', color: 'bg-amber-100 text-amber-700' },
-  { value: 'admin', label: 'Admin', color: 'bg-orange-100 text-orange-700' },
+  { value: 'admin', label: 'Admin', color: 'bg-[#FF8C6B]/20 text-[#FF8C6B]' },
   { value: 'super_admin', label: 'Super Admin', color: 'bg-red-100 text-red-700' },
 ];
 
@@ -237,7 +237,7 @@ export default function UserDetailPage() {
 
       {/* Profile Header Card */}
       <Card className="overflow-hidden">
-        <div className="bg-gradient-to-r from-amber-500 to-orange-500 h-24" />
+        <div className="bg-gradient-to-r from-[#FF8C6B] to-[#ff7a54] h-24" />
         <CardContent className="relative pt-0 pb-6">
           <div className="flex flex-col md:flex-row md:items-end gap-4 -mt-12">
             {/* Avatar */}
@@ -452,7 +452,7 @@ export default function UserDetailPage() {
                     <p className="text-sm opacity-80">Orders</p>
                   </CardContent>
                 </Card>
-                <Card className="bg-gradient-to-br from-amber-500 to-orange-600 text-white">
+                <Card className="bg-gradient-to-br from-[#FF8C6B] to-[#ff7a54] text-white">
                   <CardContent className="p-4">
                     <BookOpen className="h-8 w-8 mb-2 opacity-80" />
                     <p className="text-2xl font-bold">{stats.totalClasses}</p>
@@ -477,7 +477,7 @@ export default function UserDetailPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="text-center p-4 bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl">
+                  <div className="text-center p-4 bg-gradient-to-br from-amber-50 to-[#FF8C6B]/10 rounded-xl">
                     <p className="text-sm text-stone-500 mb-1">Lifetime Value</p>
                     <p className="text-3xl font-bold text-amber-600">{formatPrice(stats.lifetimeValue)}</p>
                   </div>
@@ -514,7 +514,7 @@ export default function UserDetailPage() {
                     <p className="text-sm opacity-80">Invoices</p>
                   </CardContent>
                 </Card>
-                <Card className="bg-gradient-to-br from-amber-500 to-orange-600 text-white">
+                <Card className="bg-gradient-to-br from-[#FF8C6B] to-[#ff7a54] text-white">
                   <CardContent className="p-4">
                     <CreditCard className="h-8 w-8 mb-2 opacity-80" />
                     <p className="text-2xl font-bold">{stats.cashPayments}</p>
@@ -549,7 +549,7 @@ export default function UserDetailPage() {
                       <span className="font-medium">AED 15,000</span>
                     </div>
                     <div className="h-2 bg-stone-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full" style={{ width: '83%' }} />
+                      <div className="h-full bg-gradient-to-r from-[#FF8C6B] to-[#ff7a54] rounded-full" style={{ width: '83%' }} />
                     </div>
                     <p className="text-xs text-stone-500 text-right">83% achieved</p>
                   </div>

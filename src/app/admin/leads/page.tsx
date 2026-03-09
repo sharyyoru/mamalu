@@ -63,7 +63,7 @@ const leadSources = [
   { id: 'facebook', name: 'Facebook', icon: Facebook, color: 'from-blue-500 to-blue-600' },
   { id: 'website', name: 'Website', icon: Globe, color: 'from-emerald-500 to-teal-500' },
   { id: 'whatsapp', name: 'WhatsApp', icon: MessageCircle, color: 'from-green-500 to-green-600' },
-  { id: 'phone', name: 'Phone Call', icon: PhoneCall, color: 'from-amber-500 to-orange-500' },
+  { id: 'phone', name: 'Phone Call', icon: PhoneCall, color: 'from-[#FF8C6B] to-[#ff7a54]' },
   { id: 'walkin', name: 'Walk-in', icon: MapPin, color: 'from-violet-500 to-purple-500' },
   { id: 'referral', name: 'Referral', icon: Users, color: 'from-cyan-500 to-blue-500' },
 ];
@@ -74,7 +74,7 @@ const leadStatuses = [
   { id: 'contacted', name: 'Contacted', color: 'bg-amber-500', bgLight: 'bg-amber-100 text-amber-700' },
   { id: 'qualified', name: 'Qualified', color: 'bg-purple-500', bgLight: 'bg-purple-100 text-purple-700' },
   { id: 'proposal', name: 'Proposal', color: 'bg-cyan-500', bgLight: 'bg-cyan-100 text-cyan-700' },
-  { id: 'negotiation', name: 'Negotiation', color: 'bg-orange-500', bgLight: 'bg-orange-100 text-orange-700' },
+  { id: 'negotiation', name: 'Negotiation', color: 'bg-[#FF8C6B]', bgLight: 'bg-[#FF8C6B]/20 text-[#FF8C6B]' },
   { id: 'won', name: 'Won', color: 'bg-green-500', bgLight: 'bg-green-100 text-green-700' },
   { id: 'sold_hot', name: 'Sold - Hot', color: 'bg-red-500', bgLight: 'bg-red-100 text-red-700' },
   { id: 'sold_cold', name: 'Sold - Cold', color: 'bg-cyan-500', bgLight: 'bg-cyan-100 text-cyan-700' },
