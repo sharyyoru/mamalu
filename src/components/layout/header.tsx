@@ -81,7 +81,7 @@ export function Header() {
       {/* Header - Static at top */}
       <header className="relative z-50 bg-white">
         <nav className="container mx-auto px-6 lg:px-8">
-          <div className="flex items-center justify-between relative py-2 min-h-[80px] lg:min-h-[100px]">
+          <div className="flex items-center justify-between relative py-2 min-h-[120px] lg:min-h-[140px]">
             
             {/* Left: Nav Links - Horizontal layout, 2x bigger text, line separators */}
             <div className="hidden lg:flex flex-row items-center gap-6 z-10">
@@ -136,7 +136,7 @@ export function Header() {
                   alt="Mamalu Kitchen" 
                   width={200} 
                   height={200}
-                  className="w-16 h-16 lg:w-20 lg:h-20"
+                  className="w-28 h-28 lg:w-36 lg:h-36"
                   priority
                 />
               </Link>

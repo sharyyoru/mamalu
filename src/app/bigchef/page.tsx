@@ -240,12 +240,12 @@ export default function BigChefPage() {
           </div>
         </div>
       </div>
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4">
         <div className="space-y-6">
           <div className="space-y-6">
-            <div className="flex flex-wrap gap-2 p-1 bg-stone-100 rounded-full">
+            <div className="flex flex-wrap gap-3 p-2 bg-stone-100 rounded-full">
               {(Object.keys(categoryConfig) as CategoryType[]).map(cat => (
-                <button key={cat} onClick={() => setActiveCategory(cat)} className={`px-4 py-2 rounded-full font-medium transition-all text-sm flex items-center gap-1 ${activeCategory === cat ? "bg-[#f5e6dc] text-stone-800 border border-stone-300 shadow-md" : "text-stone-600 hover:bg-stone-200"}`}><Image src={categoryConfig[cat].icon} alt="" width={20} height={20} /> {categoryConfig[cat].label}</button>
+                <button key={cat} onClick={() => setActiveCategory(cat)} className={`px-6 py-3 rounded-full font-bold transition-all text-base flex items-center gap-2 ${activeCategory === cat ? "bg-[#f5e6dc] text-stone-900 border border-stone-300 shadow-md" : "text-stone-700 hover:bg-stone-200"}`}><Image src={categoryConfig[cat].icon} alt="" width={28} height={28} /> {categoryConfig[cat].label}</button>
               ))}
             </div>
             {step === 1 && (
@@ -257,7 +257,7 @@ export default function BigChefPage() {
                 </div>
                 {!isNanny && (
                   <Card><CardContent className="p-5">
-                    <label className="block text-sm font-medium text-stone-700 mb-3">Number of Guests</label>
+                    <label className="block text-base font-bold text-stone-900 mb-3">Number of Guests</label>
                     <div className="flex items-center gap-4">
                       <Button variant="outline" size="icon" onClick={() => setGuestCount(Math.max(currentConfig.minGuests, guestCount - 1))} disabled={guestCount <= currentConfig.minGuests}><Minus className="h-4 w-4" /></Button>
                       <span className="text-2xl font-bold w-12 text-center">{guestCount}</span>

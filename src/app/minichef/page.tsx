@@ -435,23 +435,23 @@ export default function MiniChefPage() {
       </div>
 
 
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4">
         <div className="space-y-6">
           {/* Main Content - Full Width */}
           <div className="space-y-6">
             {/* Category Tabs - BEFORE Steps */}
-            <div className="flex flex-wrap gap-2 p-1 bg-stone-100 rounded-full">
+            <div className="flex flex-wrap gap-3 p-2 bg-stone-100 rounded-full">
               {(Object.keys(categoryConfig) as CategoryType[]).map((cat) => (
                 <button
                   key={cat}
                   onClick={() => setActiveCategory(cat)}
-                  className={`px-4 py-2 rounded-full font-medium transition-all text-sm ${
+                  className={`px-6 py-3 rounded-full font-bold transition-all text-base ${
                     activeCategory === cat
-                      ? "bg-[#f5e6dc] text-stone-800 border border-stone-300 shadow-md"
-                      : "text-stone-600 hover:bg-stone-200"
+                      ? "bg-[#f5e6dc] text-stone-900 border border-stone-300 shadow-md"
+                      : "text-stone-700 hover:bg-stone-200"
                   }`}
                 >
-                  <Image src={categoryConfig[cat].icon} alt="" width={20} height={20} className="inline-block mr-1" /> {categoryConfig[cat].label}
+                  <Image src={categoryConfig[cat].icon} alt="" width={28} height={28} className="inline-block mr-2" /> {categoryConfig[cat].label}
                 </button>
               ))}
             </div>
@@ -479,7 +479,7 @@ export default function MiniChefPage() {
                 {/* Guest Count Selector */}
                 <Card>
                   <CardContent className="p-5">
-                    <label className="block text-sm font-medium text-stone-700 mb-3">
+                    <label className="block text-base font-bold text-stone-900 mb-3">
                       Number of {isBirthday ? "Kids" : "Guests"}
                     </label>
                     <div className="flex items-center gap-4">

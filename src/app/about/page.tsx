@@ -79,8 +79,8 @@ export default function AboutPage() {
               className="h-24 w-auto"
             />
             <h2 
-              className="text-4xl sm:text-5xl text-[#FF8C6B]"
-              style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 400 }}
+              className="text-4xl sm:text-5xl"
+              style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 400, color: '#FF8C6B' }}
             >
               &quot;Feeding Families&quot;
             </h2>
@@ -93,8 +93,8 @@ export default function AboutPage() {
             />
           </div>
           <p 
-            className="text-center text-2xl sm:text-3xl text-[#FF8C6B] mb-16"
-            style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 400 }}
+            className="text-center text-2xl sm:text-3xl mb-16"
+            style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 400, color: '#FF8C6B' }}
           >
             &quot;We are creating a cooking movement!&quot;
           </p>
