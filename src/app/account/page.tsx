@@ -184,7 +184,7 @@ export default function AccountPage() {
             <Link href="/account/orders">
               <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
                 <CardContent className="p-6 text-center">
-                  <Package className="h-10 w-10 text-amber-600 mx-auto mb-3" />
+                  <Package className="h-10 w-10 text-[#FF8C6B] mx-auto mb-3" />
                   <h3 className="font-semibold text-stone-900">My Orders</h3>
                   <p className="text-sm text-stone-500 mt-1">View order history</p>
                 </CardContent>
@@ -193,7 +193,7 @@ export default function AccountPage() {
             <Link href="/account/bookings">
               <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
                 <CardContent className="p-6 text-center">
-                  <Calendar className="h-10 w-10 text-amber-600 mx-auto mb-3" />
+                  <Calendar className="h-10 w-10 text-[#FF8C6B] mx-auto mb-3" />
                   <h3 className="font-semibold text-stone-900">My Bookings</h3>
                   <p className="text-sm text-stone-500 mt-1">View class bookings</p>
                 </CardContent>
@@ -202,7 +202,7 @@ export default function AccountPage() {
             <Link href="/account/wishlist">
               <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
                 <CardContent className="p-6 text-center">
-                  <Heart className="h-10 w-10 text-amber-600 mx-auto mb-3" />
+                  <Heart className="h-10 w-10 text-[#FF8C6B] mx-auto mb-3" />
                   <h3 className="font-semibold text-stone-900">Wishlist</h3>
                   <p className="text-sm text-stone-500 mt-1">Saved items</p>
                 </CardContent>
@@ -361,7 +361,7 @@ export default function AccountPage() {
         <Card>
           <CardHeader className="text-center">
             <div className="h-14 w-14 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-4">
-              <User className="h-7 w-7 text-amber-600" />
+              <User className="h-7 w-7 text-[#FF8C6B]" />
             </div>
             <CardTitle className="text-2xl">
               {mode === "login" ? "Welcome Back" : "Create Account"}
@@ -458,7 +458,7 @@ export default function AccountPage() {
                 <div className="text-right">
                   <a
                     href="#"
-                    className="text-sm text-amber-600 hover:text-amber-700"
+                    className="text-sm text-[#FF8C6B] hover:text-[#ff7a54]"
                   >
                     Forgot password?
                   </a>
@@ -481,7 +481,7 @@ export default function AccountPage() {
                     setError("");
                     setSuccess("");
                   }}
-                  className="text-amber-600 hover:text-amber-700 font-medium"
+                  className="text-[#FF8C6B] hover:text-[#ff7a54] font-medium"
                 >
                   {mode === "login" ? "Sign up" : "Sign in"}
                 </button>

@@ -42,7 +42,7 @@ export function WaiverModal({ isOpen, onClose, onAccept, attendeeName }: WaiverM
         <div className="flex items-center justify-between p-6 border-b border-stone-200">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-amber-100 rounded-lg">
-              <FileText className="h-5 w-5 text-amber-600" />
+              <FileText className="h-5 w-5 text-[#FF8C6B]" />
             </div>
             <div>
               <h2 className="text-xl font-bold text-stone-900">Waiver & Terms</h2>
@@ -140,7 +140,7 @@ export function WaiverModal({ isOpen, onClose, onAccept, attendeeName }: WaiverM
         {/* Signature Section */}
         <div className="p-6 border-t border-stone-200 bg-stone-50">
           {!hasScrolledToBottom ? (
-            <div className="flex items-center gap-2 text-amber-600 mb-4">
+            <div className="flex items-center gap-2 text-[#FF8C6B] mb-4">
               <AlertCircle className="h-5 w-5" />
               <span className="text-sm">Please scroll and read the entire waiver to continue</span>
             </div>
@@ -152,7 +152,7 @@ export function WaiverModal({ isOpen, onClose, onAccept, attendeeName }: WaiverM
                     type="checkbox"
                     checked={agreedToTerms}
                     onChange={(e) => setAgreedToTerms(e.target.checked)}
-                    className="mt-1 rounded border-stone-300 text-amber-600 focus:ring-amber-500"
+                    className="mt-1 rounded border-stone-300 text-[#FF8C6B] focus:ring-[#FF8C6B]"
                   />
                   <span className="text-sm text-stone-700">
                     I have read, understood, and agree to the above Waiver, Release of Liability,
@@ -163,14 +163,14 @@ export function WaiverModal({ isOpen, onClose, onAccept, attendeeName }: WaiverM
 
               <div className="mb-4">
                 <label className="block text-sm font-medium text-stone-700 mb-2">
-                  Digital Signature - Type your full name: <span className="text-amber-600">{attendeeName}</span>
+                  Digital Signature - Type your full name: <span className="text-[#FF8C6B]">{attendeeName}</span>
                 </label>
                 <input
                   type="text"
                   value={signature}
                   onChange={(e) => setSignature(e.target.value)}
                   placeholder="Type your full name to sign"
-                  className="w-full px-4 py-3 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 font-medium"
+                  className="w-full px-4 py-3 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF8C6B] font-medium"
                 />
                 {signature && !isSignatureValid && (
                   <p className="text-red-500 text-sm mt-1">
@@ -193,7 +193,7 @@ export function WaiverModal({ isOpen, onClose, onAccept, attendeeName }: WaiverM
             <Button
               onClick={handleAccept}
               disabled={!hasScrolledToBottom || !agreedToTerms || !isSignatureValid}
-              className="flex-1 bg-amber-500 hover:bg-amber-600"
+              className="flex-1 bg-[#FF8C6B] hover:bg-[#ff7a54]"
             >
               Accept & Sign Waiver
             </Button>

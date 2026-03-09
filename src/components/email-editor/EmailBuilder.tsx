@@ -20,7 +20,7 @@ const EmailEditor = dynamic(() => import("react-email-editor"), {
   loading: () => (
     <div className="h-[600px] flex items-center justify-center bg-stone-100 rounded-lg">
       <div className="text-center">
-        <div className="animate-spin h-8 w-8 border-4 border-amber-500 border-t-transparent rounded-full mx-auto mb-4" />
+        <div className="animate-spin h-8 w-8 border-4 border-[#FF8C6B] border-t-transparent rounded-full mx-auto mb-4" />
         <p className="text-stone-600">Loading Email Builder...</p>
       </div>
     </div>
@@ -439,7 +439,7 @@ export default function EmailBuilder({
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white w-full h-full flex flex-col">
         {/* Header */}
-        <div className="border-b border-stone-200 px-6 py-4 flex items-center justify-between bg-white">
+        <div className="border-b border-[#FFC67D] px-6 py-4 flex items-center justify-between bg-white">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="sm" onClick={onClose}>
               <X className="h-5 w-5" />
@@ -467,7 +467,7 @@ export default function EmailBuilder({
         </div>
 
         {/* Subject Line */}
-        <div className="border-b border-stone-200 px-6 py-3 bg-stone-50">
+        <div className="border-b border-[#FFC67D] px-6 py-3 bg-stone-50">
           <div className="flex items-center gap-4">
             <label className="text-sm font-medium text-stone-600 whitespace-nowrap">Subject:</label>
             <input
@@ -475,13 +475,13 @@ export default function EmailBuilder({
               value={subject}
               onChange={(e) => onSubjectChange(e.target.value)}
               placeholder="Enter email subject line..."
-              className="flex-1 px-3 py-1.5 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+              className="flex-1 px-3 py-1.5 border border-stone-300 rounded-lg focus:ring-2 focus:ring-[#FFC67D] focus:border-[#FFC67D]"
             />
           </div>
         </div>
 
         {/* Toolbar */}
-        <div className="border-b border-stone-200 px-6 py-3 bg-white flex items-center gap-6">
+        <div className="border-b border-[#FFC67D] px-6 py-3 bg-white flex items-center gap-6">
           {/* Templates */}
           <div className="flex items-center gap-2">
             <FileText className="h-4 w-4 text-stone-500" />
@@ -489,7 +489,7 @@ export default function EmailBuilder({
             <select
               value={selectedTemplate}
               onChange={(e) => loadTemplate(e.target.value)}
-              className="text-sm border border-stone-300 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-amber-500"
+              className="text-sm border border-stone-300 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-[#FFC67D]"
               disabled={!editorReady}
             >
               {Object.entries(EMAIL_TEMPLATES).map(([id, template]) => (
@@ -510,11 +510,11 @@ export default function EmailBuilder({
                   className="px-2 py-0.5 bg-amber-100 hover:bg-amber-200 rounded text-xs flex items-center gap-1 transition-colors"
                   title={`Example: ${variable.example}`}
                 >
-                  <code className="text-amber-700">{`{{${variable.name}}}`}</code>
+                  <code className="text-[#FF8C6B]">{`{{${variable.name}}}`}</code>
                   {copiedVar === variable.name ? (
                     <Check className="h-3 w-3 text-green-600" />
                   ) : (
-                    <Copy className="h-3 w-3 text-amber-600" />
+                    <Copy className="h-3 w-3 text-[#FF8C6B]" />
                   )}
                 </button>
               ))}
@@ -563,7 +563,7 @@ export default function EmailBuilder({
         {showPreview && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-8">
             <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col">
-              <div className="border-b border-stone-200 px-6 py-4 flex items-center justify-between">
+              <div className="border-b border-[#FFC67D] px-6 py-4 flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-stone-900">Email Preview</h3>
                 <Button variant="ghost" size="sm" onClick={() => setShowPreview(false)}>
                   <X className="h-5 w-5" />

@@ -277,6 +277,27 @@ h3 {
   transform: scale(1.05);
 }
 
+/* Gradient Peach/Coral Button */
+.gradient-peach-glow {
+  background: linear-gradient(135deg, #FF8C6B 0%, #ff7a54 100%);
+  box-shadow: 0 4px 15px rgba(255, 140, 107, 0.3);
+  transition: all 0.3s ease;
+}
+
+.gradient-peach-glow:hover {
+  background: linear-gradient(135deg, #ff7a54 0%, #FF8C6B 100%);
+  box-shadow: 0 6px 20px rgba(255, 140, 107, 0.4);
+  transform: translateY(-2px);
+}
+
+/* Glass Peach for badges */
+.glass-peach {
+  background: rgba(255, 140, 107, 0.15);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 140, 107, 0.2);
+}
+
 /* ===== CARD STYLES ===== */
 .card {
   background: var(--c-white);
