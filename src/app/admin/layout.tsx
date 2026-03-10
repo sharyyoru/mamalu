@@ -69,7 +69,7 @@ export default async function AdminLayout({
   const userName = profile?.full_name || (isWilson ? "Wilson Admin" : user.email || "");
 
   return (
-    <div className="flex h-screen overflow-hidden bg-stone-100">
+    <div className="flex h-screen overflow-hidden bg-stone-100 [&_*]:font-bold">
       <AdminSidebar userRole={userRole} />
       <div className="flex-1 flex flex-col overflow-hidden">
         <AdminHeader 

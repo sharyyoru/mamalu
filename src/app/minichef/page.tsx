@@ -470,7 +470,7 @@ export default function MiniChefPage() {
                 {/* Mommy & Me Description */}
                 {activeCategory === "mommy_me" && (
                   <div className="p-4 bg-pink-50 rounded-lg border border-pink-200">
-                    <p className="text-pink-800 font-medium">
+                    <p className="text-pink-800 font-bold">
                       Mom and kid have their own station where they share laughter, learning, and delicious moments together!
                     </p>
                   </div>
