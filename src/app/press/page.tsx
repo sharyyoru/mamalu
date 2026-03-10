@@ -18,7 +18,7 @@ const fallbackPressArticles = [
     date: "December 2023",
     description: "Featured by Time out Dubai - Dubai Bling filming locations: All the places to visit for certified bougie vibes",
     url: "https://www.timeoutdubai.com/news/dubai-bling-locations",
-    image: "/images/Mamalou Kitchen - 101.jpg",
+    image: "/images/press/press-01.png",
   },
   {
     id: "2",
@@ -26,7 +26,7 @@ const fallbackPressArticles = [
     date: "March 2023",
     description: "Featured by What's on Dubai - 6 delicious foodie workshops you need to try in Dubai.",
     url: "https://whatson.ae/2023/03/food-workshops-and-cooking-classes-in-dubai/",
-    image: "/images/Mamalou Kitchen - 102.jpg",
+    image: "/images/press/press-02.png",
   },
   {
     id: "3",
@@ -34,7 +34,7 @@ const fallbackPressArticles = [
     date: "March 2023",
     description: "Women in food: Lama Jammal, founder, Mamalu Kitchen & Eazy Freezy",
     url: "https://www.spinneys.com/en-ae/lifestyle/international-womens-day-lama-jammal-founder-mamalu-kitchen--eazy-freezy/",
-    image: "/images/Lama_Jammal_pic.jpeg",
+    image: "/images/press/press-6.jpg",
   },
   {
     id: "4",
@@ -42,7 +42,7 @@ const fallbackPressArticles = [
     date: "December 2023",
     description: "Dubai Bling Season 2 Locations: 13 Places Spotted In The New Release",
     url: "https://www.harpersbazaararabia.com/culture/entertainment/dubai-bling-season-2-locations",
-    image: "/images/Mamalou Kitchen - 103.jpg",
+    image: "/images/press/press-03.png",
   },
   {
     id: "5",
@@ -50,7 +50,7 @@ const fallbackPressArticles = [
     date: "December 2023",
     description: "Featured by Arabian Diaries Dubai - Culinary Excellence: Mamalu Kitchen Delights and Recipes",
     url: "https://arabiandiaries.com/culinary-excellence-mamalu-kitchen-delights-and-recipes/",
-    image: "/images/Mamalou Kitchen - 104.jpg",
+    image: "/images/press/press-04.png",
   },
   {
     id: "6",
@@ -58,7 +58,7 @@ const fallbackPressArticles = [
     date: "May 2022",
     description: "A Brand collaboration with Puck for Ramadan to do easy and delicious Iftar recipe",
     url: null,
-    image: "/images/Mamalou Kitchen - 105.jpg",
+    image: "/images/press/press-05.png",
   },
   {
     id: "7",
@@ -66,7 +66,7 @@ const fallbackPressArticles = [
     date: "April 2022",
     description: "An interview with Helen Farmer & Nakheel Mall to talk about Mamalu's entrepreneurial journey.",
     url: null,
-    image: "/images/Mamalou Kitchen - 110.jpg",
+    image: "/images/press/press-7.jpg",
   },
   {
     id: "8",
@@ -74,7 +74,7 @@ const fallbackPressArticles = [
     date: "March 2022",
     description: "Special mothers day class at the Bosch kitchen",
     url: null,
-    image: "/images/Mamalou Kitchen - 151.jpg",
+    image: "/images/press/press-8.jpg",
   },
   {
     id: "9",
@@ -82,7 +82,7 @@ const fallbackPressArticles = [
     date: "February 2022",
     description: "A little about the world of Mamalu Kitchen and Eazy Freezy",
     url: null,
-    image: "/images/Mamalou Kitchen - 164.jpg",
+    image: "/images/press/press-9.jpg",
   },
   {
     id: "10",
@@ -90,7 +90,7 @@ const fallbackPressArticles = [
     date: "February 2022",
     description: "Exclusive Japanese cuisine event held at Mamalu Kitchen",
     url: null,
-    image: "/images/Mamalou Kitchen - 165.jpg",
+    image: "/images/press/press-10.jpg",
   },
   {
     id: "11",
@@ -98,7 +98,7 @@ const fallbackPressArticles = [
     date: "January 2022",
     description: "Morning show with Al Arabiya for a healthy meal",
     url: "https://www.youtube.com/watch?v=CTG9pX9EM84",
-    image: "/images/Mamalou Kitchen - 201.jpg",
+    image: "/images/press/press-20.jpg",
     isVideo: true,
   },
   {
@@ -107,7 +107,7 @@ const fallbackPressArticles = [
     date: "December 2022",
     description: "Featured by Whatson Dubai - fun Christmas presents to buy your friends and family. 6 best kitchen tools for cooking with kids this summer in UAE, for 2023",
     url: null,
-    image: "/images/Mamalou Kitchen - 218.jpg",
+    image: "/images/press/press-11.jpg",
   },
   {
     id: "13",
@@ -115,7 +115,7 @@ const fallbackPressArticles = [
     date: "December 2021",
     description: "Women's panel session at the EXPO2020 women's pavilion",
     url: null,
-    image: "/images/Mamalou Kitchen - 175.jpg",
+    image: "/images/press/press-12.jpg",
   },
   {
     id: "14",
@@ -123,7 +123,7 @@ const fallbackPressArticles = [
     date: "June 2021",
     description: "9 Creative things to try out this summer",
     url: null,
-    image: "/images/Mamalou Kitchen - 180.jpg",
+    image: "/images/press/press-13.jpg",
   },
   {
     id: "15",
@@ -131,7 +131,7 @@ const fallbackPressArticles = [
     date: "June 2021",
     description: "6 Places to visit perfect for foodies",
     url: null,
-    image: "/images/Mamalou Kitchen - 183.jpg",
+    image: "/images/press/press-14.jpg",
   },
   {
     id: "16",
@@ -139,7 +139,7 @@ const fallbackPressArticles = [
     date: "March 2021",
     description: "Featured in the Daily Mail UK, celebrating Fifi's birthday at Mamalu Kitchen",
     url: null,
-    image: "/images/Mamalou Kitchen - 193.jpg",
+    image: "/images/press/press-15.jpg",
   },
   {
     id: "17",
@@ -147,7 +147,7 @@ const fallbackPressArticles = [
     date: "May 2021",
     description: "Ramadan Special",
     url: null,
-    image: "/images/Mamalou Kitchen - 199.jpg",
+    image: "/images/press/press-16.png",
   },
   {
     id: "18",
@@ -155,7 +155,7 @@ const fallbackPressArticles = [
     date: "July 2020",
     description: "Summer special for kids",
     url: null,
-    image: "/images/Mamalou Kitchen - 200.jpg",
+    image: "/images/press/press-17.png",
   },
   {
     id: "19",
@@ -163,7 +163,7 @@ const fallbackPressArticles = [
     date: "July 2020",
     description: "Food hall of fame",
     url: null,
-    image: "/images/Mamalou Kitchen - 202.jpg",
+    image: "/images/press/press-18.png",
   },
   {
     id: "20",
@@ -171,7 +171,7 @@ const fallbackPressArticles = [
     date: "June 2020",
     description: "Tips to keep children entertained indoors.",
     url: null,
-    image: "/images/Mamalou Kitchen - 203.jpg",
+    image: "/images/press/press-19.png",
   },
   {
     id: "21",
@@ -179,7 +179,7 @@ const fallbackPressArticles = [
     date: "May 2020",
     description: "Favorite dish to cook while in quarantine, using pantry staples. Staying home and staying healthy.",
     url: null,
-    image: "/images/Mamalou Kitchen - 204.jpg",
+    image: "/images/Mamalou Kitchen - 101.jpg",
   },
   {
     id: "22",
@@ -187,7 +187,7 @@ const fallbackPressArticles = [
     date: "March 2020",
     description: "Mothers day gift ideas - bring some fun and ease to the kitchen by buying her some kitchen accessories to make kitchen prep a breeze.",
     url: null,
-    image: "/images/Mamalou Kitchen - 205.jpg",
+    image: "/images/Mamalou Kitchen - 102.jpg",
   },
   {
     id: "23",
@@ -195,7 +195,7 @@ const fallbackPressArticles = [
     date: "March 2020",
     description: "One of the entrepreneurs in Dubai dedicated to making people healthier and happier from the inside out.",
     url: null,
-    image: "/images/Mamalou Kitchen - 206.jpg",
+    image: "/images/Mamalou Kitchen - 103.jpg",
   },
   {
     id: "24",
@@ -203,7 +203,7 @@ const fallbackPressArticles = [
     date: "February 2020",
     description: "Mamalu Kitchen was in the top 15 things to do in Dubai for the Valentines weekend.",
     url: "https://whatson.ae/2020/02/15-great-things-to-do-in-dubai-this-weekend-10/",
-    image: "/images/Mamalou Kitchen - 207.jpg",
+    image: "/images/Mamalou Kitchen - 104.jpg",
   },
   {
     id: "25",
@@ -211,7 +211,7 @@ const fallbackPressArticles = [
     date: "November 2019",
     description: "Lama Jammal of Mamalu Kitchen wants to put healthy, home-cooked meals back on the table",
     url: "https://www.mamalukitchen.com/_files/ugd/f73e67_40f3998fa9ff4b7b983b640cf1b7104a.pdf",
-    image: "/images/Mamalou Kitchen - 208.jpg",
+    image: "/images/Mamalou Kitchen - 105.jpg",
   },
   {
     id: "26",
@@ -219,7 +219,7 @@ const fallbackPressArticles = [
     date: "Summer 2018",
     description: "Ever since I can remember I have always loved to cook",
     url: "https://www.mamalukitchen.com/_files/ugd/f73e67_40f3998fa9ff4b7b983b640cf1b7104a.pdf",
-    image: "/images/Mamalou Kitchen - 209.jpg",
+    image: "/images/Mamalou Kitchen - 110.jpg",
   },
   {
     id: "27",
@@ -227,7 +227,7 @@ const fallbackPressArticles = [
     date: "November 2017",
     description: "An Entrepreneurs story - Cooking classes for housekeepers",
     url: null,
-    image: "/images/Mamalou Kitchen - 210.jpg",
+    image: "/images/Mamalou Kitchen - 151.jpg",
   },
   {
     id: "28",
@@ -235,7 +235,7 @@ const fallbackPressArticles = [
     date: "April 2017",
     description: "I wasn't interested in dolls as a child, I preferred to play with toy kitchens",
     url: null,
-    image: "/images/Mamalou Kitchen - 211.jpg",
+    image: "/images/Mamalou Kitchen - 164.jpg",
   },
   {
     id: "29",
@@ -243,7 +243,7 @@ const fallbackPressArticles = [
     date: "October 2017",
     description: "Mamalu can make a cook out of you and your kids",
     url: null,
-    image: "/images/Mamalou Kitchen - 212.jpg",
+    image: "/images/Mamalou Kitchen - 165.jpg",
   },
   {
     id: "30",
@@ -251,7 +251,7 @@ const fallbackPressArticles = [
     date: "January 2017",
     description: "A recipe for success - If you want to dish up the dinner party of your dreams or simply serve up a family meal to be proud of",
     url: null,
-    image: "/images/Mamalou Kitchen - 213.jpg",
+    image: "/images/Mamalou Kitchen - 175.jpg",
   },
 ];
 
@@ -315,8 +315,8 @@ export default async function PressPage() {
             
             {/* Title - PRESS in coral color */}
             <h1 
-              className="text-4xl md:text-5xl lg:text-6xl font-bold text-[#FF8C6B] tracking-[0.3em] uppercase"
-              style={{ fontFamily: 'var(--font-mossy), cursive' }}
+              className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-[0.3em] uppercase"
+              style={{ fontFamily: 'var(--font-mossy), cursive', color: '#FF8C6B' }}
             >
               PRESS
             </h1>
@@ -354,17 +354,17 @@ export default async function PressPage() {
                 
                 {/* Content */}
                 <div className="flex-1 space-y-3">
-                  {/* Title in coral */}
+                  {/* Title in black */}
                   <h2 
-                    className="text-2xl md:text-3xl font-bold text-[#FF8C6B]"
-                    style={{ fontFamily: 'var(--font-mossy), cursive' }}
+                    className="text-2xl md:text-3xl font-bold"
+                    style={{ fontFamily: 'var(--font-mossy), cursive', color: '#1c1917' }}
                   >
                     {article.title}
                   </h2>
                   {/* Date in coral */}
                   <p 
-                    className="text-[#FF8C6B] font-bold text-lg"
-                    style={{ fontFamily: 'var(--font-mossy), cursive' }}
+                    className="font-bold text-lg"
+                    style={{ fontFamily: 'var(--font-mossy), cursive', color: '#FF8C6B' }}
                   >
                     {article.date}
                   </p>
