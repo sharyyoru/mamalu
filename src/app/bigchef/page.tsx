@@ -14,12 +14,14 @@ import {
 
 interface MenuItem { id: string; name: string; price: number; image: string; dishes: string[]; category: string; }
 interface ExtraItem { id: string; name: string; description: string; price: number; icon: any; category: string; }
-type CategoryType = "corporate" | "classics" | "monthly" | "nanny";
+type CategoryType = "corporate" | "classics" | "monthly" | "teenagers" | "packages" | "nanny";
 
 const categoryConfig: Record<CategoryType, { label: string; icon: string; minGuests: number; maxGuests: number; description: string }> = {
   corporate: { label: "Corporate / Private", icon: "/image-updates/corporate.png", minGuests: 6, maxGuests: 35, description: "2-hour hands-on cooking experience with professional chefs" },
   classics: { label: "Our Classics", icon: "/image-updates/our-classics.png", minGuests: 1, maxGuests: 35, description: "Classic cooking experiences for groups" },
   monthly: { label: "Monthly Specials", icon: "/image-updates/monthly-specials.png", minGuests: 1, maxGuests: 35, description: "Seasonal rotating menus" },
+  teenagers: { label: "Teenager Course", icon: "/image-updates/corporate.png", minGuests: 1, maxGuests: 20, description: "Fun cooking classes for teens aged 12-17" },
+  packages: { label: "Packages", icon: "/image-updates/our-classics.png", minGuests: 6, maxGuests: 35, description: "Bundled menu packages for groups" },
   nanny: { label: "Nanny Class", icon: "/image-updates/nanny-class.png", minGuests: 1, maxGuests: 10, description: "Mummy's Fabulous Helpers - Turn your housekeeper into a chef" },
 };
 
@@ -72,6 +74,19 @@ const nannyMenus: MenuItem[] = [
   { id: "dinner_tarts", name: "Dinner Party Tarts", price: 1200, image: "/images/5942-Feta_Tart_V2.jpg", dishes: ["Onion tart tatin", "Wild mushroom phyllo tart", "Goat cheese tomato tart"], category: "nanny" },
   { id: "sushi_nanny", name: "Sushi Master Class", price: 1200, image: "/images/avocado-maki-roll-recipe-10.jpg", dishes: ["Salmon and avocado rolls", "Salmon nigiri", "California maki roll"], category: "nanny" },
   { id: "healthy_dessert", name: "Healthy Dessert", price: 1200, image: "/images/oreo-brownies-5-1067x1600.jpg", dishes: ["Sweet potato brownies", "3 ingredient chocolate cake", "Protein cookies", "Date walnut cake"], category: "nanny" },
+];
+
+// Teenager course menus - placeholder until client provides pricing
+const teenagerMenus: MenuItem[] = [
+  { id: "teen_italian", name: "Teen Italian Night", price: 250, image: "/images/Farfalle-Pasta11-scaled.jpg", dishes: ["Fresh pasta making", "Personal pizzas", "Tiramisu cups"], category: "teenagers" },
+  { id: "teen_asian", name: "Teen Asian Adventure", price: 250, image: "/images/shoyu-ramen-1-1200.jpg", dishes: ["Ramen bowls", "Gyoza dumplings", "Bubble tea"], category: "teenagers" },
+  { id: "teen_mexican", name: "Teen Taco Tuesday", price: 250, image: "/images/birria-tacos-5-1200x1800.jpg", dishes: ["Build your own tacos", "Fresh guacamole", "Churros"], category: "teenagers" },
+];
+
+// Packages - bundled menu sets (placeholder until client provides details)
+const packagesMenus: MenuItem[] = [
+  { id: "pkg_corporate_3", name: "Corporate Bundle (3 Sessions)", price: 1200, image: "/images/Grilled-Steak-with-Chimichurri-1.jpg", dishes: ["3 corporate cooking sessions", "Team building activities", "Custom menus"], category: "packages" },
+  { id: "pkg_monthly_4", name: "Monthly Special Bundle", price: 1400, image: "/images/peking-duck-recipe-11.jpg", dishes: ["4 monthly special sessions", "Seasonal ingredients", "Recipe booklet"], category: "packages" },
 ];
 
 const corporateExtras: ExtraItem[] = [
@@ -161,6 +176,8 @@ export default function BigChefPage() {
       case "corporate": return corporateMenus;
       case "classics": return classicsMenus;
       case "monthly": return monthlySpecials;
+      case "teenagers": return teenagerMenus;
+      case "packages": return packagesMenus;
       case "nanny": return nannyMenus;
       default: return [];
     }
@@ -232,7 +249,14 @@ export default function BigChefPage() {
   return (
     <div className="min-h-screen bg-stone-50">
       <WaiverModal isOpen={showWaiverModal} onClose={() => setShowWaiverModal(false)} onAccept={handleWaiverAccept} />
-      <div className="bg-white border-b">
+      <div className="bg-white border-b relative overflow-hidden">
+        {/* Animated knives/whisk icons for Big Chef */}
+        <div className="absolute left-4 top-1/2 -translate-y-1/2 hidden lg:block">
+          <Image src="/images/knives-01.png" alt="" width={60} height={60} className="float-gentle opacity-70" />
+        </div>
+        <div className="absolute right-4 top-1/2 -translate-y-1/2 hidden lg:block">
+          <Image src="/images/whisk-01.png" alt="" width={50} height={50} className="float-medium opacity-70" />
+        </div>
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center gap-4">
             <button onClick={() => window.dispatchEvent(new CustomEvent("openMamaluMenu"))} className="p-2 hover:bg-stone-100 rounded-full"><ArrowLeft className="h-5 w-5" /></button>
@@ -370,7 +394,7 @@ export default function BigChefPage() {
                     <div><span className="font-bold text-stone-700">Date:</span><span className="ml-2 font-bold text-stone-900">{eventDate}</span></div>
                     <div><span className="font-bold text-stone-700">Time:</span><span className="ml-2 font-bold text-stone-900">{eventTime}</span></div>
                   </div>
-                  {requiresDeposit ? <div className="mt-4 p-4 bg-amber-50 rounded-lg border border-amber-200"><div className="flex items-start gap-2"><AlertTriangle className="h-5 w-5 text-amber-600" /><div><p className="font-medium text-amber-800">50% Deposit Required</p><p className="text-sm text-amber-700 mt-1">Pay <strong>AED {depositAmount}</strong> now. Balance of <strong>AED {balanceAmount}</strong> due 48 hours before.</p></div></div></div> : <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200"><p className="text-green-800"><strong>Full Payment:</strong> AED {totalAmount}</p></div>}
+                  {/* Payment Info - Hidden per client request */}
                 </CardContent></Card>
                 {/* Navigation Buttons - Desktop */}
                 <div className="hidden lg:flex justify-between items-center pt-6 border-t">

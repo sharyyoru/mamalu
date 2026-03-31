@@ -27,14 +27,28 @@ export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
   const [scrolled, setScrolled] = useState(false);
+  const [headerVisible, setHeaderVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
 
+  // Hide header on scroll down, show on scroll up (per client request)
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 100);
+      const currentScrollY = window.scrollY;
+      setScrolled(currentScrollY > 100);
+      
+      // Show header when scrolling up, hide when scrolling down
+      if (currentScrollY < 50) {
+        setHeaderVisible(true); // Always show at top
+      } else if (currentScrollY < lastScrollY) {
+        setHeaderVisible(true); // Scrolling up
+      } else if (currentScrollY > lastScrollY) {
+        setHeaderVisible(false); // Scrolling down
+      }
+      setLastScrollY(currentScrollY);
     };
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [lastScrollY]);
 
   useEffect(() => {
     const updateCartCount = () => {
@@ -78,8 +92,11 @@ export function Header() {
 
   return (
     <>
-      {/* Header - Static at top */}
-      <header className="relative z-50 bg-white">
+      {/* Header - Hides on scroll down, shows on scroll up */}
+      <header className={cn(
+        "fixed top-0 left-0 right-0 z-50 bg-white transition-transform duration-300",
+        headerVisible ? "translate-y-0" : "-translate-y-full"
+      )}>
         <nav className="container mx-auto px-6 lg:px-8">
           <div className="flex items-center justify-between relative py-4 min-h-[140px] lg:min-h-[160px]">
             
@@ -170,6 +187,9 @@ export function Header() {
           </div>
         </nav>
       </header>
+
+      {/* Spacer for fixed header */}
+      <div className="h-[140px] lg:h-[160px]" />
 
       {/* Fullscreen Menu Overlay - white bg, centered logo, peach highlights */}
       <div

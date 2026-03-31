@@ -206,6 +206,16 @@ h3 {
   50% { transform: translateY(-10px) scale(1.05); }
 }
 
+/* ===== LINK STYLES - Pink highlight on click ===== */
+a:active, button:active {
+  color: #FF69B4 !important;
+}
+
+a:focus-visible, button:focus-visible {
+  outline: 2px solid #FF69B4;
+  outline-offset: 2px;
+}
+
 /* ===== BUTTON STYLES ===== */
 .btn-primary {
   display: inline-flex;

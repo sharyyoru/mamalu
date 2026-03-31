@@ -415,8 +415,15 @@ export default function MiniChefPage() {
         onAccept={handleWaiverAccept}
       />
 
-      {/* Header */}
-      <div className="bg-white border-b">
+      {/* Header with animated icons */}
+      <div className="bg-white border-b relative overflow-hidden">
+        {/* Animated boy/girl icons for Mini Chef */}
+        <div className="absolute left-4 top-1/2 -translate-y-1/2 hidden lg:block">
+          <Image src="/images/girl-01.png" alt="" width={60} height={60} className="float-gentle opacity-70" />
+        </div>
+        <div className="absolute right-4 top-1/2 -translate-y-1/2 hidden lg:block">
+          <Image src="/images/apron.png" alt="" width={50} height={50} className="float-medium opacity-70" />
+        </div>
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -847,28 +854,7 @@ export default function MiniChefPage() {
                       </div>
                     </div>
 
-                    {/* Payment Info */}
-                    {requiresDeposit && (
-                      <div className="mt-4 p-4 bg-amber-50 rounded-lg border border-amber-200">
-                        <div className="flex items-start gap-2">
-                          <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
-                          <div>
-                            <p className="font-medium text-amber-800">50% Deposit Required</p>
-                            <p className="text-sm text-amber-700 mt-1">
-                              You will pay <strong>AED {depositAmount}</strong> now. The remaining balance of <strong>AED {balanceAmount}</strong> is due 48 hours before your event.
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {!requiresDeposit && (
-                      <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
-                        <p className="text-green-800">
-                          <strong>Full Payment:</strong> You will pay <strong>AED {totalAmount}</strong> to complete your booking.
-                        </p>
-                      </div>
-                    )}
+                    {/* Payment Info - Hidden per client request (order summary hidden at checkout) */}
                   </CardContent>
                 </Card>
 

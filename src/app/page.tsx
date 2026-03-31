@@ -114,10 +114,10 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Services Section - 3 boxes with image backgrounds and circles */}
+      {/* Services Section - 4 boxes with image backgrounds and circles */}
       <section className="py-5 md:py-12 bg-white">
         <div className="container mx-auto px-0">
-          <div className="grid grid-cols-3">
+          <div className="grid grid-cols-4">
             {/* Mini Chef */}
             <Link href="/minichef" className="group relative aspect-[3/4] sm:aspect-square md:aspect-[3/2] block overflow-hidden">
               <Image
@@ -173,6 +173,26 @@ export default function HomePage() {
                 <div className="w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 lg:w-48 lg:h-48 rounded-full bg-[#ffeee8] border-2 border-stone-800 flex items-center justify-center transition-transform duration-500 group-hover:scale-110">
                   <span className="text-sm sm:text-base md:text-xl lg:text-2xl font-bold text-stone-800 uppercase tracking-wider" style={{ fontFamily: 'var(--font-mossy), cursive' }}>
                     Rentals
+                  </span>
+                </div>
+              </div>
+            </Link>
+
+            {/* Eazy Freezy Shop */}
+            <Link href="/products" className="group relative aspect-[3/4] sm:aspect-square md:aspect-[3/2] block overflow-hidden">
+              <Image
+                src="/images/Mamalou Kitchen - 165.jpg"
+                alt="Eazy Freezy Shop"
+                fill
+                quality={100}
+                priority
+                className="object-cover transition-transform duration-700 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-white/50" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 lg:w-48 lg:h-48 rounded-full bg-[#ffeee8] border-2 border-stone-800 flex items-center justify-center transition-transform duration-500 group-hover:scale-110">
+                  <span className="text-sm sm:text-base md:text-xl lg:text-2xl font-bold text-[#ff7f5c] uppercase tracking-wider text-center leading-tight" style={{ fontFamily: 'var(--font-mossy), cursive' }}>
+                    Eazy Freezy
                   </span>
                 </div>
               </div>
