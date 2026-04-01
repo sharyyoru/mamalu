@@ -21,6 +21,14 @@ const heroImages = [
   "/images/PHOTO-2025-12-02-18-26-42 (5).jpg",
   "/images/Mamalou Kitchen - 165.jpg",
   "/images/File_001.jpeg",
+  "/images/Mamalou Kitchen - 67.jpg",
+  "/images/Mamalou Kitchen - 78.jpg",
+  "/images/Mamalou Kitchen - 103.jpg",
+  "/images/Mamalou Kitchen - 193.jpg",
+  "/images/Mamalou Kitchen - 220.jpg",
+  "/shared-files/Kids high res pics/_C3A5778 (1).jpg",
+  "/shared-files/Kids high res pics/_C3A5818.jpg",
+  "/shared-files/Kids high res pics/_C3A5906 (1).jpg",
 ];
 
 const stats = [
@@ -181,7 +189,7 @@ export default function HomePage() {
             {/* Eazy Freezy Shop */}
             <Link href="/products" className="group relative aspect-[3/4] sm:aspect-square md:aspect-[3/2] block overflow-hidden">
               <Image
-                src="/images/Mamalou Kitchen - 165.jpg"
+                src="/images/chicken-alfredo-lasagna-roll-ups-recipe-4.jpg"
                 alt="Eazy Freezy Shop"
                 fill
                 quality={100}
