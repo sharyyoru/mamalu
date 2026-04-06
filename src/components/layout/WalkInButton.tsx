@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { MessageCircle, X, ChefHat } from "lucide-react";
+import Image from "next/image";
 
 export function WalkInButton() {
   const [expanded, setExpanded] = useState(false);
@@ -43,7 +44,7 @@ export function WalkInButton() {
         style={{ animationDuration: "2s" }}
         aria-label="Walk-in Customers"
       >
-        <ChefHat className="h-7 w-7" />
+        <Image src="/sun.png" alt="Walk-in" width={28} height={28} className="w-7 h-7" />
         {!expanded && (
           <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-[10px] font-bold">
             !
