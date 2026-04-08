@@ -4,6 +4,8 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, Clock, Users, Calendar, CheckCircle2, Plus, Minus } from "lucide-react";
+import ImageSlider from "@/components/ImageSlider";
+import LocalVideoGallery from "@/components/LocalVideoGallery";
 
 interface RentalOption {
   id: string;
@@ -39,8 +41,21 @@ const addOns = [
     name: "Cleaning Service",
     price: 300,
     description: "Professional deep cleaning after your session",
-    icon: "🧼",
+    icon: "??",
   },
+];
+
+const kitchenPhotos = [
+  "/kitchen-photos/WhatsApp Image 2022-08-01 at 11.23.42 AM.jpeg",
+  "/kitchen-photos/WhatsApp Image 2022-08-01 at 11.23.44 AM-2.jpeg",
+  "/kitchen-photos/WhatsApp Image 2022-08-01 at 11.23.44 AM.jpeg",
+  "/kitchen-photos/WhatsApp Image 2022-08-01 at 11.23.45 AM.jpeg",
+  "/kitchen-photos/_C3A0991.JPG",
+  "/kitchen-photos/_C3A0993.JPG",
+  "/kitchen-photos/_C3A0995.JPG",
+  "/kitchen-photos/_C3A0997.JPG",
+  "/kitchen-photos/_C3A0998.JPG",
+  "/kitchen-photos/_C3A1001.JPG",
 ];
 
 export default function RentalsPage() {
@@ -150,6 +165,22 @@ export default function RentalsPage() {
           priority
         />
         <div className="absolute inset-0 bg-black/20" />
+      </div>
+
+      {/* Image Slider */}
+      <div className="container max-w-6xl mx-auto px-6 mb-12">
+        <h2 className="text-2xl font-bold mb-6" style={{ fontFamily: 'var(--font-mossy), cursive' }}>
+          Photo Gallery
+        </h2>
+        <ImageSlider images={kitchenPhotos} alt="Kitchen Studio Photos" />
+      </div>
+
+      {/* Video Gallery */}
+      <div className="container max-w-6xl mx-auto px-6 mb-12">
+        <h2 className="text-2xl font-bold mb-6" style={{ fontFamily: 'var(--font-mossy), cursive' }}>
+          Video Gallery
+        </h2>
+        <LocalVideoGallery />
       </div>
       
       <div className="container max-w-6xl mx-auto px-6">
