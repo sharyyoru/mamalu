@@ -417,10 +417,7 @@ export default function MiniChefPage() {
 
       {/* Header with animated icons */}
       <div className="bg-white border-b relative overflow-hidden">
-        {/* Animated boy/girl icons for Mini Chef */}
-        <div className="absolute left-4 top-1/2 -translate-y-1/2 hidden lg:block">
-          <Image src="/images/girl-01.png" alt="" width={60} height={60} className="float-gentle opacity-70" />
-        </div>
+        {/* Animated boy/girl icons for Mini Chef - now in flex container */}
         <div className="absolute right-4 top-1/2 -translate-y-1/2 hidden lg:block">
           <Image src="/images/apron.png" alt="" width={50} height={50} className="float-medium opacity-70" />
         </div>
@@ -430,6 +427,9 @@ export default function MiniChefPage() {
               <button onClick={() => window.dispatchEvent(new CustomEvent("openMamaluMenu"))} className="p-2 hover:bg-stone-100 rounded-full transition-colors">
                 <ArrowLeft className="h-5 w-5" />
               </button>
+              <div className="hidden lg:block">
+                <Image src="/images/girl-01.png" alt="" width={60} height={60} className="float-gentle opacity-70" />
+              </div>
               <div>
                 <h1 className="text-2xl text-black" style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 900 }}>MINI CHEF</h1>
                 <p className="text-black text-sm" style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 700 }}>

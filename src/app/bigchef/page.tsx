@@ -251,15 +251,15 @@ export default function BigChefPage() {
       <WaiverModal isOpen={showWaiverModal} onClose={() => setShowWaiverModal(false)} onAccept={handleWaiverAccept} />
       <div className="bg-white border-b relative overflow-hidden">
         {/* Animated knives/whisk icons for Big Chef */}
-        <div className="absolute left-4 top-1/2 -translate-y-1/2 hidden lg:block">
-          <Image src="/images/knives-01.png" alt="" width={60} height={60} className="float-gentle opacity-70" />
-        </div>
         <div className="absolute right-4 top-1/2 -translate-y-1/2 hidden lg:block">
           <Image src="/images/whisk-01.png" alt="" width={50} height={50} className="float-medium opacity-70" />
         </div>
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center gap-4">
             <button onClick={() => window.dispatchEvent(new CustomEvent("openMamaluMenu"))} className="p-2 hover:bg-stone-100 rounded-full"><ArrowLeft className="h-5 w-5" /></button>
+            <div className="hidden lg:block">
+              <Image src="/images/knives-01.png" alt="" width={60} height={60} className="float-gentle opacity-70" />
+            </div>
             <div><h1 className="text-2xl text-black" style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 900 }}>BIG CHEF</h1><p className="text-black text-sm" style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 700 }}>Professional cooking experiences for adults</p></div>
           </div>
         </div>
