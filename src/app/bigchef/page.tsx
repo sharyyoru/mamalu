@@ -314,6 +314,20 @@ export default function BigChefPage() {
                   })}
                 </div>
 
+                {/* Price Update Link */}
+                <div className="mt-4">
+                  <p className="text-sm text-stone-600">
+                    Need to see our whole pricelist, <a 
+                      href="https://docs.google.com/spreadsheets/d/1V52xihcamaOT7HrcsAJcLKhUGvTADwVkYW3Oi7JGrJA/edit?usp=sharing"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-stone-900 underline hover:text-stone-700"
+                    >
+                      Click here
+                    </a>
+                  </p>
+                </div>
+
               </div>
             )}
             {hasExtras && step === 2 && (
