@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 
 interface MenuItem { id: string; name: string; price: number; image: string; dishes: string[]; category: string; }
-interface ExtraItem { id: string; name: string; description: string; price: number; icon: any; category: string; }
+interface ExtraItem { id: string; name: string; description: string; price: number; icon: any; category: string; image?: string; }
 type CategoryType = "corporate" | "classics" | "monthly" | "teenagers" | "packages" | "nanny";
 
 const categoryConfig: Record<CategoryType, { label: string; icon: string; minGuests: number; maxGuests: number; description: string }> = {
@@ -90,10 +90,10 @@ const packagesMenus: MenuItem[] = [
 ];
 
 const corporateExtras: ExtraItem[] = [
-  { id: "custom_apron", name: "Customized Apron", description: "Personalized apron with name", price: 80, icon: Gift, category: "custom" },
-  { id: "custom_spatula", name: "Customized Spatula", description: "Personalized spatula", price: 50, icon: Utensils, category: "custom" },
-  { id: "custom_chef_hat", name: "Customized Chef Hat", description: "Personalized chef hat", price: 60, icon: ChefHat, category: "custom" },
-  { id: "custom_mug", name: "Customized Mugs", description: "Personalized mug", price: 45, icon: Gift, category: "custom" },
+  { id: "custom_apron", name: "Customized Apron", description: "Personalized apron with name", price: 80, icon: Gift, category: "custom", image: "/personalized-items/apron.jpg" },
+  { id: "custom_spatula", name: "Customized Spatula", description: "Personalized spatula", price: 50, icon: Utensils, category: "custom", image: "/personalized-items/spatula.jpg" },
+  { id: "custom_chef_hat", name: "Customized Chef Hat", description: "Personalized chef hat", price: 60, icon: ChefHat, category: "custom", image: "/personalized-items/chef-hat.jpg" },
+  { id: "custom_mug", name: "Customized Mugs", description: "Personalized mug", price: 45, icon: Gift, category: "custom", image: "/personalized-items/mugs.jpg" },
   { id: "cake_10", name: "Customized Cakes (10 persons)", description: "Custom designed cake", price: 575, icon: Cake, category: "cake" },
   { id: "cake_20", name: "Customized Cakes (20 persons)", description: "Custom designed cake", price: 700, icon: Cake, category: "cake" },
   { id: "cake_30", name: "Customized Cakes (30 persons)", description: "Custom designed cake", price: 900, icon: Cake, category: "cake" },
@@ -101,10 +101,10 @@ const corporateExtras: ExtraItem[] = [
   { id: "table_20", name: "Table Set Up (20 persons)", description: "Full table setting", price: 400, icon: Utensils, category: "decor" },
   { id: "table_30", name: "Table Set Up (30 persons)", description: "Full table setting", price: 500, icon: Utensils, category: "decor" },
   { id: "balloons", name: "Balloons (14 pcs)", description: "2 bunches of 7 balloons", price: 260, icon: PartyPopper, category: "decor" },
-  { id: "mini_pizzas", name: "Mini Pizzas (12pcs)", description: "Delicious mini pizzas", price: 50, icon: Utensils, category: "snacks" },
-  { id: "chicken_tenders", name: "Chicken Tenders (12pcs)", description: "Crispy chicken tenders", price: 60, icon: Utensils, category: "snacks" },
-  { id: "mini_burgers", name: "Mini Burgers (6pcs)", description: "Mini burgers", price: 70, icon: Utensils, category: "snacks" },
-  { id: "musakhan", name: "Musakhan Rolls", description: "Delicious rolls", price: 50, icon: Utensils, category: "snacks" },
+  { id: "mini_pizzas", name: "Mini Pizzas (12pcs)", description: "Delicious mini pizzas", price: 50, icon: Utensils, category: "snacks", image: "/snacks-and-drinks/SMILEY PIZZA.jpeg" },
+  { id: "chicken_tenders", name: "Chicken Tenders (12pcs)", description: "Crispy chicken tenders", price: 60, icon: Utensils, category: "snacks", image: "/snacks-and-drinks/CHICKEN TENDERS.jpeg" },
+  { id: "mini_burgers", name: "Mini Burgers (6pcs)", description: "Mini burgers", price: 70, icon: Utensils, category: "snacks", image: "/snacks-and-drinks/mini burgers.jpeg" },
+  { id: "musakhan", name: "Musakhan Rolls", description: "Delicious rolls", price: 50, icon: Utensils, category: "snacks", image: "/snacks-and-drinks/MUSAKHAN ROLLS.jpeg" },
   { id: "juice", name: "Juices (per pc)", description: "Fresh juice", price: 8, icon: Utensils, category: "snacks" },
   { id: "soft_drinks", name: "Soft Drinks (per pc)", description: "Soft drink", price: 15, icon: Utensils, category: "snacks" },
 ];
@@ -346,7 +346,15 @@ export default function BigChefPage() {
                           return (
                             <Card key={extra.id} className={qty > 0 ? "ring-2 ring-stone-900" : ""}>
                               <CardContent className="p-4 flex items-start gap-3">
-                                <div className="p-2 bg-stone-100 rounded-lg"><Icon className="h-5 w-5 text-stone-600" /></div>
+                                <div className="flex-shrink-0">
+                                  {extra.image ? (
+                                    <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-stone-100">
+                                      <Image src={extra.image} alt={extra.name} fill className="object-cover" />
+                                    </div>
+                                  ) : (
+                                    <div className="p-2 bg-stone-100 rounded-lg"><Icon className="h-5 w-5 text-stone-600" /></div>
+                                  )}
+                                </div>
                                 <div className="flex-1"><h4 className="font-medium text-stone-900">{extra.name}</h4><p className="text-xs text-stone-500">{extra.description}</p><p className="text-sm font-bold text-stone-900 mt-1">AED {extra.price}</p></div>
                                 <div className="flex items-center gap-2">
                                   <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setSelectedExtras(p => ({ ...p, [extra.id]: Math.max(0, (p[extra.id] || 0) - 1) }))} disabled={qty === 0}><Minus className="h-3 w-3" /></Button>

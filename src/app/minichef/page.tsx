@@ -47,6 +47,7 @@ interface ExtraItem {
   price: number;
   icon: any;
   category: string;
+  image?: string;
 }
 
 // Category type
@@ -106,10 +107,10 @@ const mommyAndMeMenus: MenuItem[] = [
 
 // Birthday Add-ons/Extras
 const birthdayExtras: ExtraItem[] = [
-  { id: "custom_apron", name: "Customized Apron", description: "Personalized Mamalu apron with name", price: 80, icon: Gift, category: "custom" },
-  { id: "custom_spatula", name: "Customized Spatula", description: "Personalized cooking spatula", price: 50, icon: Utensils, category: "custom" },
-  { id: "custom_chef_hat", name: "Customized Chef Hat", description: "Personalized chef hat", price: 60, icon: ChefHat, category: "custom" },
-  { id: "custom_mug", name: "Customized Mugs", description: "Personalized mug with any design", price: 45, icon: Gift, category: "custom" },
+  { id: "custom_apron", name: "Customized Apron", description: "Personalized Mamalu apron with name", price: 80, icon: Gift, category: "custom", image: "/personalized-items/apron.jpg" },
+  { id: "custom_spatula", name: "Customized Spatula", description: "Personalized cooking spatula", price: 50, icon: Utensils, category: "custom", image: "/personalized-items/spatula.jpg" },
+  { id: "custom_chef_hat", name: "Customized Chef Hat", description: "Personalized chef hat", price: 60, icon: ChefHat, category: "custom", image: "/personalized-items/chef-hat.jpg" },
+  { id: "custom_mug", name: "Customized Mugs", description: "Personalized mug with any design", price: 45, icon: Gift, category: "custom", image: "/personalized-items/mugs.jpg" },
   { id: "custom_cake_10", name: "Customized Cakes (10 persons)", description: "Custom designed birthday cake", price: 575, icon: Cake, category: "cake" },
   { id: "custom_cake_20", name: "Customized Cakes (20 persons)", description: "Custom designed birthday cake", price: 700, icon: Cake, category: "cake" },
   { id: "custom_cake_30", name: "Customized Cakes (30 persons)", description: "Custom designed birthday cake", price: 900, icon: Cake, category: "cake" },
@@ -117,10 +118,10 @@ const birthdayExtras: ExtraItem[] = [
   { id: "table_setting_20", name: "Table Set Up (20 persons)", description: "Plates, cups, spoons, forks, knives, napkins, tablecloth", price: 400, icon: Utensils, category: "decor" },
   { id: "table_setting_30", name: "Table Set Up (30 persons)", description: "Plates, cups, spoons, forks, knives, napkins, tablecloth", price: 500, icon: Utensils, category: "decor" },
   { id: "balloons", name: "Balloons (14 pcs balloons)", description: "2 bunches of 7 balloons (any color)", price: 260, icon: PartyPopper, category: "decor" },
-  { id: "mini_pizzas", name: "Mini Pizzas (12pcs)", description: "12 pieces of delicious mini pizzas", price: 50, icon: Utensils, category: "snacks" },
-  { id: "chicken_tenders", name: "Chicken Tenders (12pcs)", description: "12 pieces of crispy chicken tenders", price: 60, icon: Utensils, category: "snacks" },
-  { id: "mini_burgers", name: "Mini Burgers (6pcs)", description: "6 pieces of mini burgers", price: 70, icon: Utensils, category: "snacks" },
-  { id: "musakhan_rolls", name: "Musakhan Rolls", description: "Delicious musakhan rolls", price: 50, icon: Utensils, category: "snacks" },
+  { id: "mini_pizzas", name: "Mini Pizzas (12pcs)", description: "12 pieces of delicious mini pizzas", price: 50, icon: Utensils, category: "snacks", image: "/snacks-and-drinks/SMILEY PIZZA.jpeg" },
+  { id: "chicken_tenders", name: "Chicken Tenders (12pcs)", description: "12 pieces of crispy chicken tenders", price: 60, icon: Utensils, category: "snacks", image: "/snacks-and-drinks/CHICKEN TENDERS.jpeg" },
+  { id: "mini_burgers", name: "Mini Burgers (6pcs)", description: "6 pieces of mini burgers", price: 70, icon: Utensils, category: "snacks", image: "/snacks-and-drinks/mini burgers.jpeg" },
+  { id: "musakhan_rolls", name: "Musakhan Rolls", description: "Delicious musakhan rolls", price: 50, icon: Utensils, category: "snacks", image: "/snacks-and-drinks/MUSAKHAN ROLLS.jpeg" },
   { id: "juice", name: "Juices (per pc)", description: "Fresh juice per piece", price: 8, icon: Utensils, category: "drinks" },
   { id: "soft_drinks", name: "Soft Drinks (per pc)", description: "Soft drink per piece", price: 15, icon: Utensils, category: "drinks" },
 ];
@@ -615,8 +616,16 @@ export default function MiniChefPage() {
                               <Card key={extra.id} className={qty > 0 ? "ring-2 ring-stone-900" : ""}>
                                 <CardContent className="p-4">
                                   <div className="flex items-start gap-3">
-                                    <div className="p-2 bg-stone-100 rounded-lg">
-                                      <Icon className="h-5 w-5 text-stone-600" />
+                                    <div className="flex-shrink-0">
+                                      {extra.image ? (
+                                        <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-stone-100">
+                                          <Image src={extra.image} alt={extra.name} fill className="object-cover" />
+                                        </div>
+                                      ) : (
+                                        <div className="p-2 bg-stone-100 rounded-lg">
+                                          <Icon className="h-5 w-5 text-stone-600" />
+                                        </div>
+                                      )}
                                     </div>
                                     <div className="flex-1">
                                       <h4 className="font-medium text-stone-900">{extra.name}</h4>
