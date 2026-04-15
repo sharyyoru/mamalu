@@ -7,7 +7,6 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ArrowRight, Heart } from "lucide-react";
 import HeroSlider from "@/components/ui/HeroSlider";
-import WhatsHappeningSection from "@/components/ui/WhatsHappeningSection";
 import NewsletterSection from "@/components/ui/NewsletterSection";
 
 // Register GSAP plugins
@@ -236,9 +235,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
-      {/* What's Happening Section */}
-      <WhatsHappeningSection />
 
       {/* Founder Section */}
       <section className="founder-section section py-12 md:py-24 lg:py-32 bg-white">
