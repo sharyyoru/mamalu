@@ -99,8 +99,8 @@ const monthlySpecials: MenuItem[] = [
 
 // Packages - bundled menu sets
 const packagesMenus: MenuItem[] = [
-  { id: "pkg_corporate_3", name: "Corporate Bundle (3 Sessions)", price: 1200, image: "/images/Grilled-Steak-with-Chimichurri-1.jpg", dishes: ["3 corporate cooking sessions", "Team building activities", "Custom menus"], category: "packages" },
-  { id: "pkg_monthly_4", name: "Monthly Special Bundle", price: 1400, image: "/images/peking-duck-recipe-11.jpg", dishes: ["4 monthly special sessions", "Seasonal ingredients", "Recipe booklet"], category: "packages" },
+  { id: "pkg_corporate_3", name: "Corporate Bundle (3 Sessions)", price: 1200, image: "/images/Grilled-Steak-with-Chimichurri-1.jpg", dishes: ["3 corporate cooking sessions", "Team building activities", "Custom menus", "Cupcake Master Class", "Kung Fu Panda", "Cookie Master Class", "Little Italy", "Hola Amigos", "Mama Mia"], category: "packages" },
+  { id: "pkg_monthly_4", name: "Monthly Special Bundle", price: 1400, image: "/images/peking-duck-recipe-11.jpg", dishes: ["4 monthly special sessions", "Seasonal ingredients", "Recipe booklet", "Cupcake Master Class", "Kung Fu Panda", "Cookie Master Class", "Little Italy", "Hola Amigos", "Mama Mia"], category: "packages" },
 ];
 
 // Mommy & Me Classes (min 1)
