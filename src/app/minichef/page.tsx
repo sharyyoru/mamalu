@@ -167,7 +167,13 @@ export default function MiniChefPage() {
 
   // Dynamic menu data
   const [menuItemsByCategory, setMenuItemsByCategory] = useState<Record<string, MenuItem[]>>({});
+  const [packageMenuItems, setPackageMenuItems] = useState<Record<string, MenuItem[]>>({});
   const [loadingMenus, setLoadingMenus] = useState(true);
+
+  // Package menu item selection modal
+  const [showPackageModal, setShowPackageModal] = useState(false);
+  const [pendingPackage, setPendingPackage] = useState<MenuItem | null>(null);
+  const [selectedPackageMenuItem, setSelectedPackageMenuItem] = useState<MenuItem | null>(null);
 
   // Extras
   const [selectedExtras, setSelectedExtras] = useState<Record<string, number>>({});
@@ -231,18 +237,34 @@ export default function MiniChefPage() {
           }
         }
 
-        grouped.packages = (pkgsData.packages || [])
-          .filter((pkg: any) => (pkg.categories || []).includes("packages"))
-          .map((pkg: any) => ({
-            id: pkg.id,
-            name: pkg.name,
-            price: pkg.price,
-            image: pkg.image_url || "/images/placeholder.jpg",
-            dishes: (pkg.menu_items || []).map((mi: any) => mi.name),
+        const activePkgs = (pkgsData.packages || []).filter((pkg: any) =>
+          (pkg.categories || []).includes("packages")
+        );
+
+        grouped.packages = activePkgs.map((pkg: any) => ({
+          id: pkg.id,
+          name: pkg.name,
+          price: pkg.price,
+          image: pkg.image_url || "/images/placeholder.jpg",
+          dishes: (pkg.menu_items || []).map((mi: any) => mi.name),
+          category: "packages",
+        }));
+
+        // Store full menu item details per package for the selection modal
+        const pkgItemsMap: Record<string, MenuItem[]> = {};
+        for (const pkg of activePkgs) {
+          pkgItemsMap[pkg.id] = (pkg.menu_items || []).map((mi: any) => ({
+            id: mi.id,
+            name: mi.name,
+            price: mi.price,
+            image: mi.image_url || "/images/placeholder.jpg",
+            dishes: mi.dishes || [],
             category: "packages",
           }));
+        }
 
         setMenuItemsByCategory(grouped);
+        setPackageMenuItems(pkgItemsMap);
       } catch (error) {
         console.error("Failed to fetch menu data:", error);
       } finally {
@@ -258,6 +280,7 @@ export default function MiniChefPage() {
   // Reset selection when category changes
   useEffect(() => {
     setSelectedMenu(null);
+    setSelectedPackageMenuItem(null);
     setGuestCount(currentConfig.minGuests);
     setSelectedExtras({});
     setStep(1);
@@ -336,9 +359,12 @@ export default function MiniChefPage() {
           serviceType: "birthday_deck",
           serviceName: `Mini Chef - ${currentConfig.label}`,
           packageName: selectedMenu.name,
-          menuId: selectedMenu.id,
-          menuName: selectedMenu.name,
+          menuId: selectedPackageMenuItem?.id || selectedMenu.id,
+          menuName: selectedPackageMenuItem
+            ? `${selectedMenu.name} — ${selectedPackageMenuItem.name}`
+            : selectedMenu.name,
           menuPrice: selectedMenu.price,
+          chosenMenuItem: selectedPackageMenuItem ? { id: selectedPackageMenuItem.id, name: selectedPackageMenuItem.name } : null,
           customerName,
           customerEmail,
           customerPhone,
@@ -405,11 +431,79 @@ export default function MiniChefPage() {
   return (
     <div className="min-h-screen bg-stone-50">
       {/* Waiver Modal */}
-      <WaiverModal 
-        isOpen={showWaiverModal} 
+      <WaiverModal
+        isOpen={showWaiverModal}
         onClose={() => setShowWaiverModal(false)}
         onAccept={handleWaiverAccept}
       />
+
+      {/* Package Menu Item Selection Modal */}
+      {showPackageModal && pendingPackage && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="p-5 border-b flex items-start justify-between">
+              <div>
+                <h2 className="text-xl font-bold text-stone-900">{pendingPackage.name}</h2>
+                <p className="text-sm text-stone-500 mt-0.5">Choose which menu you'd like to cook</p>
+              </div>
+              <button onClick={() => setShowPackageModal(false)} className="p-1 hover:bg-stone-100 rounded-lg ml-4 shrink-0">
+                <X className="h-5 w-5 text-stone-400" />
+              </button>
+            </div>
+            <div className="overflow-y-auto flex-1 p-5">
+              <div className="grid sm:grid-cols-2 gap-4">
+                {(packageMenuItems[pendingPackage.id] || []).map((item) => (
+                  <div
+                    key={item.id}
+                    onClick={() => setSelectedPackageMenuItem(item)}
+                    className={`cursor-pointer rounded-xl border-2 overflow-hidden transition-all ${
+                      selectedPackageMenuItem?.id === item.id
+                        ? "border-stone-900 shadow-md"
+                        : "border-stone-200 hover:border-stone-400"
+                    }`}
+                  >
+                    <div className="relative h-36 w-full bg-stone-200">
+                      <Image src={item.image} alt={item.name} fill className="object-cover" />
+                      {selectedPackageMenuItem?.id === item.id && (
+                        <div className="absolute top-2 right-2 bg-stone-900 text-white rounded-full p-1">
+                          <Check className="h-4 w-4" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-3">
+                      <h3 className="font-bold text-stone-900">{item.name}</h3>
+                      <div className="mt-1.5 space-y-0.5">
+                        {item.dishes.map((dish, i) => (
+                          <div key={i} className="flex items-center gap-1.5 text-xs text-stone-500">
+                            <Check className="h-2.5 w-2.5 text-[#ff7f5c] shrink-0" />
+                            <span>{dish}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="p-5 border-t flex gap-3">
+              <Button variant="outline" onClick={() => setShowPackageModal(false)} className="flex-1">
+                Cancel
+              </Button>
+              <Button
+                disabled={!selectedPackageMenuItem}
+                onClick={() => {
+                  setSelectedMenu(pendingPackage);
+                  setShowPackageModal(false);
+                }}
+                className="flex-1 bg-stone-900 hover:bg-stone-800 text-white font-bold"
+              >
+                Confirm Selection
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Header with animated icons */}
       <div className="bg-white border-b relative overflow-hidden">
@@ -537,7 +631,15 @@ export default function MiniChefPage() {
                           ? "ring-2 ring-stone-900 shadow-lg"
                           : "hover:shadow-md"
                       }`}
-                      onClick={() => setSelectedMenu(menu)}
+                      onClick={() => {
+                        if (activeCategory === "packages" && packageMenuItems[menu.id]?.length > 0) {
+                          setPendingPackage(menu);
+                          setSelectedPackageMenuItem(null);
+                          setShowPackageModal(true);
+                        } else {
+                          setSelectedMenu(menu);
+                        }
+                      }}
                     >
                       <CardContent className="p-0 overflow-hidden flex flex-col h-full">
                         <div className="relative h-40 w-full bg-stone-200">
@@ -558,10 +660,18 @@ export default function MiniChefPage() {
                         </div>
                         {/* Price in separate box at bottom */}
                         <div className="bg-stone-50 border-t px-4 py-3">
+                          {activeCategory === "packages" && selectedMenu?.id === menu.id && selectedPackageMenuItem && (
+                            <p className="text-xs text-[#ff7f5c] font-bold mb-1.5">
+                              ✓ {selectedPackageMenuItem.name} selected
+                            </p>
+                          )}
                           <div className="flex items-center justify-between">
-                            <span className="text-sm text-stone-500">per person</span>
+                            <span className="text-sm text-stone-500">{activeCategory === "packages" ? "flat rate" : "per person"}</span>
                             <span className="text-xl font-bold text-stone-900">AED {menu.price}</span>
                           </div>
+                          {activeCategory === "packages" && selectedMenu?.id !== menu.id && (
+                            <p className="text-xs text-stone-400 mt-1">Click to choose your menu</p>
+                          )}
                         </div>
                       </CardContent>
                     </Card>
