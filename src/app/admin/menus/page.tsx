@@ -24,7 +24,7 @@ import { Badge } from "@/components/ui/badge";
 
 interface MenuItem {
   id: string;
-  category: string;
+  categories: string[];
   name: string;
   description: string | null;
   dishes: string[];
@@ -44,15 +44,21 @@ interface MenuItem {
 
 const CATEGORIES = [
   { id: "birthday", name: "Kids Birthday", color: "bg-pink-100 text-pink-700" },
+  { id: "classics_mini", name: "Our Classics (Mini Chef)", color: "bg-sky-100 text-sky-700" },
+  { id: "classics_big", name: "Our Classics (Big Chef)", color: "bg-blue-100 text-blue-700" },
+  { id: "monthly_mini", name: "Monthly Specials (Mini Chef)", color: "bg-teal-100 text-teal-700" },
+  { id: "monthly_big", name: "Monthly Specials (Big Chef)", color: "bg-cyan-100 text-cyan-700" },
+  { id: "mommy_me", name: "Mommy & Me", color: "bg-rose-100 text-rose-700" },
   { id: "corporate", name: "Corporate/Private", color: "bg-indigo-100 text-indigo-700" },
   { id: "nanny", name: "Nanny Classes", color: "bg-green-100 text-green-700" },
+  { id: "teenagers", name: "Teenager Course", color: "bg-orange-100 text-orange-700" },
   { id: "walkin", name: "Walk-In Menu", color: "bg-amber-100 text-amber-700" },
   { id: "extras_food", name: "Food Add-ons", color: "bg-[#FF8C6B]/20 text-[#FF8C6B]" },
   { id: "extras_merch", name: "Merch Add-ons", color: "bg-purple-100 text-purple-700" },
 ];
 
 const emptyItem: Partial<MenuItem> = {
-  category: "birthday",
+  categories: ["birthday"],
   name: "",
   description: "",
   dishes: [],
@@ -205,10 +211,10 @@ export default function AdminMenusPage() {
   };
 
   const filteredItems = items
-    .filter((i) => i.category === activeCategory)
+    .filter((i) => (i.categories || []).includes(activeCategory))
     .filter((i) => !search || i.name.toLowerCase().includes(search.toLowerCase()));
 
-  const categoryCount = (cat: string) => items.filter((i) => i.category === cat).length;
+  const categoryCount = (cat: string) => items.filter((i) => (i.categories || []).includes(cat)).length;
 
   if (loading) {
     return (
@@ -234,7 +240,7 @@ export default function AdminMenusPage() {
           </div>
           <Button
             onClick={() => {
-              setEditingItem({ ...emptyItem, category: activeCategory });
+              setEditingItem({ ...emptyItem, categories: [activeCategory] });
               setIsCreating(true);
               setDishInput("");
             }}
@@ -435,18 +441,34 @@ export default function AdminMenusPage() {
                 </div>
               </div>
 
-              {/* Category */}
+              {/* Categories – multi-checkbox */}
               <div>
-                <label className="block text-sm font-medium text-stone-700 mb-1">Category</label>
-                <select
-                  value={editingItem.category || "birthday"}
-                  onChange={(e) => setEditingItem({ ...editingItem, category: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg"
-                >
-                  {CATEGORIES.map((cat) => (
-                    <option key={cat.id} value={cat.id}>{cat.name}</option>
-                  ))}
-                </select>
+                <label className="block text-sm font-medium text-stone-700 mb-2">
+                  Categories
+                  {(editingItem.categories || []).length > 0 && (
+                    <span className="ml-2 text-xs text-stone-400">({(editingItem.categories || []).length} selected)</span>
+                  )}
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {CATEGORIES.map((cat) => {
+                    const checked = (editingItem.categories || []).includes(cat.id);
+                    return (
+                      <label key={cat.id} className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition-colors ${checked ? "border-stone-900 bg-stone-50" : "border-stone-200 hover:border-stone-300"}`}>
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => {
+                            const current = editingItem.categories || [];
+                            const next = checked ? current.filter((c) => c !== cat.id) : [...current, cat.id];
+                            setEditingItem({ ...editingItem, categories: next });
+                          }}
+                          className="rounded"
+                        />
+                        <span className="text-xs font-medium">{cat.name}</span>
+                      </label>
+                    );
+                  })}
+                </div>
               </div>
 
               {/* Name & Price */}

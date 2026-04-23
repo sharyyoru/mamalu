@@ -10,6 +10,7 @@ import {
   UtensilsCrossed,
   Building2,
   ShoppingBag,
+  Package,
   CreditCard,
   Bell,
   BarChart3,
@@ -54,6 +55,8 @@ const navigation = [
   { name: "Payment Tracking", href: "/admin/payment-tracking", icon: Clock },
   { name: "WhatsApp Monitor", href: "/admin/whatsapp", icon: Phone, superAdminOnly: true },
   { name: "Orders", href: "/admin/orders", icon: ShoppingBag },
+  { name: "Menu Items", href: "/admin/menu-items", icon: UtensilsCrossed },
+  { name: "Packages", href: "/admin/packages", icon: Package },
   { name: "Marketing", href: "/admin/marketing", icon: Tags, children: [
     { name: "Campaigns", href: "/admin/marketing" },
     { name: "Lists", href: "/admin/marketing/lists" },

@@ -24,64 +24,6 @@ const categoryConfig: Record<CategoryType, { label: string; icon: string; minGue
   nanny: { label: "Nanny Class", icon: "/icons/knives.png", minGuests: 1, maxGuests: 10, description: "Mummy's Fabulous Helpers - Turn your housekeeper into a chef" },
 };
 
-const corporateMenus: MenuItem[] = [
-  { id: "spirit_of_thailand", name: "Spirit of Thailand", price: 300, image: "/big-chef/spirit of thailand.jpg", dishes: ["Shrimp summer rolls", "Thai green chicken curry", "Coconut steamed rice"], category: "corporate" },
-  { id: "la_cucina_italiana", name: "La Cucina Italiana", price: 425, image: "/images/Farfalle-Pasta11-scaled.jpg", dishes: ["Pasta from scratch Pomodoro or alfredo sauce", "Margherita pizza", "Chicken milanese", "Classic tiramisu"], category: "corporate" },
-  { id: "the_mexican_table", name: "The Mexican Table", price: 450, image: "/big-chef/the mexican table.jpeg", dishes: ["Mexican corn salad", "Tortillas from scratch", "Pulled mexican chicken or beef", "Guacamole and churros with chocolate sauce"], category: "corporate" },
-  { id: "the_art_of_sushi", name: "The Art of Sushi", price: 450, image: "/images/avocado-maki-roll-recipe-10.jpg", dishes: ["Miso soup", "Tempura shrimp maki roll", "Spicy tuna handroll", "Salmon avocado roll"], category: "corporate" },
-  { id: "pan_asian_feast", name: "Pan Asian Feast", price: 475, image: "/big-chef/PAN ASIAN feast.jpg", dishes: ["Ramen with shoyu tare with egg noodles from scratch", "Beef yakitori skewers", "Mushroom gyoza", "Coconut and panda sago pudding"], category: "corporate" },
-  { id: "le_petit_menu", name: "Le Petit Menu", price: 500, image: "/images/Grilled-Steak-with-Chimichurri-1.jpg", dishes: ["French onion tart tatin", "Steak frites (seared steak with triple cooked fries)"], category: "corporate" },
-  { id: "umami_house", name: "Umami House", price: 550, image: "/images/Lemon-Garlic-Shrimp-Pasta.jpg", dishes: ["Shrimp papaya salad", "Tempura platter", "Chicken katsu curry or teriyaki ribeye donburi bowl"], category: "corporate" },
-];
-
-const classicsMenus: MenuItem[] = [
-  { id: "spirit_of_thailand_c", name: "Spirit of Thailand", price: 300, image: "/big-chef/spirit of thailand.jpg", dishes: ["Shrimp summer rolls", "Thai green chicken curry", "Coconut steamed rice"], category: "classics" },
-  { id: "la_cucina_italiana_c", name: "La Cucina Italiana", price: 425, image: "/images/Farfalle-Pasta11-scaled.jpg", dishes: ["Pasta from scratch Pomodoro or alfredo sauce", "Margherita pizza", "Chicken milanese", "Classic tiramisu"], category: "classics" },
-  { id: "the_mexican_table_c", name: "The Mexican Table", price: 450, image: "/big-chef/the mexican table.jpeg", dishes: ["Mexican corn salad", "Tortillas from scratch", "Pulled mexican chicken or beef", "Guacamole and churros"], category: "classics" },
-  { id: "the_art_of_sushi_c", name: "The Art of Sushi", price: 450, image: "/images/avocado-maki-roll-recipe-10.jpg", dishes: ["Miso soup", "Tempura shrimp maki roll", "Spicy tuna handroll", "Salmon avocado roll"], category: "classics" },
-  { id: "pan_asian_feast_c", name: "Pan Asian Feast", price: 475, image: "/big-chef/PAN ASIAN feast.jpg", dishes: ["Ramen with shoyu tare", "Beef yakitori skewers", "Mushroom gyoza", "Coconut sago pudding"], category: "classics" },
-  { id: "bread_baking", name: "Bread Baking Masterclass", price: 500, image: "/images/focaccia-bread-art-featured.jpg", dishes: ["Olive and Zaatar Focaccia", "Mixberry Braided Bread", "Ham and Cheese Pull apart bread"], category: "classics" },
-  { id: "macaron_masterclass", name: "Macaron Masterclass", price: 550, image: "/images/Raspberry macarons.jpg", dishes: ["Dark Chocolate Raspberry Macaron", "Mango Macaron", "Pistachio Macaron"], category: "classics" },
-  { id: "eclaire_masterclass", name: "Eclaire Masterclass", price: 500, image: "/images/raspberry_and_milk_chocolate_eclairs2-s.jpg", dishes: ["Classic Chocolate eclair", "Salted Caramel Eclair", "Vanilla Eclair with Craqualine"], category: "classics" },
-];
-
-const monthlySpecials: MenuItem[] = [
-  { id: "first_light", name: "First Light - Suhoor Kitchen", price: 400, image: "/images/Cheese-Rolls.jpg", dishes: ["Crispy Beef Sambousek", "Creamy Ricotta filled Qatayef Pockets", "Hydrating Coconut Date Chia shake"], category: "monthly" },
-  { id: "iftar_table", name: "The Iftar Table", price: 400, image: "/images/Chicken-Shawarma-10.jpg", dishes: ["Creamy lentil soup with crispy pita bread", "Smoky Grilled chicken with Lemon herb Freekeh", "Warm semolina cake"], category: "monthly" },
-  { id: "rooted_plant", name: "Rooted & Plant-Based", price: 400, image: "/images/Vegan Beet Pesto Pasta.jpg", dishes: ["Whipped Hummus with warm Pita bread", "Lentil veggie shepherd's pie", "Dark Chocolate Avocado Mousse"], category: "monthly" },
-  { id: "artisan_dough", name: "Artisan Dough Lab", price: 400, image: "/images/focaccia-bread-art-featured.jpg", dishes: ["Rosemary sea salt focaccia", "Caramelised onion & goat cheese mini galette", "Vanilla sugar brioche knots"], category: "monthly" },
-  { id: "taste_france", name: "A Taste of France", price: 400, image: "/images/peking-duck-recipe-11.jpg", dishes: ["French Mini baked ratatouille", "Crispy Duck leg with vegetables", "Creamy Creme Brulee"], category: "monthly" },
-  { id: "spring_comforts", name: "Spring Comforts - European Table", price: 400, image: "/images/shrimp-in-romesco-sauce-1-of-1-3.jpg", dishes: ["Sizzling king prawn with paprika", "Roasted chicken with yorkshire pudding", "Classic british treacle tart"], category: "monthly" },
-];
-
-const nannyMenus: MenuItem[] = [
-  { id: "lebanese_1", name: "Lebanese Please 1", price: 1200, image: "/images/Chicken-Shawarma-10.jpg", dishes: ["Mograhrabieh with chicken", "Molokhiyyeh", "Riz al dajaj"], category: "nanny" },
-  { id: "lebanese_2", name: "Lebanese Please 2", price: 1200, image: "/nanny-class/Lebanese please 2.jpeg", dishes: ["Kibbeh B'laban", "Shish barak", "Kibbeh B'saniyeh"], category: "nanny" },
-  { id: "kibbe_master", name: "Kibbe Master Class", price: 1200, image: "/nanny-class/kibbe master class.jpeg", dishes: ["Pumpkin kibbe", "Lentil kibbe", "Salmon kibbe", "Potato kibbe"], category: "nanny" },
-  { id: "kafta_master", name: "Kafta Master Class", price: 1200, image: "/images/Grilled-Steak-with-Chimichurri-1.jpg", dishes: ["Kafta B'saniyeh", "Kafta B'tahini", "Dawood basha"], category: "nanny" },
-  { id: "stews", name: "Stew's For You", price: 1200, image: "/images/Mini-Chicken-Pot-Pies-tasteandtellblog.com-1.jpg", dishes: ["Bamiyeh", "Bezelleh", "Loubieh", "Potato stew"], category: "nanny" },
-  { id: "fish_tastic", name: "Fish Tastic", price: 1200, image: "/images/DEL_2022_Q2_TOBY_SCOTT_beetroot-cured-salmon_960x1200-768x960.jpg", dishes: ["Samki harra", "Sayadieh", "Kibbeh samak"], category: "nanny" },
-  { id: "roll_it", name: "Roll With It", price: 1200, image: "/nanny-class/roll with it.jpg", dishes: ["Classic malfouf (stuffed cabbage)", "Waraa Enab (stuffed vine leaves)"], category: "nanny" },
-  { id: "family_friendly", name: "Family Friendly", price: 1200, image: "/images/chicken-alfredo-lasagna-roll-ups-recipe-4.jpg", dishes: ["Homemade lasagna", "Butter chicken with garlic naan", "Asian chicken stir fry noodles"], category: "nanny" },
-  { id: "healthy_comfort", name: "Healthy Comfort Food", price: 1200, image: "/images/birria-tacos-5-1200x1800.jpg", dishes: ["Pulled chicken tacos", "Beef stroganoff", "Nut free pesto pasta"], category: "nanny" },
-  { id: "asian_special", name: "Asian Special", price: 1200, image: "/images/Fresh-Spring-Rolls-15.jpg", dishes: ["Shrimp summer rolls", "Asian salmon", "Asian honey glazed chicken"], category: "nanny" },
-  { id: "modern_middle", name: "Modern Middle Eastern", price: 1200, image: "/images/crispy-zaatar-potatoes-with-chicken-cover-12666b34.jpg", dishes: ["Zaatar chicken", "Musakhan rolls", "Freekeh salad"], category: "nanny" },
-  { id: "dinner_starters", name: "Dinner Party Starters", price: 1200, image: "/images/Spicy-Tuna-Crispy-Rice-12.jpg", dishes: ["Whole roasted cauliflower", "Crispy rice with tuna", "White fish carpaccia"], category: "nanny" },
-  { id: "lunchbox", name: "Lunch Box Favourites", price: 1200, image: "/nanny-class/lunch box favorite.jpg", dishes: ["Oat crusted chicken tenders", "Pizza pinwheels", "Banana oat muffins", "Granola"], category: "nanny" },
-  { id: "japanese", name: "Japanese Please", price: 1200, image: "/images/Crispy-rice-paper-dumplings-with-chili-garlic-oil-view-from-top_1718350397_142199.jpeg", dishes: ["Mushroom gyoza", "Ramen with shoyu tare", "Chicken yakitori"], category: "nanny" },
-  { id: "thai_specials", name: "Thai Specials", price: 1200, image: "/images/korean-cream-cheese-garlic-buns-featured.jpg", dishes: ["Asian salad", "Beef bao buns", "Thai green curry"], category: "nanny" },
-  { id: "dinner_tarts", name: "Dinner Party Tarts", price: 1200, image: "/images/5942-Feta_Tart_V2.jpg", dishes: ["Onion tart tatin", "Wild mushroom phyllo tart", "Goat cheese tomato tart"], category: "nanny" },
-  { id: "sushi_nanny", name: "Sushi Master Class", price: 1200, image: "/images/avocado-maki-roll-recipe-10.jpg", dishes: ["Salmon and avocado rolls", "Salmon nigiri", "California maki roll"], category: "nanny" },
-  { id: "healthy_dessert", name: "Healthy Dessert", price: 1200, image: "/images/oreo-brownies-5-1067x1600.jpg", dishes: ["Sweet potato brownies", "3 ingredient chocolate cake", "Protein cookies", "Date walnut cake"], category: "nanny" },
-];
-
-// Teenager course menus - placeholder until client provides pricing
-const teenagerMenus: MenuItem[] = [
-  { id: "teen_italian", name: "Teen Italian Night", price: 250, image: "/images/Farfalle-Pasta11-scaled.jpg", dishes: ["Fresh pasta making", "Personal pizzas", "Tiramisu cups"], category: "teenagers" },
-  { id: "teen_asian", name: "Teen Asian Adventure", price: 250, image: "/images/shoyu-ramen-1-1200.jpg", dishes: ["Ramen bowls", "Gyoza dumplings", "Bubble tea"], category: "teenagers" },
-  { id: "teen_mexican", name: "Teen Taco Tuesday", price: 250, image: "/images/birria-tacos-5-1200x1800.jpg", dishes: ["Build your own tacos", "Fresh guacamole", "Churros"], category: "teenagers" },
-];
-
 
 const corporateExtras: ExtraItem[] = [
   { id: "custom_apron", name: "Customized Apron", description: "Personalized apron with name", price: 80, icon: Gift, category: "custom", image: "/personalized-items/apron.jpg" },
@@ -145,6 +87,11 @@ export default function BigChefPage() {
   const [selectedNannyMenus, setSelectedNannyMenus] = useState<MenuItem[]>([]);
   const [guestCount, setGuestCount] = useState(6);
   const [selectedExtras, setSelectedExtras] = useState<Record<string, number>>({});
+
+  // Dynamic menu data
+  const [menuItemsByCategory, setMenuItemsByCategory] = useState<Record<string, MenuItem[]>>({});
+  const [loadingMenus, setLoadingMenus] = useState(true);
+
   const [eventDate, setEventDate] = useState("");
   const [eventTime, setEventTime] = useState("");
   const [allTimeSlots, setAllTimeSlots] = useState<any[]>([]);
@@ -165,16 +112,51 @@ export default function BigChefPage() {
   const hasExtras = isCorporate;
   const maxStep = hasExtras ? 4 : 3;
 
-  const getCurrentMenus = () => {
-    switch (activeCategory) {
-      case "corporate": return corporateMenus;
-      case "classics": return classicsMenus;
-      case "monthly": return monthlySpecials;
-      case "teenagers": return teenagerMenus;
-      case "nanny": return nannyMenus;
-      default: return [];
+  // Fetch menu items from DB on mount
+  useEffect(() => {
+    async function fetchMenuData() {
+      setLoadingMenus(true);
+      try {
+        const res = await fetch("/api/admin/menu-items?active=true");
+        const data = res.ok ? await res.json() : { items: [] };
+
+        const dbLabelToCategory: Record<string, CategoryType> = {
+          "corporate": "corporate",
+          "classics_big": "classics",
+          "monthly_big": "monthly",
+          "teenagers": "teenagers",
+          "nanny": "nanny",
+        };
+
+        const grouped: Record<string, MenuItem[]> = { corporate: [], classics: [], monthly: [], teenagers: [], nanny: [] };
+
+        for (const item of data.items || []) {
+          for (const dbLabel of (item.categories || [])) {
+            const cat = dbLabelToCategory[dbLabel];
+            if (cat) {
+              grouped[cat].push({
+                id: item.id,
+                name: item.name,
+                price: item.price,
+                image: item.image_url || "/images/placeholder.jpg",
+                dishes: item.dishes || [],
+                category: cat,
+              });
+            }
+          }
+        }
+
+        setMenuItemsByCategory(grouped);
+      } catch (error) {
+        console.error("Failed to fetch menu data:", error);
+      } finally {
+        setLoadingMenus(false);
+      }
     }
-  };
+    fetchMenuData();
+  }, []);
+
+  const getCurrentMenus = (): MenuItem[] => menuItemsByCategory[activeCategory] || [];
 
   useEffect(() => {
     setSelectedMenu(null);
@@ -288,8 +270,14 @@ export default function BigChefPage() {
                   </CardContent></Card>
                 )}
                 {isNanny && <div className="p-4 bg-stone-100 rounded-lg"><p className="font-medium text-stone-900">Selected: {selectedNannyMenus.length}/4 menus {selectedNannyMenus.length === 4 && <span className="text-green-600 ml-2">✓ Ready</span>}</p>{selectedNannyMenus.length > 0 && <div className="mt-2 flex flex-wrap gap-2">{selectedNannyMenus.map(m => <Badge key={m.id} className="bg-stone-900 text-white">{m.name}<button onClick={() => toggleNannyMenu(m)} className="ml-1">×</button></Badge>)}</div>}</div>}
+                {loadingMenus ? (
+                  <div className="flex items-center justify-center py-12 text-stone-500">
+                    <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                    Loading menus...
+                  </div>
+                ) : null}
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {getCurrentMenus().map(menu => {
+                  {!loadingMenus && getCurrentMenus().map(menu => {
                     const isSelected = isNanny ? selectedNannyMenus.some(m => m.id === menu.id) : selectedMenu?.id === menu.id;
                     const isDisabled = isNanny && selectedNannyMenus.length >= 4 && !isSelected;
                     return (

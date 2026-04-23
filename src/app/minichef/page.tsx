@@ -1,8 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -62,55 +60,6 @@ const categoryConfig: Record<CategoryType, { label: string; icon: string; minGue
   packages: { label: "Packages", icon: "/icons/boy.png", minGuests: 6, maxGuests: 35, description: "Bundled menu packages for groups" },
 };
 
-// Birthday Menus (min 6 kids)
-const birthdayMenus: MenuItem[] = [
-  { id: "texas_roadhouse", name: "Texas Roadhouse", price: 275, image: "/mini-chef/texas roadhouse.jpg", dishes: ["Baked BBQ wings", "Skillet Mac & Cheese", "Mississippi mud pie"], category: "birthdays" },
-  { id: "little_italy", name: "Little Italy", price: 250, image: "/mini-chef/LITTLE ITALY.jpg", dishes: ["Pasta from scratch in pomodoro sauce", "Margherita pizza"], category: "birthdays" },
-  { id: "funtastic", name: "Funtastic", price: 180, image: "/new-updates/funtastic.jpg", dishes: ["Mixed Berry babka", "Cheesy pizza bomb", "Chocolate chip marble cookies"], category: "birthdays" },
-  { id: "kung_fu_panda", name: "Kung Fu Panda", price: 275, image: "/mini-chef/kung fu panda.jpg", dishes: ["California sushi rolls", "Chicken yakitori skewer", "Veggie stir-fried noodles", "Chocolate custard tart"], category: "birthdays" },
-  { id: "cupcake_masterclass", name: "Cupcake Master Class", price: 275, image: "/mini-chef/cupcake-masterclass.jpg", dishes: ["Choose between: Vanilla, chocolate or red velvet cupcakes", "Learn piping skills and decorate to match the season"], category: "birthdays" },
-  { id: "dream_diner", name: "Dream Diner", price: 200, image: "/mini-chef/dream diner.jpeg", dishes: ["Mini cheesy garlic monkey bread", "Alfredo chicken lasagna rolls", "Oreo sprinkle skillet cookie"], category: "birthdays" },
-  { id: "hola_amigos", name: "Hola Amigos", price: 250, image: "/mini-chef/HOLA AMIGOS.jpg", dishes: ["Cheese and mushroom quesadillas", "Pulled chicken tacos", "Churros with chocolate sauce"], category: "birthdays" },
-  { id: "healthylicious", name: "Healthylicious", price: 225, image: "/new-updates/healthylicious.jpg", dishes: ["Parmesan baked chicken tenders", "Sweet potato fries", "Double chocolate zucchini muffins"], category: "birthdays" },
-  { id: "dumpling_masterclass", name: "Dumpling Masterclass", price: 225, image: "/new-updates/dumpling masterclass.jpg", dishes: ["Pan fried mushroom dumplings", "Steamed chicken dumplings", "Chocolate dumplings"], category: "birthdays" },
-  { id: "pretzel_masterclass", name: "Pretzel Masterclass", price: 180, image: "/mini-chef/PRETZEL MASTER CLASS.jpeg", dishes: ["Pepperoni pizza pretzel", "Garlic and herb pretzel", "Cinnamon sugar pretzel"], category: "birthdays" },
-  { id: "mama_mia", name: "Mama Mia", price: 250, image: "/images/Farfalle-Pasta11-scaled.jpg", dishes: ["Bow tie pasta from scratch", "Creamy pink sauce", "Baked chicken milanese", "Chocolate biscotti"], category: "birthdays" },
-  { id: "cookie_masterclass", name: "Cookie Masterclass", price: 275, image: "/images/best-chocolate-chip-cookies-recipe-ever-no-chilling-1.jpg", dishes: ["Herb and cheddar cookies", "Funfetti cookies", "Brownie crinkle cookies"], category: "birthdays" },
-];
-
-// Our Classics (same as birthday menus but min 1)
-const classicsMenus: MenuItem[] = [
-  { id: "cupcake_masterclass_classic", name: "Cupcake Master Class", price: 275, image: "/mini-chef/cupcake-masterclass.jpg", dishes: ["Choose between: Vanilla, chocolate or red velvet cupcakes", "Learn piping skills and decorate to match the season"], category: "classics" },
-  { id: "dream_diner_classic", name: "Dream Diner", price: 200, image: "/mini-chef/dream diner.jpeg", dishes: ["Mini cheesy garlic monkey bread", "Alfredo chicken lasagna rolls", "Oreo sprinkle skillet cookie"], category: "classics" },
-  { id: "kung_fu_panda_classic", name: "Kung Fu Panda", price: 275, image: "/mini-chef/kung fu panda.jpg", dishes: ["California sushi rolls", "Chicken yakitori skewer", "Veggie stir-fried noodles", "Chocolate custard tart"], category: "classics" },
-  { id: "little_italy_classic", name: "Little Italy", price: 250, image: "/mini-chef/LITTLE ITALY.jpg", dishes: ["Pasta from scratch in pomodoro sauce", "Margherita pizza"], category: "classics" },
-  { id: "funtastic_classic", name: "Funtastic", price: 180, image: "/new-updates/funtastic.jpg", dishes: ["Mixed Berry babka", "Cheesy pizza bomb", "Chocolate chip marble cookies"], category: "classics" },
-  { id: "cookie_masterclass_classic", name: "Cookie Master Class", price: 275, image: "/images/best-chocolate-chip-cookies-recipe-ever-no-chilling-1.jpg", dishes: ["Herb and cheddar cookies", "Funfetti cookies", "Brownie crinkle cookies"], category: "classics" },
-];
-
-// Monthly Specials (min 1)
-const monthlySpecials: MenuItem[] = [
-  { id: "spring_veggie_adventures", name: "Spring Veggie Adventures", price: 250, image: "/images/zucchini-bread-recipe.jpg", dishes: ["Crispy corn & zucchini bites with yogurt dip", "Rainbow veggie pinwheel wraps", "Lemon blueberry mini cakes"], category: "monthly" },
-  { id: "little_bread_makers", name: "Little Bread Makers", price: 250, image: "/images/Honey-Oat-Bread-hi-res-25-1200x1800.jpg", dishes: ["Milk bread rolls from scratch", "Herb & cheese tear-and-share loaf", "Chocolate babka"], category: "monthly" },
-  { id: "comfort_food_club", name: "Comfort Food Club", price: 250, image: "/images/Mini-Chicken-Pot-Pies-tasteandtellblog.com-1.jpg", dishes: ["Creamy chicken pot pie cups", "Baked mac & cheese (macaroni from scratch)", "Soft & Chewy Cinnamon Sugar Blondie Bites"], category: "monthly" },
-  { id: "bloom_bakery", name: "Bloom Bakery", price: 250, image: "/images/jam-donut-babka.jpg", dishes: ["Baked Twisted Vanilla Donut", "Strawberry Kiss Cookies", "Colourful Spring time crinkle cookie"], category: "monthly" },
-  { id: "asian_kitchen_day", name: "Asian Kitchen Day", price: 250, image: "/images/korean-cream-cheese-garlic-buns-featured.jpg", dishes: ["Steamed chicken bao buns", "Vegetable lo mein noodles from scratch", "Coconut Palm Sugar pancake rolls"], category: "monthly" },
-];
-
-// Packages - bundled menu sets
-const packagesMenus: MenuItem[] = [
-  { id: "pkg_corporate_3", name: "Corporate Bundle (3 Sessions)", price: 1200, image: "/images/Grilled-Steak-with-Chimichurri-1.jpg", dishes: ["3 corporate cooking sessions", "Team building activities", "Custom menus", "Cupcake Master Class", "Kung Fu Panda", "Cookie Master Class", "Little Italy", "Hola Amigos", "Mama Mia"], category: "packages" },
-  { id: "pkg_monthly_4", name: "Monthly Special Bundle", price: 1400, image: "/images/peking-duck-recipe-11.jpg", dishes: ["4 monthly special sessions", "Seasonal ingredients", "Recipe booklet", "Cupcake Master Class", "Kung Fu Panda", "Cookie Master Class", "Little Italy", "Hola Amigos", "Mama Mia"], category: "packages" },
-];
-
-// Mommy & Me Classes (min 1)
-const mommyAndMeMenus: MenuItem[] = [
-  { id: "sushi_master_class", name: "Sushi Master Class", price: 375, image: "/images/avocado-maki-roll-recipe-10.jpg", dishes: ["California maki rolls", "Vegan hand roll", "Spam masubi"], category: "mommy_me" },
-  { id: "bread_baking", name: "Bread Baking", price: 375, image: "/images/focaccia-bread-art-featured.jpg", dishes: ["Garden focaccia", "Bacon and cheese scrolls", "Cinnamon knots"], category: "mommy_me" },
-  { id: "tea_time", name: "Tea Time", price: 375, image: "/images/Savory-Scones-with-Bacon-Cheddar-Chive.jpg", dishes: ["You can choose between savory option like scones to Petite four"], category: "mommy_me" },
-  { id: "bagel_party", name: "Bagel Party", price: 375, image: "/images/Pizza-Bagels-15-650x975.jpg", dishes: ["Bagel from scratch with sweet and savory toppings"], category: "mommy_me" },
-  { id: "cupcake_master_class_mommy", name: "Cupcake Master Class", price: 375, image: "/images/Each-Beach-Birthday-Cupcakes.jpg", dishes: ["Choose between: Vanilla, chocolate or red velvet cupcakes", "Learn piping skills and decorate to match the season"], category: "mommy_me" },
-];
 
 // Birthday Add-ons/Extras
 const birthdayExtras: ExtraItem[] = [
@@ -209,24 +158,25 @@ function WaiverModal({ isOpen, onClose, onAccept }: { isOpen: boolean; onClose: 
 }
 
 export default function MiniChefPage() {
-  const router = useRouter();
-  const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
-  
+
   // Category and menu selection
   const [activeCategory, setActiveCategory] = useState<CategoryType>("classics");
   const [selectedMenu, setSelectedMenu] = useState<MenuItem | null>(null);
   const [guestCount, setGuestCount] = useState(6);
-  
+
+  // Dynamic menu data
+  const [menuItemsByCategory, setMenuItemsByCategory] = useState<Record<string, MenuItem[]>>({});
+  const [loadingMenus, setLoadingMenus] = useState(true);
+
   // Extras
   const [selectedExtras, setSelectedExtras] = useState<Record<string, number>>({});
-  
+
   // Booking details
   const [eventDate, setEventDate] = useState("");
   const [eventTime, setEventTime] = useState("");
   const [allTimeSlots, setAllTimeSlots] = useState<{ start: string; end: string; duration: number; label: string }[]>([]);
   const [availableTimeSlots, setAvailableTimeSlots] = useState<{ start: string; end: string; duration: number; label: string }[]>([]);
-  const [blockedTimeSlots, setBlockedTimeSlots] = useState<{ start: string; end: string; duration: number; label: string }[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
@@ -234,7 +184,7 @@ export default function MiniChefPage() {
   const [specialRequests, setSpecialRequests] = useState("");
   const [ageRange, setAgeRange] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  
+
   // Waiver
   const [waiverAccepted, setWaiverAccepted] = useState(false);
   const [showWaiverModal, setShowWaiverModal] = useState(false);
@@ -244,17 +194,66 @@ export default function MiniChefPage() {
   const isBirthday = activeCategory === "birthdays";
   const hasExtras = isBirthday;
 
-  // Get menus for current category
-  const getCurrentMenus = (): MenuItem[] => {
-    switch (activeCategory) {
-      case "birthdays": return birthdayMenus;
-      case "classics": return classicsMenus;
-      case "monthly": return monthlySpecials;
-      case "mommy_me": return mommyAndMeMenus;
-      case "packages": return packagesMenus;
-      default: return [];
+  // Fetch menu items and packages from DB on mount
+  useEffect(() => {
+    async function fetchMenuData() {
+      setLoadingMenus(true);
+      try {
+        const [itemsRes, packagesRes] = await Promise.all([
+          fetch("/api/admin/menu-items?active=true"),
+          fetch("/api/admin/packages?active=true"),
+        ]);
+        const itemsData = itemsRes.ok ? await itemsRes.json() : { items: [] };
+        const pkgsData = packagesRes.ok ? await packagesRes.json() : { packages: [] };
+
+        const dbLabelToCategory: Record<string, CategoryType> = {
+          "classics_mini": "classics",
+          "monthly_mini": "monthly",
+          "mommy_me": "mommy_me",
+          "birthday": "birthdays",
+        };
+
+        const grouped: Record<string, MenuItem[]> = { classics: [], monthly: [], mommy_me: [], birthdays: [], packages: [] };
+
+        for (const item of itemsData.items || []) {
+          for (const dbLabel of (item.categories || [])) {
+            const cat = dbLabelToCategory[dbLabel];
+            if (cat) {
+              grouped[cat].push({
+                id: item.id,
+                name: item.name,
+                price: item.price,
+                image: item.image_url || "/images/placeholder.jpg",
+                dishes: item.dishes || [],
+                category: cat,
+              });
+            }
+          }
+        }
+
+        grouped.packages = (pkgsData.packages || [])
+          .filter((pkg: any) => (pkg.categories || []).includes("packages"))
+          .map((pkg: any) => ({
+            id: pkg.id,
+            name: pkg.name,
+            price: pkg.price,
+            image: pkg.image_url || "/images/placeholder.jpg",
+            dishes: (pkg.menu_items || []).map((mi: any) => mi.name),
+            category: "packages",
+          }));
+
+        setMenuItemsByCategory(grouped);
+      } catch (error) {
+        console.error("Failed to fetch menu data:", error);
+      } finally {
+        setLoadingMenus(false);
+      }
     }
-  };
+    fetchMenuData();
+  }, []);
+
+  // Get menus for current category
+  const getCurrentMenus = (): MenuItem[] => menuItemsByCategory[activeCategory] || [];
 
   // Reset selection when category changes
   useEffect(() => {
@@ -266,33 +265,21 @@ export default function MiniChefPage() {
 
   // Fetch available time slots when date changes
   useEffect(() => {
-    async function fetchAvailability() {
-      if (!eventDate) {
-        setAllTimeSlots([]);
-        setAvailableTimeSlots([]);
-        setBlockedTimeSlots([]);
-        return;
-      }
-
-      setLoadingSlots(true);
-      setEventTime("");
-      
-      try {
-        const res = await fetch(`/api/services/availability?date=${eventDate}`);
-        if (res.ok) {
-          const data = await res.json();
-          setAllTimeSlots(data.allSlots || []);
-          setAvailableTimeSlots(data.availableSlots || []);
-          setBlockedTimeSlots(data.blockedSlots || []);
-        }
-      } catch (error) {
-        console.error("Failed to fetch availability:", error);
-      } finally {
-        setLoadingSlots(false);
-      }
+    if (!eventDate) {
+      setAllTimeSlots([]);
+      setAvailableTimeSlots([]);
+      return;
     }
-
-    fetchAvailability();
+    setLoadingSlots(true);
+    setEventTime("");
+    fetch(`/api/services/availability?date=${eventDate}`)
+      .then(res => res.json())
+      .then(data => {
+        setAllTimeSlots(data.allSlots || []);
+        setAvailableTimeSlots(data.availableSlots || []);
+      })
+      .catch(err => console.error("Failed to fetch availability:", err))
+      .finally(() => setLoadingSlots(false));
   }, [eventDate]);
 
   // Calculate totals
@@ -535,8 +522,14 @@ export default function MiniChefPage() {
                 </Card>
 
                 {/* Menu Grid */}
+                {loadingMenus ? (
+                  <div className="flex items-center justify-center py-12 text-stone-500">
+                    <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                    Loading menus...
+                  </div>
+                ) : null}
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {getCurrentMenus().map((menu) => (
+                  {!loadingMenus && getCurrentMenus().map((menu) => (
                     <Card
                       key={menu.id}
                       className={`cursor-pointer transition-all ${

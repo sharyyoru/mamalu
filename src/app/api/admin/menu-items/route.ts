@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-// GET all menu items (with optional category filter)
 export async function GET(request: NextRequest) {
   try {
     const supabase = createAdminClient();
@@ -18,7 +17,7 @@ export async function GET(request: NextRequest) {
       .order("name", { ascending: true });
 
     if (category) {
-      query = query.eq("category", category);
+      query = query.contains("categories", [category]);
     }
     if (activeOnly) {
       query = query.eq("is_active", true);
@@ -37,7 +36,39 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST create new menu item
+// PATCH: bulk update sort_order — body: [{ id, sort_order }]
+export async function PATCH(request: NextRequest) {
+  try {
+    const supabase = createAdminClient();
+    if (!supabase) throw new Error("Failed to create Supabase client");
+
+    const body: { id: string; sort_order: number }[] = await request.json();
+    if (!Array.isArray(body)) {
+      return NextResponse.json({ error: "Expected an array" }, { status: 400 });
+    }
+
+    const updates = await Promise.all(
+      body.map(({ id, sort_order }) =>
+        supabase
+          .from("menu_items")
+          .update({ sort_order, updated_at: new Date().toISOString() })
+          .eq("id", id)
+      )
+    );
+
+    const failed = updates.find((r) => r.error);
+    if (failed?.error) throw failed.error;
+
+    return NextResponse.json({ success: true });
+  } catch (error: any) {
+    console.error("Error reordering menu items:", error);
+    return NextResponse.json(
+      { error: error.message || "Failed to reorder menu items" },
+      { status: 500 }
+    );
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const supabase = createAdminClient();
@@ -48,7 +79,7 @@ export async function POST(request: NextRequest) {
     const { data, error } = await supabase
       .from("menu_items")
       .insert({
-        category: body.category,
+        categories: body.categories || [],
         name: body.name,
         description: body.description || null,
         dishes: body.dishes || [],
