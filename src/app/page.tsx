@@ -359,13 +359,6 @@ export default function HomePage() {
               <span className="text-3xl md:text-4xl lg:text-5xl tracking-wide text-black">OUR STORY</span>
               <span className="inline-block ml-2 text-[#f5d5d0]">❤</span>
             </h2>
-            <Image
-              src="/images/arrow-01.png"
-              alt=""
-              width={200}
-              height={200}
-              className="absolute top-full left-[52%] -translate-x-1/4 -mt-6 pointer-events-none select-none"
-            />
           </div>
           
           <div className="grid lg:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-start">
