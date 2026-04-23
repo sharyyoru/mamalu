@@ -310,7 +310,7 @@ export default function HomePage() {
       </section>
 
       {/* Combined Life at Mamalu + Video Section */}
-      <section className="mamalu-life-section section py-12 md:py-20 bg-white">
+      <section className="mamalu-life-section pt-3 pb-0 md:pt-6 md:pb-0 bg-white">
         <div className="container px-4 md:px-6">
           {/* Top row: video left, title right */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 mb-3 md:mb-4">
@@ -351,13 +351,22 @@ export default function HomePage() {
       </section>
 
       {/* Founder Section */}
-      <section className="founder-section section py-12 md:py-24 lg:py-32 bg-white">
+      <section className="founder-section pt-16 pb-6 md:pt-16 md:pb-12 lg:pt-20 lg:pb-16 bg-white">
         <div className="container px-4 md:px-6">
           {/* Section Title */}
-          <h2 className="text-center mb-8 md:mb-16" style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 900 }}>
-            <span className="text-3xl md:text-4xl lg:text-5xl tracking-wide text-black">OUR STORY</span>
-            <span className="inline-block ml-2 text-[#f5d5d0]">❤</span>
-          </h2>
+          <div className="relative text-center mb-8 md:mb-16">
+            <h2 style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 900 }}>
+              <span className="text-3xl md:text-4xl lg:text-5xl tracking-wide text-black">OUR STORY</span>
+              <span className="inline-block ml-2 text-[#f5d5d0]">❤</span>
+            </h2>
+            <Image
+              src="/images/arrow-01.png"
+              alt=""
+              width={200}
+              height={200}
+              className="absolute top-full left-[52%] -translate-x-1/4 -mt-6 pointer-events-none select-none"
+            />
+          </div>
           
           <div className="grid lg:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-start">
             {/* Image */}
