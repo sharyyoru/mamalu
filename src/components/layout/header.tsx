@@ -78,6 +78,7 @@ export function Header() {
     return () => window.removeEventListener("openMamaluMenu", handleOpenMenu);
   }, []);
 
+
   // Prevent body scroll when menu is open
   useEffect(() => {
     if (menuOpen) {
@@ -159,8 +160,17 @@ export function Header() {
               </Link>
             </div>
 
-            {/* Right: Eazy Freezy + Cart */}
+            {/* Right: Vouchers + Eazy Freezy + Cart */}
             <div className="flex items-center gap-4">
+              {/* Vouchers */}
+              <Link
+                href="/vouchers"
+                className="header-nav-link text-xl font-bold text-[var(--c-black)] transition-colors uppercase whitespace-nowrap hidden sm:block"
+                style={{ fontFamily: 'var(--font-mossy), cursive' }}
+              >
+                Vouchers
+              </Link>
+
               <Link
                 href="/products"
                 className="header-nav-link text-xl font-bold text-[#ff7f5c] transition-colors uppercase whitespace-nowrap hidden sm:block"
@@ -235,7 +245,7 @@ export function Header() {
 
           {/* Menu Links - Large centered text with peach underline highlight on hover */}
           <div className="flex-1 flex flex-col items-center justify-center gap-6 px-6 relative z-10">
-            {[{ name: "Home", href: "/" }, ...navLinks].map((link, i) => (
+            {[{ name: "Home", href: "/" }, ...navLinks, { name: "Vouchers", href: "/vouchers" }, { name: "Eazy Freezy", href: "/products" }].map((link, i) => (
               <Link
                 key={link.name}
                 href={link.href}

@@ -21,6 +21,7 @@ import {
   Tags,
   UserPlus,
   Ticket,
+  TicketPercent,
   FileText,
   Link as LinkIcon,
   Phone,
@@ -62,6 +63,10 @@ const navigation = [
     { name: "Lists", href: "/admin/marketing/lists" },
     { name: "Discounts", href: "/admin/marketing/discounts" },
     { name: "Referrals", href: "/admin/marketing/referrals" },
+  ]},
+  { name: "Vouchers", href: "/admin/vouchers", icon: TicketPercent, children: [
+    { name: "Gift Cards", href: "/admin/vouchers" },
+    { name: "Purchases", href: "/admin/vouchers/purchases" },
   ]},
   { name: "Inquiries", href: "/admin/inquiries", icon: MessageSquare },
   { name: "Sales Report", href: "/admin/sales", icon: TrendingUp },

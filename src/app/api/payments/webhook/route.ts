@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendBookingConfirmationEmail } from "@/lib/email/booking-confirmation";
+import { sendVoucherConfirmationEmail } from "@/lib/email/voucher-confirmation";
 import Stripe from "stripe";
 
 export async function POST(request: NextRequest) {
@@ -127,6 +128,65 @@ export async function POST(request: NextRequest) {
             } catch (emailError) {
               console.error("Failed to send confirmation email:", emailError);
             }
+          }
+        }
+
+        // Handle voucher purchases
+        if (session.metadata?.type === "voucher_purchase") {
+          try {
+            const customerName = session.metadata.customer_name;
+            const customerEmail = session.metadata.customer_email || session.customer_email || "";
+            const amount = parseFloat(session.metadata.amount || "0");
+
+            // Find an available voucher of this amount (not yet assigned)
+            const { data: availableVouchers } = await supabase
+              .from("vouchers")
+              .select("id, code")
+              .eq("discount_value", amount)
+              .eq("is_active", true)
+              .limit(10);
+
+            // Pick the first voucher not already used in a paid purchase
+            const { data: usedVoucherIds } = await supabase
+              .from("voucher_purchases")
+              .select("voucher_id")
+              .eq("status", "paid")
+              .not("voucher_id", "is", null);
+
+            const usedIds = new Set((usedVoucherIds || []).map((r: any) => r.voucher_id));
+            const chosen = (availableVouchers || []).find((v: any) => !usedIds.has(v.id));
+
+            // Update the pending purchase record
+            await supabase
+              .from("voucher_purchases")
+              .update({
+                status: "paid",
+                paid_at: new Date().toISOString(),
+                stripe_payment_intent_id: session.payment_intent as string,
+                voucher_id: chosen?.id || null,
+                voucher_code: chosen?.code || null,
+              })
+              .eq("stripe_session_id", session.id);
+
+            // Send email with the code
+            if (chosen && customerEmail) {
+              const { success } = await sendVoucherConfirmationEmail({
+                customerName,
+                customerEmail,
+                amount,
+                voucherCode: chosen.code,
+              });
+              if (success) {
+                await supabase
+                  .from("voucher_purchases")
+                  .update({ email_sent_at: new Date().toISOString() })
+                  .eq("stripe_session_id", session.id);
+              }
+            }
+
+            console.log(`Voucher purchase completed for ${customerEmail} – code: ${chosen?.code}`);
+          } catch (voucherError) {
+            console.error("Failed to process voucher purchase:", voucherError);
           }
         }
 
