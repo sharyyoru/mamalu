@@ -31,6 +31,7 @@ import {
   DollarSign,
   TrendingUp,
   Clock,
+  Palette,
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -71,6 +72,7 @@ const navigation = [
   { name: "Inquiries", href: "/admin/inquiries", icon: MessageSquare },
   { name: "Sales Report", href: "/admin/sales", icon: TrendingUp },
   { name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
+  { name: "Site Content", href: "/admin/site-content", icon: Palette },
   { name: "Settings", href: "/admin/settings", icon: Settings },
 ];
 

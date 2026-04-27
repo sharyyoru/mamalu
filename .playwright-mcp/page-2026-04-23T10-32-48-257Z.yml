@@ -1,0 +1,198 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - img "Loading..." [ref=e4]
+    - heading "Mamalu Kitchen" [level=1] [ref=e5]
+    - paragraph [ref=e6]: Feeding Families with Love
+  - banner [ref=e7]:
+    - navigation [ref=e8]:
+      - generic [ref=e9]:
+        - button [ref=e10]:
+          - img [ref=e11]
+        - link "Mamalu Kitchen" [ref=e14] [cursor=pointer]:
+          - /url: /
+          - img "Mamalu Kitchen" [ref=e15]
+        - generic [ref=e16]:
+          - link "Eazy Freezy" [ref=e17] [cursor=pointer]:
+            - /url: /products
+          - link "Cart (0) Cart" [ref=e18] [cursor=pointer]:
+            - /url: /cart
+            - generic [ref=e19]: Cart (0)
+            - img "Cart" [ref=e21]
+  - main [ref=e23]:
+    - main [ref=e24]:
+      - generic [ref=e27]:
+        - img "Slide 1" [ref=e29]
+        - img "Slide 2" [ref=e31]
+        - img "Slide 3" [ref=e33]
+        - img "Slide 4" [ref=e35]
+        - img "Slide 5" [ref=e37]
+        - img "Slide 6" [ref=e39]
+        - img "Slide 7" [ref=e41]
+        - img "Slide 8" [ref=e43]
+        - img "Slide 9" [ref=e45]
+        - img "Slide 10" [ref=e47]
+        - img "Slide 11" [ref=e49]
+        - img "Slide 12" [ref=e51]
+        - img "Slide 13" [ref=e53]
+        - button "Book A Class" [ref=e56] [cursor=pointer]
+        - button "Previous slide" [ref=e57]:
+          - img [ref=e58]
+        - button "Next slide" [ref=e60]:
+          - img [ref=e61]
+        - generic [ref=e63]:
+          - button "Go to slide 1" [ref=e64]
+          - button "Go to slide 2" [ref=e65]
+          - button "Go to slide 3" [ref=e66]
+          - button "Go to slide 4" [ref=e67]
+          - button "Go to slide 5" [ref=e68]
+          - button "Go to slide 6" [ref=e69]
+          - button "Go to slide 7" [ref=e70]
+          - button "Go to slide 8" [ref=e71]
+          - button "Go to slide 9" [ref=e72]
+          - button "Go to slide 10" [ref=e73]
+          - button "Go to slide 11" [ref=e74]
+          - button "Go to slide 12" [ref=e75]
+          - button "Go to slide 13" [ref=e76]
+      - generic [ref=e79]:
+        - link "Mini Chef Mini Chef" [ref=e80] [cursor=pointer]:
+          - /url: /minichef
+          - img "Mini Chef" [ref=e81]
+          - generic [ref=e85]: Mini Chef
+        - link "Big Chef Big Chef" [ref=e86] [cursor=pointer]:
+          - /url: /bigchef
+          - img "Big Chef" [ref=e87]
+          - generic [ref=e91]: Big Chef
+        - link "Kitchen Rentals Rentals" [ref=e92] [cursor=pointer]:
+          - /url: /book/rentals
+          - img "Kitchen Rentals" [ref=e93]
+          - generic [ref=e97]: Rentals
+        - link "Eazy Freezy Shop Eazy Freezy" [ref=e98] [cursor=pointer]:
+          - /url: /products
+          - img "Eazy Freezy Shop" [ref=e99]
+          - generic [ref=e103]: Eazy Freezy
+      - generic [ref=e105]:
+        - heading "Life at Mamalu" [level=2] [ref=e110]
+        - generic [ref=e111]:
+          - img "Gallery image 1" [ref=e113]
+          - img "Gallery image 2" [ref=e115]
+          - img "Gallery image 3" [ref=e117]
+      - generic [ref=e119]:
+        - heading "OUR STORY ❤" [level=2] [ref=e120]:
+          - text: OUR STORY
+          - generic [ref=e121]: ❤
+        - generic [ref=e122]:
+          - img "Lama - Founder of Mamalu Kitchen" [ref=e125]
+          - generic [ref=e126]:
+            - paragraph [ref=e127]: Mamalu Kitchen was inspired by her 3 boys and the need to help fellow mums and families simplify their day-to-day lives without having to worry about feeding their family fuss-free healthy food.
+            - paragraph [ref=e128]: "Mamalu Kitchen is creating a cooking movement under the slogan #feedingfamilies."
+            - link "Our Story" [ref=e129] [cursor=pointer]:
+              - /url: /about
+              - generic [ref=e130]: Our Story
+              - img [ref=e131]
+      - generic [ref=e134]:
+        - heading "Get Cooking Tips in Your Inbox" [level=2] [ref=e135]
+        - paragraph [ref=e136]: Subscribe for weekly recipes, meal prep ideas, and family cooking inspiration.
+        - generic [ref=e137]:
+          - textbox "Enter your email" [ref=e138]
+          - button "Subscribe" [disabled] [ref=e139]:
+            - text: Subscribe
+            - img [ref=e140]
+  - contentinfo [ref=e143]:
+    - generic [ref=e146]:
+      - generic [ref=e147]:
+        - link "Mamalu Kitchen" [ref=e148] [cursor=pointer]:
+          - /url: /
+          - img "Mamalu Kitchen" [ref=e149]
+        - paragraph [ref=e150]: Fun, healthy cooking classes for kids and families in Dubai. Creating delicious memories since 2020.
+        - generic [ref=e151]:
+          - link "info@mamalukitchen.com" [ref=e152] [cursor=pointer]:
+            - /url: mailto:info@mamalukitchen.com
+            - img [ref=e154]
+            - text: info@mamalukitchen.com
+          - link "+971 52 747 9512" [ref=e157] [cursor=pointer]:
+            - /url: https://wa.me/971527479512
+            - img [ref=e159]
+            - text: +971 52 747 9512
+          - generic [ref=e161]:
+            - img [ref=e163]
+            - text: Depachika Food Hall, Palm Jumeirah Mall, Palm Jumeirah, Dubai
+        - generic [ref=e166]:
+          - link "Instagram" [ref=e167] [cursor=pointer]:
+            - /url: https://www.instagram.com/mamalukitchen/
+            - img [ref=e168]
+            - generic [ref=e171]: Instagram
+          - link "TikTok" [ref=e172] [cursor=pointer]:
+            - /url: https://www.tiktok.com/@mamalukitchen
+            - img [ref=e173]
+            - generic [ref=e175]: TikTok
+      - generic [ref=e176]:
+        - heading "Main" [level=3] [ref=e177]
+        - list [ref=e178]:
+          - listitem [ref=e179]:
+            - link "Home" [ref=e180] [cursor=pointer]:
+              - /url: /
+              - generic [ref=e181]: Home
+              - img [ref=e182]
+          - listitem [ref=e184]:
+            - button "Classes" [ref=e185]:
+              - generic [ref=e186]: Classes
+              - img [ref=e187]
+          - listitem [ref=e189]:
+            - link "Shop" [ref=e190] [cursor=pointer]:
+              - /url: /products
+              - generic [ref=e191]: Shop
+              - img [ref=e192]
+      - generic [ref=e194]:
+        - heading "Explore" [level=3] [ref=e195]
+        - list [ref=e196]:
+          - listitem [ref=e197]:
+            - link "Blog" [ref=e198] [cursor=pointer]:
+              - /url: /blogs
+          - listitem [ref=e199]:
+            - link "Press" [ref=e200] [cursor=pointer]:
+              - /url: /press
+          - listitem [ref=e201]:
+            - link "Our Story" [ref=e202] [cursor=pointer]:
+              - /url: /about
+      - generic [ref=e203]:
+        - heading "Services" [level=3] [ref=e204]
+        - list [ref=e205]:
+          - listitem [ref=e206]:
+            - link "Mini Chef" [ref=e207] [cursor=pointer]:
+              - /url: /minichef
+          - listitem [ref=e208]:
+            - link "Big Chef" [ref=e209] [cursor=pointer]:
+              - /url: /bigchef
+          - listitem [ref=e210]:
+            - link "Rentals" [ref=e211] [cursor=pointer]:
+              - /url: /book/rentals
+      - generic [ref=e212]:
+        - heading "Support" [level=3] [ref=e213]
+        - list [ref=e214]:
+          - listitem [ref=e215]:
+            - link "Contact Us" [ref=e216] [cursor=pointer]:
+              - /url: /contact
+          - listitem [ref=e217]:
+            - link "Privacy Policy" [ref=e218] [cursor=pointer]:
+              - /url: /privacy
+          - listitem [ref=e219]:
+            - link "Terms of Service" [ref=e220] [cursor=pointer]:
+              - /url: /terms
+    - generic [ref=e223]:
+      - generic [ref=e224]:
+        - img [ref=e226]
+        - generic [ref=e229]: Mamalu Kitchen is a fully Cashless Business
+      - generic [ref=e230]:
+        - img [ref=e232]
+        - generic [ref=e234]: Payments powered by
+        - img "Stripe" [ref=e235]
+    - generic [ref=e238]:
+      - paragraph [ref=e239]:
+        - text: © 2026 Mamalu Kitchen. Made with
+        - img [ref=e240]
+        - text: in Dubai
+      - paragraph [ref=e242]: Powered by Mutant
+  - button "Walk-in Customers" [ref=e244]:
+    - img "Walk-in" [ref=e245]
+    - generic [ref=e246]: "!"
+  - alert [ref=e247]

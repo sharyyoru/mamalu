@@ -1,0 +1,47 @@
+[     467ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[     625ms] [LOG] [Fast Refresh] done in 263ms @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[    1424ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[    1462ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[   29633ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[   29712ms] [LOG] [Fast Refresh] done in 183ms @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  270654ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  270712ms] [LOG] [Fast Refresh] done in 133ms @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  275672ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  275724ms] [LOG] [Fast Refresh] done in 154ms @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  337023ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  337100ms] [LOG] [Fast Refresh] done in 184ms @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  423413ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  423481ms] [LOG] [Fast Refresh] done in 169ms @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  437483ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  437546ms] [LOG] [Fast Refresh] done in 166ms @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  551961ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  552074ms] [LOG] [Fast Refresh] done in 208ms @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  556082ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  556379ms] [LOG] [Fast Refresh] done in 400ms @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  556815ms] [WARNING] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  560640ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  561700ms] [LOG] [Fast Refresh] done in 1164ms @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  562175ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  562314ms] [LOG] [Fast Refresh] done in 240ms @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  562459ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  562471ms] [LOG] [Fast Refresh] done in 114ms @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  562793ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  562825ms] [LOG] [Fast Refresh] done in 135ms @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  563826ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  564870ms] [LOG] [Fast Refresh] done in 1144ms @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  565334ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  565636ms] [LOG] [Fast Refresh] done in 403ms @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  565691ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/api/admin/payment-extras?activeOnly=true:0
+[  566338ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  566353ms] [LOG] [Fast Refresh] done in 118ms @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  566362ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/api/admin/payment-extras?activeOnly=true:0
+[  581768ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  581816ms] [LOG] [Fast Refresh] done in 154ms @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  591257ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  591322ms] [LOG] [Fast Refresh] done in 170ms @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  601002ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  601083ms] [LOG] [Fast Refresh] done in 185ms @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  620280ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  620359ms] [LOG] [Fast Refresh] done in 183ms @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  644609ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  644693ms] [LOG] [Fast Refresh] done in 184ms @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297

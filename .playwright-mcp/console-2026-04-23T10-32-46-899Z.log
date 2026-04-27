@@ -1,0 +1,108 @@
+[    1113ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[    1203ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[    1241ms] [WARNING] Image with src "/images/1-2.jpg" is using quality "90" which is not configured in images.qualities [75]. Please update your config to [75, 90].
+Read more: https://nextjs.org/docs/messages/next-image-unconfigured-qualities @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[    1243ms] [WARNING] Image with src "/images/File_010.jpeg" is using quality "90" which is not configured in images.qualities [75]. Please update your config to [75, 90].
+Read more: https://nextjs.org/docs/messages/next-image-unconfigured-qualities @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[    1245ms] [WARNING] Image with src "/images/PHOTO-2025-12-02-18-26-42 (5).jpg" is using quality "90" which is not configured in images.qualities [75]. Please update your config to [75, 90].
+Read more: https://nextjs.org/docs/messages/next-image-unconfigured-qualities @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[    1246ms] [WARNING] Image with src "/images/Mamalou Kitchen - 165.jpg" is using quality "90" which is not configured in images.qualities [75]. Please update your config to [75, 90].
+Read more: https://nextjs.org/docs/messages/next-image-unconfigured-qualities @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[    1247ms] [WARNING] Image with src "/images/File_001.jpeg" is using quality "90" which is not configured in images.qualities [75]. Please update your config to [75, 90].
+Read more: https://nextjs.org/docs/messages/next-image-unconfigured-qualities @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[    1247ms] [WARNING] Image with src "/images/Mamalou Kitchen - 67.jpg" is using quality "90" which is not configured in images.qualities [75]. Please update your config to [75, 90].
+Read more: https://nextjs.org/docs/messages/next-image-unconfigured-qualities @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[    1248ms] [WARNING] Image with src "/images/Mamalou Kitchen - 78.jpg" is using quality "90" which is not configured in images.qualities [75]. Please update your config to [75, 90].
+Read more: https://nextjs.org/docs/messages/next-image-unconfigured-qualities @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[    1248ms] [WARNING] Image with src "/images/Mamalou Kitchen - 103.jpg" is using quality "90" which is not configured in images.qualities [75]. Please update your config to [75, 90].
+Read more: https://nextjs.org/docs/messages/next-image-unconfigured-qualities @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[    1249ms] [WARNING] Image with src "/images/Mamalou Kitchen - 193.jpg" is using quality "90" which is not configured in images.qualities [75]. Please update your config to [75, 90].
+Read more: https://nextjs.org/docs/messages/next-image-unconfigured-qualities @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[    1249ms] [WARNING] Image with src "/images/Mamalou Kitchen - 220.jpg" is using quality "90" which is not configured in images.qualities [75]. Please update your config to [75, 90].
+Read more: https://nextjs.org/docs/messages/next-image-unconfigured-qualities @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[    1250ms] [WARNING] Image with src "/shared-files/Kids high res pics/_C3A5778 (1).jpg" is using quality "90" which is not configured in images.qualities [75]. Please update your config to [75, 90].
+Read more: https://nextjs.org/docs/messages/next-image-unconfigured-qualities @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[    1252ms] [WARNING] Image with src "/shared-files/Kids high res pics/_C3A5818.jpg" is using quality "90" which is not configured in images.qualities [75]. Please update your config to [75, 90].
+Read more: https://nextjs.org/docs/messages/next-image-unconfigured-qualities @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[    1253ms] [WARNING] Image with src "/shared-files/Kids high res pics/_C3A5906 (1).jpg" is using quality "90" which is not configured in images.qualities [75]. Please update your config to [75, 90].
+Read more: https://nextjs.org/docs/messages/next-image-unconfigured-qualities @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[    1255ms] [WARNING] Image with src "/images/taco tuesday.jpg" is using quality "100" which is not configured in images.qualities [75]. Please update your config to [100, 75].
+Read more: https://nextjs.org/docs/messages/next-image-unconfigured-qualities @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[    1256ms] [WARNING] Image with src "/images/_C3A5493.jpg" is using quality "100" which is not configured in images.qualities [75]. Please update your config to [100, 75].
+Read more: https://nextjs.org/docs/messages/next-image-unconfigured-qualities @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[    1257ms] [WARNING] Image with src "/images/_C3A0998.JPG" is using quality "100" which is not configured in images.qualities [75]. Please update your config to [100, 75].
+Read more: https://nextjs.org/docs/messages/next-image-unconfigured-qualities @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[    1258ms] [WARNING] Image with src "/images/chicken-alfredo-lasagna-roll-ups-recipe-4.jpg" is using quality "100" which is not configured in images.qualities [75]. Please update your config to [100, 75].
+Read more: https://nextjs.org/docs/messages/next-image-unconfigured-qualities @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[    1260ms] [WARNING] Image with src "/images/PHOTO-2025-12-02-18-26-42.jpg" is using quality "100" which is not configured in images.qualities [75]. Please update your config to [100, 75].
+Read more: https://nextjs.org/docs/messages/next-image-unconfigured-qualities @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[    1260ms] [WARNING] Image with src "/images/deep dish pizza.jpg" is using quality "100" which is not configured in images.qualities [75]. Please update your config to [100, 75].
+Read more: https://nextjs.org/docs/messages/next-image-unconfigured-qualities @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[    1261ms] [WARNING] Image with src "/images/File_017.jpeg.jpg" is using quality "100" which is not configured in images.qualities [75]. Please update your config to [100, 75].
+Read more: https://nextjs.org/docs/messages/next-image-unconfigured-qualities @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[    1262ms] [WARNING] Image with src "/images/IMG_4756_edited.jpg" is using quality "100" which is not configured in images.qualities [75]. Please update your config to [100, 75].
+Read more: https://nextjs.org/docs/messages/next-image-unconfigured-qualities @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[    1305ms] [WARNING] GSAP target .hero-stats not found. https://gsap.com @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[    1306ms] [WARNING] GSAP target  not found. https://gsap.com @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[    1325ms] [WARNING] Image with src "/recent/cart-icon.png" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[    1329ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[    1379ms] [WARNING] Image with src "/images/taco tuesday.jpg" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[    1385ms] [WARNING] Image with src "/images/_C3A5493.jpg" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[    1385ms] [WARNING] Image with src "/images/_C3A0998.JPG" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[    1385ms] [WARNING] Image with src "/images/chicken-alfredo-lasagna-roll-ups-recipe-4.jpg" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[    1443ms] [WARNING] Image with src "/images/IMG_4756_edited.jpg" has "fill" and parent element with invalid "position". Provided "static" should be one of absolute,fixed,relative. @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[    1444ms] [LOG] [Fast Refresh] done in 227ms @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[    1589ms] [WARNING] GSAP target  not found. https://gsap.com @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[   18873ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[   19014ms] [LOG] [Fast Refresh] done in 242ms @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[   19062ms] [WARNING] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[   19101ms] [WARNING] Image with src "/big-chef/spirit of thailand.jpg" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[   19121ms] [WARNING] Image with src "/images/Farfalle-Pasta11-scaled.jpg" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[   19128ms] [WARNING] Image with src "/big-chef/the mexican table.jpeg" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[   19135ms] [WARNING] Image with src "/images/avocado-maki-roll-recipe-10.jpg" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[   19147ms] [WARNING] Image with src "/big-chef/PAN ASIAN feast.jpg" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[   19147ms] [WARNING] Image with src "/images/Grilled-Steak-with-Chimichurri-1.jpg" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[   19155ms] [WARNING] Image with src "/images/Lemon-Garlic-Shrimp-Pasta.jpg" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[   22495ms] [WARNING] Image with src "/images/raspberry_and_milk_chocolate_eclairs2-s.jpg" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[   22501ms] [WARNING] Image with src "/images/Raspberry macarons.jpg" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[   22501ms] [WARNING] Image with src "/images/focaccia-bread-art-featured.jpg" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[   29249ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[   29421ms] [LOG] [Fast Refresh] done in 275ms @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[   29568ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[   29593ms] [LOG] [Fast Refresh] done in 129ms @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[   29637ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:3000/admin/login:0
+[   29665ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[   29684ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[   39130ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://njbisukflotqytxpfveq.supabase.co/auth/v1/token?grant_type=password:0
+[   42604ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://njbisukflotqytxpfveq.supabase.co/auth/v1/token?grant_type=password:0
+[   46402ms] [LOG] Allowing wilson@mutant.ae direct admin access @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[   48121ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[   48150ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[   55392ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[   55470ms] [LOG] [Fast Refresh] done in 184ms @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  242446ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  242570ms] [LOG] [Fast Refresh] done in 189ms @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  243142ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  243238ms] [LOG] [Fast Refresh] done in 212ms @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  244058ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  244099ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  254832ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  255098ms] [LOG] [Fast Refresh] done in 369ms @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  255511ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  255644ms] [LOG] [Fast Refresh] done in 233ms @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  265615ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  265692ms] [LOG] [Fast Refresh] done in 178ms @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  331254ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/admin/menu-items?_rsc=1szk4:0
+[  332010ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/admin/menu-items:0
+[  332066ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  332086ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  334972ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  335002ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  343778ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  344065ms] [LOG] [Fast Refresh] done in 345ms @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  344313ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  344377ms] [LOG] [Fast Refresh] done in 167ms @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  349372ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  349457ms] [LOG] [Fast Refresh] done in 189ms @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  361965ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297
+[  362014ms] [LOG] [Fast Refresh] done in 154ms @ http://localhost:3000/_next/static/chunks/31d7c_next_dist_cfe6ce47._.js:2297

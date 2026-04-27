@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add *)",
+      "Bash(git commit -m 'feat: combine Life at Mamalu and video sections into bento-grid layout *)",
+      "Bash(git push *)",
+      "Bash(git commit *)",
+      "mcp__supabase__list_tables",
+      "Bash(npm run *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000)",
+      "mcp__playwright__browser_navigate",
+      "mcp__playwright__browser_take_screenshot",
+      "Bash(npx tsc *)",
+      "mcp__supabase__execute_sql",
+      "mcp__supabase__apply_migration",
+      "Bash(git -C \"D:/Mutant/mamalu\" status)",
+      "Bash(git -C \"D:/Mutant/mamalu\" diff)",
+      "Bash(git -C \"D:/Mutant/mamalu\" add src/app/page.tsx public/images/arrow-01.png public/images/arrow-01-reversed.png)",
+      "Bash(git -C D:/Mutant/mamalu commit -m 'feat: add decorative arrow after heart in OUR STORY section title')",
+      "Bash(git *)"
+    ]
+  },
+  "enabledMcpjsonServers": [
+    "supabase"
+  ]
+}

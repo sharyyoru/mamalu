@@ -26,6 +26,7 @@ import {
   X,
   AlertTriangle,
 } from "lucide-react";
+import { MiniChefPageContent, defaultMiniChefContent } from "@/types/site-content";
 
 // Menu item interface
 interface MenuItem {
@@ -159,6 +160,7 @@ function WaiverModal({ isOpen, onClose, onAccept }: { isOpen: boolean; onClose: 
 
 export default function MiniChefPage() {
   const [step, setStep] = useState(1);
+  const [pageContent, setPageContent] = useState<MiniChefPageContent>(defaultMiniChefContent);
 
   // Category and menu selection
   const [activeCategory, setActiveCategory] = useState<CategoryType>("classics");
@@ -199,6 +201,14 @@ export default function MiniChefPage() {
   const currentConfig = categoryConfig[activeCategory];
   const isBirthday = activeCategory === "birthdays";
   const hasExtras = isBirthday;
+
+  // Fetch page content
+  useEffect(() => {
+    fetch("/api/site-content?page=minichef")
+      .then((res) => res.json())
+      .then((data) => setPageContent(data))
+      .catch(() => setPageContent(defaultMiniChefContent));
+  }, []);
 
   // Fetch menu items and packages from DB on mount
   useEffect(() => {
@@ -509,7 +519,7 @@ export default function MiniChefPage() {
       <div className="bg-white border-b relative overflow-hidden">
         {/* Animated boy/girl icons for Mini Chef - now in flex container */}
         <div className="absolute right-4 top-1/2 -translate-y-1/2 hidden lg:block">
-          <Image src="/images/apron.png" alt="" width={50} height={50} className="float-medium opacity-70" />
+          <Image src={pageContent.headerImage} alt="" width={50} height={50} className="float-medium opacity-70" />
         </div>
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
@@ -518,12 +528,12 @@ export default function MiniChefPage() {
                 <ArrowLeft className="h-5 w-5" />
               </button>
               <div className="hidden lg:block">
-                <Image src="/images/girl-01.png" alt="" width={60} height={60} className="float-gentle opacity-70" />
+                <Image src={pageContent.headerIcon} alt="" width={60} height={60} className="float-gentle opacity-70" />
               </div>
               <div>
-                <h1 className="text-2xl text-black" style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 900 }}>MINI CHEF</h1>
+                <h1 className="text-2xl text-black" style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 900 }}>{pageContent.pageTitle}</h1>
                 <p className="text-black text-sm" style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 700 }}>
-                  Fun cooking experiences for little chefs
+                  {pageContent.pageSubtitle}
                 </p>
               </div>
             </div>

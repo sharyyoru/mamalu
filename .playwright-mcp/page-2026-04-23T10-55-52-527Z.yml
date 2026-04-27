@@ -1,0 +1,130 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e3]:
+      - complementary [ref=e4]:
+        - link "Mamalu Admin Portal" [ref=e6] [cursor=pointer]:
+          - /url: /admin
+          - img [ref=e7]
+          - generic [ref=e9]:
+            - text: Mamalu
+            - generic [ref=e10]: Admin Portal
+        - navigation [ref=e11]:
+          - list [ref=e12]:
+            - listitem [ref=e13]:
+              - link "Dashboard" [ref=e14] [cursor=pointer]:
+                - /url: /admin
+                - img [ref=e15]
+                - text: Dashboard
+            - listitem [ref=e20]:
+              - link "Mamalu Users" [ref=e21] [cursor=pointer]:
+                - /url: /admin/users
+                - img [ref=e22]
+                - text: Mamalu Users
+            - listitem [ref=e27]:
+              - link "Leads CRM" [ref=e28] [cursor=pointer]:
+                - /url: /admin/leads
+                - img [ref=e29]
+                - text: Leads CRM
+            - listitem [ref=e32]:
+              - link "Classes" [ref=e33] [cursor=pointer]:
+                - /url: /admin/classes
+                - img [ref=e34]
+                - text: Classes
+            - listitem [ref=e36]:
+              - link "Kitchen Rental" [ref=e37] [cursor=pointer]:
+                - /url: /admin/rentals
+                - img [ref=e38]
+                - text: Kitchen Rental
+            - listitem [ref=e41]:
+              - link "Bookings" [ref=e42] [cursor=pointer]:
+                - /url: /admin/bookings
+                - img [ref=e43]
+                - text: Bookings
+            - listitem [ref=e45]:
+              - link "Event Scanner" [ref=e46] [cursor=pointer]:
+                - /url: /admin/scanner
+                - img [ref=e47]
+                - text: Event Scanner
+            - listitem [ref=e52]:
+              - link "Attendees" [ref=e53] [cursor=pointer]:
+                - /url: /admin/attendees
+                - img [ref=e54]
+                - text: Attendees
+            - listitem [ref=e57]:
+              - link "Invoices" [ref=e58] [cursor=pointer]:
+                - /url: /admin/invoices
+                - img [ref=e59]
+                - text: Invoices
+            - listitem [ref=e62]:
+              - link "Payment Links" [ref=e63] [cursor=pointer]:
+                - /url: /admin/payment-links
+                - img [ref=e64]
+                - text: Payment Links
+            - listitem [ref=e67]:
+              - link "Payment Tracking" [ref=e68] [cursor=pointer]:
+                - /url: /admin/payment-tracking
+                - img [ref=e69]
+                - text: Payment Tracking
+            - listitem [ref=e72]:
+              - link "WhatsApp Monitor" [ref=e73] [cursor=pointer]:
+                - /url: /admin/whatsapp
+                - img [ref=e74]
+                - text: WhatsApp Monitor
+            - listitem [ref=e76]:
+              - link "Orders" [ref=e77] [cursor=pointer]:
+                - /url: /admin/orders
+                - img [ref=e78]
+                - text: Orders
+            - listitem [ref=e81]:
+              - link "Menu Items" [ref=e82] [cursor=pointer]:
+                - /url: /admin/menu-items
+                - img [ref=e83]
+                - text: Menu Items
+            - listitem [ref=e88]:
+              - link "Marketing" [ref=e89] [cursor=pointer]:
+                - /url: /admin/marketing
+                - img [ref=e90]
+                - text: Marketing
+            - listitem [ref=e94]:
+              - link "Inquiries" [ref=e95] [cursor=pointer]:
+                - /url: /admin/inquiries
+                - img [ref=e96]
+                - text: Inquiries
+            - listitem [ref=e98]:
+              - link "Sales Report" [ref=e99] [cursor=pointer]:
+                - /url: /admin/sales
+                - img [ref=e100]
+                - text: Sales Report
+            - listitem [ref=e103]:
+              - link "Analytics" [ref=e104] [cursor=pointer]:
+                - /url: /admin/analytics
+                - img [ref=e105]
+                - text: Analytics
+            - listitem [ref=e107]:
+              - link "Settings" [ref=e108] [cursor=pointer]:
+                - /url: /admin/settings
+                - img [ref=e109]
+                - text: Settings
+      - generic [ref=e112]:
+        - generic [ref=e113]:
+          - generic [ref=e115]:
+            - img [ref=e116]
+            - textbox "Search users, bookings, orders..." [ref=e119]
+          - generic [ref=e120]:
+            - link "View Site" [ref=e121] [cursor=pointer]:
+              - /url: /
+              - text: View Site
+              - img [ref=e122]
+            - button [ref=e127]:
+              - img [ref=e128]
+            - button "Wilson Admin Super Admin" [ref=e132]:
+              - img [ref=e134]
+              - generic [ref=e137]:
+                - generic [ref=e138]: Wilson Admin
+                - generic [ref=e139]: Super Admin
+              - img [ref=e140]
+        - main [ref=e142]:
+          - img [ref=e144]
+  - button "Open Next.js Dev Tools" [ref=e151] [cursor=pointer]:
+    - img [ref=e152]
+  - alert [ref=e155]
