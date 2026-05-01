@@ -11,6 +11,8 @@ import {
   defaultBigChefContent,
   RentalsPageContent,
   defaultRentalsContent,
+  FooterContent,
+  defaultFooterContent,
 } from "@/types/site-content";
 
 const defaultContentMap: Record<string, any> = {
@@ -19,6 +21,7 @@ const defaultContentMap: Record<string, any> = {
   minichef: defaultMiniChefContent,
   bigchef: defaultBigChefContent,
   rentals: defaultRentalsContent,
+  footer: defaultFooterContent,
 };
 
 export async function GET(request: NextRequest) {

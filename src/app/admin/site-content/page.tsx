@@ -13,6 +13,8 @@ import {
   defaultBigChefContent,
   RentalsPageContent,
   defaultRentalsContent,
+  FooterContent,
+  defaultFooterContent,
 } from "@/types/site-content";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -37,9 +39,14 @@ import {
   ChefHat,
   Info,
   Building2,
+  Link as LinkIcon,
+  Mail,
+  Phone,
+  MapPin,
+  Share2,
 } from "lucide-react";
 
-type PageType = "homepage" | "about" | "minichef" | "bigchef" | "rentals";
+type PageType = "homepage" | "about" | "minichef" | "bigchef" | "rentals" | "footer";
 
 const pageConfig = {
   homepage: { label: "Homepage", icon: Home, default: defaultSiteContent },
@@ -47,6 +54,7 @@ const pageConfig = {
   minichef: { label: "Mini Chef", icon: Users, default: defaultMiniChefContent },
   bigchef: { label: "Big Chef", icon: ChefHat, default: defaultBigChefContent },
   rentals: { label: "Rentals", icon: Building2, default: defaultRentalsContent },
+  footer: { label: "Footer", icon: LinkIcon, default: defaultFooterContent },
 };
 
 export default function SiteContentPage() {
@@ -56,6 +64,7 @@ export default function SiteContentPage() {
   const [miniChefContent, setMiniChefContent] = useState<MiniChefPageContent>(defaultMiniChefContent);
   const [bigChefContent, setBigChefContent] = useState<BigChefPageContent>(defaultBigChefContent);
   const [rentalsContent, setRentalsContent] = useState<RentalsPageContent>(defaultRentalsContent);
+  const [footerContent, setFooterContent] = useState<FooterContent>(defaultFooterContent);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -79,20 +88,22 @@ export default function SiteContentPage() {
   const fetchAllContent = async () => {
     setLoading(true);
     try {
-      const [homepageRes, aboutRes, minichefRes, bigchefRes, rentalsRes] = await Promise.all([
+      const [homepageRes, aboutRes, minichefRes, bigchefRes, rentalsRes, footerRes] = await Promise.all([
         fetch("/api/site-content?page=homepage"),
         fetch("/api/site-content?page=about"),
         fetch("/api/site-content?page=minichef"),
         fetch("/api/site-content?page=bigchef"),
         fetch("/api/site-content?page=rentals"),
+        fetch("/api/site-content?page=footer"),
       ]);
       
-      const [homepageData, aboutData, minichefData, bigchefData, rentalsData] = await Promise.all([
+      const [homepageData, aboutData, minichefData, bigchefData, rentalsData, footerData] = await Promise.all([
         homepageRes.json(),
         aboutRes.json(),
         minichefRes.json(),
         bigchefRes.json(),
         rentalsRes.json(),
+        footerRes.json(),
       ]);
       
       setContent(homepageData);
@@ -100,6 +111,7 @@ export default function SiteContentPage() {
       setMiniChefContent(minichefData);
       setBigChefContent(bigchefData);
       setRentalsContent(rentalsData);
+      setFooterContent(footerData);
     } catch (error) {
       console.error("Error fetching content:", error);
     } finally {
@@ -126,6 +138,9 @@ export default function SiteContentPage() {
           break;
         case "rentals":
           pageContent = rentalsContent;
+          break;
+        case "footer":
+          pageContent = footerContent;
           break;
       }
 
@@ -167,6 +182,9 @@ export default function SiteContentPage() {
           break;
         case "rentals":
           setRentalsContent(defaultRentalsContent);
+          break;
+        case "footer":
+          setFooterContent(defaultFooterContent);
           break;
       }
     }
@@ -1930,6 +1948,327 @@ export default function SiteContentPage() {
                   </button>
                 </div>
               ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Footer Content */}
+      {activePage === "footer" && (
+        <div className="bg-white rounded-2xl border border-stone-200 p-6 space-y-6">
+          <h2 className="text-lg font-semibold text-stone-900">Footer Configuration</h2>
+          <p className="text-sm text-stone-500">Configure the footer content displayed across all pages.</p>
+
+          {/* Basic Info */}
+          <div className="border-b pb-6">
+            <h3 className="font-semibold text-stone-900 mb-4">Basic Information</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm text-stone-600 mb-1 block">Logo URL</label>
+                <div className="flex items-center gap-3">
+                  {footerContent.logo && (
+                    <div className="w-16 h-16 rounded-lg overflow-hidden bg-stone-100 flex-shrink-0 p-2">
+                      <img src={footerContent.logo} alt="Logo" className="w-full h-full object-contain" />
+                    </div>
+                  )}
+                  <input
+                    type="text"
+                    value={footerContent.logo}
+                    onChange={(e) => setFooterContent((prev) => ({ ...prev, logo: e.target.value }))}
+                    placeholder="/images/mamalu-logo.png"
+                    className="flex-1 px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                  />
+                  <label className="cursor-pointer">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          handleImageUpload(file, (url) => setFooterContent((prev) => ({ ...prev, logo: url })), "footer-logo");
+                        }
+                        e.target.value = "";
+                      }}
+                    />
+                    <div className="p-2 bg-amber-100 hover:bg-amber-200 rounded-lg transition-colors">
+                      {imageUploading === "footer-logo" ? (
+                        <RefreshCw className="w-4 h-4 text-amber-700 animate-spin" />
+                      ) : (
+                        <Upload className="w-4 h-4 text-amber-700" />
+                      )}
+                    </div>
+                  </label>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm text-stone-600 mb-1 block">Tagline</label>
+                  <input
+                    type="text"
+                    value={footerContent.tagline}
+                    onChange={(e) => setFooterContent((prev) => ({ ...prev, tagline: e.target.value }))}
+                    placeholder="Feeding Families"
+                    className="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm text-stone-600 mb-1 block">Copyright Text</label>
+                  <input
+                    type="text"
+                    value={footerContent.copyrightText}
+                    onChange={(e) => setFooterContent((prev) => ({ ...prev, copyrightText: e.target.value }))}
+                    placeholder="© 2026 Mamalu Kitchen. All rights reserved."
+                    className="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="text-sm text-stone-600 mb-1 block">Description</label>
+                <textarea
+                  value={footerContent.description}
+                  onChange={(e) => setFooterContent((prev) => ({ ...prev, description: e.target.value }))}
+                  rows={2}
+                  placeholder="Brief description about your business..."
+                  className="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Contact Information */}
+          <div className="border-b pb-6">
+            <h3 className="font-semibold text-stone-900 mb-4 flex items-center gap-2">
+              <Mail className="w-4 h-4" />
+              Contact Information
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="text-sm text-stone-600 mb-1 block flex items-center gap-1">
+                  <Mail className="w-3 h-3" />
+                  Email
+                </label>
+                <input
+                  type="email"
+                  value={footerContent.contactEmail}
+                  onChange={(e) => setFooterContent((prev) => ({ ...prev, contactEmail: e.target.value }))}
+                  placeholder="info@mamalukitchen.com"
+                  className="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                />
+              </div>
+              <div>
+                <label className="text-sm text-stone-600 mb-1 block flex items-center gap-1">
+                  <Phone className="w-3 h-3" />
+                  Phone
+                </label>
+                <input
+                  type="tel"
+                  value={footerContent.contactPhone}
+                  onChange={(e) => setFooterContent((prev) => ({ ...prev, contactPhone: e.target.value }))}
+                  placeholder="+971 50 123 4567"
+                  className="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                />
+              </div>
+              <div>
+                <label className="text-sm text-stone-600 mb-1 block flex items-center gap-1">
+                  <MapPin className="w-3 h-3" />
+                  Address
+                </label>
+                <input
+                  type="text"
+                  value={footerContent.address}
+                  onChange={(e) => setFooterContent((prev) => ({ ...prev, address: e.target.value }))}
+                  placeholder="Dubai, United Arab Emirates"
+                  className="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Navigation Links */}
+          <div className="border-b pb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-stone-900 flex items-center gap-2">
+                <LinkIcon className="w-4 h-4" />
+                Navigation Links
+              </h3>
+              <button
+                onClick={() => {
+                  const newLink = {
+                    id: `link-${Date.now()}`,
+                    label: "New Link",
+                    href: "/",
+                  };
+                  setFooterContent((prev) => ({
+                    ...prev,
+                    navigationLinks: [...prev.navigationLinks, newLink],
+                  }));
+                }}
+                className="px-3 py-1.5 text-sm bg-amber-100 text-amber-700 rounded-lg hover:bg-amber-200 transition-colors flex items-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                Add Link
+              </button>
+            </div>
+            <div className="space-y-3">
+              {footerContent.navigationLinks.map((link, index) => (
+                <div key={link.id} className="flex items-center gap-3 group">
+                  <GripVertical className="w-4 h-4 text-stone-300" />
+                  <input
+                    type="text"
+                    value={link.label}
+                    onChange={(e) => {
+                      const newLinks = [...footerContent.navigationLinks];
+                      newLinks[index] = { ...link, label: e.target.value };
+                      setFooterContent((prev) => ({ ...prev, navigationLinks: newLinks }));
+                    }}
+                    placeholder="Link Label"
+                    className="w-40 px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                  />
+                  <input
+                    type="text"
+                    value={link.href}
+                    onChange={(e) => {
+                      const newLinks = [...footerContent.navigationLinks];
+                      newLinks[index] = { ...link, href: e.target.value };
+                      setFooterContent((prev) => ({ ...prev, navigationLinks: newLinks }));
+                    }}
+                    placeholder="/path"
+                    className="flex-1 px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                  />
+                  <button
+                    onClick={() => {
+                      const newLinks = footerContent.navigationLinks.filter((_, i) => i !== index);
+                      setFooterContent((prev) => ({ ...prev, navigationLinks: newLinks }));
+                    }}
+                    className="p-2 text-stone-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Social Links */}
+          <div className="border-b pb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-stone-900 flex items-center gap-2">
+                <Share2 className="w-4 h-4" />
+                Social Media Links
+              </h3>
+              <button
+                onClick={() => {
+                  const newLink = {
+                    id: `social-${Date.now()}`,
+                    platform: "New Platform",
+                    url: "https://",
+                    icon: "link",
+                  };
+                  setFooterContent((prev) => ({
+                    ...prev,
+                    socialLinks: [...prev.socialLinks, newLink],
+                  }));
+                }}
+                className="px-3 py-1.5 text-sm bg-amber-100 text-amber-700 rounded-lg hover:bg-amber-200 transition-colors flex items-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                Add Social
+              </button>
+            </div>
+            <div className="space-y-3">
+              {footerContent.socialLinks.map((social, index) => (
+                <div key={social.id} className="flex items-center gap-3 group border border-stone-200 rounded-lg p-3">
+                  <GripVertical className="w-4 h-4 text-stone-300" />
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 flex-1">
+                    <input
+                      type="text"
+                      value={social.platform}
+                      onChange={(e) => {
+                        const newLinks = [...footerContent.socialLinks];
+                        newLinks[index] = { ...social, platform: e.target.value };
+                        setFooterContent((prev) => ({ ...prev, socialLinks: newLinks }));
+                      }}
+                      placeholder="Platform (e.g., Instagram)"
+                      className="px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                    />
+                    <input
+                      type="text"
+                      value={social.url}
+                      onChange={(e) => {
+                        const newLinks = [...footerContent.socialLinks];
+                        newLinks[index] = { ...social, url: e.target.value };
+                        setFooterContent((prev) => ({ ...prev, socialLinks: newLinks }));
+                      }}
+                      placeholder="https://..."
+                      className="px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                    />
+                    <input
+                      type="text"
+                      value={social.icon}
+                      onChange={(e) => {
+                        const newLinks = [...footerContent.socialLinks];
+                        newLinks[index] = { ...social, icon: e.target.value };
+                        setFooterContent((prev) => ({ ...prev, socialLinks: newLinks }));
+                      }}
+                      placeholder="Icon name (lucide)"
+                      className="px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                    />
+                  </div>
+                  <button
+                    onClick={() => {
+                      const newLinks = footerContent.socialLinks.filter((_, i) => i !== index);
+                      setFooterContent((prev) => ({ ...prev, socialLinks: newLinks }));
+                    }}
+                    className="p-2 text-stone-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Newsletter Settings */}
+          <div>
+            <h3 className="font-semibold text-stone-900 mb-4">Newsletter Settings</h3>
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 p-3 bg-stone-50 rounded-lg">
+                <input
+                  type="checkbox"
+                  id="newsletter-enabled"
+                  checked={footerContent.newsletterEnabled}
+                  onChange={(e) => setFooterContent((prev) => ({ ...prev, newsletterEnabled: e.target.checked }))}
+                  className="w-4 h-4 text-amber-500 border-stone-300 rounded focus:ring-2 focus:ring-amber-500/20"
+                />
+                <label htmlFor="newsletter-enabled" className="text-sm text-stone-700 font-medium cursor-pointer">
+                  Enable newsletter signup in footer
+                </label>
+              </div>
+              {footerContent.newsletterEnabled && (
+                <div className="space-y-3 pl-7">
+                  <div>
+                    <label className="text-sm text-stone-600 mb-1 block">Newsletter Title</label>
+                    <input
+                      type="text"
+                      value={footerContent.newsletterTitle}
+                      onChange={(e) => setFooterContent((prev) => ({ ...prev, newsletterTitle: e.target.value }))}
+                      placeholder="Join Our Community"
+                      className="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm text-stone-600 mb-1 block">Newsletter Description</label>
+                    <textarea
+                      value={footerContent.newsletterDescription}
+                      onChange={(e) => setFooterContent((prev) => ({ ...prev, newsletterDescription: e.target.value }))}
+                      rows={2}
+                      placeholder="Subscribe to get updates..."
+                      className="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

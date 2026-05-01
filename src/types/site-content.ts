@@ -95,6 +95,35 @@ export interface RentalsPageContent {
   features: string[];
 }
 
+// Footer Content
+export interface FooterLink {
+  id: string;
+  label: string;
+  href: string;
+}
+
+export interface FooterSocialLink {
+  id: string;
+  platform: string;
+  url: string;
+  icon: string;
+}
+
+export interface FooterContent {
+  logo: string;
+  tagline: string;
+  description: string;
+  contactEmail: string;
+  contactPhone: string;
+  address: string;
+  navigationLinks: FooterLink[];
+  socialLinks: FooterSocialLink[];
+  copyrightText: string;
+  newsletterEnabled: boolean;
+  newsletterTitle: string;
+  newsletterDescription: string;
+}
+
 // All Pages Content
 export interface AllPagesContent {
   homepage: SiteContent;
@@ -102,6 +131,7 @@ export interface AllPagesContent {
   minichef: MiniChefPageContent;
   bigchef: BigChefPageContent;
   rentals: RentalsPageContent;
+  footer: FooterContent;
 }
 
 export const defaultSiteContent: SiteContent = {
@@ -258,4 +288,30 @@ export const defaultRentalsContent: RentalsPageContent = {
     "WiFi access",
     "Parking available",
   ],
+};
+
+export const defaultFooterContent: FooterContent = {
+  logo: "/images/mamalu-logo.png",
+  tagline: "Feeding Families",
+  description: "Mamalu Kitchen is creating a cooking movement to help families eat healthier and live happier lives.",
+  contactEmail: "info@mamalukitchen.com",
+  contactPhone: "+971 50 123 4567",
+  address: "Dubai, United Arab Emirates",
+  navigationLinks: [
+    { id: "home", label: "Home", href: "/" },
+    { id: "about", label: "About", href: "/about" },
+    { id: "minichef", label: "Mini Chef", href: "/minichef" },
+    { id: "bigchef", label: "Big Chef", href: "/bigchef" },
+    { id: "rentals", label: "Rentals", href: "/book/rentals" },
+    { id: "products", label: "Eazy Freezy", href: "/products" },
+  ],
+  socialLinks: [
+    { id: "instagram", platform: "Instagram", url: "https://instagram.com/mamalukitchen", icon: "instagram" },
+    { id: "facebook", platform: "Facebook", url: "https://facebook.com/mamalukitchen", icon: "facebook" },
+    { id: "whatsapp", platform: "WhatsApp", url: "https://wa.me/971501234567", icon: "message-circle" },
+  ],
+  copyrightText: "© 2026 Mamalu Kitchen. All rights reserved.",
+  newsletterEnabled: true,
+  newsletterTitle: "Join Our Community",
+  newsletterDescription: "Get the latest recipes, cooking tips, and class updates delivered to your inbox.",
 };
