@@ -107,6 +107,13 @@ export default function AdminMenuItemsPage() {
   const [uploadResult, setUploadResult] = useState<UploadResult | null>(null);
   const [bulkUploading, setBulkUploading] = useState(false);
 
+  // Bulk category update state
+  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
+  const [showBulkCategoryModal, setShowBulkCategoryModal] = useState(false);
+  const [bulkCategoriesToAdd, setBulkCategoriesToAdd] = useState<Set<string>>(new Set());
+  const [bulkCategoriesToRemove, setBulkCategoriesToRemove] = useState<Set<string>>(new Set());
+  const [savingBulkCategories, setSavingBulkCategories] = useState(false);
+
   // Sort order state
   const [showSortModal, setShowSortModal] = useState(false);
   const [sortCategory, setSortCategory] = useState("classics_mini");
@@ -313,6 +320,106 @@ export default function AdminMenuItemsPage() {
     }
   };
 
+  const toggleSelectAll = () => {
+    if (selectedItems.size === filteredItems.length) {
+      setSelectedItems(new Set());
+    } else {
+      setSelectedItems(new Set(filteredItems.map((i) => i.id)));
+    }
+  };
+
+  const toggleSelectItem = (id: string) => {
+    const next = new Set(selectedItems);
+    if (next.has(id)) {
+      next.delete(id);
+    } else {
+      next.add(id);
+    }
+    setSelectedItems(next);
+  };
+
+  const openBulkCategoryModal = () => {
+    setBulkCategoriesToAdd(new Set());
+    setBulkCategoriesToRemove(new Set());
+    setShowBulkCategoryModal(true);
+  };
+
+  const toggleBulkCategory = (catId: string, action: 'add' | 'remove') => {
+    if (action === 'add') {
+      const next = new Set(bulkCategoriesToAdd);
+      if (next.has(catId)) {
+        next.delete(catId);
+      } else {
+        next.add(catId);
+        // Remove from remove set if it's there
+        const removeSet = new Set(bulkCategoriesToRemove);
+        removeSet.delete(catId);
+        setBulkCategoriesToRemove(removeSet);
+      }
+      setBulkCategoriesToAdd(next);
+    } else {
+      const next = new Set(bulkCategoriesToRemove);
+      if (next.has(catId)) {
+        next.delete(catId);
+      } else {
+        next.add(catId);
+        // Remove from add set if it's there
+        const addSet = new Set(bulkCategoriesToAdd);
+        addSet.delete(catId);
+        setBulkCategoriesToAdd(addSet);
+      }
+      setBulkCategoriesToRemove(next);
+    }
+  };
+
+  const saveBulkCategories = async () => {
+    setSavingBulkCategories(true);
+    try {
+      const updates = Array.from(selectedItems).map((itemId) => {
+        const item = items.find((i) => i.id === itemId);
+        if (!item) return null;
+        
+        let newCategories = [...(item.categories || [])];
+        
+        // Add categories
+        bulkCategoriesToAdd.forEach((cat) => {
+          if (!newCategories.includes(cat)) {
+            newCategories.push(cat);
+          }
+        });
+        
+        // Remove categories
+        bulkCategoriesToRemove.forEach((cat) => {
+          newCategories = newCategories.filter((c) => c !== cat);
+        });
+        
+        return {
+          id: itemId,
+          categories: newCategories,
+        };
+      }).filter(Boolean);
+
+      // Update each item
+      await Promise.all(
+        updates.map((update) =>
+          fetch(`/api/admin/menu-items/${update!.id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ categories: update!.categories }),
+          })
+        )
+      );
+
+      await fetchItems();
+      setSelectedItems(new Set());
+      setShowBulkCategoryModal(false);
+    } catch {
+      alert("Failed to update categories");
+    } finally {
+      setSavingBulkCategories(false);
+    }
+  };
+
   const filteredItems = items.filter((i) => {
     const matchesSearch =
       !search ||
@@ -352,6 +459,12 @@ export default function AdminMenuItemsPage() {
             <p className="text-stone-500 mt-1">Manage your restaurant menu items</p>
           </div>
           <div className="flex gap-2">
+            {selectedItems.size > 0 && (
+              <Button variant="outline" className="bg-amber-50 border-amber-300 text-amber-700 hover:bg-amber-100" onClick={openBulkCategoryModal}>
+                <CheckCircle className="h-4 w-4 mr-2" />
+                Update Categories ({selectedItems.size})
+              </Button>
+            )}
             <Button variant="outline" onClick={() => openSortModal(categoryFilter === "all" ? "classics_mini" : categoryFilter)}>
               <ArrowUpDown className="h-4 w-4 mr-2" />
               Sort Order
@@ -416,6 +529,14 @@ export default function AdminMenuItemsPage() {
           <table className="w-full">
             <thead className="bg-stone-50 border-b border-stone-200">
               <tr>
+                <th className="px-6 py-4 w-12">
+                  <input
+                    type="checkbox"
+                    checked={filteredItems.length > 0 && selectedItems.size === filteredItems.length}
+                    onChange={toggleSelectAll}
+                    className="rounded"
+                  />
+                </th>
                 <th className="text-left text-xs font-semibold text-stone-600 uppercase tracking-wider px-6 py-4">Item</th>
                 <th className="text-left text-xs font-semibold text-stone-600 uppercase tracking-wider px-6 py-4">Description</th>
                 <th className="text-left text-xs font-semibold text-stone-600 uppercase tracking-wider px-6 py-4">Price</th>
@@ -427,6 +548,15 @@ export default function AdminMenuItemsPage() {
             <tbody className="divide-y divide-stone-100">
               {filteredItems.map((item) => (
                 <tr key={item.id} className="hover:bg-stone-50 group transition-colors">
+                  {/* Checkbox */}
+                  <td className="px-6 py-4">
+                    <input
+                      type="checkbox"
+                      checked={selectedItems.has(item.id)}
+                      onChange={() => toggleSelectItem(item.id)}
+                      className="rounded"
+                    />
+                  </td>
                   {/* Image + Name */}
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
@@ -509,7 +639,7 @@ export default function AdminMenuItemsPage() {
               ))}
               {filteredItems.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-6 py-16 text-center text-stone-500">
+                  <td colSpan={7} className="px-6 py-16 text-center text-stone-500">
                     <UtensilsCrossed className="h-10 w-10 mx-auto mb-3 text-stone-300" />
                     <p className="font-medium">No menu items found</p>
                     <p className="text-sm mt-1">
@@ -777,6 +907,123 @@ export default function AdminMenuItemsPage() {
               <Button onClick={saveSortOrder} disabled={savingOrder || sortItems.length === 0}>
                 {savingOrder ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
                 Save Order
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Category Update Modal */}
+      {showBulkCategoryModal && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between z-10">
+              <div>
+                <h2 className="text-xl font-bold text-stone-900">Bulk Update Categories</h2>
+                <p className="text-sm text-stone-500 mt-0.5">
+                  Update categories for {selectedItems.size} selected item{selectedItems.size !== 1 ? 's' : ''}
+                </p>
+              </div>
+              <button onClick={() => setShowBulkCategoryModal(false)}>
+                <X className="h-5 w-5 text-stone-400 hover:text-stone-600" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Add Categories Section */}
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-3">
+                  Add Categories
+                  {bulkCategoriesToAdd.size > 0 && (
+                    <span className="ml-2 text-xs text-green-600">
+                      ({bulkCategoriesToAdd.size} to add)
+                    </span>
+                  )}
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {CATEGORIES.filter((c) => c.id !== "all").map((cat) => {
+                    const checked = bulkCategoriesToAdd.has(cat.id);
+                    return (
+                      <label
+                        key={cat.id}
+                        className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition-colors ${
+                          checked
+                            ? "border-green-500 bg-green-50"
+                            : "border-stone-200 hover:border-stone-300"
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => toggleBulkCategory(cat.id, 'add')}
+                          className="rounded"
+                        />
+                        <span className={`text-xs font-medium px-1.5 py-0.5 rounded-full ${CATEGORY_COLORS[cat.id] || "bg-stone-100 text-stone-600"}`}>
+                          {cat.name}
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+                <p className="text-xs text-stone-500 mt-2">
+                  These categories will be added to all selected items (if not already present)
+                </p>
+              </div>
+
+              {/* Divider */}
+              <div className="border-t border-stone-200"></div>
+
+              {/* Remove Categories Section */}
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-3">
+                  Remove Categories
+                  {bulkCategoriesToRemove.size > 0 && (
+                    <span className="ml-2 text-xs text-red-600">
+                      ({bulkCategoriesToRemove.size} to remove)
+                    </span>
+                  )}
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {CATEGORIES.filter((c) => c.id !== "all").map((cat) => {
+                    const checked = bulkCategoriesToRemove.has(cat.id);
+                    return (
+                      <label
+                        key={cat.id}
+                        className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition-colors ${
+                          checked
+                            ? "border-red-500 bg-red-50"
+                            : "border-stone-200 hover:border-stone-300"
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => toggleBulkCategory(cat.id, 'remove')}
+                          className="rounded"
+                        />
+                        <span className={`text-xs font-medium px-1.5 py-0.5 rounded-full ${CATEGORY_COLORS[cat.id] || "bg-stone-100 text-stone-600"}`}>
+                          {cat.name}
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+                <p className="text-xs text-stone-500 mt-2">
+                  These categories will be removed from all selected items (if present)
+                </p>
+              </div>
+            </div>
+
+            <div className="sticky bottom-0 bg-white border-t px-6 py-4 flex justify-end gap-3">
+              <Button variant="outline" onClick={() => setShowBulkCategoryModal(false)}>
+                Cancel
+              </Button>
+              <Button 
+                onClick={saveBulkCategories} 
+                disabled={savingBulkCategories || (bulkCategoriesToAdd.size === 0 && bulkCategoriesToRemove.size === 0)}
+              >
+                {savingBulkCategories ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+                Update {selectedItems.size} Item{selectedItems.size !== 1 ? 's' : ''}
               </Button>
             </div>
           </div>

@@ -280,6 +280,21 @@ export default function BigChefPage() {
                   </CardContent></Card>
                 )}
                 {isNanny && <div className="p-4 bg-stone-100 rounded-lg"><p className="font-medium text-stone-900">Selected: {selectedNannyMenus.length}/4 menus {selectedNannyMenus.length === 4 && <span className="text-green-600 ml-2">✓ Ready</span>}</p>{selectedNannyMenus.length > 0 && <div className="mt-2 flex flex-wrap gap-2">{selectedNannyMenus.map(m => <Badge key={m.id} className="bg-stone-900 text-white">{m.name}<button onClick={() => toggleNannyMenu(m)} className="ml-1">×</button></Badge>)}</div>}</div>}
+                
+                {/* Desktop Continue Button for Nanny Class */}
+                {isNanny && (
+                  <div className="hidden lg:flex justify-end items-center pb-4">
+                    <Button 
+                      className="bg-stone-900 hover:bg-stone-800 text-white px-8 font-bold" 
+                      onClick={() => setStep(step + 1)} 
+                      disabled={!canProceed()}
+                    >
+                      Continue
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+
                 {loadingMenus ? (
                   <div className="flex items-center justify-center py-12 text-stone-500">
                     <Loader2 className="h-6 w-6 animate-spin mr-2" />
