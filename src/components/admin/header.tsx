@@ -79,7 +79,7 @@ export function AdminHeader({ user }: AdminHeaderProps) {
     const supabase = createClient();
     if (supabase) {
       await supabase.auth.signOut();
-      router.push("/admin/login");
+      window.location.href = "/admin/login";
     }
   };
 

@@ -42,6 +42,12 @@ const usersToCreate: UserToCreate[] = [
     role: "super_admin",
   },
   {
+    email: "robert@mamalukitchen.com",
+    password: "admin123",
+    full_name: "Robert Admin",
+    role: "admin",
+  },
+  {
     email: "test@mamalukitchen.com",
     password: "testuser123",
     full_name: "Test Customer",
@@ -140,7 +146,9 @@ async function createUsers() {
   console.log("=".repeat(50));
   console.log(`Email:    wilson@mutant.ae`);
   console.log(`Password: wilsontest`);
-  console.log(`URL:      http://localhost:3000/admin/login`);
+  console.log(`\nEmail:    robert@mamalukitchen.com`);
+  console.log(`Password: admin123`);
+  console.log(`\nURL:      http://localhost:3000/admin/login`);
   console.log("=".repeat(50));
   console.log("\nTEST USER CREDENTIALS");
   console.log("=".repeat(50));
