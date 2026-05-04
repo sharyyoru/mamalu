@@ -104,30 +104,53 @@ export default function VouchersPage() {
             {groups.map((g) => (
               <div
                 key={g.amount}
-                className="group relative rounded-3xl overflow-hidden bg-gradient-to-br from-[#ff7f5c] to-[#ff9a7c] p-8 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+                className="group relative rounded-3xl overflow-hidden bg-white border-2 border-stone-100 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
               >
-                <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-white/10" />
-                <div className="absolute -bottom-6 -left-6 w-24 h-24 rounded-full bg-white/10" />
+                {/* Decorative header with coral gradient */}
+                <div className="h-24 bg-gradient-to-br from-[#ff7f5c] to-[#ff9a7c] relative overflow-hidden">
+                  <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-white/10" />
+                  <div className="absolute -bottom-6 -left-6 w-24 h-24 rounded-full bg-white/10" />
+                  <div className="absolute inset-0 opacity-10" style={{
+                    backgroundImage: 'url(/logos/logo-white.png)',
+                    backgroundSize: 'contain',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat'
+                  }} />
+                </div>
 
-                <Gift className="h-8 w-8 mb-4 opacity-90 relative z-10" />
-                <p className="text-sm font-medium uppercase tracking-widest opacity-80 mb-1 relative z-10">
-                  Voucher
-                </p>
-                <p
-                  className="text-4xl font-bold mb-2 relative z-10"
-                  style={{ fontFamily: "var(--font-mossy), cursive" }}
-                >
-                  {formatPrice(g.amount)}
-                </p>
-                <p className="text-sm opacity-75 mb-6 relative z-10">
-                  {g.count} available · Never expires
-                </p>
-                <button
-                  onClick={() => openModal(g)}
-                  className="w-full text-center bg-white text-[#ff7f5c] font-bold py-3 rounded-2xl hover:bg-[#fff5eb] transition-colors relative z-10"
-                >
-                  Buy Now
-                </button>
+                {/* Content area */}
+                <div className="p-8 pt-6">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="p-2 rounded-xl bg-[#ff7f5c]/10">
+                      <Gift className="h-5 w-5 text-[#ff7f5c]" />
+                    </div>
+                    <p className="text-xs font-semibold uppercase tracking-wider text-stone-500">
+                      Gift Voucher
+                    </p>
+                  </div>
+                  
+                  <p
+                    className="text-5xl font-bold text-stone-900 mb-3"
+                    style={{ fontFamily: "var(--font-mossy), cursive" }}
+                  >
+                    {formatPrice(g.amount)}
+                  </p>
+                  
+                  <div className="flex items-center gap-2 text-sm text-stone-600 mb-6">
+                    <span className="px-2.5 py-1 bg-stone-100 rounded-lg font-medium">
+                      {g.count} available
+                    </span>
+                    <span className="text-stone-400">·</span>
+                    <span className="text-stone-500">Never expires</span>
+                  </div>
+                  
+                  <button
+                    onClick={() => openModal(g)}
+                    className="w-full text-center bg-[#ff7f5c] text-white font-bold py-3.5 rounded-2xl hover:bg-[#ff6a42] transition-all hover:scale-[1.02] active:scale-[0.98]"
+                  >
+                    Buy Now
+                  </button>
+                </div>
               </div>
             ))}
           </div>
