@@ -956,27 +956,27 @@ export default function RequestHistoryPage() {
               </h3>
               <div className="space-y-4">
                 <div className="flex justify-between items-center border-b pb-2">
-                  <span className="text-gray-600">Total Commits</span>
+                  <span className="font-semibold text-gray-900">Total Commits</span>
                   <span className="font-bold text-lg">{gitStats.totalCommits}</span>
                 </div>
                 <div className="flex justify-between items-center border-b pb-2">
-                  <span className="text-gray-600">Project Duration</span>
+                  <span className="font-semibold text-gray-900">Project Duration</span>
                   <span className="font-bold">5 months</span>
                 </div>
                 <div className="flex justify-between items-center border-b pb-2">
-                  <span className="text-gray-600">First Commit</span>
-                  <span className="font-mono text-sm">{gitStats.firstCommit}</span>
+                  <span className="font-semibold text-gray-900">First Commit</span>
+                  <span className="font-mono text-sm font-bold text-gray-900">{gitStats.firstCommit}</span>
                 </div>
                 <div className="flex justify-between items-center border-b pb-2">
-                  <span className="text-gray-600">Last Commit</span>
-                  <span className="font-mono text-sm">{gitStats.lastCommit}</span>
+                  <span className="font-semibold text-gray-900">Last Commit</span>
+                  <span className="font-mono text-sm font-bold text-gray-900">{gitStats.lastCommit}</span>
                 </div>
               </div>
               
               <h4 className="font-bold mt-6 mb-3">Major Features Delivered</h4>
               <div className="flex flex-wrap gap-2">
                 {gitStats.majorFeatures.map((feature, idx) => (
-                  <span key={idx} className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm font-medium">
+                  <span key={idx} className="px-3 py-1 bg-gray-200 text-gray-900 rounded-full text-sm font-bold">
                     ✓ {feature}
                   </span>
                 ))}
@@ -994,11 +994,11 @@ export default function RequestHistoryPage() {
                   <div key={idx} className="flex items-center gap-3 p-3 bg-white border border-gray-100 rounded-lg">
                     <Mail className="h-5 w-5 text-gray-500" />
                     <div className="flex-1">
-                      <p className="font-medium text-gray-900">{email.subject}</p>
-                      <p className="text-sm text-gray-500">From: {email.from} • {email.date}</p>
+                      <p className="font-bold text-gray-900">{email.subject}</p>
+                      <p className="text-sm font-semibold text-gray-700">From: {email.from} • {email.date}</p>
                     </div>
                     {email.attachments && (
-                      <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs font-medium">
+                      <span className="px-2 py-1 bg-gray-200 text-gray-900 rounded text-xs font-bold">
                         {email.attachments} files
                       </span>
                     )}
@@ -1015,34 +1015,34 @@ export default function RequestHistoryPage() {
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="p-4 bg-white border border-gray-200 rounded-xl">
-                  <p className="text-sm text-gray-500 font-medium">Dec 5, 2025</p>
+                  <p className="text-sm text-gray-700 font-bold">Dec 5, 2025</p>
                   <p className="font-bold text-gray-900">Project Kickoff</p>
-                  <p className="text-sm text-gray-600">Initial platform setup</p>
+                  <p className="text-sm text-gray-800 font-medium">Initial platform setup</p>
                 </div>
                 <div className="p-4 bg-white border border-gray-200 rounded-xl">
-                  <p className="text-sm text-gray-500 font-medium">Feb 6, 2026</p>
+                  <p className="text-sm text-gray-700 font-bold">Feb 6, 2026</p>
                   <p className="font-bold text-gray-900">System Demo Ready</p>
-                  <p className="text-sm text-gray-600">4822 leads imported</p>
+                  <p className="text-sm text-gray-800 font-medium">4822 leads imported</p>
                 </div>
                 <div className="p-4 bg-white border border-gray-200 rounded-xl">
-                  <p className="text-sm text-gray-500 font-medium">Mar 9, 2026</p>
+                  <p className="text-sm text-gray-700 font-bold">Mar 9, 2026</p>
                   <p className="font-bold text-gray-900">Major Revision Meeting</p>
-                  <p className="text-sm text-gray-600">Final UI requirements set</p>
+                  <p className="text-sm text-gray-800 font-medium">Final UI requirements set</p>
                 </div>
                 <div className="p-4 bg-white border border-gray-200 rounded-xl">
-                  <p className="text-sm text-gray-500 font-medium">Apr 21, 2026</p>
+                  <p className="text-sm text-gray-700 font-bold">Apr 21, 2026</p>
                   <p className="font-bold text-gray-900">Alignment Meeting</p>
-                  <p className="text-sm text-gray-600">15 final adjustments</p>
+                  <p className="text-sm text-gray-800 font-medium">15 final adjustments</p>
                 </div>
                 <div className="p-4 bg-white border border-gray-200 rounded-xl">
-                  <p className="text-sm text-gray-500 font-medium">Apr 27, 2026</p>
+                  <p className="text-sm text-gray-700 font-bold">Apr 27, 2026</p>
                   <p className="font-bold text-gray-900">Voucher System Live</p>
-                  <p className="text-sm text-gray-600">E-commerce complete</p>
+                  <p className="text-sm text-gray-800 font-medium">E-commerce complete</p>
                 </div>
                 <div className="p-4 bg-white border border-gray-200 rounded-xl">
-                  <p className="text-sm text-gray-500 font-medium">May 1, 2026</p>
+                  <p className="text-sm text-gray-700 font-bold">May 1, 2026</p>
                   <p className="font-bold text-gray-900">Training Scheduled</p>
-                  <p className="text-sm text-gray-600">Final handover</p>
+                  <p className="text-sm text-gray-800 font-medium">Final handover</p>
                 </div>
               </div>
             </div>
