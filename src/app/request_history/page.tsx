@@ -656,10 +656,10 @@ export default function RequestHistoryPage() {
   
   const getTypeIcon = (type: string) => {
     switch(type) {
-      case "git": return <GitCommit className="h-5 w-5 text-green-500" />;
-      case "whatsapp": return <MessageSquare className="h-5 w-5 text-green-600" />;
-      case "email": return <Mail className="h-5 w-5 text-blue-500" />;
-      case "meeting": return <Video className="h-5 w-5 text-purple-500" />;
+      case "git": return <GitCommit className="h-5 w-5 text-gray-500" />;
+      case "whatsapp": return <MessageSquare className="h-5 w-5 text-gray-500" />;
+      case "email": return <Mail className="h-5 w-5 text-gray-500" />;
+      case "meeting": return <Video className="h-5 w-5 text-gray-500" />;
       default: return <Calendar className="h-5 w-5 text-gray-500" />;
     }
   };
@@ -667,20 +667,20 @@ export default function RequestHistoryPage() {
   const getStatusBadge = (status: string) => {
     switch(status) {
       case "completed":
-        return <span className="px-2 py-1 text-xs font-bold bg-green-100 text-green-800 rounded-full">✓ Completed</span>;
+        return <span className="px-2 py-1 text-xs font-bold bg-gray-100 text-gray-700 rounded-full">✓ Completed</span>;
       case "in_progress":
-        return <span className="px-2 py-1 text-xs font-bold bg-blue-100 text-blue-800 rounded-full">⏳ In Progress</span>;
+        return <span className="px-2 py-1 text-xs font-bold bg-gray-100 text-gray-600 rounded-full">⏳ In Progress</span>;
       case "pending":
-        return <span className="px-2 py-1 text-xs font-bold bg-yellow-100 text-yellow-800 rounded-full">⏸ Pending</span>;
+        return <span className="px-2 py-1 text-xs font-bold bg-gray-100 text-gray-600 rounded-full">⏸ Pending</span>;
       case "blocked":
-        return <span className="px-2 py-1 text-xs font-bold bg-red-100 text-red-800 rounded-full">🚫 Blocked</span>;
+        return <span className="px-2 py-1 text-xs font-bold bg-gray-200 text-gray-500 rounded-full">🚫 Blocked</span>;
       default:
         return null;
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#ffeee8] to-white">
+    <div className="min-h-screen bg-white">
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-sm border-b sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-4">
@@ -689,7 +689,7 @@ export default function RequestHistoryPage() {
               <Image src="/images/logo.png" alt="Mamalu" width={50} height={50} />
               <span className="font-bold text-xl" style={{ fontFamily: 'var(--font-mossy)' }}>Mamalu Kitchen</span>
             </Link>
-            <h1 className="text-2xl font-bold text-[#ff7f5c]" style={{ fontFamily: 'var(--font-mossy)' }}>
+            <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'var(--font-mossy)' }}>
               Project Request History
             </h1>
           </div>
@@ -699,37 +699,37 @@ export default function RequestHistoryPage() {
       {/* Summary Cards */}
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white rounded-2xl p-6 shadow-lg border-2 border-green-200">
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
             <div className="flex items-center gap-3 mb-2">
-              <CheckCircle2 className="h-8 w-8 text-green-500" />
-              <span className="text-3xl font-bold text-green-600">{completion.percentage}%</span>
+              <CheckCircle2 className="h-8 w-8 text-gray-600" />
+              <span className="text-3xl font-bold text-gray-900">{completion.percentage}%</span>
             </div>
             <p className="text-gray-600 font-medium">Overall Completion</p>
             <p className="text-sm text-gray-500">{completion.completedItems}/{completion.totalItems} items</p>
           </div>
           
-          <div className="bg-white rounded-2xl p-6 shadow-lg border-2 border-blue-200">
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
             <div className="flex items-center gap-3 mb-2">
-              <GitCommit className="h-8 w-8 text-blue-500" />
-              <span className="text-3xl font-bold text-blue-600">{gitStats.totalCommits}</span>
+              <GitCommit className="h-8 w-8 text-gray-600" />
+              <span className="text-3xl font-bold text-gray-900">{gitStats.totalCommits}</span>
             </div>
             <p className="text-gray-600 font-medium">Git Commits</p>
             <p className="text-sm text-gray-500">Dec 5 - May 6</p>
           </div>
           
-          <div className="bg-white rounded-2xl p-6 shadow-lg border-2 border-purple-200">
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
             <div className="flex items-center gap-3 mb-2">
-              <MessageSquare className="h-8 w-8 text-purple-500" />
-              <span className="text-3xl font-bold text-purple-600">401</span>
+              <MessageSquare className="h-8 w-8 text-gray-600" />
+              <span className="text-3xl font-bold text-gray-900">401</span>
             </div>
             <p className="text-gray-600 font-medium">WhatsApp Messages</p>
             <p className="text-sm text-gray-500">Jan 1 - Apr 30</p>
           </div>
           
-          <div className="bg-white rounded-2xl p-6 shadow-lg border-2 border-orange-200">
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
             <div className="flex items-center gap-3 mb-2">
-              <Mail className="h-8 w-8 text-orange-500" />
-              <span className="text-3xl font-bold text-orange-600">{emailTimeline.length}</span>
+              <Mail className="h-8 w-8 text-gray-600" />
+              <span className="text-3xl font-bold text-gray-900">{emailTimeline.length}</span>
             </div>
             <p className="text-gray-600 font-medium">Key Emails</p>
             <p className="text-sm text-gray-500">Assets & Requirements</p>
@@ -737,11 +737,11 @@ export default function RequestHistoryPage() {
         </div>
         
         {/* Progress Bar */}
-        <div className="bg-white rounded-2xl p-6 shadow-lg mb-8">
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 mb-8">
           <h2 className="text-xl font-bold mb-4">Project Progress</h2>
           <div className="w-full bg-gray-200 rounded-full h-6 overflow-hidden">
             <div 
-              className="bg-gradient-to-r from-green-400 to-green-600 h-full rounded-full transition-all duration-1000 flex items-center justify-center"
+              className="bg-gray-800 h-full rounded-full transition-all duration-1000 flex items-center justify-center"
               style={{ width: `${completion.percentage}%` }}
             >
               <span className="text-white text-sm font-bold">{completion.percentage}%</span>
@@ -758,19 +758,19 @@ export default function RequestHistoryPage() {
         <div className="flex gap-2 mb-6">
           <button 
             onClick={() => setActiveTab("timeline")}
-            className={`px-6 py-3 rounded-xl font-bold transition-all ${activeTab === "timeline" ? "bg-[#ff7f5c] text-white" : "bg-white text-gray-700 hover:bg-gray-100"}`}
+            className={`px-6 py-3 rounded-xl font-bold transition-all border ${activeTab === "timeline" ? "bg-gray-900 text-white border-gray-900" : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"}`}
           >
             📅 Timeline
           </button>
           <button 
             onClick={() => setActiveTab("deliverables")}
-            className={`px-6 py-3 rounded-xl font-bold transition-all ${activeTab === "deliverables" ? "bg-[#ff7f5c] text-white" : "bg-white text-gray-700 hover:bg-gray-100"}`}
+            className={`px-6 py-3 rounded-xl font-bold transition-all border ${activeTab === "deliverables" ? "bg-gray-900 text-white border-gray-900" : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"}`}
           >
             ✅ Deliverables
           </button>
           <button 
             onClick={() => setActiveTab("stats")}
-            className={`px-6 py-3 rounded-xl font-bold transition-all ${activeTab === "stats" ? "bg-[#ff7f5c] text-white" : "bg-white text-gray-700 hover:bg-gray-100"}`}
+            className={`px-6 py-3 rounded-xl font-bold transition-all border ${activeTab === "stats" ? "bg-gray-900 text-white border-gray-900" : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"}`}
           >
             📊 Statistics
           </button>
@@ -785,7 +785,7 @@ export default function RequestHistoryPage() {
                 <button
                   key={type}
                   onClick={() => setFilterType(type)}
-                  className={`px-4 py-2 rounded-lg font-medium transition-all ${filterType === type ? "bg-[#ff7f5c] text-white" : "bg-white text-gray-700 hover:bg-gray-100"}`}
+                  className={`px-4 py-2 rounded-lg font-medium transition-all border ${filterType === type ? "bg-gray-900 text-white border-gray-900" : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"}`}
                 >
                   {type === "all" && "All Events"}
                   {type === "git" && "🔀 Git Commits"}
@@ -806,14 +806,14 @@ export default function RequestHistoryPage() {
                     {getTypeIcon(event.type)}
                   </div>
                   
-                  <div className="bg-white rounded-xl p-5 shadow-md hover:shadow-lg transition-shadow">
+                  <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
                     <div className="flex items-center gap-3 mb-2">
                       <span className="text-sm font-mono text-gray-500">{event.date}</span>
                       <span className={`px-2 py-0.5 text-xs font-bold rounded-full ${
-                        event.type === "git" ? "bg-green-100 text-green-700" :
-                        event.type === "whatsapp" ? "bg-emerald-100 text-emerald-700" :
-                        event.type === "email" ? "bg-blue-100 text-blue-700" :
-                        event.type === "meeting" ? "bg-purple-100 text-purple-700" :
+                        event.type === "git" ? "bg-gray-100 text-gray-700" :
+                        event.type === "whatsapp" ? "bg-gray-100 text-gray-700" :
+                        event.type === "email" ? "bg-gray-100 text-gray-700" :
+                        event.type === "meeting" ? "bg-gray-100 text-gray-700" :
                         "bg-gray-100 text-gray-700"
                       }`}>
                         {event.type.toUpperCase()}
@@ -845,7 +845,7 @@ export default function RequestHistoryPage() {
                       <ul className="mt-3 space-y-1">
                         {event.decisions.map((decision, i) => (
                           <li key={i} className="text-sm text-gray-600 flex items-start gap-2">
-                            <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                            <CheckCircle2 className="h-4 w-4 text-gray-500 mt-0.5 flex-shrink-0" />
                             {decision}
                           </li>
                         ))}
@@ -881,13 +881,13 @@ export default function RequestHistoryPage() {
               <div key={idx} className="bg-white rounded-xl shadow-md overflow-hidden">
                 <button
                   onClick={() => toggleCategory(category.category)}
-                  className="w-full px-6 py-4 flex items-center justify-between bg-gradient-to-r from-[#ffeee8] to-white hover:from-[#ffe0d6]"
+                  className="w-full px-6 py-4 flex items-center justify-between bg-white hover:bg-gray-50"
                 >
                   <div className="flex items-center gap-3">
                     {expandedCategories.includes(category.category) ? (
-                      <ChevronDown className="h-5 w-5 text-[#ff7f5c]" />
+                      <ChevronDown className="h-5 w-5 text-gray-600" />
                     ) : (
-                      <ChevronRight className="h-5 w-5 text-[#ff7f5c]" />
+                      <ChevronRight className="h-5 w-5 text-gray-600" />
                     )}
                     <span className="text-lg font-bold text-gray-900">{category.category}</span>
                   </div>
@@ -897,7 +897,7 @@ export default function RequestHistoryPage() {
                     </span>
                     <div className="w-20 bg-gray-200 rounded-full h-2">
                       <div 
-                        className="bg-green-500 h-2 rounded-full"
+                        className="bg-gray-600 h-2 rounded-full"
                         style={{ width: `${(category.items.filter(i => i.status === "completed").length / category.items.length) * 100}%` }}
                       />
                     </div>
@@ -911,11 +911,11 @@ export default function RequestHistoryPage() {
                         <div key={itemIdx} className="flex items-center justify-between py-2">
                           <div className="flex items-center gap-3">
                             {item.status === "completed" ? (
-                              <CheckCircle2 className="h-5 w-5 text-green-500" />
+                              <CheckCircle2 className="h-5 w-5 text-gray-600" />
                             ) : item.status === "blocked" ? (
-                              <AlertCircle className="h-5 w-5 text-red-500" />
+                              <AlertCircle className="h-5 w-5 text-gray-400" />
                             ) : (
-                              <Clock className="h-5 w-5 text-yellow-500" />
+                              <Clock className="h-5 w-5 text-gray-400" />
                             )}
                             <span className={`font-medium ${item.status === "completed" ? "text-gray-900" : "text-gray-600"}`}>
                               {item.name}
@@ -945,7 +945,7 @@ export default function RequestHistoryPage() {
             {/* Git Stats */}
             <div className="bg-white rounded-xl p-6 shadow-md">
               <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-                <GitCommit className="h-6 w-6 text-green-500" />
+                <GitCommit className="h-6 w-6 text-gray-600" />
                 Development Statistics
               </h3>
               <div className="space-y-4">
@@ -970,7 +970,7 @@ export default function RequestHistoryPage() {
               <h4 className="font-bold mt-6 mb-3">Major Features Delivered</h4>
               <div className="flex flex-wrap gap-2">
                 {gitStats.majorFeatures.map((feature, idx) => (
-                  <span key={idx} className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
+                  <span key={idx} className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm font-medium">
                     ✓ {feature}
                   </span>
                 ))}
@@ -980,19 +980,19 @@ export default function RequestHistoryPage() {
             {/* Communication Stats */}
             <div className="bg-white rounded-xl p-6 shadow-md">
               <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-                <MessageSquare className="h-6 w-6 text-purple-500" />
+                <MessageSquare className="h-6 w-6 text-gray-600" />
                 Communication Timeline
               </h3>
               <div className="space-y-3">
                 {emailTimeline.map((email, idx) => (
-                  <div key={idx} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                    <Mail className="h-5 w-5 text-blue-500" />
+                  <div key={idx} className="flex items-center gap-3 p-3 bg-white border border-gray-100 rounded-lg">
+                    <Mail className="h-5 w-5 text-gray-500" />
                     <div className="flex-1">
                       <p className="font-medium text-gray-900">{email.subject}</p>
                       <p className="text-sm text-gray-500">From: {email.from} • {email.date}</p>
                     </div>
                     {email.attachments && (
-                      <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium">
+                      <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs font-medium">
                         {email.attachments} files
                       </span>
                     )}
@@ -1004,39 +1004,39 @@ export default function RequestHistoryPage() {
             {/* Key Milestones */}
             <div className="bg-white rounded-xl p-6 shadow-md md:col-span-2">
               <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-                <Calendar className="h-6 w-6 text-[#ff7f5c]" />
+                <Calendar className="h-6 w-6 text-gray-600" />
                 Key Project Milestones
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-xl">
-                  <p className="text-sm text-green-600 font-medium">Dec 5, 2025</p>
-                  <p className="font-bold text-green-800">Project Kickoff</p>
-                  <p className="text-sm text-green-700">Initial platform setup</p>
+                <div className="p-4 bg-white border border-gray-200 rounded-xl">
+                  <p className="text-sm text-gray-500 font-medium">Dec 5, 2025</p>
+                  <p className="font-bold text-gray-900">Project Kickoff</p>
+                  <p className="text-sm text-gray-600">Initial platform setup</p>
                 </div>
-                <div className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl">
-                  <p className="text-sm text-blue-600 font-medium">Feb 6, 2026</p>
-                  <p className="font-bold text-blue-800">System Demo Ready</p>
-                  <p className="text-sm text-blue-700">4822 leads imported</p>
+                <div className="p-4 bg-white border border-gray-200 rounded-xl">
+                  <p className="text-sm text-gray-500 font-medium">Feb 6, 2026</p>
+                  <p className="font-bold text-gray-900">System Demo Ready</p>
+                  <p className="text-sm text-gray-600">4822 leads imported</p>
                 </div>
-                <div className="p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl">
-                  <p className="text-sm text-purple-600 font-medium">Mar 9, 2026</p>
-                  <p className="font-bold text-purple-800">Major Revision Meeting</p>
-                  <p className="text-sm text-purple-700">Final UI requirements set</p>
+                <div className="p-4 bg-white border border-gray-200 rounded-xl">
+                  <p className="text-sm text-gray-500 font-medium">Mar 9, 2026</p>
+                  <p className="font-bold text-gray-900">Major Revision Meeting</p>
+                  <p className="text-sm text-gray-600">Final UI requirements set</p>
                 </div>
-                <div className="p-4 bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl">
-                  <p className="text-sm text-orange-600 font-medium">Apr 21, 2026</p>
-                  <p className="font-bold text-orange-800">Alignment Meeting</p>
-                  <p className="text-sm text-orange-700">15 final adjustments</p>
+                <div className="p-4 bg-white border border-gray-200 rounded-xl">
+                  <p className="text-sm text-gray-500 font-medium">Apr 21, 2026</p>
+                  <p className="font-bold text-gray-900">Alignment Meeting</p>
+                  <p className="text-sm text-gray-600">15 final adjustments</p>
                 </div>
-                <div className="p-4 bg-gradient-to-br from-pink-50 to-pink-100 rounded-xl">
-                  <p className="text-sm text-pink-600 font-medium">Apr 27, 2026</p>
-                  <p className="font-bold text-pink-800">Voucher System Live</p>
-                  <p className="text-sm text-pink-700">E-commerce complete</p>
+                <div className="p-4 bg-white border border-gray-200 rounded-xl">
+                  <p className="text-sm text-gray-500 font-medium">Apr 27, 2026</p>
+                  <p className="font-bold text-gray-900">Voucher System Live</p>
+                  <p className="text-sm text-gray-600">E-commerce complete</p>
                 </div>
-                <div className="p-4 bg-gradient-to-br from-[#ffeee8] to-[#ffddcc] rounded-xl">
-                  <p className="text-sm text-[#ff7f5c] font-medium">May 1, 2026</p>
-                  <p className="font-bold text-[#cc6048]">Training Scheduled</p>
-                  <p className="text-sm text-[#dd7050]">Final handover</p>
+                <div className="p-4 bg-white border border-gray-200 rounded-xl">
+                  <p className="text-sm text-gray-500 font-medium">May 1, 2026</p>
+                  <p className="font-bold text-gray-900">Training Scheduled</p>
+                  <p className="text-sm text-gray-600">Final handover</p>
                 </div>
               </div>
             </div>
@@ -1044,7 +1044,7 @@ export default function RequestHistoryPage() {
             {/* Media Gallery */}
             <div className="bg-white rounded-xl p-6 shadow-md md:col-span-2">
               <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-                <ImageIcon className="h-6 w-6 text-blue-500" />
+                <ImageIcon className="h-6 w-6 text-gray-600" />
                 WhatsApp Media Evidence
               </h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -1098,12 +1098,12 @@ export default function RequestHistoryPage() {
         )}
         
         {/* Summary Box */}
-        <div className="mt-8 bg-gradient-to-r from-[#ff7f5c] to-[#ff9b7a] rounded-2xl p-8 text-white">
-          <h2 className="text-2xl font-bold mb-4">📋 Project Summary</h2>
+        <div className="mt-8 bg-white border border-gray-200 rounded-2xl p-8">
+          <h2 className="text-2xl font-bold mb-4 text-gray-900">📋 Project Summary</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
-              <h3 className="font-bold text-lg mb-2">✅ Delivered</h3>
-              <ul className="space-y-1 text-sm opacity-90">
+              <h3 className="font-bold text-lg mb-2 text-gray-900">✅ Delivered</h3>
+              <ul className="space-y-1 text-sm text-gray-600">
                 <li>• Full website with 10+ pages</li>
                 <li>• Booking system with Stripe</li>
                 <li>• CRM with 4800+ leads</li>
@@ -1113,16 +1113,16 @@ export default function RequestHistoryPage() {
               </ul>
             </div>
             <div>
-              <h3 className="font-bold text-lg mb-2">⏳ Pending</h3>
-              <ul className="space-y-1 text-sm opacity-90">
+              <h3 className="font-bold text-lg mb-2 text-gray-900">⏳ Pending</h3>
+              <ul className="space-y-1 text-sm text-gray-600">
                 <li>• Final training session (scheduled)</li>
                 <li>• May monthly specials (awaiting Excel)</li>
                 <li>• WhatsApp Business (4-month client process)</li>
               </ul>
             </div>
             <div>
-              <h3 className="font-bold text-lg mb-2">📊 Metrics</h3>
-              <ul className="space-y-1 text-sm opacity-90">
+              <h3 className="font-bold text-lg mb-2 text-gray-900">📊 Metrics</h3>
+              <ul className="space-y-1 text-sm text-gray-600">
                 <li>• {completion.percentage}% completion rate</li>
                 <li>• {gitStats.totalCommits} commits over 5 months</li>
                 <li>• 401 WhatsApp messages</li>
@@ -1143,9 +1143,9 @@ export default function RequestHistoryPage() {
             <a 
               href="/request-history/web_dev_SOW_Mamalu Kitchen.pdf" 
               target="_blank"
-              className="flex items-center gap-3 p-4 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
+              className="flex items-center gap-3 p-4 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
             >
-              <FileText className="h-8 w-8 text-red-500" />
+              <FileText className="h-8 w-8 text-gray-500" />
               <div>
                 <p className="font-bold text-gray-900">Statement of Work</p>
                 <p className="text-sm text-gray-500">web_dev_SOW_Mamalu Kitchen.pdf</p>
@@ -1154,9 +1154,9 @@ export default function RequestHistoryPage() {
             <a 
               href="/request-history/Mutant x MamaluKitchen_MOA.pdf" 
               target="_blank"
-              className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+              className="flex items-center gap-3 p-4 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
             >
-              <FileText className="h-8 w-8 text-blue-500" />
+              <FileText className="h-8 w-8 text-gray-500" />
               <div>
                 <p className="font-bold text-gray-900">Memorandum of Agreement</p>
                 <p className="text-sm text-gray-500">Mutant x MamaluKitchen_MOA.pdf</p>
@@ -1165,9 +1165,9 @@ export default function RequestHistoryPage() {
             <a 
               href="/request-history/WhatsApp Chat with MamaLu automation.txt" 
               target="_blank"
-              className="flex items-center gap-3 p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors"
+              className="flex items-center gap-3 p-4 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
             >
-              <MessageSquare className="h-8 w-8 text-green-500" />
+              <MessageSquare className="h-8 w-8 text-gray-500" />
               <div>
                 <p className="font-bold text-gray-900">WhatsApp Chat Log</p>
                 <p className="text-sm text-gray-500">401 messages (Jan-Apr 2026)</p>
