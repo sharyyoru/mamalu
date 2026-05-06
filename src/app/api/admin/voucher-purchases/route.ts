@@ -14,14 +14,33 @@ export async function GET(request: NextRequest) {
       .select("*")
       .order("created_at", { ascending: false });
 
-    if (status && status !== "all") {
+    if (status && status !== "all" && status !== "claimed") {
       query = query.eq("status", status);
     }
 
     const { data, error } = await query;
     if (error) throw error;
 
-    return NextResponse.json({ purchases: data || [] });
+    // Get list of claimed voucher codes from voucher_redemptions
+    const { data: redemptions } = await supabase
+      .from("voucher_redemptions")
+      .select("voucher_code");
+    
+    const claimedCodes = new Set(redemptions?.map((r: any) => r.voucher_code) || []);
+
+    // Add is_claimed flag to each purchase
+    const purchasesWithClaimed = (data || []).map((p: any) => ({
+      ...p,
+      is_claimed: p.voucher_code ? claimedCodes.has(p.voucher_code) : false,
+    }));
+
+    // Filter by claimed status if requested
+    let filteredPurchases = purchasesWithClaimed;
+    if (status === "claimed") {
+      filteredPurchases = purchasesWithClaimed.filter((p: any) => p.is_claimed);
+    }
+
+    return NextResponse.json({ purchases: filteredPurchases });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

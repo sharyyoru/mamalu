@@ -35,6 +35,10 @@ export async function POST(request: NextRequest) {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
+        console.log("🔔 checkout.session.completed received");
+        console.log("Session metadata:", JSON.stringify(session.metadata, null, 2));
+        console.log("Session ID:", session.id);
+        
         const bookingId = session.metadata?.booking_id;
         const isCustomPaymentLink = session.metadata?.type === "custom_payment_link";
 
@@ -134,30 +138,48 @@ export async function POST(request: NextRequest) {
         // Handle voucher purchases
         if (session.metadata?.type === "voucher_purchase") {
           try {
+            console.log("🎫 Processing voucher purchase webhook");
+            console.log("Session ID:", session.id);
+            console.log("Metadata:", session.metadata);
+            
             const customerName = session.metadata.customer_name;
             const customerEmail = session.metadata.customer_email || session.customer_email || "";
             const amount = parseFloat(session.metadata.amount || "0");
 
+            console.log(`Customer: ${customerName} (${customerEmail}), Amount: ${amount}`);
+
             // Find an available voucher of this amount (not yet assigned)
-            const { data: availableVouchers } = await supabase
+            const { data: availableVouchers, error: voucherFetchError } = await supabase
               .from("vouchers")
               .select("id, code")
               .eq("discount_value", amount)
               .eq("is_active", true)
               .limit(10);
 
+            if (voucherFetchError) {
+              console.error("Error fetching vouchers:", voucherFetchError);
+            }
+            console.log(`Found ${availableVouchers?.length || 0} available vouchers for AED ${amount}`);
+
             // Pick the first voucher not already used in a paid purchase
-            const { data: usedVoucherIds } = await supabase
+            const { data: usedVoucherIds, error: usedError } = await supabase
               .from("voucher_purchases")
               .select("voucher_id")
               .eq("status", "paid")
               .not("voucher_id", "is", null);
 
+            if (usedError) {
+              console.error("Error fetching used vouchers:", usedError);
+            }
+
             const usedIds = new Set((usedVoucherIds || []).map((r: any) => r.voucher_id));
+            console.log(`${usedIds.size} vouchers already used`);
+            
             const chosen = (availableVouchers || []).find((v: any) => !usedIds.has(v.id));
+            console.log(`Chosen voucher:`, chosen ? `${chosen.code} (ID: ${chosen.id})` : "NONE AVAILABLE");
 
             // Update the pending purchase record
-            await supabase
+            const { error: updateError } = await supabase
               .from("voucher_purchases")
               .update({
                 status: "paid",
@@ -168,25 +190,37 @@ export async function POST(request: NextRequest) {
               })
               .eq("stripe_session_id", session.id);
 
+            if (updateError) {
+              console.error("❌ Error updating voucher purchase:", updateError);
+            } else {
+              console.log("✅ Voucher purchase record updated");
+            }
+
             // Send email with the code
             if (chosen && customerEmail) {
+              console.log(`📧 Sending voucher email to ${customerEmail}`);
               const { success } = await sendVoucherConfirmationEmail({
                 customerName,
                 customerEmail,
                 amount,
                 voucherCode: chosen.code,
               });
+              
+              console.log(`Email send result: ${success ? "✅ SUCCESS" : "❌ FAILED"}`);
+              
               if (success) {
                 await supabase
                   .from("voucher_purchases")
                   .update({ email_sent_at: new Date().toISOString() })
                   .eq("stripe_session_id", session.id);
               }
+            } else {
+              console.warn("⚠️ Cannot send email - missing voucher or customer email");
             }
 
-            console.log(`Voucher purchase completed for ${customerEmail} – code: ${chosen?.code}`);
+            console.log(`✅ Voucher purchase completed for ${customerEmail} – code: ${chosen?.code || "N/A"}`);
           } catch (voucherError) {
-            console.error("Failed to process voucher purchase:", voucherError);
+            console.error("❌ Failed to process voucher purchase:", voucherError);
           }
         }
 

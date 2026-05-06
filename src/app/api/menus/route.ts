@@ -12,13 +12,13 @@ export async function GET(request: NextRequest) {
 
     let query = supabase
       .from("menu_items")
-      .select("id, category, name, description, dishes, price, price_unit, image_url, emoji, is_popular, sort_order, min_guests, max_guests")
+      .select("id, categories, name, description, dishes, price, price_unit, image_url, emoji, is_popular, sort_order, min_guests, max_guests")
       .eq("is_active", true)
       .order("sort_order", { ascending: true })
       .order("name", { ascending: true });
 
     if (category) {
-      query = query.eq("category", category);
+      query = query.eq("categories", category);
     }
 
     const { data, error } = await query;
@@ -27,8 +27,8 @@ export async function GET(request: NextRequest) {
     // Group by category
     const grouped: Record<string, any[]> = {};
     (data || []).forEach((item) => {
-      if (!grouped[item.category]) grouped[item.category] = [];
-      grouped[item.category].push(item);
+      if (!grouped[item.categories]) grouped[item.categories] = [];
+      grouped[item.categories].push(item);
     });
 
     return NextResponse.json({ items: data || [], grouped });

@@ -8,15 +8,28 @@ export async function GET() {
 
     const { data, error } = await supabase
       .from("vouchers")
-      .select("id, discount_value, is_active")
+      .select("id, code, discount_value, is_active")
       .eq("is_active", true)
       .order("discount_value", { ascending: true });
 
     if (error) throw error;
 
-    // Group by amount
+    // Get all purchased voucher codes (status = 'paid')
+    const { data: purchases } = await supabase
+      .from("voucher_purchases")
+      .select("voucher_code")
+      .eq("status", "paid");
+
+    const purchasedCodes = new Set(purchases?.map(p => p.voucher_code).filter(Boolean) || []);
+
+    // Filter out purchased vouchers and group by amount
     const groups: Record<number, { amount: number; count: number }> = {};
     for (const v of data || []) {
+      // Skip if this voucher has been purchased
+      if (v.code && purchasedCodes.has(v.code)) {
+        continue;
+      }
+
       if (!groups[v.discount_value]) {
         groups[v.discount_value] = { amount: v.discount_value, count: 0 };
       }

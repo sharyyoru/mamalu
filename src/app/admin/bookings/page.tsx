@@ -29,6 +29,7 @@ import {
   CalendarDays,
   ChevronLeft,
   ChevronRight,
+  Ticket,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -90,6 +91,10 @@ interface ServiceBooking {
     stripe_payment_link_url: string | null;
     status: string;
   } | null;
+  // Voucher redemption fields
+  is_voucher_redemption?: boolean;
+  voucher_code?: string;
+  original_price?: number;
 }
 
 interface BookingStats {
@@ -295,6 +300,8 @@ export default function AdminBookingsPage() {
         return <Building2 className="h-4 w-4" />;
       case "nanny_class":
         return <ChefHat className="h-4 w-4" />;
+      case "voucher":
+        return <Ticket className="h-4 w-4 text-green-600" />;
       default:
         return <ChefHat className="h-4 w-4" />;
     }
@@ -448,6 +455,7 @@ export default function AdminBookingsPage() {
               <option value="birthday_deck">Birthday</option>
               <option value="corporate_deck">Corporate</option>
               <option value="nanny_class">Nanny Class</option>
+              <option value="voucher">Voucher</option>
             </select>
             <select
               value={creatorFilter}
@@ -644,7 +652,12 @@ export default function AdminBookingsPage() {
                             {getServiceTypeIcon(booking.service_type)}
                             <div>
                               <div className="text-stone-900">{booking.service_name}</div>
-                              {booking.menu_name && (
+                              {booking.is_voucher_redemption && booking.voucher_code && (
+                                <Badge className="bg-green-100 text-green-700 text-xs">
+                                  Voucher: {booking.voucher_code}
+                                </Badge>
+                              )}
+                              {!booking.is_voucher_redemption && booking.menu_name && (
                                 <div className="text-xs text-stone-500">{booking.menu_name}</div>
                               )}
                             </div>
@@ -661,11 +674,22 @@ export default function AdminBookingsPage() {
                           )}
                         </td>
                         <td className="px-4 py-3">
-                          <div className="font-medium text-stone-900">{formatPrice(booking.total_amount)}</div>
-                          {booking.is_deposit_payment && (
-                            <div className="text-xs text-stone-500">
-                              Deposit: {formatPrice(booking.deposit_amount || 0)}
+                          {booking.is_voucher_redemption ? (
+                            <div>
+                              <div className="font-medium text-green-600">FREE</div>
+                              <div className="text-xs text-stone-500 line-through">
+                                {formatPrice(booking.original_price || 0)}
+                              </div>
                             </div>
+                          ) : (
+                            <>
+                              <div className="font-medium text-stone-900">{formatPrice(booking.total_amount)}</div>
+                              {booking.is_deposit_payment && (
+                                <div className="text-xs text-stone-500">
+                                  Deposit: {formatPrice(booking.deposit_amount || 0)}
+                                </div>
+                              )}
+                            </>
                           )}
                         </td>
                         <td className="px-4 py-3">
@@ -1562,6 +1586,7 @@ function CalendarGrid({ bookings, date, view, timeSlots, onSelectBooking }: Cale
       case "birthday_deck": return "bg-pink-100 border-pink-300 text-pink-800";
       case "corporate_deck": return "bg-indigo-100 border-indigo-300 text-indigo-800";
       case "nanny_class": return "bg-emerald-100 border-emerald-300 text-emerald-800";
+      case "voucher": return "bg-green-100 border-green-300 text-green-800";
       default: return "bg-amber-100 border-amber-300 text-amber-800";
     }
   };

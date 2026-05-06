@@ -25,6 +25,7 @@ interface Purchase {
   email_sent_at: string | null;
   paid_at: string | null;
   created_at: string;
+  is_claimed?: boolean;
 }
 
 const STATUS_STYLE: Record<string, string> = {
@@ -32,6 +33,7 @@ const STATUS_STYLE: Record<string, string> = {
   pending: "bg-yellow-100 text-yellow-700",
   failed: "bg-red-100 text-red-600",
   refunded: "bg-stone-100 text-stone-500",
+  claimed: "bg-purple-100 text-purple-700",
 };
 
 export default function VoucherPurchasesPage() {
@@ -125,6 +127,7 @@ export default function VoucherPurchasesPage() {
           <option value="all">All Status</option>
           <option value="paid">Paid</option>
           <option value="pending">Pending</option>
+          <option value="claimed">Claimed</option>
           <option value="failed">Failed</option>
           <option value="refunded">Refunded</option>
         </select>
@@ -187,12 +190,19 @@ export default function VoucherPurchasesPage() {
                   </td>
                   {/* Status */}
                   <td className="px-6 py-4">
-                    <Badge
-                      className={STATUS_STYLE[p.status] || "bg-stone-100 text-stone-500"}
-                      variant="outline"
-                    >
-                      {p.status.charAt(0).toUpperCase() + p.status.slice(1)}
-                    </Badge>
+                    <div className="flex flex-wrap gap-1">
+                      <Badge
+                        className={STATUS_STYLE[p.status] || "bg-stone-100 text-stone-500"}
+                        variant="outline"
+                      >
+                        {p.status.charAt(0).toUpperCase() + p.status.slice(1)}
+                      </Badge>
+                      {p.is_claimed && (
+                        <Badge className={STATUS_STYLE.claimed} variant="outline">
+                          Claimed
+                        </Badge>
+                      )}
+                    </div>
                   </td>
                   {/* Email */}
                   <td className="px-6 py-4">

@@ -66,19 +66,100 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    // Calculate stats from all bookings
+    // Fetch voucher redemptions (only if no service type filter or filter is 'voucher')
+    let voucherRedemptions: any[] = [];
+    if (!serviceType || serviceType === "all" || serviceType === "voucher") {
+      let voucherQuery = supabase
+        .from("voucher_redemptions")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (status && status !== "all") {
+        voucherQuery = voucherQuery.eq("status", status);
+      }
+
+      if (startDate) {
+        voucherQuery = voucherQuery.gte("created_at", `${startDate}T00:00:00`);
+      }
+
+      if (endDate) {
+        voucherQuery = voucherQuery.lte("created_at", `${endDate}T23:59:59`);
+      }
+
+      const { data: redemptions, error: redemptionError } = await voucherQuery;
+      
+      if (!redemptionError && redemptions) {
+        // Transform voucher redemptions to match booking structure
+        voucherRedemptions = redemptions.map((r: any) => ({
+          id: r.id,
+          booking_number: `VR-${r.voucher_code}`,
+          service_id: null,
+          service_name: r.menu_item_name,
+          service_type: "voucher",
+          package_id: null,
+          package_name: null,
+          menu_id: r.menu_item_id,
+          menu_name: r.menu_item_name,
+          menu_price: r.menu_item_price,
+          customer_name: r.customer_name,
+          customer_email: r.customer_email,
+          customer_phone: r.customer_phone,
+          company_name: null,
+          event_date: r.event_date,
+          event_time: r.time_slot,
+          guest_count: r.number_of_guests || 1,
+          extras: [],
+          base_amount: r.menu_item_price,
+          extras_amount: 0,
+          total_amount: 0, // Free via voucher
+          is_deposit_payment: false,
+          deposit_amount: null,
+          balance_amount: null,
+          deposit_paid: true,
+          balance_paid: true,
+          payment_status: "paid",
+          paid_at: r.redeemed_at,
+          special_requests: r.special_requests,
+          notes: `Voucher: ${r.voucher_code}`,
+          status: r.status,
+          created_at: r.created_at,
+          created_by: null,
+          payment_link_id: null,
+          creator: null,
+          payment_link: null,
+          is_voucher_redemption: true,
+          voucher_code: r.voucher_code,
+          original_price: r.menu_item_price,
+        }));
+      }
+    }
+
+    // Merge and sort by created_at
+    const allBookings_merged = [...(bookings || []), ...voucherRedemptions].sort(
+      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
+
+    // Calculate stats from all bookings (including voucher redemptions)
     const { data: allBookings } = await supabase
       .from("service_bookings")
       .select("status, payment_status, paid_at, total_amount, deposit_amount, deposit_paid, balance_paid, is_deposit_payment");
 
+    // Get voucher redemption stats
+    const { data: allVoucherRedemptions } = await supabase
+      .from("voucher_redemptions")
+      .select("status");
+
+    const voucherCount = allVoucherRedemptions?.length || 0;
+    const voucherPending = allVoucherRedemptions?.filter((r: any) => r.status === "pending").length || 0;
+
     const stats = {
-      total: allBookings?.length || 0,
+      total: (allBookings?.length || 0) + voucherCount,
       confirmed: allBookings?.filter((b) => b.status === "confirmed").length || 0,
-      pending: allBookings?.filter((b) => b.status === "pending").length || 0,
+      pending: (allBookings?.filter((b) => b.status === "pending").length || 0) + voucherPending,
       completed: allBookings?.filter((b) => b.status === "completed").length || 0,
       cancelled: allBookings?.filter((b) => b.status === "cancelled").length || 0,
       // Payment stats
-      fullyPaid: allBookings?.filter((b) => b.paid_at || (b.is_deposit_payment && b.deposit_paid && b.balance_paid)).length || 0,
+      fullyPaid: (allBookings?.filter((b) => b.paid_at || (b.is_deposit_payment && b.deposit_paid && b.balance_paid)).length || 0) + (voucherCount - voucherPending),
       depositPending: allBookings?.filter((b) => b.is_deposit_payment && !b.deposit_paid).length || 0,
       balancePending: allBookings?.filter((b) => b.is_deposit_payment && b.deposit_paid && !b.balance_paid).length || 0,
       // Revenue
@@ -107,7 +188,7 @@ export async function GET(request: NextRequest) {
       creatorsList = profiles || [];
     }
 
-    return NextResponse.json({ bookings, stats, creators: creatorsList });
+    return NextResponse.json({ bookings: allBookings_merged, stats, creators: creatorsList });
   } catch (error) {
     console.error("Get bookings error:", error);
     return NextResponse.json({ error: "Failed to fetch bookings" }, { status: 500 });
