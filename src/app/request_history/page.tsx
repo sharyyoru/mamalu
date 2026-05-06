@@ -432,7 +432,7 @@ const timelineEvents = [
       "Mini chef: boy/girl alternating icons",
       "Big chef: knife/whisk alternating",
       "Human images centered",
-      "Update monthly specials from Excel"
+      "Monthly specials removed per client request"
     ]
   },
   {
@@ -474,6 +474,13 @@ const timelineEvents = [
     description: "Updated Eazy Freezy image, expanded hero slider with 13 professional photos",
     commits: ["9fc0f07"],
     category: "design"
+  },
+  {
+    date: "2026-05-06",
+    type: "whatsapp",
+    title: "📱 Monthly Specials Removed",
+    description: "Client requested removal of monthly specials feature from the website scope.",
+    category: "requirements"
   }
 ];
 
@@ -577,7 +584,6 @@ const sowDeliverables: DeliverableCategory[] = [
     category: "Pending/Awaiting Client",
     items: [
       { name: "WhatsApp Business integration", status: "blocked", completion: 0, note: "Client needs 4 months to process" },
-      { name: "Monthly specials Excel (May)", status: "pending", completion: 50, note: "Awaiting client Excel" },
       { name: "Final training session", status: "in_progress", completion: 80, note: "Scheduled" },
     ]
   }
@@ -1116,7 +1122,6 @@ export default function RequestHistoryPage() {
               <h3 className="font-bold text-lg mb-2 text-gray-900">⏳ Pending</h3>
               <ul className="space-y-1 text-sm text-gray-600">
                 <li>• Final training session (scheduled)</li>
-                <li>• May monthly specials (awaiting Excel)</li>
                 <li>• WhatsApp Business (4-month client process)</li>
               </ul>
             </div>
