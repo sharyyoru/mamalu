@@ -11,6 +11,19 @@ import {
   Smartphone, Image as ImageIcon, Palette, Settings
 } from "lucide-react";
 
+// Type Definitions
+interface DeliverableItem {
+  name: string;
+  status: string;
+  completion: number;
+  note?: string;
+}
+
+interface DeliverableCategory {
+  category: string;
+  items: DeliverableItem[];
+}
+
 // Timeline Events Data
 const timelineEvents = [
   // December 2025 - Project Inception
@@ -465,7 +478,7 @@ const timelineEvents = [
 ];
 
 // SOW Deliverables
-const sowDeliverables = [
+const sowDeliverables: DeliverableCategory[] = [
   {
     category: "Website Development",
     items: [
@@ -909,7 +922,7 @@ export default function RequestHistoryPage() {
                             </span>
                           </div>
                           <div className="flex items-center gap-3">
-                            {item.note && (
+                            {"note" in item && item.note && (
                               <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
                                 {item.note}
                               </span>
