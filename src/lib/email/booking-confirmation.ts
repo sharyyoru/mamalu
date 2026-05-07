@@ -109,10 +109,10 @@ function generateEmailHtml(booking: BookingDetails, qrCodes: QRCodeInfo[]): stri
   const isMultipleGuests = qrCodes.length > 1;
 
   const qrCodesHtml = qrCodes.map((qr, index) => `
-    <div style="background-color: #ffffff; padding: 15px; display: inline-block; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin: 10px; vertical-align: top;">
-      <p style="color: #1c1917; font-weight: 600; margin: 0 0 10px 0; font-size: 14px;">${qr.guestName}</p>
+    <div style="background-color: #ffffff; padding: 20px; display: inline-block; border: 2px solid #000000; margin: 10px; vertical-align: top;">
+      <p style="color: #000000; font-weight: 600; margin: 0 0 15px 0; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">${qr.guestName}</p>
       <img src="${qr.dataUrl}" alt="Check-in QR Code for ${qr.guestName}" style="width: 150px; height: 150px; display: block;" />
-      <p style="color: #78716c; margin: 10px 0 0 0; font-size: 11px;">Guest ${qr.guestNumber} of ${qrCodes.length}</p>
+      <p style="color: #666666; margin: 15px 0 0 0; font-size: 11px;">Guest ${qr.guestNumber} of ${qrCodes.length}</p>
     </div>
   `).join("");
 
@@ -124,68 +124,62 @@ function generateEmailHtml(booking: BookingDetails, qrCodes: QRCodeInfo[]): stri
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Booking Confirmation</title>
 </head>
-<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #fafaf9;">
+<body style="margin: 0; padding: 0; font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif; background-color: #ffffff;">
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
     <!-- Header -->
     <tr>
-      <td style="background-color: #ff7f5c; padding: 30px; text-align: center;">
-        <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: bold;">Mamalu Kitchen</h1>
-        <p style="color: #ffffff; margin: 10px 0 0 0; font-size: 14px;">Authentic Home-Cooked Flavors</p>
+      <td style="padding: 40px 30px 30px; text-align: center; border-bottom: 1px solid #000000;">
+        <img src="https://mamalu.ae/logos/logo-transparent.png" alt="Mamalu Kitchen" style="width: 180px; height: auto; margin: 0 auto;" />
       </td>
     </tr>
     
     <!-- Success Banner -->
     <tr>
-      <td style="padding: 30px; text-align: center; background-color: #f0fdf4;">
-        <div style="width: 60px; height: 60px; background-color: #22c55e; border-radius: 50%; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center;">
-          <span style="color: white; font-size: 30px;">✓</span>
-        </div>
-        <h2 style="color: #166534; margin: 0 0 10px 0; font-size: 24px;">Booking Confirmed!</h2>
-        <p style="color: #15803d; margin: 0; font-size: 16px;">Your payment has been received successfully.</p>
+      <td style="padding: 50px 30px 30px; text-align: center;">
+        <h1 style="color: #000000; margin: 0 0 10px; font-size: 24px; font-weight: 600; letter-spacing: -0.5px;">Booking Confirmed</h1>
+        <p style="color: #666666; margin: 0; font-size: 15px;">Your payment has been received successfully</p>
       </td>
     </tr>
     
     <!-- Booking Details -->
     <tr>
-      <td style="padding: 30px;">
-        <h3 style="color: #1c1917; margin: 0 0 20px 0; font-size: 18px; border-bottom: 2px solid #ff7f5c; padding-bottom: 10px;">Booking Details</h3>
-        
-        <table role="presentation" width="100%" cellspacing="0" cellpadding="8" style="font-size: 14px;">
+      <td style="padding: 20px 30px 40px;">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="12" style="font-size: 14px; border-top: 1px solid #e5e5e5; border-bottom: 1px solid #e5e5e5;">
           <tr>
-            <td style="color: #78716c; width: 140px;">Booking Number:</td>
-            <td style="color: #1c1917; font-weight: 600;">${booking.bookingNumber}</td>
+            <td style="color: #666666; width: 140px; padding: 12px 0;">Booking Number</td>
+            <td style="color: #000000; font-weight: 600; padding: 12px 0;">${booking.bookingNumber}</td>
           </tr>
           <tr>
-            <td style="color: #78716c;">Name:</td>
-            <td style="color: #1c1917;">${booking.attendeeName}</td>
+            <td style="color: #666666; padding: 12px 0; border-top: 1px solid #f5f5f5;">Name</td>
+            <td style="color: #000000; font-weight: 500; padding: 12px 0; border-top: 1px solid #f5f5f5;">${booking.attendeeName}</td>
           </tr>
           <tr>
-            <td style="color: #78716c;">Class:</td>
-            <td style="color: #1c1917; font-weight: 600;">${booking.classTitle}</td>
+            <td style="color: #666666; padding: 12px 0; border-top: 1px solid #f5f5f5;">Class</td>
+            <td style="color: #000000; font-weight: 500; padding: 12px 0; border-top: 1px solid #f5f5f5;">${booking.classTitle}</td>
           </tr>
           <tr>
-            <td style="color: #78716c;">Date:</td>
-            <td style="color: #1c1917;">${booking.classDate}</td>
+            <td style="color: #666666; padding: 12px 0; border-top: 1px solid #f5f5f5;">Date</td>
+            <td style="color: #000000; padding: 12px 0; border-top: 1px solid #f5f5f5;">${booking.classDate}</td>
           </tr>
           <tr>
-            <td style="color: #78716c;">Time:</td>
-            <td style="color: #1c1917;">${booking.classTime}</td>
+            <td style="color: #666666; padding: 12px 0; border-top: 1px solid #f5f5f5;">Time</td>
+            <td style="color: #000000; padding: 12px 0; border-top: 1px solid #f5f5f5;">${booking.classTime}</td>
           </tr>
           <tr>
-            <td style="color: #78716c;">Location:</td>
-            <td style="color: #1c1917;">${booking.location}</td>
+            <td style="color: #666666; padding: 12px 0; border-top: 1px solid #f5f5f5;">Location</td>
+            <td style="color: #000000; padding: 12px 0; border-top: 1px solid #f5f5f5;">${booking.location}</td>
           </tr>
           <tr>
-            <td style="color: #78716c;">Number of Guests:</td>
-            <td style="color: #1c1917; font-weight: 600;">${numberOfGuests}</td>
+            <td style="color: #666666; padding: 12px 0; border-top: 1px solid #f5f5f5;">Guests</td>
+            <td style="color: #000000; font-weight: 500; padding: 12px 0; border-top: 1px solid #f5f5f5;">${numberOfGuests}</td>
           </tr>
           <tr>
-            <td style="color: #78716c;">Sessions:</td>
-            <td style="color: #1c1917;">${booking.sessionsBooked}</td>
+            <td style="color: #666666; padding: 12px 0; border-top: 1px solid #f5f5f5;">Sessions</td>
+            <td style="color: #000000; padding: 12px 0; border-top: 1px solid #f5f5f5;">${booking.sessionsBooked}</td>
           </tr>
           <tr>
-            <td style="color: #78716c;">Amount Paid:</td>
-            <td style="color: #22c55e; font-weight: 600;">AED ${booking.totalAmount.toFixed(2)}</td>
+            <td style="color: #666666; padding: 12px 0; border-top: 1px solid #f5f5f5;">Amount Paid</td>
+            <td style="color: #000000; font-weight: 600; padding: 12px 0; border-top: 1px solid #f5f5f5;">AED ${booking.totalAmount.toFixed(2)}</td>
           </tr>
         </table>
       </td>
@@ -193,11 +187,11 @@ function generateEmailHtml(booking: BookingDetails, qrCodes: QRCodeInfo[]): stri
     
     <!-- QR Code Section -->
     <tr>
-      <td style="padding: 20px 30px 30px; text-align: center; background-color: #fef3c7;">
-        <h3 style="color: #92400e; margin: 0 0 15px 0; font-size: 18px;">
+      <td style="padding: 30px; text-align: center; background-color: #fafafa; border-top: 1px solid #e5e5e5; border-bottom: 1px solid #e5e5e5;">
+        <h3 style="color: #000000; margin: 0 0 10px 0; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
           ${isMultipleGuests ? `Check-In QR Codes (${qrCodes.length} Guests)` : "Your Check-In QR Code"}
         </h3>
-        <p style="color: #a16207; margin: 0 0 20px 0; font-size: 14px;">
+        <p style="color: #666666; margin: 0 0 25px 0; font-size: 13px;">
           ${isMultipleGuests 
             ? "Each guest must present their own QR code for entry" 
             : "Present this QR code when you arrive for quick check-in"}
@@ -205,7 +199,7 @@ function generateEmailHtml(booking: BookingDetails, qrCodes: QRCodeInfo[]): stri
         <div style="text-align: center;">
           ${qrCodesHtml}
         </div>
-        <p style="color: #78716c; margin: 15px 0 0 0; font-size: 12px;">
+        <p style="color: #999999; margin: 20px 0 0 0; font-size: 11px;">
           QR codes are also attached to this email for offline access
         </p>
       </td>
@@ -213,9 +207,9 @@ function generateEmailHtml(booking: BookingDetails, qrCodes: QRCodeInfo[]): stri
     
     <!-- Important Notes -->
     <tr>
-      <td style="padding: 30px; background-color: #f5f5f4;">
-        <h3 style="color: #1c1917; margin: 0 0 15px 0; font-size: 16px;">📋 Important Information</h3>
-        <ul style="color: #57534e; margin: 0; padding-left: 20px; font-size: 14px; line-height: 1.8;">
+      <td style="padding: 30px; background-color: #fafafa; border-bottom: 1px solid #e5e5e5;">
+        <h3 style="color: #000000; margin: 0 0 15px 0; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Important Information</h3>
+        <ul style="color: #666666; margin: 0; padding-left: 20px; font-size: 13px; line-height: 1.8;">
           <li>Please arrive 10-15 minutes before the class starts</li>
           <li>Bring your QR code (on phone or printed)</li>
           <li>Wear comfortable clothing suitable for cooking</li>
@@ -226,14 +220,11 @@ function generateEmailHtml(booking: BookingDetails, qrCodes: QRCodeInfo[]): stri
     
     <!-- Footer -->
     <tr>
-      <td style="padding: 30px; text-align: center; background-color: #1c1917;">
-        <p style="color: #a8a29e; margin: 0 0 10px 0; font-size: 14px;">
-          Thank you for booking with Mamalu Kitchen!
+      <td style="padding: 30px; text-align: center;">
+        <p style="color: #666666; margin: 0 0 10px 0; font-size: 13px;">
+          Questions? Contact us at <a href="mailto:info@mamalukitchen.com" style="color: #000000; text-decoration: none; border-bottom: 1px solid #000000;">info@mamalukitchen.com</a> or WhatsApp <a href="https://wa.me/971527479512" style="color: #000000; text-decoration: none; border-bottom: 1px solid #000000;">+971 52 747 9512</a>
         </p>
-        <p style="color: #78716c; margin: 0; font-size: 12px;">
-          Questions? Reply to this email or contact us at support@mamalu.ae
-        </p>
-        <p style="color: #57534e; margin: 20px 0 0 0; font-size: 11px;">
+        <p style="color: #999999; margin: 20px 0 0 0; font-size: 11px;">
           © ${new Date().getFullYear()} Mamalu Kitchen. All rights reserved.
         </p>
       </td>

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { sendVoucherRedemptionConfirmation } from "@/lib/email/voucher-redemption-confirmation";
 
 export async function POST(request: NextRequest) {
   try {
@@ -125,6 +126,35 @@ export async function POST(request: NextRequest) {
         { error: "Failed to process redemption" },
         { status: 500 }
       );
+    }
+
+    // Send confirmation email to customer
+    console.log(`📧 Sending voucher redemption confirmation to ${customerDetails.email}`);
+    const emailResult = await sendVoucherRedemptionConfirmation({
+      customerName: customerDetails.name,
+      customerEmail: customerDetails.email,
+      voucherCode: voucher.code,
+      experienceName: menuItem.name,
+      eventDate: customerDetails.eventDate,
+      timeSlot: customerDetails.timeSlot,
+      numberOfGuests: customerDetails.numberOfGuests || 1,
+      originalPrice: Number(menuItem.price),
+      specialRequests: customerDetails.specialRequests,
+    });
+
+    if (emailResult.success) {
+      console.log("✅ Confirmation email sent successfully");
+      
+      // Update redemption record with email sent timestamp
+      if (redemptionId) {
+        await supabase
+          .from("voucher_redemptions")
+          .update({ email_sent_at: new Date().toISOString() })
+          .eq("id", redemptionId);
+      }
+    } else {
+      console.error("❌ Failed to send confirmation email:", emailResult.error);
+      // Don't fail the entire redemption if email fails
     }
 
     return NextResponse.json({

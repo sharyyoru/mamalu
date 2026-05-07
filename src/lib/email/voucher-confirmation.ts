@@ -35,40 +35,42 @@ function generateEmailHtml({ customerName, amount, voucherCode }: VoucherEmailDe
 <!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-<body style="margin:0;padding:0;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background-color:#fafaf9;">
+<body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;background-color:#ffffff;">
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:0 auto;background-color:#ffffff;">
     <tr>
-      <td style="background-color:#ff7f5c;padding:30px;text-align:center;">
-        <h1 style="color:#ffffff;margin:0;font-size:28px;font-weight:bold;">Mamalu Kitchen</h1>
-        <p style="color:#ffffff;margin:10px 0 0;font-size:14px;">Gift Card</p>
+      <td style="padding:40px 30px 30px;text-align:center;border-bottom:1px solid #000000;">
+        <img src="https://mamalu.ae/logos/logo-transparent.png" alt="Mamalu Kitchen" style="width:180px;height:auto;margin:0 auto;" />
       </td>
     </tr>
     <tr>
-      <td style="padding:30px;text-align:center;background-color:#fff5eb;">
-        <p style="color:#78716c;margin:0 0 8px;font-size:14px;">Hi ${customerName}, your gift card is ready! 🎁</p>
-        <p style="color:#1c1917;font-size:40px;font-weight:bold;margin:0;">AED ${amount.toFixed(2)}</p>
+      <td style="padding:50px 30px 30px;text-align:center;">
+        <h1 style="color:#000000;margin:0 0 10px;font-size:24px;font-weight:600;letter-spacing:-0.5px;">Gift Card</h1>
+        <p style="color:#666666;margin:0 0 30px;font-size:15px;">Hi ${customerName}, your gift card is ready!</p>
+        <p style="color:#000000;font-size:48px;font-weight:700;margin:0;letter-spacing:-1px;">AED ${amount.toFixed(2)}</p>
       </td>
     </tr>
     <tr>
-      <td style="padding:30px;text-align:center;">
-        <p style="color:#78716c;margin:0 0 16px;font-size:14px;">Use this code at checkout:</p>
-        <div style="display:inline-block;background-color:#1c1917;border-radius:12px;padding:18px 32px;">
-          <span style="color:#ff7f5c;font-size:28px;font-weight:bold;letter-spacing:6px;font-family:monospace;">${voucherCode}</span>
+      <td style="padding:20px 30px 40px;text-align:center;">
+        <p style="color:#666666;margin:0 0 20px;font-size:14px;text-transform:uppercase;letter-spacing:0.5px;font-weight:500;">Your Code</p>
+        <div style="display:inline-block;border:2px solid #000000;padding:20px 40px;margin:0 0 20px;">
+          <span style="color:#000000;font-size:32px;font-weight:700;letter-spacing:4px;font-family:monospace;">${voucherCode}</span>
         </div>
-        <p style="color:#a8a29e;margin:20px 0 0;font-size:12px;">This code never expires and can be used on any Mamalu Kitchen experience.</p>
+        <p style="color:#666666;margin:0;font-size:13px;line-height:1.6;">This code never expires and can be used on any<br/>Mamalu Kitchen experience.</p>
       </td>
     </tr>
     <tr>
-      <td style="padding:20px 30px 30px;background-color:#f5f5f4;">
-        <p style="color:#57534e;margin:0;font-size:13px;line-height:1.6;">
-          To redeem, simply enter the code above when booking a class, rental, or any other Mamalu Kitchen service.<br>
-          Questions? Contact us at <a href="mailto:hello@mamalukitchen.com" style="color:#ff7f5c;">hello@mamalukitchen.com</a>
+      <td style="padding:30px;border-top:1px solid #e5e5e5;">
+        <p style="color:#666666;margin:0 0 15px;font-size:14px;line-height:1.6;">
+          To redeem, simply enter the code above when booking a class, rental, or any other Mamalu Kitchen service.
+        </p>
+        <p style="color:#666666;margin:0;font-size:13px;line-height:1.6;">
+          Questions? Contact us at <a href="mailto:hello@mamalukitchen.com" style="color:#000000;text-decoration:none;border-bottom:1px solid #000000;">hello@mamalukitchen.com</a> or WhatsApp <a href="https://wa.me/971527479512" style="color:#000000;text-decoration:none;border-bottom:1px solid #000000;">+971 52 747 9512</a>
         </p>
       </td>
     </tr>
     <tr>
-      <td style="padding:20px 30px;text-align:center;background-color:#1c1917;">
-        <p style="color:#78716c;margin:0;font-size:12px;">© ${new Date().getFullYear()} Mamalu Kitchen. All rights reserved.</p>
+      <td style="padding:30px;text-align:center;border-top:1px solid #e5e5e5;">
+        <p style="color:#999999;margin:0;font-size:11px;">© ${new Date().getFullYear()} Mamalu Kitchen. All rights reserved.</p>
       </td>
     </tr>
   </table>
