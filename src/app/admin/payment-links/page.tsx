@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useCallback, useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import {
   RefreshCw,
@@ -14,7 +14,6 @@ import {
   ExternalLink,
   Search,
   Trash2,
-  Eye,
   Download,
   Calendar,
   FileText,
@@ -85,12 +84,20 @@ interface LeadSearchResult {
   source: string;
 }
 
+interface PaymentExtraOption {
+  id: string;
+  name: string;
+  price: number;
+}
+
 export default function AdminPaymentLinksPage() {
   const [paymentLinks, setPaymentLinks] = useState<PaymentLink[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [copiedLink, setCopiedLink] = useState<string | null>(null);
@@ -156,9 +163,9 @@ export default function AdminPaymentLinksPage() {
   });
 
   // Available extras options (fetched from database)
-  const [availableExtras, setAvailableExtras] = useState<{id: string, name: string, price: number}[]>([]);
+  const [availableExtras, setAvailableExtras] = useState<PaymentExtraOption[]>([]);
 
-  const fetchPaymentLinks = async () => {
+  const fetchPaymentLinks = useCallback(async () => {
     try {
       setLoading(true);
       const params = new URLSearchParams();
@@ -166,6 +173,8 @@ export default function AdminPaymentLinksPage() {
       params.set('offset', ((currentPage - 1) * pageSize).toString());
       if (statusFilter !== "all") params.set("status", statusFilter);
       if (debouncedSearch) params.set("search", debouncedSearch);
+      if (startDate) params.set("startDate", startDate);
+      if (endDate) params.set("endDate", endDate);
 
       const res = await fetch(`/api/payment-links?${params}`);
       if (res.ok) {
@@ -178,7 +187,7 @@ export default function AdminPaymentLinksPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, debouncedSearch, endDate, startDate, statusFilter]);
 
   const fetchAvailableExtras = async () => {
     try {
@@ -186,7 +195,7 @@ export default function AdminPaymentLinksPage() {
       if (res.ok) {
         const data = await res.json();
         setAvailableExtras(
-          (data.extras || []).map((e: any) => ({
+          ((data.extras || []) as PaymentExtraOption[]).map((e) => ({
             id: e.id,
             name: e.name,
             price: e.price,
@@ -200,7 +209,7 @@ export default function AdminPaymentLinksPage() {
 
   useEffect(() => {
     fetchPaymentLinks();
-  }, [statusFilter, currentPage, debouncedSearch]);
+  }, [fetchPaymentLinks]);
 
   useEffect(() => {
     fetchAvailableExtras();
@@ -208,6 +217,31 @@ export default function AdminPaymentLinksPage() {
 
   // Data is already filtered server-side
   const filteredLinks = paymentLinks;
+
+  const setQuickDateRange = (range: string) => {
+    const today = new Date();
+    const start = new Date();
+
+    switch (range) {
+      case "today":
+        break;
+      case "week":
+        start.setDate(today.getDate() - 7);
+        break;
+      case "month":
+        start.setMonth(today.getMonth() - 1);
+        break;
+      case "quarter":
+        start.setMonth(today.getMonth() - 3);
+        break;
+      default:
+        return;
+    }
+
+    setCurrentPage(1);
+    setStartDate(start.toISOString().split("T")[0]);
+    setEndDate(today.toISOString().split("T")[0]);
+  };
 
   const createPaymentLink = async () => {
     if (!newLink.title || !newLink.amount) {
@@ -482,7 +516,6 @@ export default function AdminPaymentLinksPage() {
     const paidLinks = links.filter(l => l.status === "paid");
     const activeLinks = links.filter(l => l.status === "active");
     const totalCollected = paidLinks.reduce((sum, l) => sum + (l.paid_amount || l.amount), 0);
-    const totalPending = activeLinks.reduce((sum, l) => sum + l.amount, 0);
     
     // Card backgrounds
     const cardY = 45;
@@ -764,7 +797,7 @@ export default function AdminPaymentLinksPage() {
 
       {/* Filters */}
       <Card>
-        <CardContent className="p-4">
+        <CardContent className="p-4 space-y-4">
           <div className="flex flex-wrap gap-4">
             <div className="flex-1 min-w-[200px]">
               <div className="relative">
@@ -780,7 +813,10 @@ export default function AdminPaymentLinksPage() {
             </div>
             <select
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+              onChange={(e) => {
+                setStatusFilter(e.target.value);
+                setCurrentPage(1);
+              }}
               className="px-4 py-2 border border-stone-200 rounded-lg"
             >
               <option value="all">All Status</option>
@@ -789,6 +825,72 @@ export default function AdminPaymentLinksPage() {
               <option value="expired">Expired</option>
               <option value="cancelled">Cancelled</option>
             </select>
+          </div>
+          <div className="flex flex-wrap items-center gap-4 pt-2 border-t">
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-stone-500" />
+              <span className="text-sm font-medium text-stone-700">Date Range:</span>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setQuickDateRange("today")}
+                className="px-3 py-1 text-sm border border-stone-200 rounded-lg hover:bg-stone-50"
+              >
+                Today
+              </button>
+              <button
+                onClick={() => setQuickDateRange("week")}
+                className="px-3 py-1 text-sm border border-stone-200 rounded-lg hover:bg-stone-50"
+              >
+                Last 7 Days
+              </button>
+              <button
+                onClick={() => setQuickDateRange("month")}
+                className="px-3 py-1 text-sm border border-stone-200 rounded-lg hover:bg-stone-50"
+              >
+                Last Month
+              </button>
+              <button
+                onClick={() => setQuickDateRange("quarter")}
+                className="px-3 py-1 text-sm border border-stone-200 rounded-lg hover:bg-stone-50"
+              >
+                Last Quarter
+              </button>
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => {
+                  setStartDate(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="px-3 py-1.5 text-sm border border-stone-200 rounded-lg"
+              />
+              <span className="text-stone-500">to</span>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => {
+                  setEndDate(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="px-3 py-1.5 text-sm border border-stone-200 rounded-lg"
+              />
+              {(startDate || endDate) && (
+                <button
+                  onClick={() => {
+                    setStartDate("");
+                    setEndDate("");
+                    setCurrentPage(1);
+                  }}
+                  className="text-stone-400 hover:text-stone-600"
+                  title="Clear date range"
+                >
+                  <XCircle className="h-4 w-4" />
+                </button>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>

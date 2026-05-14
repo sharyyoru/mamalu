@@ -3,6 +3,11 @@ import { stripe } from "@/lib/stripe/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAuth } from "@/lib/auth/api-auth";
 
+interface PaymentLinkExtra {
+  price: number;
+  quantity?: number;
+}
+
 // GET: Fetch all payment links
 export async function GET(request: NextRequest) {
   // Verify user has admin access
@@ -20,6 +25,8 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
     const search = searchParams.get("search");
+    const startDate = searchParams.get("startDate");
+    const endDate = searchParams.get("endDate");
     const limit = parseInt(searchParams.get("limit") || "100");
     const offset = parseInt(searchParams.get("offset") || "0");
 
@@ -39,6 +46,14 @@ export async function GET(request: NextRequest) {
 
     if (search) {
       query = query.or(`link_code.ilike.%${search}%,title.ilike.%${search}%,customer_name.ilike.%${search}%,customer_email.ilike.%${search}%,customer_phone.ilike.%${search}%`);
+    }
+
+    if (startDate) {
+      query = query.gte("created_at", `${startDate}T00:00:00`);
+    }
+
+    if (endDate) {
+      query = query.lte("created_at", `${endDate}T23:59:59`);
     }
 
     const { data: paymentLinks, error, count } = await query;
@@ -99,7 +114,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Calculate extras total
-    const extrasTotal = extras.reduce((sum: number, extra: any) => {
+    const extrasTotal = (extras as PaymentLinkExtra[]).reduce((sum: number, extra) => {
       return sum + (extra.price * (extra.quantity || 1));
     }, 0);
 
@@ -196,10 +211,11 @@ export async function POST(request: NextRequest) {
       paymentLink,
       stripeUrl: stripePaymentLink.url,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Create payment link error:", error);
+    const message = error instanceof Error ? error.message : "Failed to create payment link";
     return NextResponse.json({ 
-      error: error.message || "Failed to create payment link" 
+      error: message
     }, { status: 500 });
   }
 }
