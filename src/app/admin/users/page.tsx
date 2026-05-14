@@ -1,17 +1,15 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { DeleteUserButton } from "@/components/admin/delete-user-button";
 import {
   Users,
   UserPlus,
   Search,
   Filter,
-  MoreHorizontal,
-  Mail,
   Phone,
-  Calendar,
 } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 
@@ -33,6 +31,25 @@ async function getUsers() {
   return data || [];
 }
 
+async function getCurrentUser() {
+  const supabase = await createClient();
+  if (!supabase) return null;
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  return {
+    id: user.id,
+    role: profile?.role || "customer",
+  };
+}
+
 const roleColors: Record<string, string> = {
   customer: "bg-stone-100 text-stone-700",
   student: "bg-blue-100 text-blue-700",
@@ -44,7 +61,8 @@ const roleColors: Record<string, string> = {
 };
 
 export default async function UsersPage() {
-  const users = await getUsers();
+  const [users, currentUser] = await Promise.all([getUsers(), getCurrentUser()]);
+  const canDeleteUsers = currentUser?.role === "super_admin";
 
   return (
     <div className="space-y-6">
@@ -170,11 +188,19 @@ export default async function UsersPage() {
                         {formatDate(user.created_at)}
                       </td>
                       <td className="px-6 py-4">
-                        <Link href={`/admin/users/${user.id}`}>
-                          <Button variant="ghost" size="sm">
-                            View
-                          </Button>
-                        </Link>
+                        <div className="flex items-center justify-end gap-2">
+                          <Link href={`/admin/users/${user.id}`}>
+                            <Button variant="ghost" size="sm">
+                              View
+                            </Button>
+                          </Link>
+                          {canDeleteUsers && currentUser?.id !== user.id && (
+                            <DeleteUserButton
+                              userId={user.id}
+                              userName={user.full_name || user.email || "this user"}
+                            />
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))

@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
+import { verifyAuth } from "@/lib/auth/api-auth";
 
 function getAdminClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -12,6 +13,10 @@ function getAdminClient() {
   return createClient(supabaseUrl, serviceRoleKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
+}
+
+function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : "Internal server error";
 }
 
 export async function GET(
@@ -59,9 +64,9 @@ export async function GET(
         lifetimeValue: totalRevenue + rentalRevenue,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("API Error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: getErrorMessage(error) }, { status: 500 });
   }
 }
 
@@ -93,7 +98,7 @@ export async function PATCH(
       'instructor_experience_years',
       'instructor_image_url',
     ];
-    const updateData: Record<string, any> = {};
+    const updateData: Record<string, unknown> = {};
     
     for (const field of allowedFields) {
       if (body[field] !== undefined) {
@@ -118,8 +123,67 @@ export async function PATCH(
     }
 
     return NextResponse.json({ user: data });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("API Error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: getErrorMessage(error) }, { status: 500 });
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    const { user: currentUser, error: authError } = await verifyAuth(request, ["super_admin"]);
+
+    if (authError || !currentUser) {
+      const statusCode = authError?.includes("Access denied") ? 403 : 401;
+      return NextResponse.json(
+        { error: authError || "Unauthorized" },
+        { status: statusCode }
+      );
+    }
+
+    if (currentUser.id === id) {
+      return NextResponse.json(
+        { error: "You cannot delete your own account" },
+        { status: 400 }
+      );
+    }
+
+    const supabase = getAdminClient();
+
+    if (!supabase) {
+      return NextResponse.json({ error: "Database not configured" }, { status: 500 });
+    }
+
+    const { data: targetUser, error: fetchError } = await supabase
+      .from("profiles")
+      .select("id, email")
+      .eq("id", id)
+      .single();
+
+    if (fetchError || !targetUser) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    const { error: deleteAuthError } = await supabase.auth.admin.deleteUser(id);
+
+    if (deleteAuthError) {
+      console.error("Error deleting auth user:", deleteAuthError);
+      return NextResponse.json({ error: deleteAuthError.message }, { status: 400 });
+    }
+
+    return NextResponse.json({
+      success: true,
+      deletedUser: {
+        id: targetUser.id,
+        email: targetUser.email,
+      },
+    });
+  } catch (error: unknown) {
+    console.error("API Error:", error);
+    return NextResponse.json({ error: getErrorMessage(error) }, { status: 500 });
   }
 }
