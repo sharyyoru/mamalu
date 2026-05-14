@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useCallback, useState, useEffect } from "react";
 import {
   Gift,
   Loader2,
@@ -9,6 +9,7 @@ import {
   Check,
   Mail,
   MailCheck,
+  Send,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { formatDate, formatPrice } from "@/lib/utils";
@@ -42,12 +43,9 @@ export default function VoucherPurchasesPage() {
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [sendingFollowUpId, setSendingFollowUpId] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchPurchases();
-  }, [filterStatus]);
-
-  const fetchPurchases = async () => {
+  const fetchPurchases = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch(`/api/admin/voucher-purchases?status=${filterStatus}`);
@@ -58,12 +56,36 @@ export default function VoucherPurchasesPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filterStatus]);
+
+  useEffect(() => {
+    fetchPurchases();
+  }, [fetchPurchases]);
 
   const copyCode = (id: string, code: string) => {
     navigator.clipboard.writeText(code);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 1500);
+  };
+
+  const sendFollowUp = async (id: string) => {
+    setSendingFollowUpId(id);
+    try {
+      const res = await fetch(`/api/admin/voucher-purchases/${id}/send-follow-up`, {
+        method: "POST",
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to send follow-up email");
+      }
+
+      alert("Follow-up email sent.");
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Failed to send follow-up email");
+    } finally {
+      setSendingFollowUpId(null);
+    }
   };
 
   const filtered = purchases.filter(
@@ -143,7 +165,7 @@ export default function VoucherPurchasesPage() {
           <table className="w-full">
             <thead className="bg-stone-50 border-b border-stone-200">
               <tr>
-                {["Customer", "Amount", "Code", "Status", "Email Sent", "Date"].map((h) => (
+                {["Customer", "Amount", "Code", "Status", "Email Sent", "Date", "Actions"].map((h) => (
                   <th
                     key={h}
                     className="text-left text-xs font-semibold text-stone-600 uppercase tracking-wider px-6 py-4"
@@ -225,11 +247,30 @@ export default function VoucherPurchasesPage() {
                       <p className="text-xs text-stone-400">Paid {formatDate(p.paid_at)}</p>
                     )}
                   </td>
+                  <td className="px-6 py-4">
+                    {p.status === "pending" ? (
+                      <button
+                        onClick={() => sendFollowUp(p.id)}
+                        disabled={sendingFollowUpId === p.id}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-stone-200 text-xs font-medium text-stone-700 hover:bg-stone-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        title="Send follow-up email"
+                      >
+                        {sendingFollowUpId === p.id ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <Send className="h-3.5 w-3.5" />
+                        )}
+                        Follow up
+                      </button>
+                    ) : (
+                      <span className="text-xs text-stone-400">—</span>
+                    )}
+                  </td>
                 </tr>
               ))}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-6 py-16 text-center text-stone-500">
+                  <td colSpan={7} className="px-6 py-16 text-center text-stone-500">
                     <Gift className="h-10 w-10 mx-auto mb-3 text-stone-300" />
                     <p className="font-medium">No purchases found</p>
                     <p className="text-sm mt-1">
