@@ -11,7 +11,6 @@ import {
   User,
   ExternalLink,
   ShoppingBag,
-  MessageSquare,
 } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 
@@ -32,20 +31,11 @@ interface RecentOrder {
   created_at: string;
 }
 
-interface RecentInquiry {
-  id: string;
-  name: string;
-  subject: string;
-  created_at: string;
-}
-
 export function AdminHeader({ user }: AdminHeaderProps) {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [newOrdersCount, setNewOrdersCount] = useState(0);
   const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
-  const [newInquiriesCount, setNewInquiriesCount] = useState(0);
-  const [recentInquiries, setRecentInquiries] = useState<RecentInquiry[]>([]);
   const [totalNotifications, setTotalNotifications] = useState(0);
 
   const fetchNotifications = useCallback(async () => {
@@ -55,9 +45,7 @@ export function AdminHeader({ user }: AdminHeaderProps) {
         const data = await res.json();
         setNewOrdersCount(data.newOrdersCount || 0);
         setRecentOrders(data.recentOrders || []);
-        setNewInquiriesCount(data.newInquiriesCount || 0);
-        setRecentInquiries(data.recentInquiries || []);
-        setTotalNotifications(data.totalNotifications || 0);
+        setTotalNotifications(data.newOrdersCount || 0);
       }
     } catch (error) {
       console.error("Failed to fetch notifications:", error);
@@ -168,28 +156,6 @@ export function AdminHeader({ user }: AdminHeaderProps) {
                     </Link>
                   ))}
                   
-                  {/* Inquiries */}
-                  {recentInquiries.map((inquiry) => (
-                    <Link
-                      key={inquiry.id}
-                      href="/admin/inquiries"
-                      onClick={() => setShowNotifications(false)}
-                      className="flex items-start gap-3 px-4 py-3 hover:bg-stone-50 border-b border-stone-100"
-                    >
-                      <div className="p-2 bg-blue-100 rounded-lg">
-                        <MessageSquare className="h-4 w-4 text-blue-600" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-stone-900">New Inquiry</p>
-                        <p className="text-xs text-stone-500 truncate">{inquiry.name}</p>
-                        <p className="text-xs text-stone-600 truncate">{inquiry.subject}</p>
-                      </div>
-                      <span className="text-xs text-stone-400">
-                        {new Date(inquiry.created_at).toLocaleDateString()}
-                      </span>
-                    </Link>
-                  ))}
-
                   {totalNotifications === 0 && (
                     <div className="px-4 py-8 text-center text-stone-500">
                       <Bell className="h-8 w-8 mx-auto mb-2 text-stone-300" />
@@ -197,21 +163,14 @@ export function AdminHeader({ user }: AdminHeaderProps) {
                     </div>
                   )}
                 </div>
-                {totalNotifications > 0 && (
-                  <div className="flex border-t">
+                {newOrdersCount > 0 && (
+                  <div className="border-t">
                     <Link
                       href="/admin/orders"
                       onClick={() => setShowNotifications(false)}
-                      className="flex-1 px-4 py-3 text-center text-sm text-amber-600 hover:bg-stone-50 border-r"
+                      className="block px-4 py-3 text-center text-sm text-amber-600 hover:bg-stone-50"
                     >
                       Orders ({newOrdersCount})
-                    </Link>
-                    <Link
-                      href="/admin/inquiries"
-                      onClick={() => setShowNotifications(false)}
-                      className="flex-1 px-4 py-3 text-center text-sm text-blue-600 hover:bg-stone-50"
-                    >
-                      Inquiries ({newInquiriesCount})
                     </Link>
                   </div>
                 )}
