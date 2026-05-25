@@ -154,7 +154,7 @@ export function Header() {
                   alt="Mamalu Kitchen" 
                   width={200} 
                   height={200}
-                  className="w-28 h-28 lg:w-32 lg:h-32"
+                  className="w-32 h-32 lg:w-36 lg:h-36"
                   priority
                 />
               </Link>
