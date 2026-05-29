@@ -26,6 +26,7 @@ import {
   X,
   AlertTriangle,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { MiniChefPageContent, defaultMiniChefContent } from "@/types/site-content";
 
 // Menu item interface
@@ -45,9 +46,48 @@ interface ExtraItem {
   name: string;
   description: string;
   price: number;
-  icon: any;
+  icon: LucideIcon;
   category: string;
   image?: string;
+}
+
+interface DbPartyExtra {
+  id: string;
+  name: string;
+  description: string | null;
+  price: number;
+  image_url: string | null;
+  metadata: {
+    extra_category?: string;
+    icon?: string;
+  } | null;
+}
+
+interface DbMenuItem {
+  id: string;
+  name: string;
+  price: number;
+  image_url: string | null;
+  dishes: string[] | null;
+  categories: string[] | null;
+  scheduled_date?: string | null;
+}
+
+interface DbPackageMenuItem {
+  id: string;
+  name: string;
+  price: number;
+  image_url: string | null;
+  dishes: string[] | null;
+}
+
+interface DbPackage {
+  id: string;
+  name: string;
+  price: number;
+  image_url: string | null;
+  categories: string[] | null;
+  menu_items?: DbPackageMenuItem[] | null;
 }
 
 // Category type
@@ -63,26 +103,22 @@ const getCategoryConfig = (pageContent: MiniChefPageContent): Record<CategoryTyp
 });
 
 
-// Birthday Add-ons/Extras
-const birthdayExtras: ExtraItem[] = [
-  { id: "custom_apron", name: "Customized Apron", description: "Personalized Mamalu apron with name", price: 80, icon: Gift, category: "custom", image: "/personalized-items/apron.jpg" },
-  { id: "custom_spatula", name: "Customized Spatula", description: "Personalized cooking spatula", price: 50, icon: Utensils, category: "custom", image: "/personalized-items/spatula.jpg" },
-  { id: "custom_chef_hat", name: "Customized Chef Hat", description: "Personalized chef hat", price: 60, icon: ChefHat, category: "custom", image: "/personalized-items/chef-hat.jpg" },
-  { id: "custom_mug", name: "Customized Mugs", description: "Personalized mug with any design", price: 45, icon: Gift, category: "custom", image: "/personalized-items/mugs.jpg" },
-  { id: "custom_cake_10", name: "Customized Cakes (10 persons)", description: "Custom designed birthday cake", price: 575, icon: Cake, category: "cake" },
-  { id: "custom_cake_20", name: "Customized Cakes (20 persons)", description: "Custom designed birthday cake", price: 700, icon: Cake, category: "cake" },
-  { id: "custom_cake_30", name: "Customized Cakes (30 persons)", description: "Custom designed birthday cake", price: 900, icon: Cake, category: "cake" },
-  { id: "table_setting_10", name: "Table Set Up (10 persons)", description: "Plates, cups, spoons, forks, knives, napkins, tablecloth", price: 300, icon: Utensils, category: "decor" },
-  { id: "table_setting_20", name: "Table Set Up (20 persons)", description: "Plates, cups, spoons, forks, knives, napkins, tablecloth", price: 400, icon: Utensils, category: "decor" },
-  { id: "table_setting_30", name: "Table Set Up (30 persons)", description: "Plates, cups, spoons, forks, knives, napkins, tablecloth", price: 500, icon: Utensils, category: "decor" },
-  { id: "balloons", name: "Balloons (14 pcs balloons)", description: "2 bunches of 7 balloons (any color)", price: 260, icon: PartyPopper, category: "decor" },
-  { id: "mini_pizzas", name: "Mini Pizzas (12pcs)", description: "12 pieces of delicious mini pizzas", price: 50, icon: Utensils, category: "snacks", image: "/snacks-and-drinks/SMILEY PIZZA.jpeg" },
-  { id: "chicken_tenders", name: "Chicken Tenders (12pcs)", description: "12 pieces of crispy chicken tenders", price: 60, icon: Utensils, category: "snacks", image: "/snacks-and-drinks/CHICKEN TENDERS.jpeg" },
-  { id: "mini_burgers", name: "Mini Burgers (6pcs)", description: "6 pieces of mini burgers", price: 70, icon: Utensils, category: "snacks", image: "/snacks-and-drinks/mini burgers.jpeg" },
-  { id: "musakhan_rolls", name: "Musakhan Rolls", description: "Delicious musakhan rolls", price: 50, icon: Utensils, category: "snacks", image: "/snacks-and-drinks/MUSAKHAN ROLLS.jpeg" },
-  { id: "juice", name: "Juices (per pc)", description: "Fresh juice per piece", price: 8, icon: Utensils, category: "drinks" },
-  { id: "soft_drinks", name: "Soft Drinks (per pc)", description: "Soft drink per piece", price: 15, icon: Utensils, category: "drinks" },
-];
+const extraIconMap: Record<string, LucideIcon> = {
+  gift: Gift,
+  cake: Cake,
+  party: PartyPopper,
+  utensils: Utensils,
+  chef_hat: ChefHat,
+  drinks: Utensils,
+};
+
+const extraCategoryIconMap: Record<string, LucideIcon> = {
+  custom: Gift,
+  cake: Cake,
+  decor: PartyPopper,
+  snacks: Utensils,
+  drinks: Utensils,
+};
 
 // Waiver Modal Component
 function WaiverModal({ isOpen, onClose, onAccept }: { isOpen: boolean; onClose: () => void; onAccept: () => void }) {
@@ -179,6 +215,8 @@ export default function MiniChefPage() {
   const [selectedPackageMenuItem, setSelectedPackageMenuItem] = useState<MenuItem | null>(null);
 
   // Extras
+  const [birthdayExtras, setBirthdayExtras] = useState<ExtraItem[]>([]);
+  const [loadingExtras, setLoadingExtras] = useState(true);
   const [selectedExtras, setSelectedExtras] = useState<Record<string, number>>({});
 
   // Booking details
@@ -212,6 +250,38 @@ export default function MiniChefPage() {
       .catch(() => setPageContent(defaultMiniChefContent));
   }, []);
 
+  useEffect(() => {
+    async function fetchBirthdayExtras() {
+      setLoadingExtras(true);
+      try {
+        const res = await fetch("/api/menus?category=party_extras");
+        const data = res.ok ? await res.json() : { items: [] };
+        const extras = (data.items || []).map((item: DbPartyExtra) => {
+          const category = item.metadata?.extra_category || "custom";
+          const icon = item.metadata?.icon
+            ? extraIconMap[item.metadata.icon]
+            : extraCategoryIconMap[category];
+          return {
+            id: item.id,
+            name: item.name,
+            description: item.description || "",
+            price: Number(item.price) || 0,
+            icon: icon || Gift,
+            category,
+            image: item.image_url || undefined,
+          };
+        });
+        setBirthdayExtras(extras);
+      } catch (error) {
+        console.error("Failed to fetch birthday extras:", error);
+        setBirthdayExtras([]);
+      } finally {
+        setLoadingExtras(false);
+      }
+    }
+    fetchBirthdayExtras();
+  }, []);
+
   // Fetch menu items and packages from DB on mount
   useEffect(() => {
     async function fetchMenuData() {
@@ -233,7 +303,7 @@ export default function MiniChefPage() {
 
         const grouped: Record<string, MenuItem[]> = { classics: [], monthly: [], mommy_me: [], birthdays: [], packages: [] };
 
-        for (const item of itemsData.items || []) {
+        for (const item of (itemsData.items || []) as DbMenuItem[]) {
           for (const dbLabel of (item.categories || [])) {
             const cat = dbLabelToCategory[dbLabel];
             if (cat) {
@@ -250,23 +320,23 @@ export default function MiniChefPage() {
           }
         }
 
-        const activePkgs = (pkgsData.packages || []).filter((pkg: any) =>
+        const activePkgs = ((pkgsData.packages || []) as DbPackage[]).filter((pkg) =>
           (pkg.categories || []).includes("packages")
         );
 
-        grouped.packages = activePkgs.map((pkg: any) => ({
+        grouped.packages = activePkgs.map((pkg) => ({
           id: pkg.id,
           name: pkg.name,
           price: pkg.price,
           image: pkg.image_url || "/images/placeholder.jpg",
-          dishes: (pkg.menu_items || []).map((mi: any) => mi.name),
+          dishes: (pkg.menu_items || []).map((mi) => mi.name),
           category: "packages",
         }));
 
         // Store full menu item details per package for the selection modal
         const pkgItemsMap: Record<string, MenuItem[]> = {};
         for (const pkg of activePkgs) {
-          pkgItemsMap[pkg.id] = (pkg.menu_items || []).map((mi: any) => ({
+          pkgItemsMap[pkg.id] = (pkg.menu_items || []).map((mi) => ({
             id: mi.id,
             name: mi.name,
             price: mi.price,
@@ -477,7 +547,7 @@ export default function MiniChefPage() {
             <div className="p-5 border-b flex items-start justify-between">
               <div>
                 <h2 className="text-xl font-bold text-stone-900">{pendingPackage.name}</h2>
-                <p className="text-sm text-stone-500 mt-0.5">Choose which menu you'd like to cook</p>
+                <p className="text-sm text-stone-500 mt-0.5">Choose which menu you&apos;d like to cook</p>
               </div>
               <button onClick={() => setShowPackageModal(false)} className="p-1 hover:bg-stone-100 rounded-lg ml-4 shrink-0">
                 <X className="h-5 w-5 text-stone-400" />
@@ -736,82 +806,94 @@ export default function MiniChefPage() {
                   <p className="text-stone-500 mt-1">Add extras to make it special (optional)</p>
                 </div>
 
-                <div className="space-y-4">
-                  {["custom", "cake", "decor", "snacks", "drinks"].map((cat) => {
-                    const catExtras = birthdayExtras.filter(e => e.category === cat);
-                    if (catExtras.length === 0) return null;
-                    
-                    const catLabels: Record<string, string> = {
-                      custom: "Personalized Items",
-                      cake: "Birthday Cakes",
-                      decor: "Decorations & Setup",
-                      snacks: "Snacks",
-                      drinks: "Drinks",
-                    };
+                {loadingExtras ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="h-6 w-6 animate-spin text-stone-400" />
+                  </div>
+                ) : birthdayExtras.length === 0 ? (
+                  <Card>
+                    <CardContent className="p-6 text-center text-stone-500">
+                      No party extras are currently available.
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className="space-y-4">
+                    {["custom", "cake", "decor", "snacks", "drinks"].map((cat) => {
+                      const catExtras = birthdayExtras.filter(e => e.category === cat);
+                      if (catExtras.length === 0) return null;
 
-                    return (
-                      <div key={cat}>
-                        <h3 className="font-semibold text-stone-900 mb-3">{catLabels[cat]}</h3>
-                        <div className="grid sm:grid-cols-2 gap-3">
-                          {catExtras.map((extra) => {
-                            const Icon = extra.icon;
-                            const qty = selectedExtras[extra.id] || 0;
-                            return (
-                              <Card key={extra.id} className={qty > 0 ? "ring-2 ring-stone-900" : ""}>
-                                <CardContent className="p-4">
-                                  <div className="flex items-start gap-3">
-                                    <div className="flex-shrink-0">
-                                      {extra.image ? (
-                                        <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-stone-100">
-                                          <Image src={extra.image} alt={extra.name} fill className="object-cover" />
-                                        </div>
-                                      ) : (
-                                        <div className="p-2 bg-stone-100 rounded-lg">
-                                          <Icon className="h-5 w-5 text-stone-600" />
-                                        </div>
-                                      )}
+                      const catLabels: Record<string, string> = {
+                        custom: "Personalized Items",
+                        cake: "Birthday Cakes",
+                        decor: "Decorations & Setup",
+                        snacks: "Snacks",
+                        drinks: "Drinks",
+                      };
+
+                      return (
+                        <div key={cat}>
+                          <h3 className="font-semibold text-stone-900 mb-3">{catLabels[cat]}</h3>
+                          <div className="grid sm:grid-cols-2 gap-3">
+                            {catExtras.map((extra) => {
+                              const Icon = extra.icon;
+                              const qty = selectedExtras[extra.id] || 0;
+                              return (
+                                <Card key={extra.id} className={qty > 0 ? "ring-2 ring-stone-900" : ""}>
+                                  <CardContent className="p-4">
+                                    <div className="flex items-start gap-3">
+                                      <div className="flex-shrink-0">
+                                        {extra.image ? (
+                                          <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-stone-100">
+                                            <Image src={extra.image} alt={extra.name} fill className="object-cover" />
+                                          </div>
+                                        ) : (
+                                          <div className="p-2 bg-stone-100 rounded-lg">
+                                            <Icon className="h-5 w-5 text-stone-600" />
+                                          </div>
+                                        )}
+                                      </div>
+                                      <div className="flex-1">
+                                        <h4 className="font-medium text-stone-900">{extra.name}</h4>
+                                        <p className="text-xs text-stone-500">{extra.description}</p>
+                                        <p className="text-sm font-bold text-stone-900 mt-1">AED {extra.price}</p>
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        <Button
+                                          variant="outline"
+                                          size="icon"
+                                          className="h-8 w-8"
+                                          onClick={() => setSelectedExtras(prev => ({
+                                            ...prev,
+                                            [extra.id]: Math.max(0, (prev[extra.id] || 0) - 1)
+                                          }))}
+                                          disabled={qty === 0}
+                                        >
+                                          <Minus className="h-3 w-3" />
+                                        </Button>
+                                        <span className="w-6 text-center font-bold">{qty}</span>
+                                        <Button
+                                          variant="outline"
+                                          size="icon"
+                                          className="h-8 w-8"
+                                          onClick={() => setSelectedExtras(prev => ({
+                                            ...prev,
+                                            [extra.id]: (prev[extra.id] || 0) + 1
+                                          }))}
+                                        >
+                                          <Plus className="h-3 w-3" />
+                                        </Button>
+                                      </div>
                                     </div>
-                                    <div className="flex-1">
-                                      <h4 className="font-medium text-stone-900">{extra.name}</h4>
-                                      <p className="text-xs text-stone-500">{extra.description}</p>
-                                      <p className="text-sm font-bold text-stone-900 mt-1">AED {extra.price}</p>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                      <Button
-                                        variant="outline"
-                                        size="icon"
-                                        className="h-8 w-8"
-                                        onClick={() => setSelectedExtras(prev => ({
-                                          ...prev,
-                                          [extra.id]: Math.max(0, (prev[extra.id] || 0) - 1)
-                                        }))}
-                                        disabled={qty === 0}
-                                      >
-                                        <Minus className="h-3 w-3" />
-                                      </Button>
-                                      <span className="w-6 text-center font-bold">{qty}</span>
-                                      <Button
-                                        variant="outline"
-                                        size="icon"
-                                        className="h-8 w-8"
-                                        onClick={() => setSelectedExtras(prev => ({
-                                          ...prev,
-                                          [extra.id]: (prev[extra.id] || 0) + 1
-                                        }))}
-                                      >
-                                        <Plus className="h-3 w-3" />
-                                      </Button>
-                                    </div>
-                                  </div>
-                                </CardContent>
-                              </Card>
-                            );
-                          })}
+                                  </CardContent>
+                                </Card>
+                              );
+                            })}
+                          </div>
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                      );
+                    })}
+                  </div>
+                )}
 
                 {/* Navigation Buttons - Desktop */}
                 <div className="hidden lg:flex justify-between items-center pt-6 border-t">
