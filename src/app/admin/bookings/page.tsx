@@ -63,6 +63,7 @@ interface ServiceBooking {
   event_date: string | null;
   event_time: string | null;
   guest_count: number;
+  items?: BookingScheduleItem[];
   extras: any[];
   base_amount: number;
   extras_amount: number;
@@ -95,6 +96,15 @@ interface ServiceBooking {
   is_voucher_redemption?: boolean;
   voucher_code?: string;
   original_price?: number;
+}
+
+interface BookingScheduleItem {
+  id?: string;
+  name?: string;
+  session?: number;
+  event_date?: string | null;
+  event_time?: string | null;
+  time_label?: string | null;
 }
 
 interface BookingStats {
@@ -290,6 +300,19 @@ export default function AdminBookingsPage() {
       }
     }
     return { className: "bg-stone-100 text-stone-600", label: "Unpaid" };
+  };
+
+  const isNannyBooking = (booking: ServiceBooking) => {
+    const serviceText = `${booking.service_name || ""} ${booking.package_name || ""}`.toLowerCase();
+    return serviceText.includes("nanny") && Array.isArray(booking.items) && booking.items.length > 0;
+  };
+
+  const getNannyScheduleItems = (booking: ServiceBooking) => {
+    if (!isNannyBooking(booking)) return [];
+
+    return [...(booking.items || [])]
+      .filter((item) => item.name || item.event_date || item.event_time || item.time_label)
+      .sort((a, b) => (a.session || 0) - (b.session || 0));
   };
 
   const getServiceTypeIcon = (type: string | null) => {
@@ -823,11 +846,45 @@ export default function AdminBookingsPage() {
                   {selectedBooking.menu_name && (
                     <p className="text-sm text-stone-600">Menu: {selectedBooking.menu_name}</p>
                   )}
-                  <p className="text-sm text-stone-500">
-                    {selectedBooking.guest_count} guest(s)
-                    {selectedBooking.event_date && ` • ${formatDate(selectedBooking.event_date)}`}
-                    {selectedBooking.event_time && ` at ${selectedBooking.event_time}`}
-                  </p>
+                  {(() => {
+                    const nannyScheduleItems = getNannyScheduleItems(selectedBooking);
+
+                    if (nannyScheduleItems.length > 0) {
+                      return (
+                        <div className="space-y-2">
+                          <p className="text-sm text-stone-500">{selectedBooking.guest_count} guest(s)</p>
+                          <div className="rounded-lg border border-stone-200 overflow-hidden">
+                            {nannyScheduleItems.map((item, idx) => (
+                              <div
+                                key={`${item.id || item.name || "session"}-${idx}`}
+                                className="flex flex-col gap-1 border-b border-stone-100 p-3 last:border-b-0 sm:flex-row sm:items-start sm:justify-between"
+                              >
+                                <div>
+                                  <p className="text-sm font-medium text-stone-900">
+                                    Session {item.session || idx + 1}: {item.name || "Nanny Class"}
+                                  </p>
+                                  {item.event_date && (
+                                    <p className="text-xs text-stone-500">{formatDate(item.event_date)}</p>
+                                  )}
+                                </div>
+                                <p className="text-sm text-stone-700">
+                                  {item.time_label || item.event_time || "Time pending"}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <p className="text-sm text-stone-500">
+                        {selectedBooking.guest_count} guest(s)
+                        {selectedBooking.event_date && ` • ${formatDate(selectedBooking.event_date)}`}
+                        {selectedBooking.event_time && ` at ${selectedBooking.event_time}`}
+                      </p>
+                    );
+                  })()}
                 </div>
               </div>
 

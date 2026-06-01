@@ -17,6 +17,7 @@ import { BigChefPageContent, defaultBigChefContent } from "@/types/site-content"
 interface MenuItem { id: string; name: string; price: number; image: string; dishes: string[]; category: string; scheduled_date?: string | null; }
 interface ExtraItem { id: string; name: string; description: string; price: number; icon: LucideIcon; category: string; image?: string; }
 interface TimeSlot { start: string; end: string; duration: number; label: string; days?: number[]; }
+interface NannyMenuSchedule { date: string; time: string; allTimeSlots: TimeSlot[]; availableTimeSlots: TimeSlot[]; loading: boolean; }
 type CategoryType = "corporate" | "classics" | "monthly" | "teenagers" | "nanny";
 
 const AVAILABILITY_CATEGORY_BY_TAB: Record<CategoryType, string> = {
@@ -116,6 +117,7 @@ export default function BigChefPage() {
   const [eventTime, setEventTime] = useState("");
   const [allTimeSlots, setAllTimeSlots] = useState<TimeSlot[]>([]);
   const [availableTimeSlots, setAvailableTimeSlots] = useState<TimeSlot[]>([]);
+  const [nannySchedules, setNannySchedules] = useState<Record<string, NannyMenuSchedule>>({});
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
@@ -184,6 +186,7 @@ export default function BigChefPage() {
     setSelectedNannyMenus([]);
     setGuestCount(currentConfig.minGuests);
     setSelectedExtras({});
+    setNannySchedules({});
     setStep(1);
     setEventDate("");
     setEventTime("");
@@ -217,14 +220,94 @@ export default function BigChefPage() {
       .finally(() => setLoadingSlots(false));
   }, [eventDate, activeCategory, isMonthlySpecial]);
 
-  const toggleNannyMenu = (menu: MenuItem) => {
-    setSelectedNannyMenus(prev => {
-      const isSelected = prev.some(m => m.id === menu.id);
-      if (isSelected) return prev.filter(m => m.id !== menu.id);
-      if (prev.length < 4) return [...prev, menu];
-      return prev;
-    });
+  const emptyNannySchedule = (): NannyMenuSchedule => ({
+    date: "",
+    time: "",
+    allTimeSlots: [],
+    availableTimeSlots: [],
+    loading: false,
+  });
+
+  const getNannySchedule = (menuId: string) => nannySchedules[menuId] || emptyNannySchedule();
+
+  const fetchNannyAvailability = async (menuId: string, date: string) => {
+    setNannySchedules(prev => ({
+      ...prev,
+      [menuId]: { ...(prev[menuId] || emptyNannySchedule()), date, time: "", loading: true },
+    }));
+
+    try {
+      const res = await fetch(`/api/services/availability?date=${date}&category=nanny`);
+      const data = await res.json();
+      setNannySchedules(prev => ({
+        ...prev,
+        [menuId]: {
+          ...(prev[menuId] || emptyNannySchedule()),
+          date,
+          time: "",
+          allTimeSlots: data.allSlots || [],
+          availableTimeSlots: data.availableSlots || [],
+          loading: false,
+        },
+      }));
+    } catch (error) {
+      console.error("Failed to fetch nanny availability:", error);
+      setNannySchedules(prev => ({
+        ...prev,
+        [menuId]: { ...(prev[menuId] || emptyNannySchedule()), date, time: "", loading: false },
+      }));
+    }
   };
+
+  const updateNannyScheduleDate = (menuId: string, date: string) => {
+    if (!date) {
+      setNannySchedules(prev => ({
+        ...prev,
+        [menuId]: emptyNannySchedule(),
+      }));
+      return;
+    }
+    fetchNannyAvailability(menuId, date);
+  };
+
+  const updateNannyScheduleTime = (menuId: string, time: string) => {
+    setNannySchedules(prev => ({
+      ...prev,
+      [menuId]: { ...(prev[menuId] || emptyNannySchedule()), time },
+    }));
+  };
+
+  const toggleNannyMenu = (menu: MenuItem) => {
+    const isSelected = selectedNannyMenus.some(m => m.id === menu.id);
+    if (isSelected) {
+      setSelectedNannyMenus(prev => prev.filter(m => m.id !== menu.id));
+      setNannySchedules(prev => {
+        const next = { ...prev };
+        delete next[menu.id];
+        return next;
+      });
+      return;
+    }
+    if (selectedNannyMenus.length < 4) {
+      setSelectedNannyMenus(prev => [...prev, menu]);
+      setNannySchedules(prev => ({ ...prev, [menu.id]: prev[menu.id] || emptyNannySchedule() }));
+    }
+  };
+
+  const nannyScheduleItems = selectedNannyMenus.map((menu, index) => {
+    const schedule = getNannySchedule(menu.id);
+    const slot = schedule.allTimeSlots.find(s => s.start === schedule.time);
+    return {
+      id: menu.id,
+      name: menu.name,
+      session: index + 1,
+      event_date: schedule.date,
+      event_time: schedule.time,
+      time_label: slot?.label || schedule.time,
+    };
+  });
+
+  const nannySchedulesComplete = !isNanny || (selectedNannyMenus.length === 4 && nannyScheduleItems.every(item => item.event_date && item.event_time));
 
   const baseAmount = isNanny ? 1200 : (selectedMenu?.price || 0) * guestCount;
   const extrasTotal = Object.entries(selectedExtras).reduce((t, [id, qty]) => t + (corporateExtras.find(e => e.id === id)?.price || 0) * qty, 0);
@@ -233,32 +316,38 @@ export default function BigChefPage() {
   const depositAmount = requiresDeposit ? Math.ceil(totalAmount * 0.5) : totalAmount;
   const balanceAmount = requiresDeposit ? totalAmount - depositAmount : 0;
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (acceptedWaiver = false) => {
     if (!isNanny && !selectedMenu) return;
     if (isNanny && selectedNannyMenus.length !== 4) return;
-    if (!waiverAccepted) { setShowWaiverModal(true); return; }
+    if (isNanny && !nannySchedulesComplete) return;
+    if (!waiverAccepted && !acceptedWaiver) { setShowWaiverModal(true); return; }
     setSubmitting(true);
     try {
       const extrasData = corporateExtras.filter(e => selectedExtras[e.id]).map(e => ({ id: e.id, name: e.name, price: e.price, quantity: selectedExtras[e.id] }));
       const menuData = isNanny ? { menuId: selectedNannyMenus.map(m => m.id).join(","), menuName: selectedNannyMenus.map(m => m.name).join(", "), menuPrice: 1200 } : { menuId: selectedMenu?.id, menuName: selectedMenu?.name, menuPrice: selectedMenu?.price };
+      const bookingEventDate = isNanny ? nannyScheduleItems[0]?.event_date : eventDate;
+      const bookingEventTime = isNanny ? nannyScheduleItems[0]?.event_time : eventTime;
+      const scheduleSummary = isNanny
+        ? nannyScheduleItems.map(item => `Session ${item.session}: ${item.name} - ${item.event_date} ${item.time_label}`).join("\n")
+        : "";
       const res = await fetch("/api/services/book", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ serviceType: "corporate_deck", serviceName: `Big Chef - ${currentConfig.label}`, packageName: isNanny ? "Nanny Class (4 Sessions)" : selectedMenu?.name, ...menuData, customerName, customerEmail, customerPhone, companyName, eventDate, eventTime, guestCount: isNanny ? 1 : guestCount, extras: extrasData, baseAmount, extrasAmount: extrasTotal, totalAmount, isDepositPayment: requiresDeposit, depositAmount: requiresDeposit ? depositAmount : null, balanceAmount: requiresDeposit ? balanceAmount : null, specialRequests, waiverAccepted, category: activeCategory }),
+        body: JSON.stringify({ serviceType: "corporate_deck", serviceName: `Big Chef - ${currentConfig.label}`, packageName: isNanny ? "Nanny Class (4 Sessions)" : selectedMenu?.name, ...menuData, customerName, customerEmail, customerPhone, companyName, eventDate: bookingEventDate, eventTime: bookingEventTime, guestCount: isNanny ? 1 : guestCount, items: isNanny ? nannyScheduleItems : [], extras: extrasData, baseAmount, extrasAmount: extrasTotal, totalAmount, isDepositPayment: requiresDeposit, depositAmount: requiresDeposit ? depositAmount : null, balanceAmount: requiresDeposit ? balanceAmount : null, specialRequests: isNanny && scheduleSummary ? `${specialRequests ? `${specialRequests}\n\n` : ""}Nanny class schedule:\n${scheduleSummary}` : specialRequests, waiverAccepted: waiverAccepted || acceptedWaiver, category: activeCategory }),
       });
       if (res.ok) { const data = await res.json(); if (data.checkoutUrl) window.location.href = data.checkoutUrl; }
       else { const error = await res.json(); alert(error.error || "Failed to create booking"); }
     } catch { alert("An error occurred"); } finally { setSubmitting(false); }
   };
 
-  const handleWaiverAccept = () => { setWaiverAccepted(true); setShowWaiverModal(false); handleSubmit(); };
+  const handleWaiverAccept = () => { setWaiverAccepted(true); setShowWaiverModal(false); handleSubmit(true); };
   const today = new Date().toISOString().split("T")[0];
   const stepLabels = hasExtras ? { 1: "Package", 2: "Customize", 3: "Details", 4: "Confirm" } : { 1: "Package", 2: "Details", 3: "Confirm" };
   const canProceed = () => {
     if (step === 1) return isNanny ? selectedNannyMenus.length === 4 : selectedMenu !== null;
     if (hasExtras && step === 2) return true;
     const detailsStep = hasExtras ? 3 : 2;
-    if (step === detailsStep) return customerName && customerEmail && eventDate && eventTime;
+    if (step === detailsStep) return isNanny ? Boolean(customerName && customerEmail && nannySchedulesComplete) : Boolean(customerName && customerEmail && eventDate && eventTime);
     return true;
   };
 
@@ -425,7 +514,87 @@ export default function BigChefPage() {
                     <div><label className="block text-base font-bold text-stone-700 mb-1">Phone</label><input type="tel" value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} className="w-full px-4 py-2 border border-stone-300 rounded-lg" /></div>
                     {isCorporate && <div><label className="block text-base font-bold text-stone-700 mb-1">Company Name</label><input type="text" value={companyName} onChange={e => setCompanyName(e.target.value)} className="w-full px-4 py-2 border border-stone-300 rounded-lg" /></div>}
                   </div>
-                  {isMonthlySpecial ? (
+                  {isNanny ? (
+                    <div className="space-y-4">
+                      <div>
+                        <h3 className="text-base font-bold text-stone-900">Class Schedule *</h3>
+                        <p className="text-sm text-stone-500">Choose a date and time slot for each selected menu.</p>
+                      </div>
+                      <div className="space-y-4">
+                        {selectedNannyMenus.map((menu, index) => {
+                          const schedule = getNannySchedule(menu.id);
+                          return (
+                            <div key={menu.id} className="rounded-lg border border-stone-200 bg-stone-50 p-4">
+                              <div className="mb-3 flex items-center justify-between gap-3">
+                                <div>
+                                  <p className="text-sm font-bold text-stone-500">Session {index + 1}</p>
+                                  <h4 className="font-bold text-stone-900">{menu.name}</h4>
+                                </div>
+                                {schedule.date && schedule.time ? (
+                                  <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-bold text-green-700">Scheduled</span>
+                                ) : (
+                                  <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-700">Required</span>
+                                )}
+                              </div>
+                              <div className="grid sm:grid-cols-2 gap-4">
+                                <div>
+                                  <label className="block text-base font-bold text-stone-700 mb-1">
+                                    <Calendar className="inline h-4 w-4 mr-1" />
+                                    Date *
+                                  </label>
+                                  <input
+                                    type="date"
+                                    value={schedule.date}
+                                    onChange={e => updateNannyScheduleDate(menu.id, e.target.value)}
+                                    min={today}
+                                    className="w-full px-4 py-2 border border-stone-300 rounded-lg bg-white"
+                                    required
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-base font-bold text-stone-700 mb-1">
+                                    <Clock className="inline h-4 w-4 mr-1" />
+                                    Time Slot *
+                                  </label>
+                                  {schedule.loading ? (
+                                    <div className="flex items-center gap-2 py-2 text-stone-500">
+                                      <Loader2 className="h-4 w-4 animate-spin" />
+                                      Loading...
+                                    </div>
+                                  ) : schedule.date && schedule.allTimeSlots.length > 0 ? (
+                                    <div className="grid grid-cols-2 gap-2">
+                                      {schedule.allTimeSlots.map((slot) => {
+                                        const isAvailable = schedule.availableTimeSlots.some((s) => s.start === slot.start);
+                                        return (
+                                          <button
+                                            key={slot.start}
+                                            type="button"
+                                            disabled={!isAvailable}
+                                            onClick={() => updateNannyScheduleTime(menu.id, slot.start)}
+                                            className={`px-3 py-2 text-sm rounded-lg border ${
+                                              schedule.time === slot.start
+                                                ? "bg-[#f5e6dc] text-stone-800 border border-stone-300"
+                                                : isAvailable
+                                                ? "border-stone-300 bg-white hover:border-stone-900"
+                                                : "bg-stone-100 text-stone-400 cursor-not-allowed line-through"
+                                            }`}
+                                          >
+                                            {slot.label}
+                                          </button>
+                                        );
+                                      })}
+                                    </div>
+                                  ) : (
+                                    <p className="text-sm text-stone-500 py-2">{schedule.date ? "No slots available" : "Select a date first"}</p>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ) : isMonthlySpecial ? (
                     <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
                       <p className="text-sm font-medium text-amber-800 mb-3">
                         <Calendar className="inline h-4 w-4 mr-1" />
@@ -473,15 +642,28 @@ export default function BigChefPage() {
                     <div><span className="font-bold text-stone-700">Category:</span><span className="ml-2 font-bold text-stone-900">{currentConfig.label}</span></div>
                     <div><span className="font-bold text-stone-700">Package:</span><span className="ml-2 font-bold text-stone-900">{isNanny ? `${selectedNannyMenus.length} Menus` : selectedMenu?.name}</span></div>
                     {!isNanny && <div><span className="font-bold text-stone-700">Guests:</span><span className="ml-2 font-bold text-stone-900">{guestCount}</span></div>}
-                    <div><span className="font-bold text-stone-700">Date:</span><span className="ml-2 font-bold text-stone-900">{eventDate}</span></div>
-                    <div><span className="font-bold text-stone-700">Time:</span><span className="ml-2 font-bold text-stone-900">{eventTime}</span></div>
+                    {!isNanny && <div><span className="font-bold text-stone-700">Date:</span><span className="ml-2 font-bold text-stone-900">{eventDate}</span></div>}
+                    {!isNanny && <div><span className="font-bold text-stone-700">Time:</span><span className="ml-2 font-bold text-stone-900">{eventTime}</span></div>}
                   </div>
+                  {isNanny && (
+                    <div className="rounded-lg bg-stone-50 p-4">
+                      <h3 className="font-bold text-stone-900 mb-3">Class Schedule</h3>
+                      <div className="space-y-2">
+                        {nannyScheduleItems.map((item) => (
+                          <div key={item.id} className="flex flex-col gap-1 rounded-md border border-stone-200 bg-white px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
+                            <span className="font-medium text-stone-900">Session {item.session}: {item.name}</span>
+                            <span className="text-sm text-stone-600">{item.event_date} • {item.time_label}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   {/* Payment Info - Hidden per client request */}
                 </CardContent></Card>
                 {/* Navigation Buttons - Desktop */}
                 <div className="hidden lg:flex justify-between items-center pt-6 border-t">
                   <Button variant="outline" onClick={() => setStep(step - 1)} className="px-6 font-bold"><ArrowLeft className="mr-2 h-4 w-4" />Back</Button>
-                  <Button className="bg-stone-900 hover:bg-stone-800 text-white px-8 font-bold" onClick={handleSubmit} disabled={submitting || !canProceed()}>{submitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}{submitting ? "Processing..." : "Pay Now"}{!submitting && <ArrowRight className="ml-2 h-4 w-4" />}</Button>
+                  <Button className="bg-stone-900 hover:bg-stone-800 text-white px-8 font-bold" onClick={() => handleSubmit()} disabled={submitting || !canProceed()}>{submitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}{submitting ? "Processing..." : "Pay Now"}{!submitting && <ArrowRight className="ml-2 h-4 w-4" />}</Button>
                 </div>
               </div>
             )}
@@ -527,7 +709,7 @@ export default function BigChefPage() {
                 ) : (
                   <Button
                     className="bg-[#f5e6dc] hover:bg-[#f0ddd0] text-stone-800 border border-stone-300 font-bold"
-                    onClick={handleSubmit}
+                    onClick={() => handleSubmit()}
                     disabled={submitting || !canProceed()}
                   >
                     {submitting ? (
