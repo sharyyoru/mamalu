@@ -234,6 +234,7 @@ export default function MiniChefPage() {
   const [birthdayExtras, setBirthdayExtras] = useState<ExtraItem[]>([]);
   const [loadingExtras, setLoadingExtras] = useState(true);
   const [selectedExtras, setSelectedExtras] = useState<Record<string, number>>({});
+  const [previewExtra, setPreviewExtra] = useState<ExtraItem | null>(null);
 
   // Booking details
   const [eventDate, setEventDate] = useState("");
@@ -406,10 +407,24 @@ export default function MiniChefPage() {
     setPendingPackageMenuItems([]);
     setGuestCount(currentConfig.minGuests);
     setSelectedExtras({});
+    setPreviewExtra(null);
     setStep(1);
     setEventDate("");
     setEventTime("");
   }, [activeCategory]);
+
+  useEffect(() => {
+    if (!previewExtra) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setPreviewExtra(null);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [previewExtra]);
 
   // Check if current selection is a monthly special with fixed date
   const isMonthlySpecial = activeCategory === "monthly" && selectedMenu?.scheduled_date;
@@ -616,6 +631,41 @@ export default function MiniChefPage() {
         onClose={() => setShowWaiverModal(false)}
         onAccept={handleWaiverAccept}
       />
+
+      {previewExtra?.image && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-label={`${previewExtra.name} preview`}
+          onClick={() => setPreviewExtra(null)}
+        >
+          <div className="relative w-full max-w-3xl" onClick={(event) => event.stopPropagation()}>
+            <button
+              type="button"
+              onClick={() => setPreviewExtra(null)}
+              className="absolute -right-2 -top-12 rounded-full bg-white p-2 text-stone-700 shadow-lg transition hover:bg-stone-100 sm:-right-4"
+              aria-label="Close preview"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-white shadow-2xl">
+              <Image
+                src={previewExtra.image}
+                alt={previewExtra.name}
+                fill
+                className="object-contain"
+                sizes="(min-width: 1024px) 768px, 92vw"
+                priority
+              />
+            </div>
+            <div className="mt-3 rounded-lg bg-white px-4 py-3 shadow-lg">
+              <h3 className="font-semibold text-stone-900">{previewExtra.name}</h3>
+              <p className="text-sm text-stone-600">{previewExtra.description}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Package Menu Item Selection Modal */}
       {showPackageModal && pendingPackage && (
@@ -950,9 +1000,14 @@ export default function MiniChefPage() {
                                     <div className="flex items-start gap-3">
                                       <div className="flex-shrink-0">
                                         {extra.image ? (
-                                          <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-stone-100">
-                                            <Image src={extra.image} alt={extra.name} fill className="object-cover" />
-                                          </div>
+                                          <button
+                                            type="button"
+                                            onClick={() => setPreviewExtra(extra)}
+                                            className="group relative h-16 w-16 overflow-hidden rounded-lg bg-stone-100 focus:outline-none focus:ring-2 focus:ring-stone-900 focus:ring-offset-2"
+                                            aria-label={`Preview ${extra.name}`}
+                                          >
+                                            <Image src={extra.image} alt={extra.name} fill className="object-cover transition group-hover:scale-105" />
+                                          </button>
                                         ) : (
                                           <div className="p-2 bg-stone-100 rounded-lg">
                                             <Icon className="h-5 w-5 text-stone-600" />
