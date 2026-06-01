@@ -101,6 +101,8 @@ const AVAILABILITY_CATEGORY_BY_TAB: Record<CategoryType, string> = {
   packages: "packages",
 };
 
+const MOMMY_ME_ADDITIONAL_CHILD_PRICE = 200;
+
 // Category configuration with min guests - Birthdays last
 const getCategoryConfig = (pageContent: MiniChefPageContent): Record<CategoryType, { label: string; icon: string; minGuests: number; maxGuests: number; description: string }> => ({
   classics: { label: "Our Classics", icon: pageContent.categoryIcons?.classics || "/icons/boy.png", minGuests: 1, maxGuests: 35, description: "Fun cooking classes for kids" },
@@ -248,6 +250,7 @@ export default function MiniChefPage() {
   const categoryConfig = getCategoryConfig(pageContent);
   const currentConfig = categoryConfig[activeCategory];
   const isBirthday = activeCategory === "birthdays";
+  const isMommyAndMe = activeCategory === "mommy_me";
   const hasExtras = isBirthday;
   // Fetch page content
   useEffect(() => {
@@ -416,9 +419,17 @@ export default function MiniChefPage() {
   }, [eventDate, activeCategory, isMonthlySpecial]);
 
   // Calculate totals
+  const getMenuPrice = (menu = selectedMenu) => {
+    if (!menu) return 0;
+    if (isMommyAndMe) {
+      return menu.price + Math.max(0, guestCount - 1) * MOMMY_ME_ADDITIONAL_CHILD_PRICE;
+    }
+    return menu.price * guestCount;
+  };
+
   const calculateBaseAmount = () => {
     if (!selectedMenu) return 0;
-    return selectedMenu.price * guestCount;
+    return getMenuPrice();
   };
 
   const calculateExtrasTotal = () => {
@@ -439,11 +450,11 @@ export default function MiniChefPage() {
   const balanceAmount = requiresDeposit ? totalAmount - depositAmount : 0;
 
   // Handle form submission
-  const handleSubmit = async () => {
+  const handleSubmit = async (acceptedWaiver = false) => {
     if (!selectedMenu) return;
     
     // Show waiver modal if not accepted
-    if (!waiverAccepted) {
+    if (!waiverAccepted && !acceptedWaiver) {
       setShowWaiverModal(true);
       return;
     }
@@ -473,7 +484,7 @@ export default function MiniChefPage() {
           menuName: selectedPackageMenuItem
             ? `${selectedMenu.name} — ${selectedPackageMenuItem.name}`
             : selectedMenu.name,
-          menuPrice: selectedMenu.price,
+          menuPrice: getMenuPrice(),
           chosenMenuItem: selectedPackageMenuItem ? { id: selectedPackageMenuItem.id, name: selectedPackageMenuItem.name } : null,
           customerName,
           customerEmail,
@@ -481,6 +492,17 @@ export default function MiniChefPage() {
           eventDate: eventDate || null,
           eventTime: eventTime || null,
           guestCount,
+          items: isMommyAndMe
+            ? [{
+                id: selectedMenu.id,
+                name: selectedMenu.name,
+                children: guestCount,
+                basePrice: selectedMenu.price,
+                additionalChildren: Math.max(0, guestCount - 1),
+                additionalChildPrice: MOMMY_ME_ADDITIONAL_CHILD_PRICE,
+                totalPrice: getMenuPrice(),
+              }]
+            : [],
           extras: extrasData,
           baseAmount: calculateBaseAmount(),
           extrasAmount: calculateExtrasTotal(),
@@ -488,9 +510,11 @@ export default function MiniChefPage() {
           isDepositPayment,
           depositAmount: isDepositPayment ? paymentAmount : null,
           balanceAmount: isDepositPayment ? balanceAmount : null,
-          specialRequests,
+          specialRequests: isMommyAndMe
+            ? `${specialRequests ? `${specialRequests}\n\n` : ""}Mommy & Me children: ${guestCount}${guestCount > 1 ? ` (${guestCount - 1} additional child${guestCount - 1 === 1 ? "" : "ren"} at AED ${MOMMY_ME_ADDITIONAL_CHILD_PRICE} each)` : ""}`
+            : specialRequests,
           ageRange,
-          waiverAccepted,
+          waiverAccepted: waiverAccepted || acceptedWaiver,
           category: activeCategory,
         }),
       });
@@ -517,7 +541,7 @@ export default function MiniChefPage() {
     setWaiverAccepted(true);
     setShowWaiverModal(false);
     // Continue with submission
-    handleSubmit();
+    handleSubmit(true);
   };
 
   // Get today's date for min date
@@ -670,7 +694,7 @@ export default function MiniChefPage() {
                   <h2 className="text-2xl text-black" style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 900 }}>Pick your perfect Menu</h2>
                   <p className="text-stone-500 mt-1">{currentConfig.description}</p>
                   <p className="text-sm text-stone-400 mt-2">
-                    Min: {currentConfig.minGuests} {isBirthday ? "kids" : "guest(s)"} • Max: {currentConfig.maxGuests} {isBirthday ? "kids" : "guests"} • Price per person
+                    Min: {currentConfig.minGuests} {isMommyAndMe ? "child" : isBirthday ? "kid(s)" : "guest(s)"} • Max: {currentConfig.maxGuests} {isMommyAndMe ? "children" : isBirthday ? "kids" : "guests"} • {isMommyAndMe ? `AED ${MOMMY_ME_ADDITIONAL_CHILD_PRICE} per additional child` : "Price per person"}
                   </p>
                 </div>
 
@@ -680,6 +704,9 @@ export default function MiniChefPage() {
                     <p className="text-pink-800 font-bold">
                       Mom and kid have their own station where they share laughter, learning, and delicious moments together!
                     </p>
+                    <p className="text-sm text-pink-700 mt-2">
+                      Each menu includes 1 child. Add AED {MOMMY_ME_ADDITIONAL_CHILD_PRICE} for every additional child.
+                    </p>
                   </div>
                 )}
 
@@ -687,7 +714,7 @@ export default function MiniChefPage() {
                 <Card>
                   <CardContent className="p-5">
                     <label className="block text-lg font-bold text-stone-900 mb-3">
-                      Number of {isBirthday ? "Kids" : "Guests"}
+                      Number of {isMommyAndMe ? "Children" : isBirthday ? "Kids" : "Guests"}
                     </label>
                     <div className="flex items-center gap-4 mb-4 lg:mb-6">
                       <Button 
@@ -711,6 +738,11 @@ export default function MiniChefPage() {
                         (Min: {currentConfig.minGuests}, Max: {currentConfig.maxGuests})
                       </span>
                     </div>
+                    {isMommyAndMe && selectedMenu && (
+                      <div className="mb-4 rounded-lg border border-pink-200 bg-pink-50 px-4 py-3 text-sm text-pink-800">
+                        <span className="font-bold">{selectedMenu.name} total:</span> AED {getMenuPrice().toLocaleString()}
+                      </div>
+                    )}
                     {/* Desktop Continue Button - Inside Card */}
                     <div className="hidden lg:flex justify-end items-center pt-4 border-t">
                       <Button
@@ -776,9 +808,16 @@ export default function MiniChefPage() {
                             </p>
                           )}
                           <div className="flex items-center justify-between">
-                            <span className="text-sm text-stone-500">{activeCategory === "packages" ? "flat rate" : "per person"}</span>
-                            <span className="text-xl font-bold text-stone-900">AED {menu.price}</span>
+                            <span className="text-sm text-stone-500">{activeCategory === "packages" ? "flat rate" : isMommyAndMe ? "mom + 1 child" : "per person"}</span>
+                            <span className="text-xl font-bold text-stone-900">
+                              AED {isMommyAndMe && selectedMenu?.id === menu.id ? getMenuPrice(menu).toLocaleString() : menu.price.toLocaleString()}
+                            </span>
                           </div>
+                          {isMommyAndMe && (
+                            <p className="text-xs text-stone-400 mt-1">
+                              +AED {MOMMY_ME_ADDITIONAL_CHILD_PRICE} per additional child
+                            </p>
+                          )}
                           {activeCategory === "packages" && selectedMenu?.id !== menu.id && (
                             <p className="text-xs text-stone-400 mt-1">Click to choose your menu</p>
                           )}
@@ -1112,9 +1151,15 @@ export default function MiniChefPage() {
                         <span className="ml-2 font-bold text-stone-900">{selectedMenu?.name}</span>
                       </div>
                       <div>
-                        <span className="font-bold text-stone-700">Guests:</span>
+                        <span className="font-bold text-stone-700">{isMommyAndMe ? "Children:" : "Guests:"}</span>
                         <span className="ml-2 font-bold text-stone-900">{guestCount}</span>
                       </div>
+                      {isMommyAndMe && (
+                        <div>
+                          <span className="font-bold text-stone-700">Menu Total:</span>
+                          <span className="ml-2 font-bold text-stone-900">AED {calculateBaseAmount().toLocaleString()}</span>
+                        </div>
+                      )}
                       <div>
                         <span className="font-bold text-stone-700">Date:</span>
                         <span className="ml-2 font-bold text-stone-900">{eventDate}</span>
@@ -1149,7 +1194,7 @@ export default function MiniChefPage() {
                   </Button>
                   <Button
                     className="bg-stone-900 hover:bg-stone-800 text-white px-8 font-bold"
-                    onClick={handleSubmit}
+                    onClick={() => handleSubmit()}
                     disabled={submitting || !canProceed()}
                   >
                     {submitting ? (
@@ -1173,10 +1218,10 @@ export default function MiniChefPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-base font-bold text-stone-900">
-                  {selectedMenu.name} • {guestCount} {isBirthday ? "kids" : "guests"}
+                  {selectedMenu.name} • {guestCount} {isMommyAndMe ? "children" : isBirthday ? "kids" : "guests"}
                 </p>
                 <p className="text-sm font-bold text-stone-600">
-                  Step {step} of {maxStep}
+                  Step {step} of {maxStep} • AED {totalAmount.toLocaleString()}
                 </p>
               </div>
               
@@ -1204,7 +1249,7 @@ export default function MiniChefPage() {
                 ) : (
                   <Button
                     className="bg-[#f5e6dc] hover:bg-[#f0ddd0] text-stone-800 border border-stone-300 font-bold"
-                    onClick={handleSubmit}
+                    onClick={() => handleSubmit()}
                     disabled={submitting || !canProceed()}
                   >
                     {submitting ? (
