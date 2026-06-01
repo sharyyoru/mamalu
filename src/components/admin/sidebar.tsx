@@ -49,6 +49,7 @@ const navigation = [
   { name: "Payment Tracking", href: "/admin/payment-tracking", icon: Clock },
   { name: "WhatsApp Monitor", href: "/admin/whatsapp", icon: Phone, superAdminOnly: true },
   { name: "Orders", href: "/admin/orders", icon: ShoppingBag },
+  { name: "Products", href: "/admin/products", icon: Package },
   { name: "Menu Items", href: "/admin/menu-items", icon: UtensilsCrossed },
   { name: "Time Slots", href: "/admin/time-slots", icon: Clock },
   { name: "Party Extras", href: "/admin/party-extras", icon: PartyPopper },
