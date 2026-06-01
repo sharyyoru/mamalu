@@ -118,6 +118,8 @@ function AutoplayVideo() {
 export default function HomePage() {
   const heroRef = useRef<HTMLElement>(null);
   const [siteContent, setSiteContent] = useState<SiteContent>(defaultSiteContent);
+  const lifeAtMamaluTitle = siteContent.lifeAtMamaluTitle.trim();
+  const shouldBreakLifeAtTitle = lifeAtMamaluTitle === "Life at Mamalu Kitchen";
 
   // Fetch site content
   useEffect(() => {
@@ -248,7 +250,15 @@ export default function HomePage() {
                 className="section-title text-4xl md:text-5xl lg:text-6xl text-black text-center leading-tight"
                 style={{ fontFamily: "var(--font-mossy), cursive", fontWeight: 900 }}
               >
-                {siteContent.lifeAtMamaluTitle}
+                {shouldBreakLifeAtTitle ? (
+                  <>
+                    Life at
+                    <br />
+                    Mamalu Kitchen
+                  </>
+                ) : (
+                  siteContent.lifeAtMamaluTitle
+                )}
               </h2>
             </div>
           </div>

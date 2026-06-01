@@ -673,21 +673,21 @@ export default function BigChefPage() {
         </div>
       </div>
 
-      {/* Mobile Floating Order Summary Bar - Deliveroo Style */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-stone-200 shadow-[0_-4px_20px_rgba(0,0,0,0.1)]">
-        <div className="px-4 py-3">
+      {/* Floating booking action bar */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 border-t border-stone-200 shadow-[0_-4px_20px_rgba(0,0,0,0.1)] backdrop-blur">
+        <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:pl-8 lg:pr-32">
           {(selectedMenu || (isNanny && selectedNannyMenus.length > 0)) ? (
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-base font-bold text-stone-900">
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="truncate text-sm font-bold text-stone-900 sm:text-base">
                   {isNanny ? `Nanny Class • ${selectedNannyMenus.length} menus` : `${selectedMenu?.name} • ${guestCount} guests`}
                 </p>
-                <p className="text-sm font-bold text-stone-600">
-                  Step {step} of {maxStep}
+                <p className="text-xs font-bold text-stone-600 sm:text-sm">
+                  Step {step} of {maxStep} • AED {totalAmount.toLocaleString()}
                 </p>
               </div>
               
-              <div className="flex items-center gap-2">
+              <div className="flex flex-shrink-0 items-center gap-2">
                 {step > 1 && (
                   <Button
                     variant="outline"
@@ -732,8 +732,8 @@ export default function BigChefPage() {
         </div>
       </div>
 
-      {/* Bottom padding for mobile to account for floating bar */}
-      <div className="lg:hidden h-24" />
+      {/* Bottom padding to account for floating bar */}
+      <div className="h-24" />
     </div>
   );
 }
