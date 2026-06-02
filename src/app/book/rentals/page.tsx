@@ -111,8 +111,8 @@ export default function RentalsPage() {
     return (
       <main className="min-h-screen bg-white pt-8 pb-20">
         <div className="container max-w-2xl mx-auto px-6 text-center">
-          <div className="w-24 h-24 mx-auto mb-8 rounded-full bg-green-100 flex items-center justify-center">
-            <CheckCircle2 className="w-12 h-12 text-green-600" />
+          <div className="w-24 h-24 mx-auto mb-8 rounded-full bg-[#FF8C6B]/15 flex items-center justify-center">
+            <CheckCircle2 className="w-12 h-12 text-[#FF8C6B]" />
           </div>
           <h1 className="text-4xl font-bold mb-4" style={{ fontFamily: 'var(--font-mossy), cursive' }}>
             Inquiry Received!
@@ -401,7 +401,7 @@ export default function RentalsPage() {
                 <ul className="space-y-3 text-sm text-gray-600">
                   {content.features.map((feature, index) => (
                     <li key={index} className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-green-500" />
+                      <CheckCircle2 className="w-4 h-4 text-[#FF8C6B]" />
                       {feature}
                     </li>
                   ))}

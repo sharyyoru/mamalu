@@ -144,9 +144,9 @@ function WaiverModal({ isOpen, onClose, onAccept }: { isOpen: boolean; onClose: 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
-        <div className="bg-red-600 text-white p-4 flex items-center justify-between">
+        <div className="bg-[#FF8C6B] text-white p-4 flex items-center justify-between">
           <h2 className="text-xl font-bold">WAIVER FORM</h2>
-          <button onClick={onClose} className="p-1 hover:bg-red-700 rounded">
+          <button onClick={onClose} className="p-1 hover:bg-[#ff7a54] rounded">
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -161,7 +161,7 @@ function WaiverModal({ isOpen, onClose, onAccept }: { isOpen: boolean; onClose: 
               By completing this booking, I confirm that I am the parent or legal guardian of the participating child and give permission for them to attend and participate in the cooking class at Mamalu Kitchen Studio. I understand that cooking activities involve the use of kitchen tools, utensils, heat sources, and food ingredients, and while Mamalu Kitchen Studio maintains a safe, supervised environment, minor injuries such as cuts, burns, slips, or allergic reactions may occur.
             </p>
             
-            <p className="text-red-600">
+            <p className="text-[#FF8C6B]">
               I confirm that I have informed Mamalu Kitchen Studio of any allergies, medical conditions, dietary restrictions, or special needs prior to the class. I understand that classes take place in a shared kitchen environment where cross-contact with allergens may occur despite careful handling procedures.
             </p>
             
@@ -707,7 +707,7 @@ export default function MiniChefPage() {
                       <div className="relative h-36 w-full bg-stone-200">
                         <Image src={item.image} alt={item.name} fill className="object-cover" />
                         {isSelected && (
-                          <div className="absolute top-2 right-2 flex h-7 w-7 items-center justify-center rounded-full bg-stone-900 text-xs font-bold text-white">
+                          <div className="absolute top-2 right-2 flex h-7 w-7 items-center justify-center rounded-full bg-[#FF8C6B] text-xs font-bold text-white">
                             {selectedIndex + 1}
                           </div>
                         )}
@@ -787,7 +787,7 @@ export default function MiniChefPage() {
                   onClick={() => setActiveCategory(cat)}
                   className={`px-3 py-2 sm:px-6 sm:py-3 rounded-full font-bold transition-all text-sm sm:text-lg ${
                     activeCategory === cat
-                      ? "bg-[#f5e6dc] text-stone-900 border border-stone-300 shadow-md"
+                      ? "bg-[#FF8C6B] text-white border border-[#FF8C6B] shadow-md"
                       : "text-stone-700 hover:bg-stone-200"
                   }`}
                 >
@@ -809,11 +809,11 @@ export default function MiniChefPage() {
 
                 {/* Mommy & Me Description */}
                 {activeCategory === "mommy_me" && (
-                  <div className="p-4 bg-pink-50 rounded-lg border border-pink-200">
-                    <p className="text-pink-800 font-bold">
+                  <div className="p-4 bg-[#FF8C6B]/10 rounded-lg border border-[#FF8C6B]/25">
+                    <p className="text-[#FF8C6B] font-bold">
                       Mom and kid have their own station where they share laughter, learning, and delicious moments together!
                     </p>
-                    <p className="text-sm text-pink-700 mt-2">
+                    <p className="text-sm text-[#FF8C6B] mt-2">
                       Each menu includes 1 child. Add AED {MOMMY_ME_ADDITIONAL_CHILD_PRICE} for every additional child.
                     </p>
                   </div>
@@ -848,7 +848,7 @@ export default function MiniChefPage() {
                       </span>
                     </div>
                     {isMommyAndMe && selectedMenu && (
-                      <div className="mb-4 rounded-lg border border-pink-200 bg-pink-50 px-4 py-3 text-sm text-pink-800">
+                      <div className="mb-4 rounded-lg border border-[#FF8C6B]/25 bg-[#FF8C6B]/10 px-4 py-3 text-sm text-[#FF8C6B]">
                         <span className="font-bold">{selectedMenu.name} total:</span> AED {getMenuPrice().toLocaleString()}
                       </div>
                     )}
@@ -879,7 +879,7 @@ export default function MiniChefPage() {
                       key={menu.id}
                       className={`cursor-pointer transition-all ${
                         selectedMenu?.id === menu.id
-                          ? "ring-2 ring-stone-900 shadow-lg"
+                          ? "ring-2 ring-[#FF8C6B] shadow-lg"
                           : "hover:shadow-md"
                       }`}
                       onClick={() => {
@@ -994,7 +994,7 @@ export default function MiniChefPage() {
                               const Icon = extra.icon;
                               const qty = selectedExtras[extra.id] || 0;
                               return (
-                                <Card key={extra.id} className={qty > 0 ? "ring-2 ring-stone-900" : ""}>
+                                <Card key={extra.id} className={qty > 0 ? "ring-2 ring-[#FF8C6B]" : ""}>
                                   <CardContent className="p-4">
                                     <div className="flex items-start gap-3">
                                       <div className="flex-shrink-0">
@@ -1002,7 +1002,7 @@ export default function MiniChefPage() {
                                           <button
                                             type="button"
                                             onClick={() => setPreviewExtra(extra)}
-                                            className="group relative h-16 w-16 overflow-hidden rounded-lg bg-stone-100 focus:outline-none focus:ring-2 focus:ring-stone-900 focus:ring-offset-2"
+                                            className="group relative h-16 w-16 overflow-hidden rounded-lg bg-stone-100 focus:outline-none focus:ring-2 focus:ring-[#FF8C6B] focus:ring-offset-2"
                                             aria-label={`Preview ${extra.name}`}
                                           >
                                             <Image src={extra.image} alt={extra.name} fill className="object-cover transition group-hover:scale-105" />
@@ -1094,7 +1094,7 @@ export default function MiniChefPage() {
                           type="text"
                           value={customerName}
                           onChange={(e) => setCustomerName(e.target.value)}
-                          className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-stone-900 focus:border-transparent"
+                          className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-[#FF8C6B] focus:border-transparent"
                           required
                         />
                       </div>
@@ -1104,7 +1104,7 @@ export default function MiniChefPage() {
                           type="email"
                           value={customerEmail}
                           onChange={(e) => setCustomerEmail(e.target.value)}
-                          className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-stone-900 focus:border-transparent"
+                          className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-[#FF8C6B] focus:border-transparent"
                           required
                         />
                       </div>
@@ -1117,7 +1117,7 @@ export default function MiniChefPage() {
                           type="tel"
                           value={customerPhone}
                           onChange={(e) => setCustomerPhone(e.target.value)}
-                          className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-stone-900 focus:border-transparent"
+                          className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-[#FF8C6B] focus:border-transparent"
                         />
                       </div>
                       <div>
@@ -1127,27 +1127,27 @@ export default function MiniChefPage() {
                           value={ageRange}
                           onChange={(e) => setAgeRange(e.target.value)}
                           placeholder="e.g., 5-8 years"
-                          className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-stone-900 focus:border-transparent"
+                          className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-[#FF8C6B] focus:border-transparent"
                         />
                       </div>
                     </div>
 
                     {isMonthlySpecial ? (
-                      <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                        <p className="text-sm font-medium text-amber-800 mb-3">
+                      <div className="p-4 bg-[#FF8C6B]/10 border border-[#FF8C6B]/25 rounded-lg">
+                        <p className="text-sm font-medium text-[#FF8C6B] mb-3">
                           <Calendar className="inline h-4 w-4 mr-1" />
                           This monthly special has a fixed schedule:
                         </p>
                         <div className="grid sm:grid-cols-2 gap-4">
                           <div>
-                            <label className="block text-sm font-bold text-amber-700 mb-1">Event Date</label>
-                            <div className="px-4 py-2 bg-white border border-amber-300 rounded-lg text-stone-900 font-medium">
+                            <label className="block text-sm font-bold text-[#FF8C6B] mb-1">Event Date</label>
+                            <div className="px-4 py-2 bg-white border border-[#FF8C6B]/30 rounded-lg text-stone-900 font-medium">
                               {new Date(eventDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                             </div>
                           </div>
                           <div>
-                            <label className="block text-sm font-bold text-amber-700 mb-1">Time</label>
-                            <div className="px-4 py-2 bg-white border border-amber-300 rounded-lg text-stone-900 font-medium">
+                            <label className="block text-sm font-bold text-[#FF8C6B] mb-1">Time</label>
+                            <div className="px-4 py-2 bg-white border border-[#FF8C6B]/30 rounded-lg text-stone-900 font-medium">
                               {selectedMenu?.scheduled_date ? new Date(selectedMenu.scheduled_date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) : eventTime}
                             </div>
                           </div>
@@ -1165,7 +1165,7 @@ export default function MiniChefPage() {
                             value={eventDate}
                             onChange={(e) => setEventDate(e.target.value)}
                             min={today}
-                            className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-stone-900 focus:border-transparent"
+                            className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-[#FF8C6B] focus:border-transparent"
                             required
                           />
                         </div>
@@ -1191,9 +1191,9 @@ export default function MiniChefPage() {
                                     onClick={() => setEventTime(slot.start)}
                                     className={`px-3 py-2 text-sm rounded-lg border transition-all ${
                                       eventTime === slot.start
-                                        ? "bg-[#f5e6dc] text-stone-800 border-stone-300"
+                                        ? "bg-[#FF8C6B] text-white border-[#FF8C6B]"
                                         : isAvailable
-                                        ? "border-stone-300 hover:border-stone-900"
+                                        ? "border-stone-300 hover:border-[#FF8C6B]"
                                         : "border-stone-200 bg-stone-100 text-stone-400 cursor-not-allowed line-through"
                                     }`}
                                   >
@@ -1218,7 +1218,7 @@ export default function MiniChefPage() {
                         onChange={(e) => setSpecialRequests(e.target.value)}
                         rows={3}
                         placeholder="Any dietary restrictions, allergies, or special requests..."
-                        className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-stone-900 focus:border-transparent"
+                        className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-[#FF8C6B] focus:border-transparent"
                       />
                     </div>
                   </CardContent>

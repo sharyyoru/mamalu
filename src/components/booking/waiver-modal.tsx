@@ -41,7 +41,7 @@ export function WaiverModal({ isOpen, onClose, onAccept, attendeeName }: WaiverM
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-stone-200">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-amber-100 rounded-lg">
+            <div className="p-2 bg-[#FF8C6B]/15 rounded-lg">
               <FileText className="h-5 w-5 text-[#FF8C6B]" />
             </div>
             <div>
@@ -130,8 +130,8 @@ export function WaiverModal({ isOpen, onClose, onAccept, attendeeName }: WaiverM
             I might otherwise have.
           </p>
 
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mt-6">
-            <p className="text-amber-800 font-medium">
+          <div className="bg-[#FF8C6B]/10 border border-[#FF8C6B]/25 rounded-lg p-4 mt-6">
+            <p className="text-[#FF8C6B] font-medium">
               Please scroll to the bottom to read the entire waiver before signing.
             </p>
           </div>
@@ -173,12 +173,12 @@ export function WaiverModal({ isOpen, onClose, onAccept, attendeeName }: WaiverM
                   className="w-full px-4 py-3 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF8C6B] font-medium"
                 />
                 {signature && !isSignatureValid && (
-                  <p className="text-red-500 text-sm mt-1">
+                  <p className="text-[#FF8C6B] text-sm mt-1">
                     Signature must match: {attendeeName}
                   </p>
                 )}
                 {isSignatureValid && (
-                  <p className="text-green-600 text-sm mt-1 flex items-center gap-1">
+                  <p className="text-[#FF8C6B] text-sm mt-1 flex items-center gap-1">
                     <CheckCircle className="h-4 w-4" /> Signature verified
                   </p>
                 )}

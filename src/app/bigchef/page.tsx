@@ -65,15 +65,15 @@ function WaiverModal({ isOpen, onClose, onAccept }: { isOpen: boolean; onClose: 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
-        <div className="bg-red-600 text-white p-4 flex items-center justify-between">
+        <div className="bg-[#FF8C6B] text-white p-4 flex items-center justify-between">
           <h2 className="text-xl font-bold">WAIVER FORM</h2>
-          <button onClick={onClose} className="p-1 hover:bg-red-700 rounded"><X className="h-5 w-5" /></button>
+          <button onClick={onClose} className="p-1 hover:bg-[#ff7a54] rounded"><X className="h-5 w-5" /></button>
         </div>
         <div className="p-6 overflow-y-auto flex-1">
           <h3 className="text-lg font-bold text-center mb-4">Cooking Class Waiver & Acknowledgement — Mamalu Kitchen Studio</h3>
           <div className="space-y-4 text-sm text-stone-700">
             <p>By completing this booking, I confirm that I am the participant or authorized representative and give permission to attend and participate in the cooking class at Mamalu Kitchen Studio. I understand that cooking activities involve the use of kitchen tools, utensils, heat sources, and food ingredients, and while Mamalu Kitchen Studio maintains a safe, supervised environment, minor injuries such as cuts, burns, slips, or allergic reactions may occur.</p>
-            <p className="text-red-600">I confirm that I have informed Mamalu Kitchen Studio of any allergies, medical conditions, dietary restrictions, or special needs prior to the class. I understand that classes take place in a shared kitchen environment where cross-contact with allergens may occur despite careful handling procedures.</p>
+            <p className="text-[#FF8C6B]">I confirm that I have informed Mamalu Kitchen Studio of any allergies, medical conditions, dietary restrictions, or special needs prior to the class. I understand that classes take place in a shared kitchen environment where cross-contact with allergens may occur despite careful handling procedures.</p>
             <p>I agree that Mamalu Kitchen Studio, its owners, instructors, and staff shall not be held liable for any injury, loss, or damage resulting from participation in the class, except in cases of gross negligence.</p>
             <p>I understand that photos or videos may be taken during the class for documentation and promotional purposes unless I notify Mamalu Kitchen Studio in writing prior to the session.</p>
             <p className="font-semibold">By checking this box, I confirm that I have read, understood, and agree to this waiver.</p>
@@ -377,7 +377,7 @@ export default function BigChefPage() {
           <div className="space-y-6">
             <div className="flex flex-wrap gap-2 sm:gap-3 p-1 sm:p-2 bg-stone-100 rounded-2xl sm:rounded-full">
               {(Object.keys(categoryConfig) as CategoryType[]).map(cat => (
-                <button key={cat} onClick={() => setActiveCategory(cat)} className={`px-3 py-2 sm:px-6 sm:py-3 rounded-full font-bold transition-all text-sm sm:text-lg flex items-center gap-1 sm:gap-2 ${activeCategory === cat ? "bg-[#f5e6dc] text-stone-900 border border-stone-300 shadow-md" : "text-stone-700 hover:bg-stone-200"}`}><Image src={categoryConfig[cat].icon} alt="" width={28} height={28} className="w-5 h-5 sm:w-7 sm:h-7" /> {categoryConfig[cat].label}</button>
+                <button key={cat} onClick={() => setActiveCategory(cat)} className={`px-3 py-2 sm:px-6 sm:py-3 rounded-full font-bold transition-all text-sm sm:text-lg flex items-center gap-1 sm:gap-2 ${activeCategory === cat ? "bg-[#FF8C6B] text-white border border-[#FF8C6B] shadow-md" : "text-stone-700 hover:bg-stone-200"}`}><Image src={categoryConfig[cat].icon} alt="" width={28} height={28} className="w-5 h-5 sm:w-7 sm:h-7" /> {categoryConfig[cat].label}</button>
               ))}
             </div>
             {step === 1 && (
@@ -385,7 +385,7 @@ export default function BigChefPage() {
                 <div>
                   <h2 className="text-2xl text-black" style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 900 }}>{isNanny ? "Select 4 Menus for Your Course" : "Pick your perfect Menu"}</h2>
                   <p className="text-stone-500 mt-1">{currentConfig.description}</p>
-                  {isNanny ? <div className="mt-3 p-4 bg-amber-50 rounded-lg border border-amber-200"><p className="text-lg font-bold text-amber-800">AED 1,200 for 4 classes</p><p className="text-base text-amber-700 mt-1">Select any 4 menus. Each class is 1.5 hours. Available Monday and Tuesday at 11am</p></div> : <p className="text-base text-stone-400 mt-2">Min: {currentConfig.minGuests} • Max: {currentConfig.maxGuests} guests • Price per person</p>}
+                  {isNanny ? <div className="mt-3 p-4 bg-[#FF8C6B]/10 rounded-lg border border-[#FF8C6B]/25"><p className="text-lg font-bold text-[#FF8C6B]">AED 1,200 for 4 classes</p><p className="text-base text-[#FF8C6B] mt-1">Select any 4 menus. Each class is 1.5 hours. Available Monday and Tuesday at 11am</p></div> : <p className="text-base text-stone-400 mt-2">Min: {currentConfig.minGuests} • Max: {currentConfig.maxGuests} guests • Price per person</p>}
                 </div>
                 {!isNanny && (
                   <Card><CardContent className="p-5">
@@ -402,7 +402,7 @@ export default function BigChefPage() {
                     </div>
                   </CardContent></Card>
                 )}
-                {isNanny && <div className="p-4 bg-stone-100 rounded-lg"><p className="font-medium text-stone-900">Selected: {selectedNannyMenus.length}/4 menus {selectedNannyMenus.length === 4 && <span className="text-green-600 ml-2">✓ Ready</span>}</p>{selectedNannyMenus.length > 0 && <div className="mt-2 flex flex-wrap gap-2">{selectedNannyMenus.map(m => <Badge key={m.id} className="bg-stone-900 text-white">{m.name}<button onClick={() => toggleNannyMenu(m)} className="ml-1">×</button></Badge>)}</div>}</div>}
+                {isNanny && <div className="p-4 bg-[#FF8C6B]/10 rounded-lg"><p className="font-medium text-stone-900">Selected: {selectedNannyMenus.length}/4 menus {selectedNannyMenus.length === 4 && <span className="text-[#FF8C6B] ml-2">✓ Ready</span>}</p>{selectedNannyMenus.length > 0 && <div className="mt-2 flex flex-wrap gap-2">{selectedNannyMenus.map(m => <Badge key={m.id} className="bg-[#FF8C6B] text-white">{m.name}<button onClick={() => toggleNannyMenu(m)} className="ml-1">×</button></Badge>)}</div>}</div>}
                 
                 {/* Desktop Continue Button for Nanny Class */}
                 {isNanny && (
@@ -429,9 +429,9 @@ export default function BigChefPage() {
                     const isSelected = isNanny ? selectedNannyMenus.some(m => m.id === menu.id) : selectedMenu?.id === menu.id;
                     const isDisabled = isNanny && selectedNannyMenus.length >= 4 && !isSelected;
                     return (
-                      <Card key={menu.id} className={`cursor-pointer transition-all ${isSelected ? "ring-2 ring-stone-900 shadow-lg" : isDisabled ? "opacity-50" : "hover:shadow-md"}`} onClick={() => { if (!isDisabled) { if (isNanny) toggleNannyMenu(menu); else setSelectedMenu(menu); } }}>
+                      <Card key={menu.id} className={`cursor-pointer transition-all ${isSelected ? "ring-2 ring-[#FF8C6B] shadow-lg" : isDisabled ? "opacity-50" : "hover:shadow-md"}`} onClick={() => { if (!isDisabled) { if (isNanny) toggleNannyMenu(menu); else setSelectedMenu(menu); } }}>
                         <CardContent className="p-0 overflow-hidden flex flex-col h-full">
-                          <div className="relative h-64 w-full bg-stone-200"><Image src={menu.image} alt={menu.name} fill className="object-cover" />{isSelected && <div className="absolute top-2 right-2 bg-[#f5e6dc] text-stone-800 p-1 rounded-full"><Check className="h-4 w-4" /></div>}</div>
+                          <div className="relative h-64 w-full bg-stone-200"><Image src={menu.image} alt={menu.name} fill className="object-cover" />{isSelected && <div className="absolute top-2 right-2 bg-[#FF8C6B] text-white p-1 rounded-full"><Check className="h-4 w-4" /></div>}</div>
                           <div className="p-4 flex-1 flex flex-col">
                             <h3 className="text-xl font-bold text-stone-900 mb-3">{menu.name}</h3>
                             <div className="space-y-1 flex-1">{menu.dishes.map((d, i) => <div key={i} className="flex items-center gap-2 text-base text-stone-600"><Check className="h-3 w-3 text-[#ff7f5c]" /><span>{d}</span></div>)}</div>
@@ -473,7 +473,7 @@ export default function BigChefPage() {
                           const Icon = extra.icon;
                           const qty = selectedExtras[extra.id] || 0;
                           return (
-                            <Card key={extra.id} className={qty > 0 ? "ring-2 ring-stone-900" : ""}>
+                            <Card key={extra.id} className={qty > 0 ? "ring-2 ring-[#FF8C6B]" : ""}>
                               <CardContent className="p-4 flex items-start gap-3">
                                 <div className="flex-shrink-0">
                                   {extra.image ? (
@@ -534,9 +534,9 @@ export default function BigChefPage() {
                                   <h4 className="font-bold text-stone-900">{menu.name}</h4>
                                 </div>
                                 {schedule.date && schedule.time ? (
-                                  <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-bold text-green-700">Scheduled</span>
+                                  <span className="rounded-full bg-[#FF8C6B]/15 px-3 py-1 text-xs font-bold text-[#FF8C6B]">Scheduled</span>
                                 ) : (
-                                  <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-700">Required</span>
+                                  <span className="rounded-full bg-[#FF8C6B]/15 px-3 py-1 text-xs font-bold text-[#FF8C6B]">Required</span>
                                 )}
                               </div>
                               <div className="grid sm:grid-cols-2 gap-4">
@@ -576,9 +576,9 @@ export default function BigChefPage() {
                                             onClick={() => updateNannyScheduleTime(menu.id, slot.start)}
                                             className={`px-3 py-2 text-sm rounded-lg border ${
                                               schedule.time === slot.start
-                                                ? "bg-[#f5e6dc] text-stone-800 border border-stone-300"
+                                                ? "bg-[#FF8C6B] text-white border border-[#FF8C6B]"
                                                 : isAvailable
-                                                ? "border-stone-300 bg-white hover:border-stone-900"
+                                                ? "border-stone-300 bg-white hover:border-[#FF8C6B]"
                                                 : "bg-stone-100 text-stone-400 cursor-not-allowed line-through"
                                             }`}
                                           >
@@ -598,21 +598,21 @@ export default function BigChefPage() {
                       </div>
                     </div>
                   ) : isMonthlySpecial ? (
-                    <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                      <p className="text-sm font-medium text-amber-800 mb-3">
+                    <div className="p-4 bg-[#FF8C6B]/10 border border-[#FF8C6B]/25 rounded-lg">
+                      <p className="text-sm font-medium text-[#FF8C6B] mb-3">
                         <Calendar className="inline h-4 w-4 mr-1" />
                         This monthly special has a fixed schedule:
                       </p>
                       <div className="grid sm:grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-sm font-bold text-amber-700 mb-1">Event Date</label>
-                          <div className="px-4 py-2 bg-white border border-amber-300 rounded-lg text-stone-900 font-medium">
+                          <label className="block text-sm font-bold text-[#FF8C6B] mb-1">Event Date</label>
+                          <div className="px-4 py-2 bg-white border border-[#FF8C6B]/30 rounded-lg text-stone-900 font-medium">
                             {new Date(eventDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                           </div>
                         </div>
                         <div>
-                          <label className="block text-sm font-bold text-amber-700 mb-1">Time</label>
-                          <div className="px-4 py-2 bg-white border border-amber-300 rounded-lg text-stone-900 font-medium">
+                          <label className="block text-sm font-bold text-[#FF8C6B] mb-1">Time</label>
+                          <div className="px-4 py-2 bg-white border border-[#FF8C6B]/30 rounded-lg text-stone-900 font-medium">
                             {selectedMenu?.scheduled_date ? new Date(selectedMenu.scheduled_date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) : eventTime}
                           </div>
                         </div>
@@ -623,7 +623,7 @@ export default function BigChefPage() {
                       <div><label className="block text-base font-bold text-stone-700 mb-1"><Calendar className="inline h-4 w-4 mr-1" />Event Date *</label><input type="date" value={eventDate} onChange={e => setEventDate(e.target.value)} min={today} className="w-full px-4 py-2 border border-stone-300 rounded-lg" required /></div>
                       <div><label className="block text-base font-bold text-stone-700 mb-1"><Clock className="inline h-4 w-4 mr-1" />Time Slot *</label>
                         {loadingSlots ? <div className="flex items-center gap-2 py-2 text-stone-500"><Loader2 className="h-4 w-4 animate-spin" />Loading...</div> : eventDate && allTimeSlots.length > 0 ? (
-                          <div className="grid grid-cols-2 gap-2">{allTimeSlots.map((slot) => { const isAvailable = availableTimeSlots.some((s) => s.start === slot.start); return (<button key={slot.start} type="button" disabled={!isAvailable} onClick={() => setEventTime(slot.start)} className={`px-3 py-2 text-sm rounded-lg border ${eventTime === slot.start ? "bg-[#f5e6dc] text-stone-800 border border-stone-300" : isAvailable ? "border-stone-300 hover:border-stone-900" : "bg-stone-100 text-stone-400 cursor-not-allowed line-through"}`}>{slot.label}</button>); })}</div>
+                          <div className="grid grid-cols-2 gap-2">{allTimeSlots.map((slot) => { const isAvailable = availableTimeSlots.some((s) => s.start === slot.start); return (<button key={slot.start} type="button" disabled={!isAvailable} onClick={() => setEventTime(slot.start)} className={`px-3 py-2 text-sm rounded-lg border ${eventTime === slot.start ? "bg-[#FF8C6B] text-white border border-[#FF8C6B]" : isAvailable ? "border-stone-300 hover:border-[#FF8C6B]" : "bg-stone-100 text-stone-400 cursor-not-allowed line-through"}`}>{slot.label}</button>); })}</div>
                         ) : <p className="text-sm text-stone-500 py-2">{eventDate ? "No slots available" : "Select a date first"}</p>}
                       </div>
                     </div>
