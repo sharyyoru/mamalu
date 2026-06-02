@@ -58,7 +58,7 @@ export function Footer() {
                 />
               </Link>
               <p className="mt-4 text-stone-700 max-w-sm" style={{ fontFamily: 'var(--font-mossy), cursive' }}>
-                Fun, healthy cooking classes for kids and families in Dubai. 
+                Fun cooking classes for kids and families in Dubai. 
                 Creating delicious memories since 2020.
               </p>
               
