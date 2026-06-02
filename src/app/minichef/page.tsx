@@ -39,6 +39,7 @@ interface MenuItem {
   category: string;
   scheduled_date?: string | null;
   class_count?: number;
+  allowed_persons?: number | null;
 }
 
 // Extra item interface
@@ -72,6 +73,7 @@ interface DbMenuItem {
   dishes: string[] | null;
   categories: string[] | null;
   scheduled_date?: string | null;
+  allowed_persons?: number | null;
 }
 
 interface DbPackageMenuItem {
@@ -253,6 +255,9 @@ export default function MiniChefPage() {
   const [waiverAccepted, setWaiverAccepted] = useState(false);
   const [showWaiverModal, setShowWaiverModal] = useState(false);
 
+  // Capacity tracking for monthly specials
+  const [menuCapacities, setMenuCapacities] = useState<Record<string, { allowed: number; booked: number; available: number } | null>>({});
+
   // Get current category config
   const categoryConfig = getCategoryConfig(pageContent);
   const currentConfig = categoryConfig[activeCategory];
@@ -333,6 +338,7 @@ export default function MiniChefPage() {
                 dishes: item.dishes || [],
                 category: cat,
                 scheduled_date: item.scheduled_date || null,
+                allowed_persons: item.allowed_persons ?? null,
               });
             }
           }
@@ -428,6 +434,29 @@ export default function MiniChefPage() {
 
   // Check if current selection is a monthly special with fixed date
   const isMonthlySpecial = activeCategory === "monthly" && selectedMenu?.scheduled_date;
+
+  // Fetch capacity for monthly special menu items
+  const fetchCapacity = async (menuId: string) => {
+    if (menuCapacities[menuId] !== undefined) return;
+    try {
+      const res = await fetch(`/api/services/capacity?menuId=${menuId}`);
+      const data = res.ok ? await res.json() : null;
+      if (data && !data.is_unlimited) {
+        setMenuCapacities(prev => ({ ...prev, [menuId]: { allowed: data.allowed_persons, booked: data.booked_count, available: data.available } }));
+      } else {
+        setMenuCapacities(prev => ({ ...prev, [menuId]: null }));
+      }
+    } catch {
+      setMenuCapacities(prev => ({ ...prev, [menuId]: null }));
+    }
+  };
+
+  useEffect(() => {
+    if (activeCategory === "monthly") {
+      const menus = menuItemsByCategory["monthly"] || [];
+      menus.forEach(m => fetchCapacity(m.id));
+    }
+  }, [activeCategory, menuItemsByCategory]);
 
   // Auto-populate date/time when a monthly special is selected
   useEffect(() => {
@@ -619,7 +648,14 @@ export default function MiniChefPage() {
     if (step === 1) return selectedMenu !== null;
     if (hasExtras && step === 2) return true; // Extras are optional
     const detailsStep = hasExtras ? 3 : 2;
-    if (step === detailsStep) return customerName && customerEmail && eventDate && eventTime;
+    if (step === detailsStep) {
+      if (!customerName || !customerEmail || !eventDate || !eventTime) return false;
+      if (activeCategory === "monthly" && selectedMenu) {
+        const cap = menuCapacities[selectedMenu.id];
+        if (cap !== undefined && cap !== null && cap.available <= 0) return false;
+      }
+      return true;
+    }
     return true;
   };
 
@@ -874,13 +910,14 @@ export default function MiniChefPage() {
                   </div>
                 ) : null}
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {!loadingMenus && getCurrentMenus().map((menu) => (
+                  {!loadingMenus && getCurrentMenus().map((menu) => {
+                    const cap = activeCategory === "monthly" ? menuCapacities[menu.id] : undefined;
+                    const isFull = cap !== undefined && cap !== null && cap.available <= 0;
+                    return (
                     <Card
                       key={menu.id}
                       className={`cursor-pointer transition-all ${
-                        selectedMenu?.id === menu.id
-                          ? "ring-2 ring-[#FF8C6B] shadow-lg"
-                          : "hover:shadow-md"
+                        selectedMenu?.id === menu.id ? "ring-2 ring-[#FF8C6B] shadow-lg" : "hover:shadow-md"
                       }`}
                       onClick={() => {
                         if (activeCategory === "packages" && packageMenuItems[menu.id]?.length > 0) {
@@ -896,6 +933,13 @@ export default function MiniChefPage() {
                       <CardContent className="p-0 overflow-hidden flex flex-col h-full">
                         <div className="relative h-64 w-full bg-stone-200">
                           <Image src={menu.image} alt={menu.name} fill className="object-cover" />
+                          {cap && !isFull && (
+                            <div className="absolute top-2 left-2">
+                              <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-[#FF8C6B]/15 text-[#FF8C6B]">
+                                {cap.available} spot{cap.available === 1 ? "" : "s"} left
+                              </span>
+                            </div>
+                          )}
                         </div>
                         <div className="p-4 flex-1 flex flex-col">
                           {/* Full width menu name */}
@@ -934,7 +978,8 @@ export default function MiniChefPage() {
                         </div>
                       </CardContent>
                     </Card>
-                  ))}
+                  );
+                  })}
                 </div>
 
                 {/* Price Update Link */}
@@ -1087,6 +1132,18 @@ export default function MiniChefPage() {
 
                 <Card>
                   <CardContent className="p-6 space-y-4">
+                    {activeCategory === "monthly" && selectedMenu && (() => {
+                      const cap = menuCapacities[selectedMenu.id];
+                      if (!cap) return null;
+                      return (
+                        <div className="px-4 py-3 rounded-xl bg-[#FF8C6B]/10 border border-[#FF8C6B]/25">
+                          <p className="text-sm font-bold text-[#FF8C6B]">
+                            {cap.available === 1 ? "Only 1 spot remaining!" : `${cap.available} spots remaining for this class`}
+                          </p>
+                          <p className="text-xs text-[#FF8C6B]/70 mt-0.5">{cap.booked} of {cap.allowed} spots already booked</p>
+                        </div>
+                      );
+                    })()}
                     <div className="grid sm:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-base font-bold text-stone-700 mb-1">Your Name *</label>

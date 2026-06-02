@@ -14,7 +14,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { BigChefPageContent, defaultBigChefContent } from "@/types/site-content";
 
-interface MenuItem { id: string; name: string; price: number; image: string; dishes: string[]; category: string; scheduled_date?: string | null; }
+interface MenuItem { id: string; name: string; price: number; image: string; dishes: string[]; category: string; scheduled_date?: string | null; allowed_persons?: number | null; }
 interface ExtraItem { id: string; name: string; description: string; price: number; icon: LucideIcon; category: string; image?: string; }
 interface TimeSlot { start: string; end: string; duration: number; label: string; days?: number[]; }
 interface NannyMenuSchedule { date: string; time: string; allTimeSlots: TimeSlot[]; availableTimeSlots: TimeSlot[]; loading: boolean; }
@@ -107,6 +107,9 @@ export default function BigChefPage() {
   const [menuItemsByCategory, setMenuItemsByCategory] = useState<Record<string, MenuItem[]>>({});
   const [loadingMenus, setLoadingMenus] = useState(true);
 
+  // Capacity tracking for monthly specials
+  const [menuCapacities, setMenuCapacities] = useState<Record<string, { allowed: number; booked: number; available: number } | null>>({});
+
   // Fetch page content
   useEffect(() => {
     fetch("/api/site-content?page=bigchef")
@@ -166,6 +169,7 @@ export default function BigChefPage() {
                 dishes: item.dishes || [],
                 category: cat,
                 scheduled_date: item.scheduled_date || null,
+                allowed_persons: item.allowed_persons ?? null,
               });
             }
           }
@@ -196,6 +200,29 @@ export default function BigChefPage() {
 
   // Check if current selection is a monthly special with fixed date
   const isMonthlySpecial = activeCategory === "monthly" && selectedMenu?.scheduled_date;
+
+  // Fetch capacity for monthly special menu items
+  const fetchCapacity = async (menuId: string) => {
+    if (menuCapacities[menuId] !== undefined) return;
+    try {
+      const res = await fetch(`/api/services/capacity?menuId=${menuId}`);
+      const data = res.ok ? await res.json() : null;
+      if (data && !data.is_unlimited) {
+        setMenuCapacities(prev => ({ ...prev, [menuId]: { allowed: data.allowed_persons, booked: data.booked_count, available: data.available } }));
+      } else {
+        setMenuCapacities(prev => ({ ...prev, [menuId]: null }));
+      }
+    } catch {
+      setMenuCapacities(prev => ({ ...prev, [menuId]: null }));
+    }
+  };
+
+  useEffect(() => {
+    if (activeCategory === "monthly") {
+      const menus = menuItemsByCategory["monthly"] || [];
+      menus.forEach(m => fetchCapacity(m.id));
+    }
+  }, [activeCategory, menuItemsByCategory]);
 
   // Auto-populate date/time when a monthly special is selected
   useEffect(() => {
@@ -349,7 +376,15 @@ export default function BigChefPage() {
     if (step === 1) return isNanny ? selectedNannyMenus.length === 4 : selectedMenu !== null;
     if (hasExtras && step === 2) return true;
     const detailsStep = hasExtras ? 3 : 2;
-    if (step === detailsStep) return isNanny ? Boolean(customerName && customerEmail && nannySchedulesComplete) : Boolean(customerName && customerEmail && eventDate && eventTime);
+    if (step === detailsStep) {
+      if (isNanny) return Boolean(customerName && customerEmail && nannySchedulesComplete);
+      if (!customerName || !customerEmail || !eventDate || !eventTime) return false;
+      if (activeCategory === "monthly" && selectedMenu) {
+        const cap = menuCapacities[selectedMenu.id];
+        if (cap !== undefined && cap !== null && cap.available <= 0) return false;
+      }
+      return true;
+    }
     return true;
   };
 
@@ -428,10 +463,12 @@ export default function BigChefPage() {
                   {!loadingMenus && getCurrentMenus().map(menu => {
                     const isSelected = isNanny ? selectedNannyMenus.some(m => m.id === menu.id) : selectedMenu?.id === menu.id;
                     const isDisabled = isNanny && selectedNannyMenus.length >= 4 && !isSelected;
+                    const cap = activeCategory === "monthly" ? menuCapacities[menu.id] : undefined;
+                    const isFull = cap !== undefined && cap !== null && cap.available <= 0;
                     return (
-                      <Card key={menu.id} className={`cursor-pointer transition-all ${isSelected ? "ring-2 ring-[#FF8C6B] shadow-lg" : isDisabled ? "opacity-50" : "hover:shadow-md"}`} onClick={() => { if (!isDisabled) { if (isNanny) toggleNannyMenu(menu); else setSelectedMenu(menu); } }}>
+                      <Card key={menu.id} className={`cursor-pointer transition-all ${isSelected ? "ring-2 ring-[#FF8C6B] shadow-lg" : isDisabled ? "opacity-50" : "hover:shadow-md"}`} onClick={() => { if (isDisabled) return; if (isNanny) toggleNannyMenu(menu); else setSelectedMenu(menu); }}>
                         <CardContent className="p-0 overflow-hidden flex flex-col h-full">
-                          <div className="relative h-64 w-full bg-stone-200"><Image src={menu.image} alt={menu.name} fill className="object-cover" />{isSelected && <div className="absolute top-2 right-2 bg-[#FF8C6B] text-white p-1 rounded-full"><Check className="h-4 w-4" /></div>}</div>
+                          <div className="relative h-64 w-full bg-stone-200"><Image src={menu.image} alt={menu.name} fill className="object-cover" />{cap && !isFull && <div className="absolute top-2 left-2"><span className="text-xs font-bold px-2.5 py-1 rounded-full bg-[#FF8C6B]/15 text-[#FF8C6B]">{cap.available} spot{cap.available === 1 ? "" : "s"} left</span></div>}{isSelected && <div className="absolute top-2 right-2 bg-[#FF8C6B] text-white p-1 rounded-full"><Check className="h-4 w-4" /></div>}</div>
                           <div className="p-4 flex-1 flex flex-col">
                             <h3 className="text-xl font-bold text-stone-900 mb-3">{menu.name}</h3>
                             <div className="space-y-1 flex-1">{menu.dishes.map((d, i) => <div key={i} className="flex items-center gap-2 text-base text-stone-600"><Check className="h-3 w-3 text-[#ff7f5c]" /><span>{d}</span></div>)}</div>
@@ -509,6 +546,16 @@ export default function BigChefPage() {
               <div className="space-y-6">
                 <div><h2 className="text-2xl font-bold text-stone-900">Your Details</h2><p className="text-stone-500 mt-1">Tell us about you and your event</p></div>
                 <Card><CardContent className="p-6 space-y-4">
+                  {activeCategory === "monthly" && selectedMenu && (() => {
+                    const cap = menuCapacities[selectedMenu.id];
+                    if (!cap) return null;
+                    return (
+                      <div className="px-4 py-3 rounded-xl bg-[#FF8C6B]/10 border border-[#FF8C6B]/25">
+                        <p className="text-sm font-bold text-[#FF8C6B]">{cap.available === 1 ? "Only 1 spot remaining!" : `${cap.available} spots remaining for this class`}</p>
+                        <p className="text-xs text-[#FF8C6B]/70 mt-0.5">{cap.booked} of {cap.allowed} spots already booked</p>
+                      </div>
+                    );
+                  })()}
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div><label className="block text-base font-bold text-stone-700 mb-1">Your Name *</label><input type="text" value={customerName} onChange={e => setCustomerName(e.target.value)} className="w-full px-4 py-2 border border-stone-300 rounded-lg" required /></div>
                     <div><label className="block text-base font-bold text-stone-700 mb-1">Email *</label><input type="email" value={customerEmail} onChange={e => setCustomerEmail(e.target.value)} className="w-full px-4 py-2 border border-stone-300 rounded-lg" required /></div>

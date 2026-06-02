@@ -91,6 +91,7 @@ export async function POST(request: NextRequest) {
         is_popular: body.is_popular || false,
         sort_order: body.sort_order || 0,
         scheduled_date: body.scheduled_date || null,
+        allowed_persons: body.allowed_persons ?? null,
         min_guests: body.min_guests || null,
         max_guests: body.max_guests || null,
         metadata: body.metadata || {},

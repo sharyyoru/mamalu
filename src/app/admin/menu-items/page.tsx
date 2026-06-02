@@ -41,6 +41,7 @@ interface MenuItem {
   is_popular: boolean;
   sort_order: number;
   scheduled_date: string | null;
+  allowed_persons: number | null;
   created_at: string;
 }
 
@@ -87,6 +88,7 @@ const emptyItem: Partial<MenuItem> = {
   is_popular: false,
   sort_order: 0,
   scheduled_date: null,
+  allowed_persons: null,
 };
 
 // Helper to check if a category requires a scheduled date
@@ -850,28 +852,48 @@ export default function AdminMenuItemsPage() {
                 </div>
               </div>
 
-              {/* Scheduled Date/Time - shown only for monthly specials */}
+              {/* Scheduled Date/Time + Allowed Persons - shown only for monthly specials */}
               {hasMonthlySpecialCategories(editingItem.categories || []) && (
-                <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl">
-                  <label className="flex items-center gap-2 text-sm font-medium text-amber-800 mb-2">
-                    <Calendar className="h-4 w-4" />
-                    Scheduled Date & Time <span className="text-red-500">*</span>
-                  </label>
-                  <p className="text-xs text-amber-600 mb-3">
-                    Monthly special items require a scheduled date and time for the class
-                  </p>
-                  <input
-                    type="datetime-local"
-                    value={editingItem.scheduled_date 
-                      ? formatDateTimeLocal(editingItem.scheduled_date) 
-                      : ""
-                    }
-                    onChange={(e) => setEditingItem((p) => ({ 
-                      ...p, 
-                      scheduled_date: e.target.value ? new Date(e.target.value).toISOString() : null 
-                    }))}
-                    className="w-full px-3 py-2 border border-amber-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white"
-                  />
+                <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl space-y-4">
+                  <div>
+                    <label className="flex items-center gap-2 text-sm font-medium text-amber-800 mb-2">
+                      <Calendar className="h-4 w-4" />
+                      Scheduled Date & Time <span className="text-red-500">*</span>
+                    </label>
+                    <p className="text-xs text-amber-600 mb-3">
+                      Monthly special items require a scheduled date and time for the class
+                    </p>
+                    <input
+                      type="datetime-local"
+                      value={editingItem.scheduled_date 
+                        ? formatDateTimeLocal(editingItem.scheduled_date) 
+                        : ""
+                      }
+                      onChange={(e) => setEditingItem((p) => ({ 
+                        ...p, 
+                        scheduled_date: e.target.value ? new Date(e.target.value).toISOString() : null 
+                      }))}
+                      className="w-full px-3 py-2 border border-amber-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-amber-800 mb-1">
+                      Allowed Persons
+                    </label>
+                    <p className="text-xs text-amber-600 mb-2">
+                      Maximum number of persons allowed for this monthly special
+                    </p>
+                    <input
+                      type="number"
+                      min="1"
+                      value={editingItem.allowed_persons ?? (isCreating ? 25 : "")}
+                      onChange={(e) => setEditingItem((p) => ({ 
+                        ...p, 
+                        allowed_persons: e.target.value ? parseInt(e.target.value) : null
+                      }))}
+                      className="w-full px-3 py-2 border border-amber-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white"
+                    />
+                  </div>
                 </div>
               )}
 
