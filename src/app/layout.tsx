@@ -23,6 +23,12 @@ const mossy = localFont({
   display: "swap",
 });
 
+const springtimeBlues = localFont({
+  src: "../../public/fonts/Springtime Blues.ttf",
+  variable: "--font-springtime-blues",
+  display: "swap",
+});
+
 const poppins = Poppins({
   weight: ["300", "400", "500", "600", "700", "800"],
   variable: "--font-poppins",
@@ -65,7 +71,7 @@ export default async function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${mossy.variable} ${poppins.variable} antialiased min-h-screen flex flex-col`}
+        className={`${geistSans.variable} ${geistMono.variable} ${mossy.variable} ${poppins.variable} ${springtimeBlues.variable} antialiased min-h-screen flex flex-col`}
       >
         {!isAdminOrStudio && <LoadingScreen />}
         {!isAdminOrStudio && <Header />}

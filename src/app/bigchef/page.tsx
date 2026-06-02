@@ -364,7 +364,7 @@ export default function BigChefPage() {
               <div className="hidden lg:block">
                 <Image src="/images/0312b1_27732e4abccb4925bca29ff7f349d958~mv2_d_1772_1772_s_2.avif" alt="" width={160} height={160} className="float-gentle opacity-70" />
               </div>
-              <div><h1 className="text-2xl text-black" style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 900 }}>{pageContent.pageTitle}</h1><p className="text-black text-sm" style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 700 }}>{pageContent.pageSubtitle}</p></div>
+              <div><h1 className="text-2xl text-black" style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 900 }}>{pageContent.pageTitle}</h1><p className="text-black text-base" style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 700 }}>{pageContent.pageSubtitle}</p></div>
             </div>
             <div className="hidden lg:block">
               <Image src="/images/0312b1_fee52e9b65c54277bd129615e50d68ff~mv2_d_1772_1772_s_2.avif" alt="" width={150} height={150} className="float-medium opacity-70" />
@@ -377,7 +377,7 @@ export default function BigChefPage() {
           <div className="space-y-6">
             <div className="flex flex-wrap gap-2 sm:gap-3 p-1 sm:p-2 bg-stone-100 rounded-2xl sm:rounded-full">
               {(Object.keys(categoryConfig) as CategoryType[]).map(cat => (
-                <button key={cat} onClick={() => setActiveCategory(cat)} className={`px-3 py-2 sm:px-6 sm:py-3 rounded-full font-bold transition-all text-xs sm:text-base flex items-center gap-1 sm:gap-2 ${activeCategory === cat ? "bg-[#f5e6dc] text-stone-900 border border-stone-300 shadow-md" : "text-stone-700 hover:bg-stone-200"}`}><Image src={categoryConfig[cat].icon} alt="" width={28} height={28} className="w-5 h-5 sm:w-7 sm:h-7" /> {categoryConfig[cat].label}</button>
+                <button key={cat} onClick={() => setActiveCategory(cat)} className={`px-3 py-2 sm:px-6 sm:py-3 rounded-full font-bold transition-all text-sm sm:text-lg flex items-center gap-1 sm:gap-2 ${activeCategory === cat ? "bg-[#f5e6dc] text-stone-900 border border-stone-300 shadow-md" : "text-stone-700 hover:bg-stone-200"}`}><Image src={categoryConfig[cat].icon} alt="" width={28} height={28} className="w-5 h-5 sm:w-7 sm:h-7" /> {categoryConfig[cat].label}</button>
               ))}
             </div>
             {step === 1 && (
@@ -385,7 +385,7 @@ export default function BigChefPage() {
                 <div>
                   <h2 className="text-2xl text-black" style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 900 }}>{isNanny ? "Select 4 Menus for Your Course" : "Pick your perfect Menu"}</h2>
                   <p className="text-stone-500 mt-1">{currentConfig.description}</p>
-                  {isNanny ? <div className="mt-3 p-4 bg-amber-50 rounded-lg border border-amber-200"><p className="text-lg font-bold text-amber-800">AED 1,200 for 4 classes</p><p className="text-sm text-amber-700 mt-1">Select any 4 menus. Each class is 1.5 hours. Available Monday and Tuesday at 11am</p></div> : <p className="text-sm text-stone-400 mt-2">Min: {currentConfig.minGuests} • Max: {currentConfig.maxGuests} guests • Price per person</p>}
+                  {isNanny ? <div className="mt-3 p-4 bg-amber-50 rounded-lg border border-amber-200"><p className="text-lg font-bold text-amber-800">AED 1,200 for 4 classes</p><p className="text-base text-amber-700 mt-1">Select any 4 menus. Each class is 1.5 hours. Available Monday and Tuesday at 11am</p></div> : <p className="text-base text-stone-400 mt-2">Min: {currentConfig.minGuests} • Max: {currentConfig.maxGuests} guests • Price per person</p>}
                 </div>
                 {!isNanny && (
                   <Card><CardContent className="p-5">
@@ -394,7 +394,7 @@ export default function BigChefPage() {
                       <Button variant="outline" size="icon" onClick={() => setGuestCount(Math.max(currentConfig.minGuests, guestCount - 1))} disabled={guestCount <= currentConfig.minGuests}><Minus className="h-4 w-4" /></Button>
                       <span className="text-2xl font-bold w-12 text-center">{guestCount}</span>
                       <Button variant="outline" size="icon" onClick={() => setGuestCount(Math.min(currentConfig.maxGuests, guestCount + 1))} disabled={guestCount >= currentConfig.maxGuests}><Plus className="h-4 w-4" /></Button>
-                      <span className="text-sm font-bold text-stone-600">(Min: {currentConfig.minGuests}, Max: {currentConfig.maxGuests})</span>
+                      <span className="text-base font-bold text-stone-600">(Min: {currentConfig.minGuests}, Max: {currentConfig.maxGuests})</span>
                     </div>
                     {/* Desktop Continue Button - Inside Card */}
                     <div className="hidden lg:flex justify-end items-center pt-4 border-t">
@@ -431,12 +431,12 @@ export default function BigChefPage() {
                     return (
                       <Card key={menu.id} className={`cursor-pointer transition-all ${isSelected ? "ring-2 ring-stone-900 shadow-lg" : isDisabled ? "opacity-50" : "hover:shadow-md"}`} onClick={() => { if (!isDisabled) { if (isNanny) toggleNannyMenu(menu); else setSelectedMenu(menu); } }}>
                         <CardContent className="p-0 overflow-hidden flex flex-col h-full">
-                          <div className="relative h-40 w-full bg-stone-200"><Image src={menu.image} alt={menu.name} fill className="object-cover" />{isSelected && <div className="absolute top-2 right-2 bg-[#f5e6dc] text-stone-800 p-1 rounded-full"><Check className="h-4 w-4" /></div>}</div>
+                          <div className="relative h-64 w-full bg-stone-200"><Image src={menu.image} alt={menu.name} fill className="object-cover" />{isSelected && <div className="absolute top-2 right-2 bg-[#f5e6dc] text-stone-800 p-1 rounded-full"><Check className="h-4 w-4" /></div>}</div>
                           <div className="p-4 flex-1 flex flex-col">
                             <h3 className="text-xl font-bold text-stone-900 mb-3">{menu.name}</h3>
-                            <div className="space-y-1 flex-1">{menu.dishes.map((d, i) => <div key={i} className="flex items-center gap-2 text-sm text-stone-600"><Check className="h-3 w-3 text-[#ff7f5c]" /><span>{d}</span></div>)}</div>
+                            <div className="space-y-1 flex-1">{menu.dishes.map((d, i) => <div key={i} className="flex items-center gap-2 text-base text-stone-600"><Check className="h-3 w-3 text-[#ff7f5c]" /><span>{d}</span></div>)}</div>
                           </div>
-                          {!isNanny && <div className="bg-stone-50 border-t px-4 py-3"><div className="flex items-center justify-between"><span className="text-sm text-stone-500">per person</span><span className="text-xl font-bold text-stone-900">AED {menu.price}</span></div></div>}
+                          {!isNanny && <div className="bg-stone-50 border-t px-4 py-3"><div className="flex items-center justify-between"><span className="text-base text-stone-500">per person</span><span className="text-xl font-bold text-stone-900">AED {menu.price}</span></div></div>}
                         </CardContent>
                       </Card>
                     );
@@ -445,7 +445,7 @@ export default function BigChefPage() {
 
                 {/* Price Update Link */}
                 <div className="mt-4">
-                  <p className="text-sm text-stone-600">
+                  <p className="text-base text-stone-600">
                     Need to see our whole pricelist, <a 
                       href="https://docs.google.com/spreadsheets/d/1V52xihcamaOT7HrcsAJcLKhUGvTADwVkYW3Oi7JGrJA/edit?usp=sharing"
                       target="_blank"
@@ -484,7 +484,7 @@ export default function BigChefPage() {
                                     <div className="p-2 bg-stone-100 rounded-lg"><Icon className="h-5 w-5 text-stone-600" /></div>
                                   )}
                                 </div>
-                                <div className="flex-1"><h4 className="font-medium text-stone-900">{extra.name}</h4><p className="text-xs text-stone-500">{extra.description}</p><p className="text-sm font-bold text-stone-900 mt-1">AED {extra.price}</p></div>
+                                <div className="flex-1"><h4 className="font-medium text-stone-900">{extra.name}</h4><p className="text-sm text-stone-500">{extra.description}</p><p className="text-sm font-bold text-stone-900 mt-1">AED {extra.price}</p></div>
                                 <div className="flex items-center gap-2">
                                   <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setSelectedExtras(p => ({ ...p, [extra.id]: Math.max(0, (p[extra.id] || 0) - 1) }))} disabled={qty === 0}><Minus className="h-3 w-3" /></Button>
                                   <span className="w-6 text-center font-bold">{qty}</span>
@@ -521,7 +521,7 @@ export default function BigChefPage() {
                     <div className="space-y-4">
                       <div>
                         <h3 className="text-base font-bold text-stone-900">Class Schedule *</h3>
-                        <p className="text-sm text-stone-500">Choose a date and time slot for each selected menu.</p>
+                        <p className="text-base text-stone-500">Choose a date and time slot for each selected menu.</p>
                       </div>
                       <div className="space-y-4">
                         {selectedNannyMenus.map((menu, index) => {
@@ -530,7 +530,7 @@ export default function BigChefPage() {
                             <div key={menu.id} className="rounded-lg border border-stone-200 bg-stone-50 p-4">
                               <div className="mb-3 flex items-center justify-between gap-3">
                                 <div>
-                                  <p className="text-sm font-bold text-stone-500">Session {index + 1}</p>
+                                  <p className="text-base font-bold text-stone-500">Session {index + 1}</p>
                                   <h4 className="font-bold text-stone-900">{menu.name}</h4>
                                 </div>
                                 {schedule.date && schedule.time ? (

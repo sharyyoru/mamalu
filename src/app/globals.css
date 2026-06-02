@@ -70,7 +70,18 @@ body {
 }
 
 /* ===== TYPOGRAPHY - MAMALU STYLE ===== */
-h1, h2, h3, .font-display {
+h1, h2, h3 {
+  font-family: var(--font-springtime-blues), 'Springtime Blues', cursive !important;
+  font-weight: 400 !important;
+  line-height: 1.1;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: #1c1917;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.font-display {
   font-family: var(--font-mossy), 'Mossy', cursive;
   font-weight: 900;
   line-height: 1.1;

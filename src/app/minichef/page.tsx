@@ -716,7 +716,7 @@ export default function MiniChefPage() {
                         <h3 className="font-bold text-stone-900">{item.name}</h3>
                         <div className="mt-1.5 space-y-0.5">
                           {item.dishes.map((dish, i) => (
-                            <div key={i} className="flex items-center gap-1.5 text-xs text-stone-500">
+                            <div key={i} className="flex items-center gap-1.5 text-sm text-stone-500">
                               <Check className="h-2.5 w-2.5 text-[#ff7f5c] shrink-0" />
                               <span>{dish}</span>
                             </div>
@@ -762,7 +762,7 @@ export default function MiniChefPage() {
               </div>
               <div>
                 <h1 className="text-2xl text-black" style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 900 }}>{pageContent.pageTitle}</h1>
-                <p className="text-black text-sm" style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 700 }}>
+                <p className="text-black text-base" style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 700 }}>
                   {pageContent.pageSubtitle}
                 </p>
               </div>
@@ -785,7 +785,7 @@ export default function MiniChefPage() {
                 <button
                   key={cat}
                   onClick={() => setActiveCategory(cat)}
-                  className={`px-3 py-2 sm:px-6 sm:py-3 rounded-full font-bold transition-all text-xs sm:text-base ${
+                  className={`px-3 py-2 sm:px-6 sm:py-3 rounded-full font-bold transition-all text-sm sm:text-lg ${
                     activeCategory === cat
                       ? "bg-[#f5e6dc] text-stone-900 border border-stone-300 shadow-md"
                       : "text-stone-700 hover:bg-stone-200"
@@ -802,7 +802,7 @@ export default function MiniChefPage() {
                 <div>
                   <h2 className="text-2xl text-black" style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 900 }}>Pick your perfect Menu</h2>
                   <p className="text-stone-500 mt-1">{currentConfig.description}</p>
-                  <p className="text-sm text-stone-400 mt-2">
+                  <p className="text-base text-stone-400 mt-2">
                     Min: {currentConfig.minGuests} {isMommyAndMe ? "child" : isBirthday ? "kid(s)" : "guest(s)"} • Max: {currentConfig.maxGuests} {isMommyAndMe ? "children" : isBirthday ? "kids" : "guests"} • {isMommyAndMe ? `AED ${MOMMY_ME_ADDITIONAL_CHILD_PRICE} per additional child` : "Price per person"}
                   </p>
                 </div>
@@ -894,7 +894,7 @@ export default function MiniChefPage() {
                       }}
                     >
                       <CardContent className="p-0 overflow-hidden flex flex-col h-full">
-                        <div className="relative h-40 w-full bg-stone-200">
+                        <div className="relative h-64 w-full bg-stone-200">
                           <Image src={menu.image} alt={menu.name} fill className="object-cover" />
                         </div>
                         <div className="p-4 flex-1 flex flex-col">
@@ -903,7 +903,7 @@ export default function MiniChefPage() {
                           {/* Dishes list */}
                           <div className="space-y-1 flex-1">
                             {menu.dishes.map((dish, idx) => (
-                              <div key={idx} className="flex items-center gap-2 text-sm text-stone-600">
+                              <div key={idx} className="flex items-center gap-2 text-base text-stone-600">
                                 <Check className="h-3 w-3 text-[#ff7f5c] flex-shrink-0" />
                                 <span>{dish}</span>
                               </div>
@@ -918,7 +918,7 @@ export default function MiniChefPage() {
                             </p>
                           )}
                           <div className="flex items-center justify-between">
-                            <span className="text-sm text-stone-500">{activeCategory === "packages" ? "flat rate" : isMommyAndMe ? "mom + 1 child" : "per person"}</span>
+                            <span className="text-base text-stone-500">{activeCategory === "packages" ? "flat rate" : isMommyAndMe ? "mom + 1 child" : "per person"}</span>
                             <span className="text-xl font-bold text-stone-900">
                               AED {isMommyAndMe && selectedMenu?.id === menu.id ? getMenuPrice(menu).toLocaleString() : menu.price.toLocaleString()}
                             </span>
@@ -1014,8 +1014,8 @@ export default function MiniChefPage() {
                                         )}
                                       </div>
                                       <div className="flex-1">
-                                        <h4 className="font-medium text-stone-900">{extra.name}</h4>
-                                        <p className="text-xs text-stone-500">{extra.description}</p>
+                                        <h4 className="font-bold text-stone-900">{extra.name}</h4>
+                                        <p className="text-sm text-stone-500">{extra.description}</p>
                                         <p className="text-sm font-bold text-stone-900 mt-1">AED {extra.price}</p>
                                       </div>
                                       <div className="flex items-center gap-2">
