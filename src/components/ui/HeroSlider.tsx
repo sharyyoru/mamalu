@@ -56,7 +56,7 @@ export default function HeroSlider({ images, autoPlayInterval = 5000 }: HeroSlid
             src={image}
             alt={`Slide ${index + 1}`}
             fill
-            className="object-cover"
+            className="object-contain"
             priority={index === 0}
             quality={90}
           />
