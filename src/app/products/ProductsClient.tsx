@@ -1,13 +1,11 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import Link from "next/link";
 import Image from "next/image";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { ShoppingBag, Filter, ArrowRight, Search, X, SlidersHorizontal, ShoppingCart, CheckCircle } from "lucide-react";
+import { ShoppingBag, Search, X, SlidersHorizontal, ShoppingCart, CheckCircle, Minus, Plus } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 
 interface Category {
@@ -46,6 +44,7 @@ export default function ProductsClient({
   const [sortBy, setSortBy] = useState<SortOption>("latest");
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [cartNotice, setCartNotice] = useState<{ id: number; title: string } | null>(null);
+  const [quantities, setQuantities] = useState<Record<string, number>>({});
 
   const allCategories = [
     { _id: "all", title: "All", slug: { current: "all" } },
@@ -109,18 +108,30 @@ export default function ProductsClient({
     return () => window.clearTimeout(timeout);
   }, [cartNotice]);
 
-  const addToCart = (product: Product) => {
+  const getQuantity = (productId: string) => quantities[productId] ?? 1;
+
+  const setProductQuantity = (productId: string, quantity: number) => {
+    const normalizedQuantity = Number.isFinite(quantity) ? Math.floor(quantity) : 1;
+
+    setQuantities((current) => ({
+      ...current,
+      [productId]: Math.max(1, normalizedQuantity),
+    }));
+  };
+
+  const addToCart = (product: Product, quantity = getQuantity(product._id)) => {
+    const addQuantity = Math.max(1, Math.floor(quantity));
     const cart = JSON.parse(localStorage.getItem("mamalu_cart") || "[]");
     const existingItem = cart.find((item: { id: string }) => item.id === product._id);
     
     if (existingItem) {
-      existingItem.quantity += 1;
+      existingItem.quantity += addQuantity;
     } else {
       cart.push({
         id: product._id,
         title: product.title,
         price: product.price,
-        quantity: 1,
+        quantity: addQuantity,
         imageUrl: product.imageUrl,
       });
     }
@@ -128,7 +139,7 @@ export default function ProductsClient({
     localStorage.setItem("mamalu_cart", JSON.stringify(cart));
     // Trigger storage event for other components
     window.dispatchEvent(new Event("storage"));
-    setCartNotice({ id: Date.now(), title: product.title });
+    setCartNotice({ id: Date.now(), title: `${addQuantity} x ${product.title}` });
   };
 
   const Sidebar = () => (
@@ -341,6 +352,44 @@ export default function ProductsClient({
                               {formatPrice(product.compareAtPrice)}
                             </span>
                           )}
+                        </div>
+                        <div className="mb-3 flex items-center justify-between gap-3">
+                          <label
+                            htmlFor={`quantity-${product._id}`}
+                            className="text-xs font-bold uppercase tracking-wide text-stone-500"
+                          >
+                            Qty
+                          </label>
+                          <div className="flex h-10 w-32 items-center rounded-full border border-stone-200 bg-white shadow-sm">
+                            <button
+                              type="button"
+                              onClick={() => setProductQuantity(product._id, getQuantity(product._id) - 1)}
+                              className="flex h-full w-9 items-center justify-center rounded-l-full text-stone-600 transition-colors hover:bg-stone-100 disabled:cursor-not-allowed disabled:text-stone-300"
+                              disabled={!product.inStock || getQuantity(product._id) <= 1}
+                              aria-label={`Decrease ${product.title} quantity`}
+                            >
+                              <Minus className="h-4 w-4" />
+                            </button>
+                            <input
+                              id={`quantity-${product._id}`}
+                              type="number"
+                              inputMode="numeric"
+                              min={1}
+                              value={getQuantity(product._id)}
+                              onChange={(event) => setProductQuantity(product._id, Number(event.target.value))}
+                              className="h-full w-14 border-x border-stone-200 bg-transparent text-center text-sm font-bold text-stone-900 outline-none [appearance:textfield] disabled:text-stone-400 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                              disabled={!product.inStock}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setProductQuantity(product._id, getQuantity(product._id) + 1)}
+                              className="flex h-full w-9 items-center justify-center rounded-r-full text-stone-600 transition-colors hover:bg-stone-100 disabled:cursor-not-allowed disabled:text-stone-300"
+                              disabled={!product.inStock}
+                              aria-label={`Increase ${product.title} quantity`}
+                            >
+                              <Plus className="h-4 w-4" />
+                            </button>
+                          </div>
                         </div>
                         <Button
                           onClick={(e) => {
