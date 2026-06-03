@@ -581,13 +581,15 @@ a:focus-visible, button:focus-visible {
     -webkit-overflow-scrolling: touch;
   }
 
-  .admin-shell table {
-    display: block;
-    width: 100%;
+  .admin-shell *:has(> table) {
     max-width: 100%;
-    min-width: max-content;
-    overflow-x: auto;
+    overflow-x: auto !important;
     -webkit-overflow-scrolling: touch;
+  }
+
+  .admin-shell table {
+    width: max-content;
+    min-width: 100%;
     table-layout: auto;
   }
 
