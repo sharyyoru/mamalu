@@ -38,7 +38,7 @@ const poppins = Poppins({
 
 export const metadata: Metadata = {
   title: {
-    default: "Mamalu Kitchen - Authentic Home-Cooked Flavors",
+    default: "Mamalu Kitchen",
     template: "%s | Mamalu Kitchen",
   },
   description:
