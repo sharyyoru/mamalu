@@ -1,6 +1,7 @@
 import { Resend } from "resend";
 import { generateBookingQRCode } from "@/lib/qrcode/generate";
 import { getEmailFrom } from "@/lib/email/config";
+import { getPublicSiteUrl } from "@/lib/url/site";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
@@ -108,7 +109,7 @@ interface QRCodeInfo {
 function generateEmailHtml(booking: BookingDetails, qrCodes: QRCodeInfo[]): string {
   const numberOfGuests = booking.numberOfGuests || 1;
   const isMultipleGuests = qrCodes.length > 1;
-  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://mamalu.vercel.app").replace(/\/$/, "");
+  const baseUrl = getPublicSiteUrl();
 
   const qrCodesHtml = qrCodes.map((qr) => `
     <div style="background-color: #ffffff; padding: 20px; display: inline-block; border: 2px solid #000000; margin: 10px; vertical-align: top;">

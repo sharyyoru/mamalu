@@ -1,5 +1,6 @@
 import { Resend } from "resend";
 import { getEmailFrom } from "@/lib/email/config";
+import { getPublicSiteUrl } from "@/lib/url/site";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
@@ -43,7 +44,7 @@ export async function sendVoucherRedemptionConfirmation(details: VoucherRedempti
 }
 
 function generateEmailHtml(details: VoucherRedemptionDetails): string {
-  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://mamalu.vercel.app").replace(/\/$/, "");
+  const baseUrl = getPublicSiteUrl();
 
   return `
 <!DOCTYPE html>

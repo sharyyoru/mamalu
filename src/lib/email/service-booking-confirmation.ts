@@ -1,5 +1,6 @@
 import { Resend } from "resend";
 import { getEmailFrom } from "@/lib/email/config";
+import { getPublicSiteUrl } from "@/lib/url/site";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
@@ -49,7 +50,7 @@ export async function sendServiceBookingConfirmationEmail(
 }
 
 function generateEmailHtml(booking: ServiceBookingDetails): string {
-  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://mamalu.vercel.app").replace(/\/$/, "");
+  const baseUrl = getPublicSiteUrl();
   const eventDate = booking.eventDate || "TBD";
   const eventTime = booking.eventTime || "TBD";
   const packageLabel = [booking.packageName, booking.menuName].filter(Boolean).join(" - ") || booking.serviceName;
