@@ -1,6 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
+const BOOKING_TABLES = ["service_bookings", "class_bookings"] as const;
+type BookingTable = (typeof BOOKING_TABLES)[number];
+type AdminClient = NonNullable<ReturnType<typeof createAdminClient>>;
+
+async function findBookingTable(supabase: AdminClient, id: string): Promise<BookingTable | null> {
+  for (const table of BOOKING_TABLES) {
+    const { data, error } = await supabase
+      .from(table)
+      .select("id")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (error) {
+      console.error(`Find booking in ${table} failed:`, error);
+      continue;
+    }
+
+    if (data) {
+      return table;
+    }
+  }
+
+  return null;
+}
+
 // GET: Fetch single booking
 export async function GET(
   request: NextRequest,
@@ -14,8 +39,13 @@ export async function GET(
       return NextResponse.json({ error: "Database not configured" }, { status: 500 });
     }
 
+    const table = await findBookingTable(supabase, id);
+    if (!table) {
+      return NextResponse.json({ error: "Booking not found" }, { status: 404 });
+    }
+
     const { data: booking, error } = await supabase
-      .from("class_bookings")
+      .from(table)
       .select("*")
       .eq("id", id)
       .single();
@@ -46,6 +76,11 @@ export async function PATCH(
       return NextResponse.json({ error: "Database not configured" }, { status: 500 });
     }
 
+    const table = await findBookingTable(supabase, id);
+    if (!table) {
+      return NextResponse.json({ error: "Booking not found" }, { status: 404 });
+    }
+
     const updateData: Record<string, unknown> = {};
 
     if (status) {
@@ -67,7 +102,7 @@ export async function PATCH(
     if (notes !== undefined) {
       // Fetch current notes and append
       const { data: currentBooking } = await supabase
-        .from("class_bookings")
+        .from(table)
         .select("notes")
         .eq("id", id)
         .maybeSingle();
@@ -82,7 +117,7 @@ export async function PATCH(
     }
 
     const { data: bookings, error } = await supabase
-      .from("class_bookings")
+      .from(table)
       .update(updateData)
       .eq("id", id)
       .select();
@@ -121,9 +156,14 @@ export async function DELETE(
       return NextResponse.json({ error: "Database not configured" }, { status: 500 });
     }
 
+    const table = await findBookingTable(supabase, id);
+    if (!table) {
+      return NextResponse.json({ error: "Booking not found" }, { status: 404 });
+    }
+
     // Soft delete by setting status to cancelled
     const { data: booking, error } = await supabase
-      .from("class_bookings")
+      .from(table)
       .update({ status: "cancelled" })
       .eq("id", id)
       .select()
