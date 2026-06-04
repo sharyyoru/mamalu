@@ -40,9 +40,58 @@ export async function POST(request: NextRequest) {
         console.log("Session ID:", session.id);
         
         const bookingId = session.metadata?.booking_id;
+        const isServiceBooking = session.metadata?.type === "service_booking";
         const isCustomPaymentLink = session.metadata?.type === "custom_payment_link";
 
-        if (bookingId) {
+        if (bookingId && isServiceBooking) {
+          const paidAmount = (session.amount_total || 0) / 100;
+
+          const { data: booking, error: bookingError } = await supabase
+            .from("service_bookings")
+            .select("id, is_deposit_payment, total_amount")
+            .eq("id", bookingId)
+            .single();
+
+          if (bookingError) {
+            console.error("Service booking lookup failed:", bookingError);
+          }
+
+          if (booking) {
+            const isFullPayment = !booking.is_deposit_payment || paidAmount >= booking.total_amount;
+
+            const { error: updateError } = await supabase
+              .from("service_bookings")
+              .update({
+                status: "confirmed",
+                payment_status: isFullPayment ? "paid" : "deposit_paid",
+                deposit_paid: booking.is_deposit_payment ? true : undefined,
+                paid_at: isFullPayment ? new Date().toISOString() : undefined,
+                stripe_payment_intent_id: session.payment_intent as string,
+                payment_method: "stripe",
+              })
+              .eq("id", bookingId);
+
+            if (updateError) {
+              console.error("Service booking payment update failed:", updateError);
+            } else {
+              await supabase.from("payment_transactions").insert({
+                transaction_type: "payment",
+                payment_method: "stripe",
+                amount: paidAmount,
+                currency: session.currency?.toUpperCase() || "AED",
+                status: "completed",
+                stripe_payment_intent_id: session.payment_intent as string,
+                metadata: {
+                  checkout_session_id: session.id,
+                  customer_email: session.customer_email,
+                  service_booking_id: bookingId,
+                },
+              });
+
+              console.log(`Service booking ${bookingId} marked as ${isFullPayment ? "paid" : "deposit paid"}`);
+            }
+          }
+        } else if (bookingId) {
           // Update booking as paid
           await supabase
             .from("class_bookings")
@@ -172,10 +221,14 @@ export async function POST(request: NextRequest) {
               console.error("Error fetching used vouchers:", usedError);
             }
 
-            const usedIds = new Set((usedVoucherIds || []).map((r: any) => r.voucher_id));
+            const usedIds = new Set(
+              ((usedVoucherIds || []) as Array<{ voucher_id: string | null }>)
+                .map((r) => r.voucher_id)
+            );
             console.log(`${usedIds.size} vouchers already used`);
             
-            const chosen = (availableVouchers || []).find((v: any) => !usedIds.has(v.id));
+            const chosen = ((availableVouchers || []) as Array<{ id: string; code: string }>)
+              .find((v) => !usedIds.has(v.id));
             console.log(`Chosen voucher:`, chosen ? `${chosen.code} (ID: ${chosen.id})` : "NONE AVAILABLE");
 
             // Update the pending purchase record
@@ -232,9 +285,16 @@ export async function POST(request: NextRequest) {
             const subtotal = parseFloat(session.metadata.subtotal || "0");
             const shippingCost = parseFloat(session.metadata.shipping_cost || "0");
             
-            // Get shipping details from session (cast to any for shipping_details access)
-            const sessionAny = session as any;
-            const shippingDetails = sessionAny.shipping_details;
+            const sessionWithShipping = session as Stripe.Checkout.Session & {
+              shipping_details?: {
+                name?: string | null;
+                address?: {
+                  city?: string | null;
+                  country?: string | null;
+                } | null;
+              } | null;
+            };
+            const shippingDetails = sessionWithShipping.shipping_details;
             const customerDetails = session.customer_details;
 
             // Create product order
