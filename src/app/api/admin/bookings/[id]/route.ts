@@ -70,7 +70,7 @@ export async function PATCH(
         .from("class_bookings")
         .select("notes")
         .eq("id", id)
-        .single();
+        .maybeSingle();
       
       updateData.notes = currentBooking?.notes
         ? `${currentBooking.notes}\n\n${notes}`
@@ -81,16 +81,25 @@ export async function PATCH(
       updateData.paid_at = paid_at;
     }
 
-    const { data: booking, error } = await supabase
+    const { data: bookings, error } = await supabase
       .from("class_bookings")
       .update(updateData)
       .eq("id", id)
-      .select()
-      .single();
+      .select();
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
+
+    if (!bookings || bookings.length === 0) {
+      return NextResponse.json({ error: "Booking not found" }, { status: 404 });
+    }
+
+    if (bookings.length > 1) {
+      return NextResponse.json({ error: "Multiple bookings matched this update" }, { status: 500 });
+    }
+
+    const booking = bookings[0];
 
     return NextResponse.json({ booking });
   } catch (error) {
