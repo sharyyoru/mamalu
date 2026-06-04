@@ -45,6 +45,10 @@ interface Booking {
   amount_due?: number;
   deposit_amount?: number | null;
   balance_amount?: number | null;
+  is_deposit_payment?: boolean;
+  deposit_paid?: boolean;
+  balance_paid?: boolean;
+  balance_paid_at?: string | null;
   guest_count?: number;
   paid_at: string | null;
   receipt_url: string | null;
@@ -64,6 +68,7 @@ export default function MyBookingsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [uploadingReceipt, setUploadingReceipt] = useState<string | null>(null);
+  const [payingBalance, setPayingBalance] = useState<string | null>(null);
 
   useEffect(() => {
     fetchBookings();
@@ -142,6 +147,28 @@ export default function MyBookingsPage() {
     }
   };
 
+  const handlePayBalance = async (bookingId: string) => {
+    setPayingBalance(bookingId);
+    try {
+      const res = await fetch("/api/user/bookings/pay-balance", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bookingId }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.url) {
+        window.location.href = data.url;
+      } else {
+        alert(data.error || "Failed to create balance payment session");
+      }
+    } catch {
+      alert("Failed to create balance payment session");
+    } finally {
+      setPayingBalance(null);
+    }
+  };
+
   const verifyPayment = async (bookingId: string) => {
     try {
       const res = await fetch("/api/payments/verify-stripe", {
@@ -182,6 +209,22 @@ export default function MyBookingsPage() {
   };
 
   const getStatusBadge = (booking: Booking) => {
+    if (booking.booking_type === "service" && booking.is_deposit_payment && booking.deposit_paid && !booking.balance_paid) {
+      return (
+        <Badge className="bg-amber-100 text-amber-700">
+          <AlertCircle className="h-3 w-3 mr-1" />
+          Balance Due
+        </Badge>
+      );
+    }
+    if (booking.booking_type === "service" && booking.is_deposit_payment && booking.deposit_paid && booking.balance_paid) {
+      return (
+        <Badge className="bg-green-100 text-green-700">
+          <CheckCircle className="h-3 w-3 mr-1" />
+          Confirmed & Paid
+        </Badge>
+      );
+    }
     if ((booking.status === "confirmed" || booking.payment_status === "paid") && booking.paid_at) {
       return (
         <Badge className="bg-green-100 text-green-700">
@@ -318,7 +361,9 @@ export default function MyBookingsPage() {
                           <div>
                             <p className="text-xs text-stone-500">Payment</p>
                             <p className="font-medium capitalize">
-                              {booking.payment_status || booking.payment_method || "Pending"}
+                              {booking.booking_type === "service" && booking.is_deposit_payment && booking.deposit_paid && !booking.balance_paid
+                                ? "Deposit paid"
+                                : booking.payment_status || booking.payment_method || "Pending"}
                             </p>
                           </div>
                           <div>
@@ -331,6 +376,29 @@ export default function MyBookingsPage() {
                           <p className="text-sm text-stone-500 mt-3">
                             Instructor: {booking.instructor_name}
                           </p>
+                        )}
+
+                        {booking.booking_type === "service" && booking.is_deposit_payment && (
+                          <div className="mt-4 rounded-lg border border-stone-200 bg-stone-50 p-3">
+                            <div className="grid grid-cols-1 gap-2 text-sm sm:grid-cols-3">
+                              <div>
+                                <p className="text-xs text-stone-500">Total</p>
+                                <p className="font-semibold text-stone-900">{formatPrice(booking.total_amount)}</p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-stone-500">Deposit Paid</p>
+                                <p className={booking.deposit_paid ? "font-semibold text-green-700" : "font-semibold text-stone-900"}>
+                                  {formatPrice(booking.deposit_amount || 0)}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-stone-500">{booking.balance_paid ? "Balance Paid" : "Balance Due"}</p>
+                                <p className={booking.balance_paid ? "font-semibold text-green-700" : "font-semibold text-amber-700"}>
+                                  {formatPrice(booking.balance_amount || 0)}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
                         )}
                       </div>
 
@@ -428,6 +496,31 @@ export default function MyBookingsPage() {
                             </a>
                           )}
                         </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {booking.booking_type === "service" && booking.is_deposit_payment && booking.deposit_paid && !booking.balance_paid && (booking.balance_amount || 0) > 0 && (
+                    <div className="bg-amber-50 border-t border-amber-100 px-6 py-4">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="text-sm">
+                          <span className="text-stone-600">Balance Due: </span>
+                          <span className="font-semibold text-amber-700">
+                            {formatPrice(booking.balance_amount || 0)}
+                          </span>
+                        </div>
+                        <Button
+                          size="sm"
+                          onClick={() => handlePayBalance(booking.id)}
+                          disabled={payingBalance === booking.id}
+                        >
+                          {payingBalance === booking.id ? (
+                            <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                          ) : (
+                            <CreditCard className="h-4 w-4 mr-2" />
+                          )}
+                          Pay Balance
+                        </Button>
                       </div>
                     </div>
                   )}

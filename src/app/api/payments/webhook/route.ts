@@ -43,9 +43,70 @@ export async function POST(request: NextRequest) {
         
         const bookingId = session.metadata?.booking_id;
         const isServiceBooking = session.metadata?.type === "service_booking";
+        const isServiceBookingBalance = session.metadata?.type === "service_booking_balance";
         const isCustomPaymentLink = session.metadata?.type === "custom_payment_link";
 
-        if (bookingId && isServiceBooking) {
+        if (bookingId && isServiceBookingBalance) {
+          const paidAmount = (session.amount_total || 0) / 100;
+          const now = new Date().toISOString();
+
+          const { data: booking, error: bookingError } = await supabase
+            .from("service_bookings")
+            .select("*")
+            .eq("id", bookingId)
+            .single();
+
+          if (bookingError) {
+            console.error("Service booking balance lookup failed:", bookingError);
+          }
+
+          if (booking) {
+            const balanceAmount = Number(booking.balance_amount) || 0;
+            const canMarkBalancePaid =
+              booking.is_deposit_payment &&
+              booking.deposit_paid &&
+              !booking.balance_paid &&
+              balanceAmount > 0;
+
+            if (!canMarkBalancePaid) {
+              console.error(`Service booking ${bookingId} is not eligible for balance payment completion`);
+            } else {
+              const { error: updateError } = await supabase
+                .from("service_bookings")
+                .update({
+                  balance_paid: true,
+                  balance_paid_at: now,
+                  payment_status: "paid",
+                  paid_at: now,
+                  status: "confirmed",
+                  stripe_payment_intent_id: session.payment_intent as string,
+                  payment_method: "stripe",
+                })
+                .eq("id", bookingId);
+
+              if (updateError) {
+                console.error("Service booking balance update failed:", updateError);
+              } else {
+                await supabase.from("payment_transactions").insert({
+                  transaction_type: "payment",
+                  payment_method: "stripe",
+                  amount: paidAmount,
+                  currency: session.currency?.toUpperCase() || "AED",
+                  status: "completed",
+                  stripe_payment_intent_id: session.payment_intent as string,
+                  metadata: {
+                    checkout_session_id: session.id,
+                    customer_email: session.customer_email,
+                    service_booking_id: bookingId,
+                    payment_stage: "balance",
+                  },
+                });
+
+                console.log(`Service booking ${bookingId} balance marked as paid`);
+              }
+            }
+          }
+        } else if (bookingId && isServiceBooking) {
           const paidAmount = (session.amount_total || 0) / 100;
 
           const { data: booking, error: bookingError } = await supabase

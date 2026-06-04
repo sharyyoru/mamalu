@@ -349,7 +349,7 @@ export default function BigChefPage() {
   const totalAmount = baseAmount + extrasTotal;
   const voucherDiscount = appliedVoucher ? Math.min(totalAmount, Number(appliedVoucher.amount) || 0) : 0;
   const discountedTotalAmount = Math.max(0, totalAmount - voucherDiscount);
-  const requiresDeposit = isCorporate;
+  const requiresDeposit = true;
   const depositAmount = requiresDeposit ? Math.ceil(discountedTotalAmount * 0.5) : discountedTotalAmount;
   const balanceAmount = requiresDeposit ? discountedTotalAmount - depositAmount : 0;
 

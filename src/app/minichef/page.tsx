@@ -529,11 +529,11 @@ export default function MiniChefPage() {
     return calculateBaseAmount() + calculateExtrasTotal();
   };
 
-  // Payment calculation - only Birthday is 50% deposit
+  // Payment calculation - all public Mini Chef bookings are 50% deposit.
   const totalAmount = calculateTotal();
   const voucherDiscount = appliedVoucher ? Math.min(totalAmount, Number(appliedVoucher.amount) || 0) : 0;
   const discountedTotalAmount = Math.max(0, totalAmount - voucherDiscount);
-  const requiresDeposit = isBirthday;
+  const requiresDeposit = true;
   const depositAmount = requiresDeposit ? Math.ceil(discountedTotalAmount * 0.5) : discountedTotalAmount;
   const balanceAmount = requiresDeposit ? discountedTotalAmount - depositAmount : 0;
 
@@ -592,7 +592,7 @@ export default function MiniChefPage() {
           quantity: selectedExtras[e.id],
       }));
 
-      const isDepositPayment = isBirthday;
+      const isDepositPayment = true;
       const packageClassNames = selectedPackageMenuItems.map((item) => item.name).join(", ");
 
       const res = await fetch("/api/services/book", {
