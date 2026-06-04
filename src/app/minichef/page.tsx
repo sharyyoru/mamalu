@@ -25,6 +25,7 @@ import {
   MessageCircle,
   X,
   AlertTriangle,
+  Ticket,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { MiniChefPageContent, defaultMiniChefContent } from "@/types/site-content";
@@ -94,6 +95,11 @@ interface DbPackage {
     class_count?: number;
   } | null;
   menu_items?: DbPackageMenuItem[] | null;
+}
+
+interface AppliedVoucher {
+  code: string;
+  amount: number;
 }
 
 // Category type
@@ -254,6 +260,12 @@ export default function MiniChefPage() {
   // Waiver
   const [waiverAccepted, setWaiverAccepted] = useState(false);
   const [showWaiverModal, setShowWaiverModal] = useState(false);
+
+  // Voucher
+  const [voucherCode, setVoucherCode] = useState("");
+  const [appliedVoucher, setAppliedVoucher] = useState<AppliedVoucher | null>(null);
+  const [voucherError, setVoucherError] = useState("");
+  const [applyingVoucher, setApplyingVoucher] = useState(false);
 
   // Capacity tracking for monthly specials
   const [menuCapacities, setMenuCapacities] = useState<Record<string, { allowed: number; booked: number; available: number } | null>>({});
@@ -519,9 +531,45 @@ export default function MiniChefPage() {
 
   // Payment calculation - only Birthday is 50% deposit
   const totalAmount = calculateTotal();
+  const voucherDiscount = appliedVoucher ? Math.min(totalAmount, Number(appliedVoucher.amount) || 0) : 0;
+  const discountedTotalAmount = Math.max(0, totalAmount - voucherDiscount);
   const requiresDeposit = isBirthday;
-  const depositAmount = requiresDeposit ? Math.ceil(totalAmount * 0.5) : totalAmount;
-  const balanceAmount = requiresDeposit ? totalAmount - depositAmount : 0;
+  const depositAmount = requiresDeposit ? Math.ceil(discountedTotalAmount * 0.5) : discountedTotalAmount;
+  const balanceAmount = requiresDeposit ? discountedTotalAmount - depositAmount : 0;
+
+  const handleApplyVoucher = async () => {
+    if (!voucherCode.trim()) return;
+    setApplyingVoucher(true);
+    setVoucherError("");
+
+    try {
+      const res = await fetch("/api/vouchers/claim", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: voucherCode.trim() }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        setAppliedVoucher(null);
+        setVoucherError(data.error || "Invalid voucher code");
+        return;
+      }
+
+      setAppliedVoucher(data.voucher);
+      setVoucherCode(data.voucher.code);
+    } catch {
+      setVoucherError("Something went wrong. Please try again.");
+    } finally {
+      setApplyingVoucher(false);
+    }
+  };
+
+  const removeVoucher = () => {
+    setAppliedVoucher(null);
+    setVoucherCode("");
+    setVoucherError("");
+  };
 
   // Handle form submission
   const handleSubmit = async (acceptedWaiver = false) => {
@@ -542,10 +590,9 @@ export default function MiniChefPage() {
           name: e.name,
           price: e.price,
           quantity: selectedExtras[e.id],
-        }));
+      }));
 
       const isDepositPayment = isBirthday;
-      const paymentAmount = isDepositPayment ? Math.ceil(totalAmount * 0.5) : totalAmount;
       const packageClassNames = selectedPackageMenuItems.map((item) => item.name).join(", ");
 
       const res = await fetch("/api/services/book", {
@@ -596,7 +643,7 @@ export default function MiniChefPage() {
           extrasAmount: calculateExtrasTotal(),
           totalAmount,
           isDepositPayment,
-          depositAmount: isDepositPayment ? paymentAmount : null,
+          depositAmount: isDepositPayment ? depositAmount : null,
           balanceAmount: isDepositPayment ? balanceAmount : null,
           specialRequests: isMommyAndMe
             ? `${specialRequests ? `${specialRequests}\n\n` : ""}Mommy & Me children: ${guestCount}${guestCount > 1 ? ` (${guestCount - 1} additional child${guestCount - 1 === 1 ? "" : "ren"} at AED ${MOMMY_ME_ADDITIONAL_CHILD_PRICE} each)` : ""}`
@@ -606,6 +653,7 @@ export default function MiniChefPage() {
           ageRange,
           waiverAccepted: waiverAccepted || acceptedWaiver,
           category: activeCategory,
+          voucherCode: appliedVoucher?.code || null,
         }),
       });
 
@@ -613,6 +661,8 @@ export default function MiniChefPage() {
         const data = await res.json();
         if (data.checkoutUrl) {
           window.location.href = data.checkoutUrl;
+        } else if (data.booking?.booking_number) {
+          window.location.href = `/booking/success?booking=${data.booking.booking_number}`;
         }
       } else {
         const error = await res.json();
@@ -1362,7 +1412,62 @@ export default function MiniChefPage() {
                       </div>
                     </div>
 
-                    {/* Payment Info - Hidden per client request (order summary hidden at checkout) */}
+                    <div className="rounded-xl border border-stone-200 bg-stone-50 p-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Ticket className="h-5 w-5 text-[#FF8C6B]" />
+                        <h3 className="font-bold text-stone-900">Claim Voucher</h3>
+                      </div>
+                      <div className="flex flex-col gap-3 sm:flex-row">
+                        <input
+                          type="text"
+                          value={voucherCode}
+                          onChange={(e) => {
+                            setVoucherCode(e.target.value.toUpperCase());
+                            if (appliedVoucher) setAppliedVoucher(null);
+                          }}
+                          placeholder="Enter voucher code"
+                          className="flex-1 rounded-lg border border-stone-300 px-4 py-2 uppercase tracking-wider"
+                        />
+                        {appliedVoucher ? (
+                          <Button variant="outline" onClick={removeVoucher} className="font-bold">Remove</Button>
+                        ) : (
+                          <Button
+                            onClick={handleApplyVoucher}
+                            disabled={applyingVoucher || !voucherCode.trim()}
+                            className={PRIMARY_BUTTON_CLASS}
+                          >
+                            {applyingVoucher && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                            Apply
+                          </Button>
+                        )}
+                      </div>
+                      {voucherError && <p className="mt-3 text-sm font-medium text-red-600">{voucherError}</p>}
+                      {appliedVoucher && (
+                        <p className="mt-3 rounded-lg bg-green-50 px-3 py-2 text-sm font-medium text-green-700">
+                          Voucher {appliedVoucher.code} applied. AED {voucherDiscount} will be deducted from your total.
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="rounded-xl border border-stone-200 p-4">
+                      <div className="flex justify-between text-base">
+                        <span className="font-bold text-stone-700">Subtotal</span>
+                        <span className="font-bold text-stone-900">AED {totalAmount.toLocaleString()}</span>
+                      </div>
+                      {voucherDiscount > 0 && (
+                        <div className="mt-2 flex justify-between text-base text-green-700">
+                          <span className="font-bold">Voucher discount</span>
+                          <span className="font-bold">-AED {voucherDiscount.toLocaleString()}</span>
+                        </div>
+                      )}
+                      <div className="mt-3 border-t pt-3 flex justify-between text-lg">
+                        <span className="font-bold text-stone-900">{requiresDeposit ? "Deposit Due" : "Total Due"}</span>
+                        <span className="font-bold text-[#FF8C6B]">AED {depositAmount.toLocaleString()}</span>
+                      </div>
+                      {requiresDeposit && (
+                        <p className="mt-1 text-sm text-stone-500">Balance due later: AED {balanceAmount.toLocaleString()}</p>
+                      )}
+                    </div>
                   </CardContent>
                 </Card>
 
@@ -1405,7 +1510,7 @@ export default function MiniChefPage() {
                   {selectedMenu.name} • {guestCount} {isMommyAndMe ? "children" : isBirthday ? "kids" : "guests"}
                 </p>
                 <p className="text-xs font-bold text-stone-600 sm:text-sm">
-                  Step {step} of {maxStep} • AED {totalAmount.toLocaleString()}
+                  Step {step} of {maxStep} • AED {discountedTotalAmount.toLocaleString()}
                 </p>
               </div>
               

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Check, Plus, Minus, ShoppingCart, Users, Clock, ChefHat, Loader2, CalendarDays } from "lucide-react";
+import { ArrowLeft, Check, Plus, Minus, ShoppingCart, Users, Clock, ChefHat, Loader2, CalendarDays, Ticket } from "lucide-react";
 
 interface MenuPackage {
   id: string;
@@ -20,6 +20,18 @@ interface AddOn {
   unit: string;
   image?: string;
   category: "food" | "merch";
+}
+
+interface AppliedVoucher {
+  code: string;
+  amount: number;
+}
+
+interface BookingExtra {
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
 }
 
 const menuPackages: MenuPackage[] = [
@@ -148,6 +160,10 @@ export default function KidsBookingPage() {
   const [waiverAccepted, setWaiverAccepted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [showBookingForm, setShowBookingForm] = useState(false);
+  const [voucherCode, setVoucherCode] = useState("");
+  const [appliedVoucher, setAppliedVoucher] = useState<AppliedVoucher | null>(null);
+  const [voucherError, setVoucherError] = useState("");
+  const [applyingVoucher, setApplyingVoucher] = useState(false);
 
   // Fetch time slots when date changes
   useEffect(() => {
@@ -181,13 +197,15 @@ export default function KidsBookingPage() {
     try {
       const pkg = menuPackages.find(p => p.id === selectedPackage);
       const baseAmount = (pkg?.price || 0) * numberOfKids;
-      const extrasData = Object.entries(addOns).map(([id, quantity]) => {
+      const extrasData = Object.entries(addOns).map(([id, quantity]): BookingExtra | null => {
         const addOn = [...foodAddOns, ...merchAddOns].find(a => a.id === id);
         return addOn ? { id, name: addOn.name, price: addOn.price, quantity } : null;
-      }).filter(Boolean);
-      const extrasAmount = extrasData.reduce((sum, e: any) => sum + (e.price * e.quantity), 0);
+      }).filter((extra): extra is BookingExtra => Boolean(extra));
+      const extrasAmount = extrasData.reduce((sum, e) => sum + (e.price * e.quantity), 0);
       const totalAmount = baseAmount + extrasAmount;
-      const depositAmount = Math.ceil(totalAmount * 0.5);
+      const discountAmount = getVoucherDiscount(totalAmount);
+      const discountedTotalAmount = Math.max(0, totalAmount - discountAmount);
+      const depositAmount = Math.ceil(discountedTotalAmount * 0.5);
 
       const res = await fetch("/api/services/book", {
         method: "POST",
@@ -210,10 +228,11 @@ export default function KidsBookingPage() {
           totalAmount,
           isDepositPayment: true,
           depositAmount,
-          balanceAmount: totalAmount - depositAmount,
+          balanceAmount: discountedTotalAmount - depositAmount,
           specialRequests,
           ageRange,
           waiverAccepted,
+          voucherCode: appliedVoucher?.code || null,
         }),
       });
 
@@ -221,6 +240,8 @@ export default function KidsBookingPage() {
         const data = await res.json();
         if (data.checkoutUrl) {
           window.location.href = data.checkoutUrl;
+        } else if (data.booking?.booking_number) {
+          window.location.href = `/booking/success?booking=${data.booking.booking_number}`;
         }
       } else {
         const error = await res.json();
@@ -266,7 +287,56 @@ export default function KidsBookingPage() {
     return total;
   };
 
+  const getVoucherDiscount = (total: number) => {
+    if (!appliedVoucher) return 0;
+    return Math.min(total, Number(appliedVoucher.amount) || 0);
+  };
+
+  const calculateDiscountedTotal = () => {
+    const total = calculateTotal();
+    return Math.max(0, total - getVoucherDiscount(total));
+  };
+
+  const handleApplyVoucher = async () => {
+    if (!voucherCode.trim()) return;
+    setApplyingVoucher(true);
+    setVoucherError("");
+
+    try {
+      const res = await fetch("/api/vouchers/claim", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: voucherCode.trim() }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        setAppliedVoucher(null);
+        setVoucherError(data.error || "Invalid voucher code");
+        return;
+      }
+
+      setAppliedVoucher(data.voucher);
+      setVoucherCode(data.voucher.code);
+    } catch {
+      setVoucherError("Something went wrong. Please try again.");
+    } finally {
+      setApplyingVoucher(false);
+    }
+  };
+
+  const removeVoucher = () => {
+    setAppliedVoucher(null);
+    setVoucherCode("");
+    setVoucherError("");
+  };
+
   const selectedPkg = selectedPackage ? menuPackages.find(p => p.id === selectedPackage) : null;
+  const orderTotal = calculateTotal();
+  const voucherDiscount = getVoucherDiscount(orderTotal);
+  const discountedTotal = calculateDiscountedTotal();
+  const discountedDeposit = Math.ceil(discountedTotal * 0.5);
+  const discountedBalance = discountedTotal - discountedDeposit;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-rose-50">
@@ -281,7 +351,7 @@ export default function KidsBookingPage() {
             <div className="flex items-center gap-4">
               <div className="text-right hidden sm:block">
                 <div className="text-sm text-stone-500">Total</div>
-                <div className="text-2xl font-bold text-[#ff7f5c]">{calculateTotal()} AED</div>
+                <div className="text-2xl font-bold text-[#ff7f5c]">{discountedTotal} AED</div>
               </div>
               <Button className="gradient-peach-glow text-white rounded-full px-6">
                 <ShoppingCart className="h-4 w-4 mr-2" />
@@ -363,7 +433,7 @@ export default function KidsBookingPage() {
               🍴 Choose Your Menu Package
             </h2>
             <p className="text-stone-600 text-center mb-8 max-w-2xl mx-auto">
-              Can't decide on what you want to make? We've got you covered. Below are our most popular celebration menus for kids
+              Can&apos;t decide on what you want to make? We&apos;ve got you covered. Below are our most popular celebration menus for kids
             </p>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {menuPackages.map((pkg) => {
@@ -570,7 +640,14 @@ export default function KidsBookingPage() {
 
                   <div className="border-t border-stone-200 pt-4 flex justify-between items-center">
                     <div className="text-xl font-bold text-stone-900">Total</div>
-                    <div className="text-3xl font-bold text-[#ff7f5c]">{calculateTotal()} AED</div>
+                    <div className="text-right">
+                      {voucherDiscount > 0 && (
+                        <div className="text-sm font-semibold text-stone-400 line-through">
+                          {orderTotal} AED
+                        </div>
+                      )}
+                      <div className="text-3xl font-bold text-[#ff7f5c]">{discountedTotal} AED</div>
+                    </div>
                   </div>
                 </div>
 
@@ -726,6 +803,48 @@ export default function KidsBookingPage() {
                   </div>
                 </div>
 
+                <div className="rounded-2xl border border-stone-200 bg-stone-50 p-4 mb-6">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Ticket className="h-5 w-5 text-[#ff7f5c]" />
+                    <h4 className="font-bold text-stone-900">Claim Voucher</h4>
+                  </div>
+                  <div className="flex flex-col gap-3 sm:flex-row">
+                    <input
+                      type="text"
+                      value={voucherCode}
+                      onChange={(e) => {
+                        setVoucherCode(e.target.value.toUpperCase());
+                        if (appliedVoucher) setAppliedVoucher(null);
+                      }}
+                      placeholder="Enter voucher code"
+                      className="flex-1 px-4 py-3 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#ff7f5c] uppercase tracking-wider"
+                    />
+                    {appliedVoucher ? (
+                      <Button type="button" variant="outline" onClick={removeVoucher} className="rounded-xl px-5">
+                        Remove
+                      </Button>
+                    ) : (
+                      <Button
+                        type="button"
+                        onClick={handleApplyVoucher}
+                        disabled={applyingVoucher || !voucherCode.trim()}
+                        className="gradient-peach-glow text-white rounded-xl px-5"
+                      >
+                        {applyingVoucher && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                        Apply
+                      </Button>
+                    )}
+                  </div>
+                  {voucherError && (
+                    <p className="mt-3 text-sm text-red-600">{voucherError}</p>
+                  )}
+                  {appliedVoucher && (
+                    <div className="mt-3 rounded-xl bg-green-50 px-4 py-3 text-sm text-green-700">
+                      Voucher {appliedVoucher.code} applied. AED {voucherDiscount} will be deducted from your total.
+                    </div>
+                  )}
+                </div>
+
                 {/* Waiver */}
                 <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
                   <label className="flex items-start gap-3 cursor-pointer">
@@ -762,13 +881,13 @@ export default function KidsBookingPage() {
                   ) : (
                     <>
                       <ShoppingCart className="h-5 w-5 mr-2" />
-                      Pay 50% Deposit ({Math.ceil(calculateTotal() * 0.5)} AED)
+                      Pay 50% Deposit ({discountedDeposit} AED)
                     </>
                   )}
                 </Button>
 
                 <p className="text-xs text-stone-500 text-center mt-4">
-                  50% deposit secures your booking. Balance of {Math.ceil(calculateTotal() * 0.5)} AED due 48 hours before event.
+                  50% deposit secures your booking. Balance of {discountedBalance} AED due 48 hours before event.
                 </p>
               </div>
             </div>

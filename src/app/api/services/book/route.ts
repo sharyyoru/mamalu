@@ -34,13 +34,12 @@ export async function POST(request: NextRequest) {
       totalAmount,
       // Split payment info
       isDepositPayment,
-      depositAmount,
-      balanceAmount,
       specialRequests,
       ageRange,
       waiverAccepted,
       userId,
       createdBy,
+      voucherCode,
     } = body;
 
     if (!serviceName || !customerName || !customerEmail || !totalAmount) {
@@ -50,9 +49,42 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    let voucher: { id: string; code: string; discount_value: number } | null = null;
+    let discountAmount = 0;
+
+    if (voucherCode && typeof voucherCode === "string") {
+      const { data: voucherData, error: voucherError } = await supabase
+        .from("vouchers")
+        .select("id, code, discount_value")
+        .eq("code", voucherCode.trim().toUpperCase())
+        .eq("is_active", true)
+        .single();
+
+      if (voucherError || !voucherData) {
+        return NextResponse.json(
+          { error: "Invalid or expired voucher code" },
+          { status: 400 }
+        );
+      }
+
+      voucher = {
+        id: voucherData.id,
+        code: voucherData.code,
+        discount_value: Number(voucherData.discount_value) || 0,
+      };
+      discountAmount = Math.min(Number(totalAmount), voucher.discount_value);
+    }
+
+    const discountedTotalAmount = Math.max(0, Number(totalAmount) - discountAmount);
+    const adjustedDepositAmount = isDepositPayment ? Math.ceil(discountedTotalAmount * 0.5) : null;
+    const adjustedBalanceAmount = isDepositPayment
+      ? discountedTotalAmount - (adjustedDepositAmount || 0)
+      : null;
+
     // Determine payment amount (deposit for corporate, full for others)
-    const paymentAmount = isDepositPayment ? depositAmount : totalAmount;
-    const paymentStatus = isDepositPayment ? "deposit_pending" : "pending";
+    const paymentAmount = isDepositPayment ? adjustedDepositAmount || 0 : discountedTotalAmount;
+    const paymentStatus = paymentAmount <= 0 ? "paid" : (isDepositPayment ? "deposit_pending" : "pending");
+    const bookingStatus = paymentAmount <= 0 ? "confirmed" : "pending";
 
     // Create booking record
     const bookingData = {
@@ -76,20 +108,23 @@ export async function POST(request: NextRequest) {
       extras: extras || [],
       base_amount: baseAmount || totalAmount,
       extras_amount: extrasAmount || 0,
-      total_amount: totalAmount,
+      discount_amount: discountAmount,
+      total_amount: discountedTotalAmount,
       // Split payment tracking
       is_deposit_payment: isDepositPayment || false,
-      deposit_amount: depositAmount || null,
-      balance_amount: balanceAmount || null,
-      deposit_paid: false,
-      balance_paid: false,
+      deposit_amount: adjustedDepositAmount,
+      balance_amount: adjustedBalanceAmount,
+      deposit_paid: paymentAmount <= 0 ? Boolean(isDepositPayment) : false,
+      balance_paid: paymentAmount <= 0,
       payment_status: paymentStatus,
-      special_requests: specialRequests || null,
+      special_requests: voucher
+        ? `${specialRequests ? `${specialRequests}\n\n` : ""}Voucher applied: ${voucher.code} (AED ${discountAmount})`
+        : specialRequests || null,
       age_range: ageRange || null,
       waiver_accepted: waiverAccepted || false,
       user_id: userId || null,
       created_by: createdBy || null,
-      status: "pending",
+      status: bookingStatus,
     };
 
     const { data: booking, error: bookingError } = await supabase
@@ -103,13 +138,28 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: bookingError.message }, { status: 500 });
     }
 
+    if (paymentAmount <= 0) {
+      if (voucher) {
+        await supabase
+          .from("vouchers")
+          .update({ is_active: false })
+          .eq("id", voucher.id);
+      }
+
+      return NextResponse.json({
+        success: true,
+        booking,
+        checkoutUrl: null,
+      });
+    }
+
     // Create Stripe checkout session
     const productName = menuName 
       ? `${serviceName} - ${menuName}` 
       : (packageName ? `${serviceName} - ${packageName}` : serviceName);
     
     const productDescription = isDepositPayment
-      ? `50% Deposit for ${guestCount} guest(s)${eventDate ? ` on ${eventDate}` : ""} - Balance of AED ${balanceAmount} due 48 hours before event`
+      ? `50% Deposit for ${guestCount} guest(s)${eventDate ? ` on ${eventDate}` : ""} - Balance of AED ${adjustedBalanceAmount} due 48 hours before event`
       : `Booking for ${guestCount} guest(s)${eventDate ? ` on ${eventDate}` : ""}`;
 
     const product = await stripe.products.create({
@@ -120,6 +170,9 @@ export async function POST(request: NextRequest) {
         service_type: serviceType,
         booking_number: booking.booking_number,
         is_deposit: isDepositPayment ? "true" : "false",
+        voucher_id: voucher?.id || "",
+        voucher_code: voucher?.code || "",
+        voucher_discount_amount: discountAmount ? String(discountAmount) : "",
       },
     });
 
@@ -143,6 +196,9 @@ export async function POST(request: NextRequest) {
         booking_number: booking.booking_number,
         service_type: serviceType,
         type: "service_booking",
+        voucher_id: voucher?.id || "",
+        voucher_code: voucher?.code || "",
+        voucher_discount_amount: discountAmount ? String(discountAmount) : "",
       },
     });
 
@@ -157,10 +213,11 @@ export async function POST(request: NextRequest) {
       booking,
       checkoutUrl: checkoutSession.url,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Book service error:", error);
+    const message = error instanceof Error ? error.message : "Failed to create booking";
     return NextResponse.json(
-      { error: error.message || "Failed to create booking" },
+      { error: message },
       { status: 500 }
     );
   }

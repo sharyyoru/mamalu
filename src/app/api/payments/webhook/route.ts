@@ -58,6 +58,8 @@ export async function POST(request: NextRequest) {
 
           if (booking) {
             const isFullPayment = !booking.is_deposit_payment || paidAmount >= booking.total_amount;
+            const voucherId = session.metadata?.voucher_id;
+            const voucherCode = session.metadata?.voucher_code;
 
             const { error: updateError } = await supabase
               .from("service_bookings")
@@ -87,6 +89,19 @@ export async function POST(request: NextRequest) {
                   service_booking_id: bookingId,
                 },
               });
+
+              if (voucherId) {
+                const { error: voucherUpdateError } = await supabase
+                  .from("vouchers")
+                  .update({ is_active: false })
+                  .eq("id", voucherId);
+
+                if (voucherUpdateError) {
+                  console.error("Voucher deactivation failed:", voucherUpdateError);
+                } else {
+                  console.log(`Voucher ${voucherCode || voucherId} marked as used for service booking ${bookingId}`);
+                }
+              }
 
               console.log(`Service booking ${bookingId} marked as ${isFullPayment ? "paid" : "deposit paid"}`);
             }
