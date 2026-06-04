@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
@@ -25,6 +25,7 @@ export default function AccountPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [checkingAuth, setCheckingAuth] = useState(true);
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const router = useRouter();
@@ -42,27 +43,36 @@ export default function AccountPage() {
   const [passwordSuccess, setPasswordSuccess] = useState("");
   const [changingPassword, setChangingPassword] = useState(false);
 
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
+
+  const checkUser = useCallback(async () => {
+    if (!supabase) {
+      setCheckingAuth(false);
+      return;
+    }
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+
+      if (user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", user.id)
+          .single();
+        setProfile(profile);
+      } else {
+        setProfile(null);
+      }
+    } finally {
+      setCheckingAuth(false);
+    }
+  }, [supabase]);
 
   useEffect(() => {
     checkUser();
-  }, []);
-
-  async function checkUser() {
-    if (!supabase) return;
-    
-    const { data: { user } } = await supabase.auth.getUser();
-    setUser(user);
-
-    if (user) {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .single();
-      setProfile(profile);
-    }
-  }
+  }, [checkUser]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -127,6 +137,7 @@ export default function AccountPage() {
     await supabase.auth.signOut();
     setUser(null);
     setProfile(null);
+    setCheckingAuth(false);
     router.refresh();
   }
 
@@ -176,6 +187,16 @@ export default function AccountPage() {
     } finally {
       setChangingPassword(false);
     }
+  }
+
+  if (checkingAuth) {
+    return (
+      <div className="py-20 bg-stone-50 min-h-[70vh]">
+        <div className="mx-auto flex h-64 max-w-4xl items-center justify-center px-4 sm:px-6 lg:px-8">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-stone-200 border-t-[#FF8C6B]" />
+        </div>
+      </div>
+    );
   }
 
   // If user is logged in, show dashboard
