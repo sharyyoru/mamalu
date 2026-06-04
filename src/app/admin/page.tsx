@@ -41,7 +41,6 @@ export default async function AdminDashboard() {
   const quickActions = [
     { label: "Process Order", icon: ShoppingBag, color: "from-[#FF8C6B] to-[#ff7a54]", href: "/admin/orders" },
     { label: "Add Customer", icon: Users, color: "from-emerald-500 to-teal-500", href: "/admin/users/new" },
-    { label: "Kitchen Booking", icon: Utensils, color: "from-rose-500 to-pink-500", href: "/admin/rentals" },
     { label: "View Analytics", icon: BarChart3, color: "from-blue-500 to-cyan-500", href: "/admin/analytics" },
     { label: "Send Campaign", icon: Zap, color: "from-fuchsia-500 to-purple-500", href: "/admin/marketing" },
   ];
