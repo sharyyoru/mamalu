@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 import { requireAuth } from "@/lib/auth/api-auth";
+import { getEmailFrom } from "@/lib/email/config";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
@@ -25,7 +26,7 @@ export async function POST(request: NextRequest) {
     }
 
     const { data, error } = await resend.emails.send({
-      from: process.env.EMAIL_FROM || "Mamalu Kitchen <noreply@mamalu.ae>",
+      from: getEmailFrom(),
       to,
       subject,
       html,
@@ -41,8 +42,10 @@ export async function POST(request: NextRequest) {
       message: `Email sent to ${to}`,
       emailId: data?.id 
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Send email error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({
+      error: error instanceof Error ? error.message : "Failed to send email",
+    }, { status: 500 });
   }
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { sendVoucherConfirmationEmail } from "@/lib/email/voucher-confirmation";
 import { sendVoucherRedemptionConfirmation } from "@/lib/email/voucher-redemption-confirmation";
 import { sendBookingConfirmationEmail } from "@/lib/email/booking-confirmation";
+import { sendServiceBookingConfirmationEmail } from "@/lib/email/service-booking-confirmation";
 
 export async function POST(req: NextRequest) {
   try {
@@ -53,9 +54,24 @@ export async function POST(req: NextRequest) {
         });
         break;
 
+      case "service-booking":
+        result = await sendServiceBookingConfirmationEmail({
+          bookingNumber: "SB-20260604-TEST01",
+          customerName: "Test Customer",
+          customerEmail: email,
+          serviceName: "Mini Chef - Mommy & Me",
+          packageName: "Tea Time",
+          eventDate: "2026-06-10",
+          eventTime: "11:00",
+          guestCount: 1,
+          totalAmount: 375.00,
+          isDepositPayment: false,
+        });
+        break;
+
       default:
         return NextResponse.json(
-          { error: "Invalid type. Use 'voucher', 'redemption', or 'booking'" },
+          { error: "Invalid type. Use 'voucher', 'redemption', 'booking', or 'service-booking'" },
           { status: 400 }
         );
     }

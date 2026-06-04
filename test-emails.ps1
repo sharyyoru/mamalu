@@ -1,10 +1,20 @@
+param(
+    [string]$Email = $env:TEST_EMAIL
+)
+
 # Test Email Script for Mamalu Kitchen
-# Run these commands to test different email types
+# Resend's onboarding@resend.dev sender can only send to your Resend account email.
 
 Write-Host "=== Mamalu Kitchen Email Tests ===" -ForegroundColor Cyan
 Write-Host ""
 
-$email = "ralf@mutant.ae"
+if (-not $Email) {
+    Write-Host "Provide your Resend account email with -Email or TEST_EMAIL." -ForegroundColor Red
+    Write-Host "Example: .\test-emails.ps1 -Email you@example.com" -ForegroundColor Yellow
+    exit 1
+}
+
+$email = $Email
 $baseUrl = "http://localhost:3000"
 $headers = @{
     "Content-Type" = "application/json"
@@ -36,6 +46,16 @@ $body3 = @{
     email = $email
 } | ConvertTo-Json
 Invoke-RestMethod -Uri "$baseUrl/api/test-email" -Method Post -Headers $headers -Body $body3
+
+Write-Host ""
+Write-Host ""
+
+Write-Host "4. Testing Service Booking Confirmation Email..." -ForegroundColor Yellow
+$body4 = @{
+    type = "service-booking"
+    email = $email
+} | ConvertTo-Json
+Invoke-RestMethod -Uri "$baseUrl/api/test-email" -Method Post -Headers $headers -Body $body4
 
 Write-Host ""
 Write-Host ""

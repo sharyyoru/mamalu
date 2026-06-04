@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { Resend } from "resend";
+import { getEmailFrom } from "@/lib/email/config";
 
 export async function POST(request: NextRequest) {
   try {
@@ -108,7 +109,7 @@ export async function POST(request: NextRequest) {
     `;
 
     await resend.emails.send({
-      from: "Mamalu Kitchen <bookings@mamalukitchen.com>",
+      from: getEmailFrom(),
       to: booking.customer_email,
       subject: `Balance Payment Reminder - ${booking.booking_number}`,
       html: emailHtml,
@@ -121,8 +122,10 @@ export async function POST(request: NextRequest) {
       .eq("id", bookingId);
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Send reminder error:", error);
-    return NextResponse.json({ error: error.message || "Failed to send reminder" }, { status: 500 });
+    return NextResponse.json({
+      error: error instanceof Error ? error.message : "Failed to send reminder",
+    }, { status: 500 });
   }
 }

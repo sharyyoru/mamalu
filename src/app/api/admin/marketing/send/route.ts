@@ -1,8 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
 import { Resend } from "resend";
+import { getEmailFrom } from "@/lib/email/config";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+
+type CrmContact = {
+  id: string;
+  email: string;
+  first_name?: string | null;
+  last_name?: string | null;
+};
+
+type ProfileRecipient = {
+  id: string;
+  email: string;
+  full_name?: string | null;
+  total_spend?: number | null;
+  total_classes_attended?: number | null;
+  referral_code?: string | null;
+};
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,7 +29,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { campaignId, testEmail, sendTest, sendToAll, listId } = body;
+    const { campaignId, testEmail, sendTest, listId } = body;
 
     if (!campaignId) {
       return NextResponse.json({ error: "Campaign ID required" }, { status: 400 });
@@ -39,7 +56,7 @@ export async function POST(request: NextRequest) {
 
       try {
         const { data, error } = await resend.emails.send({
-          from: process.env.EMAIL_FROM || "Mamalu Kitchen <noreply@mamalu.ae>",
+          from: getEmailFrom(),
           to: testEmail,
           subject: `[TEST] ${campaign.subject}`,
           html: replaceVariables(campaign.html_content, {
@@ -62,9 +79,9 @@ export async function POST(request: NextRequest) {
           message: `Test email sent to ${testEmail}`,
           emailId: data?.id 
         });
-      } catch (emailError: any) {
+      } catch (emailError: unknown) {
         console.error("Email send error:", emailError);
-        return NextResponse.json({ error: emailError.message }, { status: 500 });
+        return NextResponse.json({ error: getErrorMessage(emailError) }, { status: 500 });
       }
     }
 
@@ -75,8 +92,8 @@ export async function POST(request: NextRequest) {
       }, { status: 500 });
     }
 
-    let crmContacts: any[] = [];
-    let profileRecipients: any[] = [];
+    let crmContacts: CrmContact[] = [];
+    let profileRecipients: ProfileRecipient[] = [];
 
     // If sending to a specific list, get contacts from that list
     if (listId) {
@@ -157,9 +174,9 @@ export async function POST(request: NextRequest) {
           id: profile.id,
           email: profile.email,
           full_name: profile.full_name || undefined,
-          total_spend: profile.total_spend,
-          total_classes_attended: profile.total_classes_attended,
-          referral_code: profile.referral_code,
+          total_spend: profile.total_spend ?? undefined,
+          total_classes_attended: profile.total_classes_attended ?? undefined,
+          referral_code: profile.referral_code ?? undefined,
           source: "profiles"
         });
       }
@@ -201,7 +218,7 @@ export async function POST(request: NextRequest) {
             };
 
             await resend.emails.send({
-              from: process.env.EMAIL_FROM || "Mamalu Kitchen <noreply@mamalu.ae>",
+              from: getEmailFrom(),
               to: recipient.email,
               subject: replaceVariables(campaign.subject, variables),
               html: replaceVariables(campaign.html_content, variables),
@@ -219,7 +236,7 @@ export async function POST(request: NextRequest) {
                 recipientRecord.profile_id = recipient.id;
               }
               await supabase.from("campaign_recipients").insert(recipientRecord);
-            } catch (e) {
+            } catch {
               // Table might not exist, continue
             }
 
@@ -248,9 +265,9 @@ export async function POST(request: NextRequest) {
       failed,
       message: `Campaign sent to ${sent} recipients` 
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error sending campaign:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: getErrorMessage(error) }, { status: 500 });
   }
 }
 
@@ -263,4 +280,8 @@ function replaceVariables(content: string, variables: Record<string, string>): s
     result = result.replace(regex, value || "");
   });
   return result;
+}
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : "Failed to send email";
 }

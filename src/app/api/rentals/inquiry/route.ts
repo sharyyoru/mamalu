@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { Resend } from "resend";
+import { getEmailFrom } from "@/lib/email/config";
 
 export async function POST(request: NextRequest) {
   const resend = new Resend(process.env.RESEND_API_KEY);
@@ -134,7 +135,7 @@ Additional Notes: ${message || "None"}
 
     try {
       await resend.emails.send({
-        from: "Mamalu Kitchen <bookings@mamalukitchen.com>",
+        from: getEmailFrom(),
         to: ["info@mamalukitchen.com"],
         subject: `🏠 New Kitchen Studio Rental Request - ${name}`,
         html: emailHtml,
@@ -196,7 +197,7 @@ Additional Notes: ${message || "None"}
 
     try {
       await resend.emails.send({
-        from: "Mamalu Kitchen <bookings@mamalukitchen.com>",
+        from: getEmailFrom(),
         to: [email],
         subject: "Your Kitchen Studio Rental Inquiry - Mamalu Kitchen",
         html: customerEmailHtml,

@@ -1,4 +1,5 @@
 import { Resend } from "resend";
+import { getEmailFrom } from "@/lib/email/config";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
@@ -22,7 +23,7 @@ export async function sendVoucherRedemptionConfirmation(details: VoucherRedempti
 
   try {
     const { error } = await resend.emails.send({
-      from: process.env.EMAIL_FROM || "Mamalu Kitchen <noreply@mamalu.ae>",
+      from: getEmailFrom(),
       to: details.customerEmail,
       subject: `Booking Confirmed - ${details.experienceName} | Mamalu Kitchen`,
       html: generateEmailHtml(details),

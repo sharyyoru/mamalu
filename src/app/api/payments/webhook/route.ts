@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendBookingConfirmationEmail } from "@/lib/email/booking-confirmation";
+import { sendServiceBookingConfirmationEmail } from "@/lib/email/service-booking-confirmation";
 import { sendVoucherConfirmationEmail } from "@/lib/email/voucher-confirmation";
 import Stripe from "stripe";
 
@@ -48,7 +49,7 @@ export async function POST(request: NextRequest) {
 
           const { data: booking, error: bookingError } = await supabase
             .from("service_bookings")
-            .select("id, is_deposit_payment, total_amount")
+            .select("*")
             .eq("id", bookingId)
             .single();
 
@@ -101,6 +102,30 @@ export async function POST(request: NextRequest) {
                 } else {
                   console.log(`Voucher ${voucherCode || voucherId} marked as used for service booking ${bookingId}`);
                 }
+              }
+
+              if (booking.customer_email) {
+                const { success, error } = await sendServiceBookingConfirmationEmail({
+                  bookingNumber: booking.booking_number,
+                  customerName: booking.customer_name,
+                  customerEmail: booking.customer_email,
+                  serviceName: booking.service_name,
+                  packageName: booking.package_name,
+                  menuName: booking.menu_name,
+                  eventDate: booking.event_date,
+                  eventTime: booking.event_time,
+                  guestCount: booking.guest_count || 1,
+                  totalAmount: booking.total_amount || paidAmount,
+                  depositAmount: booking.deposit_amount,
+                  balanceAmount: booking.balance_amount,
+                  isDepositPayment: booking.is_deposit_payment,
+                });
+
+                console.log(
+                  success
+                    ? `Service booking confirmation email sent for ${booking.booking_number}`
+                    : `Service booking confirmation email failed for ${booking.booking_number}: ${error}`
+                );
               }
 
               console.log(`Service booking ${bookingId} marked as ${isFullPayment ? "paid" : "deposit paid"}`);

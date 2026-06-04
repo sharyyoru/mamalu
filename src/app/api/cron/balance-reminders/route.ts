@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { Resend } from "resend";
+import { getEmailFrom } from "@/lib/email/config";
 
 // Vercel Cron Job - runs daily at 9 AM UAE time (5 AM UTC)
 // Sends balance payment reminders for birthday bookings 48-72 hours before event
@@ -143,7 +144,7 @@ export async function GET(request: NextRequest) {
         `;
 
         await resend.emails.send({
-          from: "Mamalu Kitchen <bookings@mamalukitchen.com>",
+          from: getEmailFrom(),
           to: booking.customer_email,
           subject: `⏰ Balance Payment Reminder - ${booking.booking_number}`,
           html: emailHtml,
@@ -159,12 +160,12 @@ export async function GET(request: NextRequest) {
           .eq("id", booking.id);
 
         results.push({ bookingId: booking.id, status: "sent" });
-      } catch (emailError: any) {
+      } catch (emailError: unknown) {
         console.error(`Error sending reminder for booking ${booking.id}:`, emailError);
         results.push({ 
           bookingId: booking.id, 
           status: "failed", 
-          error: emailError.message 
+          error: emailError instanceof Error ? emailError.message : "Failed to send reminder",
         });
       }
     }
@@ -177,8 +178,10 @@ export async function GET(request: NextRequest) {
       message: `Processed ${bookings.length} bookings: ${sentCount} sent, ${failedCount} failed`,
       results,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Cron job error:", error);
-    return NextResponse.json({ error: error.message || "Cron job failed" }, { status: 500 });
+    return NextResponse.json({
+      error: error instanceof Error ? error.message : "Cron job failed",
+    }, { status: 500 });
   }
 }

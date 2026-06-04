@@ -1,4 +1,5 @@
 import { Resend } from "resend";
+import { getEmailFrom } from "@/lib/email/config";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
@@ -23,7 +24,7 @@ export async function sendVoucherConfirmationEmail(details: VoucherEmailDetails)
   }
 
   const { error } = await resend.emails.send({
-    from: process.env.EMAIL_FROM || "Mamalu Kitchen <noreply@mamalu.ae>",
+    from: getEmailFrom(),
     to: details.customerEmail,
     subject: `Your Mamalu Kitchen Gift Card – AED ${details.amount.toFixed(2)}`,
     html: generateEmailHtml(details),
@@ -44,7 +45,7 @@ export async function sendVoucherFollowUpEmail(details: VoucherFollowUpEmailDeta
   }
 
   const { error } = await resend.emails.send({
-    from: process.env.EMAIL_FROM || "Mamalu Kitchen <noreply@mamalu.ae>",
+    from: getEmailFrom(),
     to: details.customerEmail,
     subject: `Complete your Mamalu Kitchen Gift Card – AED ${details.amount.toFixed(2)}`,
     html: generateFollowUpEmailHtml(details),

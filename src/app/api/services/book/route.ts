@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { sendServiceBookingConfirmationEmail } from "@/lib/email/service-booking-confirmation";
 
 export async function POST(request: NextRequest) {
   try {
@@ -144,6 +145,26 @@ export async function POST(request: NextRequest) {
           .from("vouchers")
           .update({ is_active: false })
           .eq("id", voucher.id);
+      }
+
+      const { success, error } = await sendServiceBookingConfirmationEmail({
+        bookingNumber: booking.booking_number,
+        customerName: booking.customer_name,
+        customerEmail: booking.customer_email,
+        serviceName: booking.service_name,
+        packageName: booking.package_name,
+        menuName: booking.menu_name,
+        eventDate: booking.event_date,
+        eventTime: booking.event_time,
+        guestCount: booking.guest_count || 1,
+        totalAmount: booking.total_amount || discountedTotalAmount,
+        depositAmount: booking.deposit_amount,
+        balanceAmount: booking.balance_amount,
+        isDepositPayment: booking.is_deposit_payment,
+      });
+
+      if (!success) {
+        console.error(`Service booking confirmation email failed for ${booking.booking_number}: ${error}`);
       }
 
       return NextResponse.json({
