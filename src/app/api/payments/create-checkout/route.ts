@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
       .update(updateData)
       .eq("id", bookingId);
 
-    await updateSourceInvoiceCheckout(supabase, { classBookingId: bookingId }, session.url);
+    await updateSourceInvoiceCheckout(supabase, { classBookingId: bookingId }, session.url, session.id);
 
     return NextResponse.json({
       sessionId: session.id,

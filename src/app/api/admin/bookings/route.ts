@@ -379,9 +379,12 @@ export async function POST(request: NextRequest) {
           stripeUrl: stripePaymentLink.url,
         };
 
-        // Create invoice for the booking
+        // Create invoice for the initial payment due.
         const { data: invoiceNumData } = await supabase.rpc("generate_invoice_number");
         const invoiceNumber = invoiceNumData || `INV-${new Date().getFullYear().toString().slice(-2)}-${Date.now().toString().slice(-5)}`;
+        const initialInvoiceDescription = isDepositPayment
+          ? `${productName} - 50% Deposit`
+          : productName;
 
         const { data: invoice } = await supabase
           .from("invoices")
@@ -392,12 +395,18 @@ export async function POST(request: NextRequest) {
             customer_name: customerName,
             customer_email: customerEmail,
             customer_phone: customerPhone || null,
-            amount: totalAmount,
-            base_amount: baseAmount || totalAmount,
-            extras_amount: extrasAmount || 0,
+            amount: paymentAmount,
+            base_amount: paymentAmount,
+            extras_amount: 0,
             currency: "AED",
-            description: productName,
-            line_items: extras || null,
+            description: initialInvoiceDescription,
+            line_items: [
+              {
+                name: initialInvoiceDescription,
+                quantity: 1,
+                price: paymentAmount,
+              },
+            ],
             service_name: serviceName,
             service_type: serviceType,
             event_date: eventDate || null,

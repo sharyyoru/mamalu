@@ -39,6 +39,11 @@ type SourceInvoiceInput = {
   paidAt?: string | null;
   notes?: string | null;
   createdBy?: string | null;
+  updateBookingReference?: boolean;
+};
+
+type MarkSourceInvoicePaidOptions = {
+  excludeBalanceInvoices?: boolean;
 };
 
 async function generateInvoiceNumber(supabase: SupabaseAdminClient) {
@@ -109,6 +114,7 @@ export async function createSourceInvoice(
     guest_count: input.guestCount || null,
     status: input.status || "pending",
     payment_link: input.paymentLink || null,
+    stripe_checkout_session_id: input.stripeCheckoutSessionId || null,
     paid_at: input.paidAt || null,
     sent_at: input.paymentLink ? new Date().toISOString() : null,
     notes: input.notes || null,
@@ -117,7 +123,7 @@ export async function createSourceInvoice(
 
   const invoice = await insertInvoiceWithAvailableColumns(supabase, invoiceData);
 
-  if (input.serviceBookingId) {
+  if (input.serviceBookingId && input.updateBookingReference !== false) {
     const { error: bookingUpdateError } = await supabase
       .from("service_bookings")
       .update({ invoice_id: invoice.id, invoice_number: invoiceNumber })
@@ -135,10 +141,12 @@ export async function updateSourceInvoiceCheckout(
   supabase: SupabaseAdminClient,
   source: Pick<SourceInvoiceInput, "serviceBookingId" | "classBookingId" | "voucherPurchaseId">,
   checkoutUrl: string | null,
+  stripeCheckoutSessionId?: string | null,
 ) {
   let query = supabase.from("invoices").update({
     status: checkoutUrl ? "sent" : "pending",
     payment_link: checkoutUrl,
+    stripe_checkout_session_id: stripeCheckoutSessionId || null,
     sent_at: checkoutUrl ? new Date().toISOString() : null,
   });
 
@@ -152,19 +160,25 @@ export async function updateSourceInvoiceCheckout(
 
 export async function markSourceInvoicePaid(
   supabase: SupabaseAdminClient,
-  source: Pick<SourceInvoiceInput, "serviceBookingId" | "classBookingId" | "voucherPurchaseId" | "productOrderId">,
-  paidAt = new Date().toISOString()
+  source: Pick<SourceInvoiceInput, "serviceBookingId" | "classBookingId" | "voucherPurchaseId" | "productOrderId" | "stripeCheckoutSessionId">,
+  paidAt = new Date().toISOString(),
+  options: MarkSourceInvoicePaidOptions = {}
 ) {
   let query = supabase.from("invoices").update({
     status: "paid",
     paid_at: paidAt,
   });
 
-  if (source.serviceBookingId) query = query.eq("service_booking_id", source.serviceBookingId);
+  if (source.stripeCheckoutSessionId) query = query.eq("stripe_checkout_session_id", source.stripeCheckoutSessionId);
+  else if (source.serviceBookingId) query = query.eq("service_booking_id", source.serviceBookingId);
   else if (source.classBookingId) query = query.eq("booking_id", source.classBookingId);
   else if (source.voucherPurchaseId) query = query.eq("voucher_purchase_id", source.voucherPurchaseId);
   else if (source.productOrderId) query = query.eq("product_order_id", source.productOrderId);
   else return;
+
+  if (options.excludeBalanceInvoices) {
+    query = query.not("description", "ilike", "%balance payment%");
+  }
 
   await query;
 }

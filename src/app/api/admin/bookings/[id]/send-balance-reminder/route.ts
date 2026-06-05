@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { stripe } from "@/lib/stripe/server";
 import { sendBookingPaymentReminderEmail } from "@/lib/email/booking-payment-reminder";
+import { createSourceInvoice } from "@/lib/invoices/source-invoices";
 import { getSiteUrl } from "@/lib/url/site";
 
 export async function POST(
@@ -85,6 +86,35 @@ export async function POST(
       .from("service_bookings")
       .update({ stripe_checkout_session_id: checkoutSession.id })
       .eq("id", booking.id);
+
+    const productLabel = productName || "Service Booking";
+    await createSourceInvoice(supabase, {
+      sourceType: "service_booking",
+      serviceBookingId: booking.id,
+      customerName: booking.customer_name,
+      customerEmail: booking.customer_email,
+      customerPhone: booking.customer_phone,
+      amount: balanceAmount,
+      baseAmount: balanceAmount,
+      extrasAmount: 0,
+      description: `${productLabel} - Balance Payment`,
+      lineItems: [
+        {
+          name: `${productLabel} (Balance Payment)`,
+          quantity: 1,
+          price: balanceAmount,
+        },
+      ],
+      serviceName: booking.service_name,
+      serviceType: booking.service_type,
+      eventDate: booking.event_date,
+      guestCount: booking.guest_count,
+      status: "sent",
+      paymentLink: checkoutSession.url,
+      stripeCheckoutSessionId: checkoutSession.id,
+      notes: `Balance payment for booking ${booking.booking_number}`,
+      updateBookingReference: false,
+    });
 
     const bookingTitle = [booking.service_name, booking.package_name || booking.menu_name]
       .filter(Boolean)

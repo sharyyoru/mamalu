@@ -96,7 +96,11 @@ export async function POST(request: NextRequest) {
               if (updateError) {
                 console.error("Service booking balance update failed:", updateError);
               } else {
-                await markSourceInvoicePaid(supabase, { serviceBookingId: bookingId });
+                await markSourceInvoicePaid(
+                  supabase,
+                  { serviceBookingId: bookingId, stripeCheckoutSessionId: session.id },
+                  now
+                );
 
                 await supabase.from("payment_transactions").insert({
                   transaction_type: "payment",
@@ -151,8 +155,13 @@ export async function POST(request: NextRequest) {
             if (updateError) {
               console.error("Service booking payment update failed:", updateError);
             } else {
-              if (isFullPayment) {
-                await markSourceInvoicePaid(supabase, { serviceBookingId: bookingId }, paidAt);
+              if (isFullPayment || booking.is_deposit_payment) {
+                await markSourceInvoicePaid(
+                  supabase,
+                  { serviceBookingId: bookingId },
+                  paidAt,
+                  { excludeBalanceInvoices: booking.is_deposit_payment && !isFullPayment }
+                );
               }
 
               await supabase.from("payment_transactions").insert({

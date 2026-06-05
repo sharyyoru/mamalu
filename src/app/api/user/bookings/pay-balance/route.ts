@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe/server";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
+import { createSourceInvoice } from "@/lib/invoices/source-invoices";
 
 export async function POST(request: NextRequest) {
   try {
@@ -102,6 +103,35 @@ export async function POST(request: NextRequest) {
       .from("service_bookings")
       .update({ stripe_checkout_session_id: checkoutSession.id })
       .eq("id", booking.id);
+
+    const productLabel = productName || "Service Booking";
+    await createSourceInvoice(serviceClient, {
+      sourceType: "service_booking",
+      serviceBookingId: booking.id,
+      customerName: booking.customer_name,
+      customerEmail: booking.customer_email,
+      customerPhone: booking.customer_phone,
+      amount: balanceAmount,
+      baseAmount: balanceAmount,
+      extrasAmount: 0,
+      description: `${productLabel} - Balance Payment`,
+      lineItems: [
+        {
+          name: `${productLabel} (Balance Payment)`,
+          quantity: 1,
+          price: balanceAmount,
+        },
+      ],
+      serviceName: booking.service_name,
+      serviceType: booking.service_type,
+      eventDate: booking.event_date,
+      guestCount: booking.guest_count,
+      status: checkoutSession.url ? "sent" : "pending",
+      paymentLink: checkoutSession.url,
+      stripeCheckoutSessionId: checkoutSession.id,
+      notes: `Balance payment for booking ${booking.booking_number}`,
+      updateBookingReference: false,
+    });
 
     return NextResponse.json({ url: checkoutSession.url });
   } catch (error) {

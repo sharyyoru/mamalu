@@ -10,6 +10,7 @@ export async function GET(request: NextRequest) {
     const startDate = searchParams.get("startDate");
     const endDate = searchParams.get("endDate");
     const serviceType = searchParams.get("serviceType");
+    const serviceBookingId = searchParams.get("serviceBookingId");
     const limit = parseInt(searchParams.get("limit") || "100");
     const offset = parseInt(searchParams.get("offset") || "0");
 
@@ -22,7 +23,9 @@ export async function GET(request: NextRequest) {
       *,
       service_booking:service_booking_id(
         id, booking_number, service_name, service_type,
-        customer_name, event_date, event_time, guest_count
+        customer_name, event_date, event_time, guest_count,
+        payment_status, paid_at, is_deposit_payment, deposit_amount, total_amount,
+        deposit_paid, balance_paid
       ),
       class_booking:booking_id(
         id, booking_number, class_title, attendee_name,
@@ -64,6 +67,10 @@ export async function GET(request: NextRequest) {
         filteredQuery = filteredQuery.eq("service_type", serviceType);
       }
 
+      if (serviceBookingId) {
+        filteredQuery = filteredQuery.eq("service_booking_id", serviceBookingId);
+      }
+
       return filteredQuery.range(offset, offset + limit - 1);
     };
 
@@ -92,7 +99,290 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    const invoiceRows = (invoices || []) as Array<{ status: string; amount: number | null }>;
+    const invoiceRowsWithPossibleServiceIds = (invoices || []) as Array<{
+      id: string;
+      invoice_number?: string | null;
+      service_booking_id?: string | null;
+      service_booking?: unknown;
+    }>;
+    const missingServiceBookingRelations = invoiceRowsWithPossibleServiceIds.filter(
+      (invoice) => invoice.service_booking_id && !invoice.service_booking
+    );
+
+    if (missingServiceBookingRelations.length > 0) {
+      const serviceBookingIds = [
+        ...new Set(
+          missingServiceBookingRelations
+            .map((invoice) => invoice.service_booking_id)
+            .filter((id): id is string => Boolean(id))
+        ),
+      ];
+
+      const { data: serviceBookings, error: serviceBookingsError } = await supabase
+        .from("service_bookings")
+        .select(`
+          id, booking_number, service_name, service_type,
+          customer_name, event_date, event_time, guest_count,
+          payment_status, paid_at, is_deposit_payment, deposit_amount, total_amount,
+          deposit_paid, balance_paid
+        `)
+        .in("id", serviceBookingIds);
+
+      if (serviceBookingsError) {
+        console.warn(`Invoice service booking fallback lookup failed: ${serviceBookingsError.message}`);
+      } else {
+        const serviceBookingMap = new Map((serviceBookings || []).map((booking) => [booking.id, booking]));
+        invoices = ((invoices || []) as Array<{ service_booking_id?: string | null }>).map((invoice) => {
+          const invoiceWithServiceId = invoice;
+          if (!invoiceWithServiceId.service_booking_id) return invoice;
+
+          return {
+            ...invoice,
+            service_booking: serviceBookingMap.get(invoiceWithServiceId.service_booking_id) || null,
+          };
+        });
+      }
+    }
+
+    const invoiceRowsMissingServiceBooking = (invoices || []) as Array<{
+      id: string;
+      invoice_number?: string | null;
+      service_booking_id?: string | null;
+      service_booking?: unknown;
+    }>;
+    const missingServiceBookingLinks = invoiceRowsMissingServiceBooking.filter(
+      (invoice) => !invoice.service_booking_id && !invoice.service_booking
+    );
+
+    if (missingServiceBookingLinks.length > 0) {
+      const invoiceIds = missingServiceBookingLinks.map((invoice) => invoice.id);
+      const invoiceNumbers = missingServiceBookingLinks
+        .map((invoice) => invoice.invoice_number)
+        .filter((invoiceNumber): invoiceNumber is string => Boolean(invoiceNumber));
+
+      const serviceBookingSelect = `
+        id, booking_number, invoice_id, invoice_number, service_name, service_type,
+        customer_name, event_date, event_time, guest_count,
+        payment_status, paid_at, is_deposit_payment, deposit_amount, total_amount,
+        deposit_paid, balance_paid
+      `;
+
+      const lookupResults = await Promise.all([
+        invoiceIds.length > 0
+          ? supabase.from("service_bookings").select(serviceBookingSelect).in("invoice_id", invoiceIds)
+          : Promise.resolve({ data: [], error: null }),
+        invoiceNumbers.length > 0
+          ? supabase.from("service_bookings").select(serviceBookingSelect).in("invoice_number", invoiceNumbers)
+          : Promise.resolve({ data: [], error: null }),
+      ]);
+
+      const serviceBookings = lookupResults.flatMap(({ data, error: lookupError }) => {
+        if (lookupError) {
+          console.warn(`Invoice reverse service booking lookup failed: ${lookupError.message}`);
+          return [];
+        }
+
+        return data || [];
+      });
+
+      if (serviceBookings.length > 0) {
+        const serviceBookingByInvoiceId = new Map(
+          serviceBookings
+            .filter((booking) => booking.invoice_id)
+            .map((booking) => [booking.invoice_id as string, booking])
+        );
+        const serviceBookingByInvoiceNumber = new Map(
+          serviceBookings
+            .filter((booking) => booking.invoice_number)
+            .map((booking) => [booking.invoice_number as string, booking])
+        );
+
+        invoices = ((invoices || []) as Array<{
+          id: string;
+          invoice_number?: string | null;
+          service_booking_id?: string | null;
+          service_booking?: unknown;
+        }>).map((invoice) => {
+          if (invoice.service_booking_id || invoice.service_booking) return invoice;
+
+          const serviceBooking =
+            serviceBookingByInvoiceId.get(invoice.id) ||
+            (invoice.invoice_number ? serviceBookingByInvoiceNumber.get(invoice.invoice_number) : null);
+
+          if (!serviceBooking) return invoice;
+
+          return {
+            ...invoice,
+            service_booking_id: serviceBooking.id,
+            service_booking: serviceBooking,
+          };
+        });
+      }
+    }
+
+    const rawInvoiceRows = (invoices || []) as Array<{
+      id: string;
+      service_booking_id?: string | null;
+      status: string;
+      amount: number | null;
+      base_amount?: number | null;
+      extras_amount?: number | null;
+      description?: string | null;
+      notes?: string | null;
+      line_items?: Array<{ name?: string; quantity?: number; price?: number }> | null;
+      paid_at?: string | null;
+      service_booking?: {
+        id?: string | null;
+        service_name?: string | null;
+        payment_status?: string | null;
+        paid_at?: string | null;
+        is_deposit_payment?: boolean | null;
+        deposit_amount?: number | null;
+        total_amount?: number | null;
+        deposit_paid?: boolean | null;
+        balance_paid?: boolean | null;
+      } | null;
+    }>;
+
+    const now = new Date().toISOString();
+    const invoicesToCorrectDepositAmount = rawInvoiceRows.filter((invoice) => {
+      const booking = invoice.service_booking;
+      const depositAmount = Number(booking?.deposit_amount || 0);
+      const totalAmount = Number(booking?.total_amount || 0);
+      const invoiceAmount = Number(invoice.amount || 0);
+      const isBalanceInvoice =
+        invoice.description?.toLowerCase().includes("balance payment") ||
+        invoice.notes?.toLowerCase().includes("balance payment");
+
+      return Boolean(
+        booking?.is_deposit_payment &&
+        !isBalanceInvoice &&
+        depositAmount > 0 &&
+        totalAmount > depositAmount &&
+        Math.abs(invoiceAmount - depositAmount) > 0.009
+      );
+    });
+
+    if (invoicesToCorrectDepositAmount.length > 0) {
+      const depositAmountUpdates = invoicesToCorrectDepositAmount.map((invoice) => {
+        const depositAmount = Number(invoice.service_booking?.deposit_amount || 0);
+        const description = invoice.description?.includes("50% Deposit")
+          ? invoice.description
+          : `${invoice.description || invoice.service_booking?.service_name || "Service Booking"} - 50% Deposit`;
+
+        return supabase
+          .from("invoices")
+          .update({
+            amount: depositAmount,
+            base_amount: depositAmount,
+            extras_amount: 0,
+            description,
+            line_items: [
+              {
+                name: description,
+                quantity: 1,
+                price: depositAmount,
+              },
+            ],
+          })
+          .eq("id", invoice.id);
+      });
+
+      const updateResults = await Promise.all(depositAmountUpdates);
+      updateResults.forEach(({ error: updateError }) => {
+        if (updateError) {
+          console.warn(`Invoice deposit amount reconciliation failed: ${updateError.message}`);
+        }
+      });
+    }
+
+    const invoicesToMarkPaid = rawInvoiceRows.filter((invoice) => {
+      const booking = invoice.service_booking;
+      const isBalanceInvoice =
+        invoice.description?.toLowerCase().includes("balance payment") ||
+        invoice.notes?.toLowerCase().includes("balance payment");
+      const bookingIsPaid =
+        booking?.payment_status === "paid" ||
+        Boolean(booking?.paid_at) ||
+        Boolean(booking?.is_deposit_payment && booking?.deposit_paid && booking?.balance_paid) ||
+        Boolean(booking?.is_deposit_payment && booking?.deposit_paid && !isBalanceInvoice);
+
+      return invoice.status !== "paid" && bookingIsPaid;
+    });
+
+    if (invoicesToMarkPaid.length > 0) {
+      const paidUpdates = invoicesToMarkPaid.map((invoice) =>
+        supabase
+          .from("invoices")
+          .update({
+            status: "paid",
+            paid_at: invoice.paid_at || invoice.service_booking?.paid_at || now,
+            service_booking_id: invoice.service_booking_id || invoice.service_booking?.id || null,
+          })
+          .eq("id", invoice.id)
+      );
+      const updateResults = await Promise.all(paidUpdates);
+      updateResults.forEach(({ error: updateError }) => {
+        if (updateError) {
+          console.warn(`Invoice status reconciliation failed: ${updateError.message}`);
+        }
+      });
+    }
+
+    const invoiceRows = rawInvoiceRows.map((invoice) => {
+      const booking = invoice.service_booking;
+      const bookingIsPaid =
+        booking?.payment_status === "paid" ||
+        Boolean(booking?.paid_at) ||
+        Boolean(booking?.is_deposit_payment && booking?.deposit_paid && booking?.balance_paid) ||
+        Boolean(
+          booking?.is_deposit_payment &&
+          booking?.deposit_paid &&
+          !invoice.description?.toLowerCase().includes("balance payment") &&
+          !invoice.notes?.toLowerCase().includes("balance payment")
+        );
+      const depositAmount = Number(booking?.deposit_amount || 0);
+      const invoiceAmount = Number(invoice.amount || 0);
+      const description = invoice.description?.includes("50% Deposit")
+        ? invoice.description
+        : `${invoice.description || booking?.service_name || "Service Booking"} - 50% Deposit`;
+      const shouldCorrectDepositAmount = Boolean(
+        booking?.is_deposit_payment &&
+        !invoice.description?.toLowerCase().includes("balance payment") &&
+        !invoice.notes?.toLowerCase().includes("balance payment") &&
+        depositAmount > 0 &&
+        Math.abs(invoiceAmount - depositAmount) > 0.009
+      );
+
+      const correctedInvoice = shouldCorrectDepositAmount
+        ? {
+            ...invoice,
+            amount: depositAmount,
+            base_amount: depositAmount,
+            extras_amount: 0,
+            description,
+            line_items: [
+              {
+                name: description,
+                quantity: 1,
+                price: depositAmount,
+              },
+            ],
+          }
+        : invoice;
+
+      if (invoice.status !== "paid" && bookingIsPaid) {
+        return {
+          ...correctedInvoice,
+          status: "paid",
+          paid_at: invoice.paid_at || booking?.paid_at || now,
+        };
+      }
+
+      return correctedInvoice;
+    });
+
+    invoices = invoiceRows;
 
     // Calculate stats
     const stats = {

@@ -159,6 +159,17 @@ interface Extra {
   price: number;
 }
 
+interface BookingInvoice {
+  id: string;
+  invoice_number: string;
+  amount: number;
+  status: string;
+  created_at: string;
+  paid_at: string | null;
+  description: string | null;
+  payment_link: string | null;
+}
+
 export default function AdminBookingsPage() {
   const [bookings, setBookings] = useState<ServiceBooking[]>([]);
   const [stats, setStats] = useState<BookingStats | null>(null);
@@ -180,6 +191,8 @@ export default function AdminBookingsPage() {
   const [packageTimeSlots, setPackageTimeSlots] = useState<BookingTimeSlot[]>([]);
   const [copiedLink, setCopiedLink] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [bookingInvoices, setBookingInvoices] = useState<BookingInvoice[]>([]);
+  const [bookingInvoicesLoading, setBookingInvoicesLoading] = useState(false);
   
   // View mode: list or calendar
   const [viewMode, setViewMode] = useState<"list" | "calendar">("list");
@@ -253,6 +266,38 @@ export default function AdminBookingsPage() {
     setScheduleItems(selectedBooking?.items ? selectedBooking.items.map((item) => ({ ...item })) : []);
     setScheduleError(null);
   }, [selectedBooking]);
+
+  useEffect(() => {
+    const fetchBookingInvoices = async () => {
+      if (!selectedBooking || !showModal) {
+        setBookingInvoices([]);
+        return;
+      }
+
+      setBookingInvoicesLoading(true);
+      try {
+        const params = new URLSearchParams({
+          serviceBookingId: selectedBooking.id,
+          limit: "20",
+        });
+        const res = await fetch(`/api/invoices?${params}`);
+        if (!res.ok) {
+          setBookingInvoices([]);
+          return;
+        }
+
+        const data = await res.json();
+        setBookingInvoices(data.invoices || []);
+      } catch (error) {
+        console.error("Failed to fetch booking invoices:", error);
+        setBookingInvoices([]);
+      } finally {
+        setBookingInvoicesLoading(false);
+      }
+    };
+
+    fetchBookingInvoices();
+  }, [selectedBooking, showModal]);
 
   const setQuickDateRange = (range: string) => {
     const today = new Date();
@@ -383,6 +428,24 @@ export default function AdminBookingsPage() {
       }
     }
     return { className: "bg-stone-100 text-stone-600", label: "Unpaid" };
+  };
+
+  const getInvoiceStatusBadge = (status: string) => {
+    switch (status) {
+      case "paid":
+        return "bg-green-100 text-green-700";
+      case "sent":
+        return "bg-blue-100 text-blue-700";
+      case "pending":
+        return "bg-amber-100 text-amber-700";
+      case "draft":
+        return "bg-stone-100 text-stone-600";
+      case "cancelled":
+      case "overdue":
+        return "bg-red-100 text-red-700";
+      default:
+        return "bg-stone-100 text-stone-700";
+    }
   };
 
   const isNannyBooking = (booking: ServiceBooking) => {
@@ -1197,6 +1260,86 @@ export default function AdminBookingsPage() {
                     </div>
                   )}
                 </div>
+              </div>
+
+              {/* Invoices */}
+              <div className="border-t pt-4">
+                <div className="mb-3 flex items-center justify-between">
+                  <h3 className="font-semibold">Invoices</h3>
+                  {bookingInvoices.length > 0 && (
+                    <Link
+                      href={`/admin/invoices?booking=${selectedBooking.id}`}
+                      className="text-sm text-blue-600 hover:underline"
+                    >
+                      View all
+                    </Link>
+                  )}
+                </div>
+                {bookingInvoicesLoading ? (
+                  <div className="flex items-center gap-2 text-sm text-stone-500">
+                    <RefreshCw className="h-4 w-4 animate-spin" />
+                    Loading invoices...
+                  </div>
+                ) : bookingInvoices.length === 0 ? (
+                  <p className="text-sm text-stone-500">No invoices attached to this booking.</p>
+                ) : (
+                  <div className="rounded-lg border border-stone-200 overflow-hidden">
+                    {bookingInvoices.map((invoice) => (
+                      <div
+                        key={invoice.id}
+                        className="flex flex-col gap-3 border-b border-stone-100 p-3 last:border-b-0 sm:flex-row sm:items-center sm:justify-between"
+                      >
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="font-medium text-stone-900">{invoice.invoice_number}</p>
+                            <Badge className={getInvoiceStatusBadge(invoice.status)}>
+                              {invoice.status}
+                            </Badge>
+                          </div>
+                          <p className="text-xs text-stone-500">
+                            {invoice.description || "Booking invoice"} • Created {formatDate(invoice.created_at)}
+                          </p>
+                          {invoice.paid_at && (
+                            <p className="text-xs text-green-700">Paid {formatDate(invoice.paid_at)}</p>
+                          )}
+                        </div>
+                        <div className="flex items-center justify-between gap-3 sm:justify-end">
+                          <p className="font-medium text-stone-900">{formatPrice(invoice.amount)}</p>
+                          <div className="flex items-center gap-1">
+                            {invoice.payment_link && invoice.status !== "paid" && (
+                              <>
+                                <a
+                                  href={invoice.payment_link}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="rounded-md p-2 text-stone-500 hover:bg-stone-100 hover:text-stone-900"
+                                  title="Open payment link"
+                                >
+                                  <ExternalLink className="h-4 w-4" />
+                                </a>
+                                <button
+                                  type="button"
+                                  onClick={() => copyPaymentLink(invoice.payment_link!, invoice.id)}
+                                  className="rounded-md p-2 text-stone-500 hover:bg-stone-100 hover:text-stone-900"
+                                  title="Copy payment link"
+                                >
+                                  <Copy className="h-4 w-4" />
+                                </button>
+                              </>
+                            )}
+                            <Link
+                              href={`/admin/invoices?invoice=${invoice.invoice_number}`}
+                              className="rounded-md p-2 text-stone-500 hover:bg-stone-100 hover:text-stone-900"
+                              title="Open invoice"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Link>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Extras */}

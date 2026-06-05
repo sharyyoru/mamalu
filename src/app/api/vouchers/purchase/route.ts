@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
       paymentLink: session.url,
     });
 
-    await updateSourceInvoiceCheckout(supabase, { voucherPurchaseId: purchase.id }, session.url);
+    await updateSourceInvoiceCheckout(supabase, { voucherPurchaseId: purchase.id }, session.url, session.id);
 
     return NextResponse.json({ url: session.url });
   } catch (error: unknown) {

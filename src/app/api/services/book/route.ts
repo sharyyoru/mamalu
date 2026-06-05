@@ -223,27 +223,27 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: bookingError.message }, { status: 500 });
     }
 
+    const initialInvoiceAmount = paymentAmount;
+    const initialInvoiceDescription = isDepositPayment
+      ? `${packageName ? `${serviceName} - ${packageName}` : serviceName} - 50% Deposit`
+      : packageName ? `${serviceName} - ${packageName}` : serviceName;
+
     await createSourceInvoice(supabase, {
       sourceType: "service_booking",
       serviceBookingId: booking.id,
       customerName: booking.customer_name,
       customerEmail: booking.customer_email,
       customerPhone: booking.customer_phone,
-      amount: Number(booking.total_amount || discountedTotalAmount),
-      baseAmount: Number(booking.base_amount || baseAmount || discountedTotalAmount),
-      extrasAmount: Number(booking.extras_amount || 0),
-      description: packageName ? `${serviceName} - ${packageName}` : serviceName,
+      amount: initialInvoiceAmount,
+      baseAmount: initialInvoiceAmount,
+      extrasAmount: 0,
+      description: initialInvoiceDescription,
       lineItems: [
         {
-          name: packageName ? `${serviceName} - ${packageName}` : serviceName,
+          name: initialInvoiceDescription,
           quantity: 1,
-          price: Number(booking.base_amount || baseAmount || discountedTotalAmount),
+          price: initialInvoiceAmount,
         },
-        ...((extras || []) as Array<{ name?: string; title?: string; price?: number; quantity?: number }>).map((extra) => ({
-          name: extra.name || extra.title || "Extra",
-          quantity: extra.quantity || 1,
-          price: Number(extra.price || 0),
-        })),
       ],
       serviceName,
       serviceType,
@@ -366,7 +366,12 @@ export async function POST(request: NextRequest) {
       .update({ stripe_checkout_session_id: checkoutSession.id })
       .eq("id", booking.id);
 
-    await updateSourceInvoiceCheckout(supabase, { serviceBookingId: booking.id }, checkoutSession.url);
+    await updateSourceInvoiceCheckout(
+      supabase,
+      { serviceBookingId: booking.id },
+      checkoutSession.url,
+      checkoutSession.id
+    );
 
     return NextResponse.json({
       success: true,
