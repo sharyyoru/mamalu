@@ -405,6 +405,11 @@ export default function MiniChefPage() {
     return parsedLimit > 0 ? parsedLimit : Math.max(1, packageMenuItems[pkg.id]?.length || 1);
   };
 
+  const isPackageSelectionComplete = (pkg: MenuItem | null, selectedItems: MenuItem[]) => {
+    if (!pkg) return false;
+    return selectedItems.length === getPackageClassLimit(pkg);
+  };
+
   const togglePendingPackageMenuItem = (item: MenuItem) => {
     const limit = getPackageClassLimit(pendingPackage);
 
@@ -507,6 +512,7 @@ export default function MiniChefPage() {
   // Calculate totals
   const getMenuPrice = (menu = selectedMenu) => {
     if (!menu) return 0;
+    if (isPackage) return menu.price;
     if (isMommyAndMe) {
       return menu.price + Math.max(0, guestCount - 1) * MOMMY_ME_ADDITIONAL_CHILD_PRICE;
     }
@@ -582,6 +588,7 @@ export default function MiniChefPage() {
   // Handle form submission
   const handleSubmit = async (acceptedWaiver = false) => {
     if (!selectedMenu) return;
+    if (isPackage && !isPackageSelectionComplete(selectedMenu, selectedPackageMenuItems)) return;
     
     // Show waiver modal if not accepted
     if (!waiverAccepted && !acceptedWaiver) {
@@ -703,7 +710,11 @@ export default function MiniChefPage() {
 
   // Can proceed to next step
   const canProceed = () => {
-    if (step === 1) return selectedMenu !== null;
+    if (step === 1) {
+      if (!selectedMenu) return false;
+      if (isPackage) return isPackageSelectionComplete(selectedMenu, selectedPackageMenuItems);
+      return true;
+    }
     if (hasExtras && step === 2) return true; // Extras are optional
     const detailsStep = hasExtras ? 3 : 2;
     if (step === detailsStep) {
@@ -826,8 +837,13 @@ export default function MiniChefPage() {
               <Button variant="outline" onClick={() => setShowPackageModal(false)} className="flex-1">
                 Cancel
               </Button>
+              {(() => {
+                const requiredClasses = getPackageClassLimit(pendingPackage);
+                const packageComplete = isPackageSelectionComplete(pendingPackage, pendingPackageMenuItems);
+
+                return (
               <Button
-                disabled={pendingPackageMenuItems.length === 0}
+                disabled={!packageComplete}
                 onClick={() => {
                   setSelectedMenu(pendingPackage);
                   setSelectedPackageMenuItems(pendingPackageMenuItems);
@@ -835,9 +851,11 @@ export default function MiniChefPage() {
                 }}
                 className={`flex-1 ${PRIMARY_BUTTON_CLASS}`}
               >
-                Confirm {pendingPackageMenuItems.length} Class{pendingPackageMenuItems.length === 1 ? "" : "es"}
+                Confirm {pendingPackageMenuItems.length} of {requiredClasses} Classes
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
+                );
+              })()}
             </div>
           </div>
         </div>
