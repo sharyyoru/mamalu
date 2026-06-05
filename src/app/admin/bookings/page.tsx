@@ -309,6 +309,38 @@ export default function AdminBookingsPage() {
     }
   };
 
+  const canSendBalanceReminder = (booking: ServiceBooking) => {
+    return (
+      booking.is_deposit_payment &&
+      booking.deposit_paid &&
+      !booking.balance_paid &&
+      Number(booking.balance_amount || 0) > 0 &&
+      Boolean(booking.customer_email)
+    );
+  };
+
+  const sendBalanceReminder = async (booking: ServiceBooking) => {
+    setActionLoading(`balance-reminder-${booking.id}`);
+    try {
+      const res = await fetch(`/api/admin/bookings/${booking.id}/send-balance-reminder`, {
+        method: "POST",
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.error || "Failed to send balance reminder");
+        return;
+      }
+
+      alert(`Balance reminder sent to ${booking.customer_email}`);
+    } catch (error) {
+      console.error("Failed to send balance reminder:", error);
+      alert("Failed to send balance reminder");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const copyPaymentLink = (url: string, id: string) => {
     navigator.clipboard.writeText(url);
     setCopiedLink(id);
@@ -871,6 +903,21 @@ export default function AdminBookingsPage() {
                                   <CheckCircle className="h-4 w-4 text-green-500" />
                                 ) : (
                                   <Copy className="h-4 w-4" />
+                                )}
+                              </Button>
+                            )}
+                            {canSendBalanceReminder(booking) && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => sendBalanceReminder(booking)}
+                                disabled={actionLoading === `balance-reminder-${booking.id}`}
+                                title="Email Balance Payment Link"
+                              >
+                                {actionLoading === `balance-reminder-${booking.id}` ? (
+                                  <RefreshCw className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  <Send className="h-4 w-4" />
                                 )}
                               </Button>
                             )}

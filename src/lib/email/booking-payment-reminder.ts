@@ -12,6 +12,7 @@ interface PaymentReminderDetails {
   totalAmount: number;
   paymentUrl: string;
   amountLabel?: string;
+  introText?: string;
 }
 
 export async function sendBookingPaymentReminderEmail(
@@ -39,6 +40,13 @@ export async function sendBookingPaymentReminderEmail(
 
 function generatePaymentReminderHtml(booking: PaymentReminderDetails) {
   const baseUrl = getPublicSiteUrl();
+  const isBalanceReminder = booking.amountLabel === "Remaining Balance";
+  const heading = isBalanceReminder ? "Your remaining balance is due" : "Your booking is still waiting";
+  const introText =
+    booking.introText ||
+    (isBalanceReminder
+      ? "thank you for your deposit payment. The remaining balance for your booking is now due. You can complete the payment using the secure button below."
+      : "your payment was cancelled, but your booking is still pending. You can complete the payment using the button below.");
 
   return `
 <!DOCTYPE html>
@@ -57,8 +65,8 @@ function generatePaymentReminderHtml(booking: PaymentReminderDetails) {
     </tr>
     <tr>
       <td style="padding:42px 30px 18px;text-align:center;">
-        <h1 style="color:#1c1917;margin:0 0 12px;font-size:24px;font-weight:600;">Your booking is still waiting</h1>
-        <p style="color:#6b5f59;margin:0;font-size:15px;line-height:1.6;">Hi ${booking.attendeeName}, your payment was cancelled, but your booking is still pending. You can complete the payment using the button below.</p>
+        <h1 style="color:#1c1917;margin:0 0 12px;font-size:24px;font-weight:600;">${heading}</h1>
+        <p style="color:#6b5f59;margin:0;font-size:15px;line-height:1.6;">Hi ${booking.attendeeName}, ${introText}</p>
       </td>
     </tr>
     <tr>
