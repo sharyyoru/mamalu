@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { sendPackageScheduleAssignmentEmail } from "@/lib/email/package-schedule-assignment";
 
 const BOOKING_TABLES = ["service_bookings", "class_bookings"] as const;
 type BookingTable = (typeof BOOKING_TABLES)[number];
@@ -22,6 +23,16 @@ type ServiceBookingForConflict = {
   status?: string | null;
   event_date?: string | null;
   event_time?: string | null;
+  items?: ScheduleItem[] | null;
+};
+
+type ServiceBookingForScheduleUpdate = {
+  id: string;
+  booking_number: string;
+  customer_name: string;
+  customer_email: string;
+  service_name: string;
+  package_name?: string | null;
   items?: ScheduleItem[] | null;
 };
 
@@ -61,6 +72,26 @@ function sameIdentity(original: ScheduleItem, next: ScheduleItem) {
   );
 }
 
+function hasCompleteSchedule(item: ScheduleItem) {
+  return Boolean(item.event_date && item.event_time);
+}
+
+function sameSchedule(original: ScheduleItem, next: ScheduleItem) {
+  return (
+    (original.event_date || null) === (next.event_date || null) &&
+    (original.event_time || null) === (next.event_time || null) &&
+    (original.time_label || original.event_time || null) === (next.time_label || next.event_time || null)
+  );
+}
+
+function isScheduleChanged(original: ScheduleItem, next: ScheduleItem) {
+  return (
+    (original.event_date || null) !== (next.event_date || null) ||
+    (original.event_time || null) !== (next.event_time || null) ||
+    (original.time_label || original.event_time || null) !== (next.time_label || next.event_time || null)
+  );
+}
+
 function validateScheduleItems(originalItems: ScheduleItem[] | null | undefined, nextItems: unknown) {
   if (!Array.isArray(originalItems) || originalItems.length === 0) {
     return { error: "This booking does not have package menus to schedule" };
@@ -72,6 +103,7 @@ function validateScheduleItems(originalItems: ScheduleItem[] | null | undefined,
 
   const seen = new Set<string>();
   const sanitized: ScheduleItem[] = [];
+  const newlyScheduledItems: ScheduleItem[] = [];
 
   for (let index = 0; index < originalItems.length; index++) {
     const original = originalItems[index] || {};
@@ -81,29 +113,43 @@ function validateScheduleItems(originalItems: ScheduleItem[] | null | undefined,
       return { error: "Schedule items cannot change package menu details" };
     }
 
-    if (!incoming.event_date || !incoming.event_time) {
-      return { error: "Every package menu needs a date and time before saving" };
+    if (hasCompleteSchedule(original) && !sameSchedule(original, incoming)) {
+      return { error: "Package menu schedules cannot be changed after they are confirmed" };
+    }
+
+    const scheduleChanged = isScheduleChanged(original, incoming);
+
+    if (scheduleChanged && !incoming.event_date) {
+      return { error: "The package menu you are scheduling needs a date" };
+    }
+
+    if (scheduleChanged && !incoming.event_time) {
+      return { error: "The package menu you are scheduling needs a time" };
     }
 
     const key = normalizeScheduleKey(incoming.event_date, incoming.event_time);
-    if (!key) {
-      return { error: "Every package menu needs a valid date and time" };
+    if (key) {
+      if (seen.has(key)) {
+        return { error: "Two package menus in this booking cannot use the same date and time" };
+      }
+      seen.add(key);
     }
 
-    if (seen.has(key)) {
-      return { error: "Two package menus in this booking cannot use the same date and time" };
-    }
-    seen.add(key);
-
-    sanitized.push({
+    const sanitizedItem = {
       ...original,
-      event_date: incoming.event_date,
-      event_time: incoming.event_time,
-      time_label: incoming.time_label || incoming.event_time,
-    });
+      event_date: incoming.event_date || null,
+      event_time: incoming.event_time || null,
+      time_label: incoming.event_time ? incoming.time_label || incoming.event_time : null,
+    };
+
+    sanitized.push(sanitizedItem);
+
+    if (!hasCompleteSchedule(original) && hasCompleteSchedule(sanitizedItem)) {
+      newlyScheduledItems.push(sanitizedItem);
+    }
   }
 
-  return { items: sanitized };
+  return { items: sanitized, newlyScheduledItems };
 }
 
 async function findScheduleConflicts(
@@ -218,6 +264,7 @@ export async function PATCH(
     }
 
     const updateData: Record<string, unknown> = {};
+    let newlyScheduledItems: ScheduleItem[] = [];
 
     if (status) {
       updateData.status = status;
@@ -259,7 +306,7 @@ export async function PATCH(
 
       const { data: currentBooking, error: currentError } = await supabase
         .from("service_bookings")
-        .select("id, items")
+        .select("id, booking_number, customer_name, customer_email, service_name, package_name, items")
         .eq("id", id)
         .maybeSingle();
 
@@ -267,7 +314,8 @@ export async function PATCH(
         return NextResponse.json({ error: "Booking not found" }, { status: 404 });
       }
 
-      const validation = validateScheduleItems(currentBooking.items as ScheduleItem[] | null, items);
+      const currentScheduleBooking = currentBooking as ServiceBookingForScheduleUpdate;
+      const validation = validateScheduleItems(currentScheduleBooking.items as ScheduleItem[] | null, items);
       if (validation.error || !validation.items) {
         return NextResponse.json({ error: validation.error }, { status: 400 });
       }
@@ -285,6 +333,7 @@ export async function PATCH(
       }
 
       updateData.items = validation.items;
+      newlyScheduledItems = validation.newlyScheduledItems || [];
     }
 
     const { data: bookings, error } = await supabase
@@ -306,6 +355,28 @@ export async function PATCH(
     }
 
     const booking = bookings[0];
+
+    if (items !== undefined && table === "service_bookings" && newlyScheduledItems.length > 0) {
+      const emailResult = await sendPackageScheduleAssignmentEmail({
+        bookingNumber: booking.booking_number,
+        customerName: booking.customer_name,
+        customerEmail: booking.customer_email,
+        serviceName: booking.service_name,
+        packageName: booking.package_name,
+        items: newlyScheduledItems.map((item) => ({
+          name: item.name || null,
+          session: item.session || null,
+          packageName: item.packageName || null,
+          event_date: item.event_date!,
+          event_time: item.event_time!,
+          time_label: item.time_label || item.event_time,
+        })),
+      });
+
+      if (!emailResult.success) {
+        console.error("Package schedule assignment email failed:", emailResult.error);
+      }
+    }
 
     return NextResponse.json({ booking });
   } catch (error) {

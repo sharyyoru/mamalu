@@ -30,6 +30,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Ticket,
+  Lock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -420,6 +421,8 @@ export default function AdminBookingsPage() {
   };
 
   const updateScheduleItem = (index: number, field: "event_date" | "event_time", value: string) => {
+    if (isScheduleItemLocked(index)) return;
+
     setScheduleItems((prev) => prev.map((item, idx) => {
       if (idx !== index) return item;
       const next = { ...item, [field]: value || null };
@@ -431,8 +434,25 @@ export default function AdminBookingsPage() {
     setScheduleError(null);
   };
 
+  const isScheduleItemLocked = (index: number) => {
+    const original = selectedBooking?.items?.[index];
+    return Boolean(original?.event_date && original?.event_time);
+  };
+
+  const hasScheduleChanged = (original: BookingScheduleItem | undefined, next: BookingScheduleItem) => (
+    (original?.event_date || null) !== (next.event_date || null) ||
+    (original?.event_time || null) !== (next.event_time || null) ||
+    (original?.time_label || original?.event_time || null) !== (next.time_label || next.event_time || null)
+  );
+
+  const hasEditableScheduleChanges = scheduleItems.some((item, index) => {
+    if (isScheduleItemLocked(index)) return false;
+    return hasScheduleChanged(selectedBooking?.items?.[index], item) && item.event_date && item.event_time;
+  });
+
   const savePackageSchedule = async () => {
     if (!selectedBooking) return;
+    if (!hasEditableScheduleChanges) return;
 
     setScheduleSaving(true);
     setScheduleError(null);
@@ -1052,39 +1072,53 @@ export default function AdminBookingsPage() {
                         <div className="space-y-3">
                           <p className="text-sm text-stone-500">{selectedBooking.guest_count} guest(s)</p>
                           <div className="rounded-lg border border-stone-200 overflow-hidden">
-                            {scheduleItems.map((item, idx) => (
-                              <div
-                                key={`${item.id || item.name || "menu"}-${idx}`}
-                                className="grid gap-3 border-b border-stone-100 p-3 last:border-b-0 sm:grid-cols-[1fr_150px_190px]"
-                              >
-                                <div>
-                                  <p className="text-sm font-medium text-stone-900">
-                                    {item.session ? `Menu ${item.session}: ` : ""}{item.name || "Package Menu"}
-                                  </p>
-                                  {item.packageName && (
-                                    <p className="text-xs text-stone-500">{item.packageName}</p>
-                                  )}
-                                </div>
-                                <input
-                                  type="date"
-                                  value={item.event_date || ""}
-                                  onChange={(e) => updateScheduleItem(idx, "event_date", e.target.value)}
-                                  className="h-10 rounded-lg border border-stone-200 px-3 text-sm"
-                                />
-                                <select
-                                  value={item.event_time || ""}
-                                  onChange={(e) => updateScheduleItem(idx, "event_time", e.target.value)}
-                                  className="h-10 rounded-lg border border-stone-200 px-3 text-sm"
+                            {scheduleItems.map((item, idx) => {
+                              const locked = isScheduleItemLocked(idx);
+
+                              return (
+                                <div
+                                  key={`${item.id || item.name || "menu"}-${idx}`}
+                                  className={`grid gap-3 border-b border-stone-100 p-3 last:border-b-0 sm:grid-cols-[1fr_150px_190px] ${locked ? "bg-stone-50" : ""}`}
                                 >
-                                  <option value="">Select time</option>
-                                  {slotOptions.map((slot) => (
-                                    <option key={slot.start} value={slot.start}>
-                                      {slot.label}
-                                    </option>
-                                  ))}
-                                </select>
-                              </div>
-                            ))}
+                                  <div>
+                                    <div className="flex flex-wrap items-center gap-2">
+                                      <p className="text-sm font-medium text-stone-900">
+                                        {item.session ? `Menu ${item.session}: ` : ""}{item.name || "Package Menu"}
+                                      </p>
+                                      {locked && (
+                                        <span className="inline-flex items-center gap-1 rounded-md bg-stone-200 px-2 py-0.5 text-xs font-medium text-stone-600">
+                                          <Lock className="h-3 w-3" />
+                                          Confirmed
+                                        </span>
+                                      )}
+                                    </div>
+                                    {item.packageName && (
+                                      <p className="text-xs text-stone-500">{item.packageName}</p>
+                                    )}
+                                  </div>
+                                  <input
+                                    type="date"
+                                    value={item.event_date || ""}
+                                    onChange={(e) => updateScheduleItem(idx, "event_date", e.target.value)}
+                                    disabled={locked}
+                                    className={`h-10 rounded-lg border border-stone-200 px-3 text-sm ${locked ? "bg-stone-100 text-stone-500" : ""}`}
+                                  />
+                                  <select
+                                    value={item.event_time || ""}
+                                    onChange={(e) => updateScheduleItem(idx, "event_time", e.target.value)}
+                                    disabled={locked}
+                                    className={`h-10 rounded-lg border border-stone-200 px-3 text-sm ${locked ? "bg-stone-100 text-stone-500" : ""}`}
+                                  >
+                                    <option value="">Select time</option>
+                                    {slotOptions.map((slot) => (
+                                      <option key={slot.start} value={slot.start}>
+                                        {slot.label}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+                              );
+                            })}
                           </div>
                           {scheduleError && (
                             <p className="text-sm text-red-600">{scheduleError}</p>
@@ -1094,7 +1128,7 @@ export default function AdminBookingsPage() {
                               type="button"
                               size="sm"
                               onClick={savePackageSchedule}
-                              disabled={scheduleSaving}
+                              disabled={scheduleSaving || !hasEditableScheduleChanges}
                             >
                               {scheduleSaving ? "Saving..." : "Save Schedule"}
                             </Button>
