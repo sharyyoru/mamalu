@@ -38,15 +38,6 @@ import { Badge } from "@/components/ui/badge";
 import { formatPrice, formatDate } from "@/lib/utils";
 import { DEFAULT_BOOKING_TIME_SLOTS } from "@/lib/booking-time-slots";
 
-// Mamalu Schedule Time Slots
-const MAMALU_TIME_SLOTS = [
-  { start: "11:00", end: "12:30", label: "11:00 AM - 12:30 PM", days: [0, 1, 2, 3, 4, 5, 6] },
-  { start: "13:30", end: "15:00", label: "1:30 PM - 3:00 PM", days: [0, 1, 2, 3, 4, 5, 6] },
-  { start: "16:00", end: "17:30", label: "4:00 PM - 5:30 PM", days: [0, 1, 2, 3, 4, 5, 6] },
-  { start: "18:30", end: "20:00", label: "6:30 PM - 8:00 PM", days: [0, 1, 2, 3, 4, 5, 6] },
-  { start: "21:00", end: "22:30", label: "9:00 PM - 10:30 PM", days: [4, 5] },
-];
-
 const CALENDAR_HOURS = Array.from({ length: 13 }, (_, index) => {
   const hour = 9 + index;
   const start = `${String(hour).padStart(2, "0")}:00`;
@@ -60,6 +51,14 @@ const CALENDAR_HOURS = Array.from({ length: 13 }, (_, index) => {
     days: [0, 1, 2, 3, 4, 5, 6],
   };
 });
+
+const formatLocalDateKey = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+};
 
 interface ServiceBooking {
   id: string;
@@ -151,6 +150,23 @@ interface BookingStats {
   totalRevenue: number;
   collectedRevenue: number;
 }
+
+const normalizeBookingTime = (value?: string | null) => {
+  if (!value) return "";
+  const match = value.match(/(\d{1,2}):(\d{2})/);
+  if (!match) return value;
+
+  return `${match[1].padStart(2, "0")}:${match[2]}`;
+};
+
+const formatBookingTimeRange = (eventTime?: string | null, timeLabel?: string | null) => {
+  if (timeLabel) return timeLabel;
+
+  const normalizedTime = normalizeBookingTime(eventTime);
+  const slot = DEFAULT_BOOKING_TIME_SLOTS.find((item) => item.start === normalizedTime);
+
+  return slot?.label || eventTime || "Time pending";
+};
 
 interface Creator {
   id: string;
@@ -1134,7 +1150,7 @@ export default function AdminBookingsPage() {
                                   )}
                                 </div>
                                 <p className="text-sm text-stone-700">
-                                  {item.time_label || item.event_time || "Time pending"}
+                                  {formatBookingTimeRange(item.event_time, item.time_label)}
                                 </p>
                               </div>
                             ))}
@@ -1219,7 +1235,7 @@ export default function AdminBookingsPage() {
                       <p className="text-sm text-stone-500">
                         {selectedBooking.guest_count} guest(s)
                         {selectedBooking.event_date && ` • ${formatDate(selectedBooking.event_date)}`}
-                        {selectedBooking.event_time && ` at ${selectedBooking.event_time}`}
+                        {selectedBooking.event_time && ` at ${formatBookingTimeRange(selectedBooking.event_time, selectedBooking.time_label)}`}
                       </p>
                     );
                   })()}
@@ -2017,10 +2033,7 @@ function CalendarGrid({ bookings, date, view, timeSlots, onSelectBooking }: Cale
   };
 
   const normalizeTime = (value?: string | null) => {
-    if (!value) return "";
-    const match = value.match(/(\d{1,2}):(\d{2})/);
-    if (!match) return "";
-    return `${match[1].padStart(2, "0")}:${match[2]}`;
+    return normalizeBookingTime(value);
   };
 
   const getEndTimeFromLabel = (label?: string | null) => {
@@ -2036,12 +2049,12 @@ function CalendarGrid({ bookings, date, view, timeSlots, onSelectBooking }: Cale
 
   const getEventRange = (startValue?: string | null, label?: string | null) => {
     const start = normalizeTime(startValue);
+    const bookingSlot = DEFAULT_BOOKING_TIME_SLOTS.find((s) => s.start === start);
     const slot = timeSlots.find((s) => s.start === start);
-    const end = getEndTimeFromLabel(label) || slot?.end || null;
     return {
       start,
-      end,
-      label: label || slot?.label || start,
+      end: getEndTimeFromLabel(label) || bookingSlot?.end || slot?.end || null,
+      label: label || bookingSlot?.label || slot?.label || start,
     };
   };
 
@@ -2107,20 +2120,36 @@ function CalendarGrid({ bookings, date, view, timeSlots, onSelectBooking }: Cale
   };
 
   const getBookingsForDate = (d: Date) => {
-    const dateStr = d.toISOString().split("T")[0];
+    const dateStr = formatLocalDateKey(d);
     return calendarEvents.filter((event) => event.date === dateStr);
   };
 
-  const getBookingsForSlot = (d: Date, slot: typeof timeSlots[0]) => {
-    const dateStr = d.toISOString().split("T")[0];
-    const slotStartHour = Number(slot.start.split(":")[0]);
-    const nextSlotStartHour = Number(slot.end.split(":")[0]);
+  const getEventsForDate = (d: Date) => {
+    const dateStr = formatLocalDateKey(d);
+    return calendarEvents.filter((event) => event.date === dateStr && event.start);
+  };
 
-    return calendarEvents.filter((event) => {
-      if (event.date !== dateStr) return false;
-      const eventStartHour = Number(event.start.split(":")[0]);
-      return eventStartHour >= slotStartHour && eventStartHour < nextSlotStartHour;
-    });
+  const timeToMinutes = (time: string) => {
+    const [hours, minutes] = time.split(":").map(Number);
+    return (hours || 0) * 60 + (minutes || 0);
+  };
+
+  const calendarStartMinutes = timeToMinutes(timeSlots[0]?.start || "09:00");
+  const calendarEndMinutes = timeToMinutes(timeSlots[timeSlots.length - 1]?.end || "22:00");
+  const rowHeight = 72;
+  const pixelsPerMinute = rowHeight / 60;
+  const calendarBodyHeight = ((calendarEndMinutes - calendarStartMinutes) / 60) * rowHeight;
+
+  const getTimedEventStyle = (event: CalendarEvent) => {
+    const startMinutes = timeToMinutes(event.start);
+    const endMinutes = event.end ? timeToMinutes(event.end) : startMinutes + 60;
+    const clampedStart = Math.max(startMinutes, calendarStartMinutes);
+    const clampedEnd = Math.min(Math.max(endMinutes, clampedStart + 30), calendarEndMinutes);
+
+    return {
+      top: `${(clampedStart - calendarStartMinutes) * pixelsPerMinute + 4}px`,
+      height: `${Math.max((clampedEnd - clampedStart) * pixelsPerMinute - 8, 32)}px`,
+    };
   };
 
   const isToday = (d: Date) => d.toDateString() === new Date().toDateString();
@@ -2138,37 +2167,23 @@ function CalendarGrid({ bookings, date, view, timeSlots, onSelectBooking }: Cale
 
   // Day View
   if (view === "day") {
+    const dayEvents = getEventsForDate(date);
     return (
       <div className="border rounded-lg overflow-hidden">
         <div className={`p-3 text-center font-medium ${isToday(date) ? "bg-amber-50" : "bg-stone-50"}`}>
           {date.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
         </div>
-        <div className="divide-y">
+        <div className="relative" style={{ height: calendarBodyHeight }}>
           {timeSlots.map((slot) => {
-            const slotBookings = getBookingsForSlot(date, slot);
             const isAvailable = slot.days.includes(date.getDay());
             return (
-              <div key={slot.start} className={`flex ${!isAvailable ? "bg-stone-100" : ""}`}>
+              <div key={slot.start} className={`flex border-b ${!isAvailable ? "bg-stone-100" : ""}`} style={{ height: rowHeight }}>
                 <div className="w-28 p-3 text-sm text-stone-500 border-r bg-stone-50 flex-shrink-0">
                   {slot.label.split(" - ")[0]}
                 </div>
-                <div className="flex-1 p-2 min-h-[80px]">
+                <div className="flex-1 p-2">
                   {!isAvailable ? (
                     <span className="text-xs text-stone-400">Not available</span>
-                  ) : slotBookings.length > 0 ? (
-                    <div className="space-y-1">
-                      {slotBookings.map((event) => (
-                        <div
-                          key={event.id}
-                          onClick={() => onSelectBooking(event.booking)}
-                          className={`p-2 rounded border cursor-pointer hover:shadow-md transition-shadow ${getServiceColor(event.booking.service_type)}`}
-                        >
-                          <div className="font-medium text-sm">{event.booking.customer_name}</div>
-                          <div className="text-xs">{event.label}</div>
-                          <div className="text-xs">{event.title} - {event.booking.guest_count} guests</div>
-                        </div>
-                      ))}
-                    </div>
                   ) : (
                     <span className="text-xs text-green-600">Available</span>
                   )}
@@ -2176,6 +2191,20 @@ function CalendarGrid({ bookings, date, view, timeSlots, onSelectBooking }: Cale
               </div>
             );
           })}
+          <div className="absolute left-28 right-2 top-0 bottom-0 pointer-events-none">
+            {dayEvents.map((event) => (
+              <div
+                key={event.id}
+                onClick={() => onSelectBooking(event.booking)}
+                className={`absolute left-2 right-0 z-10 p-2 rounded border cursor-pointer hover:shadow-md transition-shadow pointer-events-auto overflow-hidden ${getServiceColor(event.booking.service_type)}`}
+                style={getTimedEventStyle(event)}
+              >
+                <div className="font-medium text-sm truncate">{event.booking.customer_name}</div>
+                <div className="text-xs truncate">{event.label}</div>
+                <div className="text-xs truncate">{event.title} - {event.booking.guest_count} guests</div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -2189,39 +2218,47 @@ function CalendarGrid({ bookings, date, view, timeSlots, onSelectBooking }: Cale
         <div className="grid grid-cols-8 bg-stone-50 border-b">
           <div className="p-2 border-r text-xs text-stone-500">Time</div>
           {weekDates.map((d) => (
-            <div key={d.toISOString()} className={`p-2 text-center text-sm ${isToday(d) ? "bg-amber-50 font-bold" : ""}`}>
+            <div key={formatLocalDateKey(d)} className={`p-2 text-center text-sm ${isToday(d) ? "bg-amber-50 font-bold" : ""}`}>
               <div>{d.toLocaleDateString("en-US", { weekday: "short" })}</div>
               <div className={`text-lg ${isToday(d) ? "text-amber-600" : ""}`}>{d.getDate()}</div>
             </div>
           ))}
         </div>
         <div className="max-h-[500px] overflow-y-auto">
-          {timeSlots.map((slot) => (
-            <div key={slot.start} className="grid grid-cols-8 border-b">
-              <div className="p-2 text-xs text-stone-500 border-r bg-stone-50">
-                {slot.label.split(" - ")[0]}
-              </div>
-              {weekDates.map((d) => {
-                const slotBookings = getBookingsForSlot(d, slot);
-                const isAvailable = slot.days.includes(d.getDay());
-                return (
-                  <div key={d.toISOString()} className={`p-1 min-h-[60px] border-r ${!isAvailable ? "bg-stone-100" : ""}`}>
-                    {slotBookings.map((event) => (
-                      <div
-                        key={event.id}
-                        onClick={() => onSelectBooking(event.booking)}
-                        className={`p-1 rounded text-xs cursor-pointer hover:shadow-md mb-1 ${getServiceColor(event.booking.service_type)}`}
-                      >
-                        <div className="font-medium truncate">{event.booking.customer_name}</div>
-                        <div className="truncate">{event.label}</div>
-                        <div className="truncate">{event.booking.guest_count}g</div>
-                      </div>
-                    ))}
-                  </div>
-                );
-              })}
+          <div className="flex relative" style={{ height: calendarBodyHeight }}>
+            <div className="w-[12.5%] flex-shrink-0">
+              {timeSlots.map((slot) => (
+                <div key={slot.start} className="p-2 text-xs text-stone-500 border-r border-b bg-stone-50" style={{ height: rowHeight }}>
+                  {slot.label.split(" - ")[0]}
+                </div>
+              ))}
             </div>
-          ))}
+            {weekDates.map((d) => {
+              const dayEvents = getEventsForDate(d);
+              return (
+                <div key={formatLocalDateKey(d)} className="relative flex-1 border-r">
+                  {timeSlots.map((slot) => {
+                    const isAvailable = slot.days.includes(d.getDay());
+                    return (
+                      <div key={slot.start} className={`border-b ${!isAvailable ? "bg-stone-100" : ""}`} style={{ height: rowHeight }} />
+                    );
+                  })}
+                  {dayEvents.map((event) => (
+                    <div
+                      key={event.id}
+                      onClick={() => onSelectBooking(event.booking)}
+                      className={`absolute left-1 right-1 z-10 p-1 rounded text-xs cursor-pointer hover:shadow-md overflow-hidden ${getServiceColor(event.booking.service_type)}`}
+                      style={getTimedEventStyle(event)}
+                    >
+                      <div className="font-medium truncate">{event.booking.customer_name}</div>
+                      <div className="truncate">{event.label}</div>
+                      <div className="truncate">{event.booking.guest_count}g</div>
+                    </div>
+                  ))}
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
     );
