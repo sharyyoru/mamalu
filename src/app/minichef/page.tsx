@@ -922,10 +922,10 @@ export default function MiniChefPage() {
                 {/* Mommy & Me Description */}
                 {activeCategory === "mommy_me" && (
                   <div className="p-4 bg-[#FF8C6B]/10 rounded-lg border border-[#FF8C6B]/25">
-                    <p className="text-[#FF8C6B] font-bold">
+                    <p className="font-bold text-stone-900">
                       Mom and kid have their own station where they share laughter, learning, and delicious moments together!
                     </p>
-                    <p className="text-sm text-[#FF8C6B] mt-2">
+                    <p className="text-sm text-stone-700 mt-2">
                       Each menu includes 1 child. Add AED {MOMMY_ME_ADDITIONAL_CHILD_PRICE} for every additional child.
                     </p>
                   </div>
@@ -960,7 +960,7 @@ export default function MiniChefPage() {
                       </span>
                     </div>
                     {isMommyAndMe && selectedMenu && (
-                      <div className="mb-4 rounded-lg border border-[#FF8C6B]/25 bg-[#FF8C6B]/10 px-4 py-3 text-sm text-[#FF8C6B]">
+                      <div className="mb-4 rounded-lg border border-[#FF8C6B]/25 bg-[#FF8C6B]/10 px-4 py-3 text-sm text-stone-900">
                         <span className="font-bold">{selectedMenu.name} total:</span> AED {getMenuPrice().toLocaleString()}
                       </div>
                     )}
@@ -1213,13 +1213,24 @@ export default function MiniChefPage() {
                       if (!cap) return null;
                       return (
                         <div className="px-4 py-3 rounded-xl bg-[#FF8C6B]/10 border border-[#FF8C6B]/25">
-                          <p className="text-sm font-bold text-[#FF8C6B]">
+                          <p className="text-sm font-bold text-stone-900">
                             {cap.available === 1 ? "Only 1 spot remaining!" : `${cap.available} spots remaining for this class`}
                           </p>
-                          <p className="text-xs text-[#FF8C6B]/70 mt-0.5">{cap.booked} of {cap.allowed} spots already booked</p>
+                          <p className="text-xs text-stone-600 mt-0.5">{cap.booked} of {cap.allowed} spots already booked</p>
                         </div>
                       );
                     })()}
+                    {isPackage && (
+                      <div className="px-4 py-3 rounded-xl bg-[#FF8C6B]/10 border border-[#FF8C6B]/25">
+                        <p className="flex items-center gap-2 text-sm font-bold text-stone-900">
+                          <AlertTriangle className="h-4 w-4 shrink-0 text-[#FF8C6B]" />
+                          Only your first class will be scheduled here.
+                        </p>
+                        <p className="mt-1 text-sm leading-6 text-stone-700">
+                          For the remaining classes in your package, please contact the Mamalu Kitchen team to arrange the dates and times.
+                        </p>
+                      </div>
+                    )}
                     <div className="grid sm:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-base font-bold text-stone-700 mb-1">Your Name *</label>
@@ -1267,8 +1278,8 @@ export default function MiniChefPage() {
 
                     {isMonthlySpecial ? (
                       <div className="p-4 bg-[#FF8C6B]/10 border border-[#FF8C6B]/25 rounded-lg">
-                        <p className="text-sm font-medium text-[#FF8C6B] mb-3">
-                          <Calendar className="inline h-4 w-4 mr-1" />
+                        <p className="flex items-center gap-2 text-sm font-bold text-stone-900 mb-3">
+                          <Calendar className="h-4 w-4 shrink-0 text-[#FF8C6B]" />
                           This monthly special has a fixed schedule:
                         </p>
                         <div className="grid sm:grid-cols-2 gap-4">
