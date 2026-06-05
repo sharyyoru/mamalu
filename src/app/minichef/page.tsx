@@ -529,6 +529,14 @@ export default function MiniChefPage() {
     return calculateBaseAmount() + calculateExtrasTotal();
   };
 
+  const selectedExtraItems = birthdayExtras
+    .filter((extra) => selectedExtras[extra.id])
+    .map((extra) => ({
+      ...extra,
+      quantity: selectedExtras[extra.id],
+      total: extra.price * selectedExtras[extra.id],
+    }));
+
   // Payment calculation - all public Mini Chef bookings are 50% deposit.
   const totalAmount = calculateTotal();
   const voucherDiscount = appliedVoucher ? Math.min(totalAmount, Number(appliedVoucher.amount) || 0) : 0;
@@ -1450,7 +1458,55 @@ export default function MiniChefPage() {
                     </div>
 
                     <div className="rounded-xl border border-stone-200 p-4">
-                      <div className="flex justify-between text-base">
+                      <div className="space-y-3 border-b border-stone-200 pb-3">
+                        <div className="flex items-start justify-between gap-4 text-base">
+                          <div>
+                            <p className="font-bold text-stone-900">{selectedMenu?.name}</p>
+                            <p className="text-sm text-stone-500">
+                              {isMommyAndMe
+                                ? `Mom + 1 child base`
+                                : isPackage
+                                ? "Package rate"
+                                : `${guestCount} ${isBirthday ? "kids" : "guests"} x AED ${selectedMenu?.price.toLocaleString() || 0}`}
+                            </p>
+                          </div>
+                          <span className="font-bold text-stone-900">AED {calculateBaseAmount().toLocaleString()}</span>
+                        </div>
+
+                        {isMommyAndMe && guestCount > 1 && (
+                          <div className="flex items-start justify-between gap-4 text-sm text-stone-600">
+                            <span>{guestCount - 1} additional child{guestCount - 1 === 1 ? "" : "ren"} x AED {MOMMY_ME_ADDITIONAL_CHILD_PRICE}</span>
+                            <span>AED {((guestCount - 1) * MOMMY_ME_ADDITIONAL_CHILD_PRICE).toLocaleString()}</span>
+                          </div>
+                        )}
+
+                        {isPackage && selectedPackageMenuItems.length > 0 && (
+                          <div className="rounded-lg bg-stone-50 px-3 py-2">
+                            <p className="text-sm font-bold text-stone-700">Selected Classes</p>
+                            <div className="mt-1 space-y-1">
+                              {selectedPackageMenuItems.map((item, index) => (
+                                <p key={item.id} className="text-sm text-stone-600">
+                                  {index + 1}. {item.name}
+                                </p>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {selectedExtraItems.length > 0 && (
+                          <div className="space-y-2">
+                            <p className="text-sm font-bold text-stone-700">Extras</p>
+                            {selectedExtraItems.map((extra) => (
+                              <div key={extra.id} className="flex items-start justify-between gap-4 text-sm">
+                                <span className="text-stone-600">{extra.name} x {extra.quantity}</span>
+                                <span className="font-medium text-stone-900">AED {extra.total.toLocaleString()}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="mt-3 flex justify-between text-base">
                         <span className="font-bold text-stone-700">Subtotal</span>
                         <span className="font-bold text-stone-900">AED {totalAmount.toLocaleString()}</span>
                       </div>

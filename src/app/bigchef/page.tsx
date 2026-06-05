@@ -346,6 +346,13 @@ export default function BigChefPage() {
 
   const baseAmount = isNanny ? 1200 : (selectedMenu?.price || 0) * guestCount;
   const extrasTotal = Object.entries(selectedExtras).reduce((t, [id, qty]) => t + (corporateExtras.find(e => e.id === id)?.price || 0) * qty, 0);
+  const selectedExtraItems = corporateExtras
+    .filter((extra) => selectedExtras[extra.id])
+    .map((extra) => ({
+      ...extra,
+      quantity: selectedExtras[extra.id],
+      total: extra.price * selectedExtras[extra.id],
+    }));
   const totalAmount = baseAmount + extrasTotal;
   const voucherDiscount = appliedVoucher ? Math.min(totalAmount, Number(appliedVoucher.amount) || 0) : 0;
   const discountedTotalAmount = Math.max(0, totalAmount - voucherDiscount);
@@ -787,7 +794,46 @@ export default function BigChefPage() {
                     )}
                   </div>
                   <div className="rounded-xl border border-stone-200 p-4">
-                    <div className="flex justify-between text-base">
+                    <div className="space-y-3 border-b border-stone-200 pb-3">
+                      <div className="flex items-start justify-between gap-4 text-base">
+                        <div>
+                          <p className="font-bold text-stone-900">{isNanny ? "Nanny Class (4 Sessions)" : selectedMenu?.name}</p>
+                          <p className="text-sm text-stone-500">
+                            {isNanny
+                              ? "4-session package"
+                              : `${guestCount} guests x AED ${selectedMenu?.price.toLocaleString() || 0}`}
+                          </p>
+                        </div>
+                        <span className="font-bold text-stone-900">AED {baseAmount.toLocaleString()}</span>
+                      </div>
+
+                      {isNanny && nannyScheduleItems.length > 0 && (
+                        <div className="rounded-lg bg-stone-50 px-3 py-2">
+                          <p className="text-sm font-bold text-stone-700">Selected Classes</p>
+                          <div className="mt-1 space-y-1">
+                            {nannyScheduleItems.map((item) => (
+                              <p key={item.id} className="text-sm text-stone-600">
+                                Session {item.session}: {item.name}
+                              </p>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {selectedExtraItems.length > 0 && (
+                        <div className="space-y-2">
+                          <p className="text-sm font-bold text-stone-700">Extras</p>
+                          {selectedExtraItems.map((extra) => (
+                            <div key={extra.id} className="flex items-start justify-between gap-4 text-sm">
+                              <span className="text-stone-600">{extra.name} x {extra.quantity}</span>
+                              <span className="font-medium text-stone-900">AED {extra.total.toLocaleString()}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="mt-3 flex justify-between text-base">
                       <span className="font-bold text-stone-700">Subtotal</span>
                       <span className="font-bold text-stone-900">AED {totalAmount.toLocaleString()}</span>
                     </div>
