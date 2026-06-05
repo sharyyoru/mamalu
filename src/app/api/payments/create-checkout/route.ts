@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { updateSourceInvoiceCheckout } from "@/lib/invoices/source-invoices";
 import { createClassBookingCheckoutSession } from "@/lib/payments/class-checkout";
 import { getSiteUrl } from "@/lib/url/site";
 
@@ -67,6 +68,8 @@ export async function POST(request: NextRequest) {
       .from("class_bookings")
       .update(updateData)
       .eq("id", bookingId);
+
+    await updateSourceInvoiceCheckout(supabase, { classBookingId: bookingId }, session.url);
 
     return NextResponse.json({
       sessionId: session.id,

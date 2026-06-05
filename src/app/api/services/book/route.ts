@@ -3,6 +3,7 @@ import { stripe } from "@/lib/stripe/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { ensureCustomerAccountAndSendAccess } from "@/lib/account/customer-account";
 import { sendServiceBookingConfirmationEmail } from "@/lib/email/service-booking-confirmation";
+import { createSourceInvoice, markSourceInvoicePaid, updateSourceInvoiceCheckout } from "@/lib/invoices/source-invoices";
 import { validateVoucherPurchaseWindow } from "@/lib/vouchers/validate-voucher-purchase";
 
 const BOOKED_SLOT_STATUSES = ["confirmed", "pending", "deposit_paid"];
@@ -222,7 +223,41 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: bookingError.message }, { status: 500 });
     }
 
+    await createSourceInvoice(supabase, {
+      sourceType: "service_booking",
+      serviceBookingId: booking.id,
+      customerName: booking.customer_name,
+      customerEmail: booking.customer_email,
+      customerPhone: booking.customer_phone,
+      amount: Number(booking.total_amount || discountedTotalAmount),
+      baseAmount: Number(booking.base_amount || baseAmount || discountedTotalAmount),
+      extrasAmount: Number(booking.extras_amount || 0),
+      description: packageName ? `${serviceName} - ${packageName}` : serviceName,
+      lineItems: [
+        {
+          name: packageName ? `${serviceName} - ${packageName}` : serviceName,
+          quantity: 1,
+          price: Number(booking.base_amount || baseAmount || discountedTotalAmount),
+        },
+        ...((extras || []) as Array<{ name?: string; title?: string; price?: number; quantity?: number }>).map((extra) => ({
+          name: extra.name || extra.title || "Extra",
+          quantity: extra.quantity || 1,
+          price: Number(extra.price || 0),
+        })),
+      ],
+      serviceName,
+      serviceType,
+      eventDate,
+      guestCount,
+      status: paymentAmount <= 0 ? "paid" : "pending",
+      paidAt: paymentAmount <= 0 ? new Date().toISOString() : null,
+      notes: voucher ? `Voucher applied: ${voucher.code} (AED ${discountAmount})` : null,
+      createdBy,
+    });
+
     if (paymentAmount <= 0) {
+      await markSourceInvoicePaid(supabase, { serviceBookingId: booking.id });
+
       if (voucher) {
         await supabase
           .from("vouchers")
@@ -330,6 +365,8 @@ export async function POST(request: NextRequest) {
       .from("service_bookings")
       .update({ stripe_checkout_session_id: checkoutSession.id })
       .eq("id", booking.id);
+
+    await updateSourceInvoiceCheckout(supabase, { serviceBookingId: booking.id }, checkoutSession.url);
 
     return NextResponse.json({
       success: true,

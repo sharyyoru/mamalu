@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createSourceInvoice } from "@/lib/invoices/source-invoices";
 import { sanityClient } from "@/lib/sanity/client";
 
 function generateBookingNumber(): string {
@@ -140,6 +141,29 @@ export async function POST(request: NextRequest) {
       console.error("Booking error:", bookingError);
       return NextResponse.json({ error: bookingError.message }, { status: 500 });
     }
+
+    await createSourceInvoice(supabase, {
+      sourceType: "class_booking",
+      classBookingId: booking.id,
+      customerName: booking.attendee_name,
+      customerEmail: booking.attendee_email,
+      customerPhone: booking.attendee_phone,
+      amount: Number(booking.total_amount || totalAmount),
+      baseAmount: Number(booking.total_amount || totalAmount),
+      description: booking.class_title,
+      lineItems: [
+        {
+          name: booking.class_title,
+          quantity: booking.number_of_guests || numberOfGuests,
+          price: Number(booking.total_amount || totalAmount) / (booking.number_of_guests || numberOfGuests || 1),
+        },
+      ],
+      serviceName: booking.class_title,
+      serviceType: "class_booking",
+      eventDate: booking.start_date,
+      guestCount: booking.number_of_guests || numberOfGuests,
+      status: "pending",
+    });
 
     // Update spots in Sanity (decrement spotsAvailable by number of guests)
     try {

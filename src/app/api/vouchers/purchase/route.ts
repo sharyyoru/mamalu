@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createSourceInvoice, updateSourceInvoiceCheckout } from "@/lib/invoices/source-invoices";
 
 export async function POST(request: NextRequest) {
   try {
@@ -55,17 +56,39 @@ export async function POST(request: NextRequest) {
     });
 
     // Create a pending purchase record
-    await supabase.from("voucher_purchases").insert({
+    const { data: purchase, error: purchaseError } = await supabase.from("voucher_purchases").insert({
       customer_name: name,
       customer_email: email,
       amount: Number(amount),
       stripe_session_id: session.id,
       status: "pending",
+    }).select().single();
+
+    if (purchaseError) {
+      throw new Error(purchaseError.message);
+    }
+
+    await createSourceInvoice(supabase, {
+      sourceType: "voucher_purchase",
+      voucherPurchaseId: purchase.id,
+      customerName: name,
+      customerEmail: email,
+      amount: Number(amount),
+      baseAmount: Number(amount),
+      description: "Gift Voucher",
+      lineItems: [{ name: "Gift Voucher", quantity: 1, price: Number(amount) }],
+      serviceName: "Gift Voucher",
+      serviceType: "voucher_purchase",
+      status: "sent",
+      paymentLink: session.url,
     });
 
+    await updateSourceInvoiceCheckout(supabase, { voucherPurchaseId: purchase.id }, session.url);
+
     return NextResponse.json({ url: session.url });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Voucher purchase error:", error);
-    return NextResponse.json({ error: error.message || "Failed to create checkout" }, { status: 500 });
+    const message = error instanceof Error ? error.message : "Failed to create checkout";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

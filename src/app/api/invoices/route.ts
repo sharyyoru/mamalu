@@ -18,59 +18,93 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Database not configured" }, { status: 500 });
     }
 
-    let query = supabase
+    const selectWithRelations = `
+      *,
+      service_booking:service_booking_id(
+        id, booking_number, service_name, service_type,
+        customer_name, event_date, event_time, guest_count
+      ),
+      class_booking:booking_id(
+        id, booking_number, class_title, attendee_name,
+        class_date, class_time, start_date, number_of_guests
+      ),
+      voucher_purchase:voucher_purchase_id(
+        id, amount, voucher_code, status
+      ),
+      product_order:product_order_id(
+        id, order_number, items, shipping_cost, total_amount
+      ),
+      payment_link:payment_link_id(
+        id, link_code, title, stripe_payment_link_url
+      ),
+      creator:created_by(
+        id, full_name, email
+      )
+    `;
+
+    // Supabase's fluent query builder has route-specific generics here; keep this
+    // local so we can reuse the same filter chain for the relationship fallback.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const applyFilters = (baseQuery: any) => {
+      let filteredQuery = baseQuery;
+
+      if (status && status !== "all") {
+        filteredQuery = filteredQuery.eq("status", status);
+      }
+
+      if (startDate) {
+        filteredQuery = filteredQuery.gte("created_at", `${startDate}T00:00:00`);
+      }
+
+      if (endDate) {
+        filteredQuery = filteredQuery.lte("created_at", `${endDate}T23:59:59`);
+      }
+
+      if (serviceType && serviceType !== "all") {
+        filteredQuery = filteredQuery.eq("service_type", serviceType);
+      }
+
+      return filteredQuery.range(offset, offset + limit - 1);
+    };
+
+    let query = applyFilters(supabase
       .from("invoices")
-      .select(`
-        *,
-        service_booking:service_booking_id(
-          id, booking_number, service_name, service_type,
-          customer_name, event_date, event_time, guest_count
-        ),
-        payment_link:payment_link_id(
-          id, link_code, title, stripe_payment_link_url
-        ),
-        creator:created_by(
-          id, full_name, email
-        )
-      `, { count: "exact" })
-      .order("created_at", { ascending: false });
+      .select(selectWithRelations, { count: "exact" })
+      .order("created_at", { ascending: false }));
 
-    // Apply filters
-    if (status && status !== "all") {
-      query = query.eq("status", status);
+    let { data: invoices, error, count } = await query;
+
+    if (error && error.code === "PGRST200") {
+      console.warn(`Invoice relationship select unavailable; falling back to invoice rows only: ${error.message}`);
+      query = applyFilters(supabase
+        .from("invoices")
+        .select("*", { count: "exact" })
+        .order("created_at", { ascending: false }));
+
+      const fallbackResult = await query;
+      invoices = fallbackResult.data;
+      error = fallbackResult.error;
+      count = fallbackResult.count;
     }
-
-    if (startDate) {
-      query = query.gte("created_at", `${startDate}T00:00:00`);
-    }
-
-    if (endDate) {
-      query = query.lte("created_at", `${endDate}T23:59:59`);
-    }
-
-    if (serviceType && serviceType !== "all") {
-      query = query.eq("service_type", serviceType);
-    }
-
-    query = query.range(offset, offset + limit - 1);
-
-    const { data: invoices, error, count } = await query;
 
     if (error) {
       console.error("Fetch invoices error:", error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    const invoiceRows = (invoices || []) as Array<{ status: string; amount: number | null }>;
+
     // Calculate stats
     const stats = {
       total: count || 0,
-      draft: invoices?.filter((i) => i.status === "draft").length || 0,
-      sent: invoices?.filter((i) => i.status === "sent").length || 0,
-      paid: invoices?.filter((i) => i.status === "paid").length || 0,
-      cancelled: invoices?.filter((i) => i.status === "cancelled").length || 0,
-      totalAmount: invoices?.reduce((sum, i) => sum + (i.amount || 0), 0) || 0,
-      paidAmount: invoices
-        ?.filter((i) => i.status === "paid")
+      draft: invoiceRows.filter((i) => i.status === "draft").length,
+      pending: invoiceRows.filter((i) => i.status === "pending").length,
+      sent: invoiceRows.filter((i) => i.status === "sent").length,
+      paid: invoiceRows.filter((i) => i.status === "paid").length,
+      cancelled: invoiceRows.filter((i) => i.status === "cancelled").length,
+      totalAmount: invoiceRows.reduce((sum, i) => sum + (i.amount || 0), 0),
+      paidAmount: invoiceRows
+        .filter((i) => i.status === "paid")
         .reduce((sum, i) => sum + (i.amount || 0), 0) || 0,
     };
 
@@ -161,7 +195,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Create invoice record
-    const invoiceData: Record<string, any> = {
+    const invoiceData: Record<string, unknown> = {
       invoice_number: invoiceNumber,
       booking_id: bookingId || null,
       service_booking_id: serviceBookingId || null,

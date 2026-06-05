@@ -5,8 +5,16 @@ import { ensureCustomerAccountAndSendAccess } from "@/lib/account/customer-accou
 import { sendBookingConfirmationEmail } from "@/lib/email/booking-confirmation";
 import { sendServiceBookingConfirmationEmail } from "@/lib/email/service-booking-confirmation";
 import { sendVoucherConfirmationEmail } from "@/lib/email/voucher-confirmation";
+import { createSourceInvoice, markSourceInvoicePaid } from "@/lib/invoices/source-invoices";
 import { findAvailableVoucherForAmount } from "@/lib/vouchers/assign-purchase-voucher";
 import Stripe from "stripe";
+
+type ProductCheckoutItem = {
+  title?: string;
+  name?: string;
+  quantity?: number | string;
+  price?: number | string;
+};
 
 export async function POST(request: NextRequest) {
   const body = await request.text();
@@ -88,6 +96,8 @@ export async function POST(request: NextRequest) {
               if (updateError) {
                 console.error("Service booking balance update failed:", updateError);
               } else {
+                await markSourceInvoicePaid(supabase, { serviceBookingId: bookingId });
+
                 await supabase.from("payment_transactions").insert({
                   transaction_type: "payment",
                   payment_method: "stripe",
@@ -125,13 +135,14 @@ export async function POST(request: NextRequest) {
             const voucherId = session.metadata?.voucher_id;
             const voucherCode = session.metadata?.voucher_code;
 
+            const paidAt = new Date().toISOString();
             const { error: updateError } = await supabase
               .from("service_bookings")
               .update({
                 status: "confirmed",
                 payment_status: isFullPayment ? "paid" : "deposit_paid",
                 deposit_paid: booking.is_deposit_payment ? true : undefined,
-                paid_at: isFullPayment ? new Date().toISOString() : undefined,
+                paid_at: isFullPayment ? paidAt : undefined,
                 stripe_payment_intent_id: session.payment_intent as string,
                 payment_method: "stripe",
               })
@@ -140,6 +151,10 @@ export async function POST(request: NextRequest) {
             if (updateError) {
               console.error("Service booking payment update failed:", updateError);
             } else {
+              if (isFullPayment) {
+                await markSourceInvoicePaid(supabase, { serviceBookingId: bookingId }, paidAt);
+              }
+
               await supabase.from("payment_transactions").insert({
                 transaction_type: "payment",
                 payment_method: "stripe",
@@ -214,16 +229,20 @@ export async function POST(request: NextRequest) {
             }
           }
         } else if (bookingId) {
+          const paidAt = new Date().toISOString();
+
           // Update booking as paid
           await supabase
             .from("class_bookings")
             .update({
               status: "confirmed",
-              paid_at: new Date().toISOString(),
+              paid_at: paidAt,
               stripe_payment_intent_id: session.payment_intent as string,
               payment_method: "stripe",
             })
             .eq("id", bookingId);
+
+          await markSourceInvoicePaid(supabase, { classBookingId: bookingId }, paidAt);
 
           // Record transaction
           await supabase.from("payment_transactions").insert({
@@ -323,16 +342,23 @@ export async function POST(request: NextRequest) {
             console.log(`Chosen voucher:`, chosen ? `${chosen.code} (ID: ${chosen.id})` : "NONE AVAILABLE");
 
             // Update the pending purchase record
-            const { error: updateError } = await supabase
+            const paidAt = new Date().toISOString();
+            const { data: purchase, error: updateError } = await supabase
               .from("voucher_purchases")
               .update({
                 status: "paid",
-                paid_at: new Date().toISOString(),
+                paid_at: paidAt,
                 stripe_payment_intent_id: session.payment_intent as string,
                 voucher_id: chosen?.id || null,
                 voucher_code: chosen?.code || null,
               })
-              .eq("stripe_session_id", session.id);
+              .eq("stripe_session_id", session.id)
+              .select("id")
+              .single();
+
+            if (!updateError && purchase) {
+              await markSourceInvoicePaid(supabase, { voucherPurchaseId: purchase.id }, paidAt);
+            }
 
             if (updateError) {
               console.error("❌ Error updating voucher purchase:", updateError);
@@ -403,7 +429,7 @@ export async function POST(request: NextRequest) {
             const orderCustomerPhone = customerDetails?.phone || "";
 
             // Create product order
-            await supabase.from("product_orders").insert({
+            const { data: order, error: orderInsertError } = await supabase.from("product_orders").insert({
               customer_name: orderCustomerName,
               customer_email: orderCustomerEmail,
               customer_phone: orderCustomerPhone,
@@ -420,6 +446,41 @@ export async function POST(request: NextRequest) {
               stripe_payment_intent_id: session.payment_intent as string,
               paid_at: new Date().toISOString(),
               is_new: true,
+            }).select().single();
+
+            if (orderInsertError) {
+              throw new Error(orderInsertError.message);
+            }
+
+            const productLineItems = (items as ProductCheckoutItem[]).map((item) => ({
+              name: item.title || item.name || "Product",
+              quantity: Number(item.quantity || 1),
+              price: Number(item.price || 0),
+            }));
+
+            if (shippingCost > 0) {
+              productLineItems.push({
+                name: "Shipping",
+                quantity: 1,
+                price: shippingCost,
+              });
+            }
+
+            await createSourceInvoice(supabase, {
+              sourceType: "product_order",
+              productOrderId: order.id,
+              customerName: orderCustomerName,
+              customerEmail: orderCustomerEmail,
+              customerPhone: orderCustomerPhone,
+              amount: (session.amount_total || 0) / 100,
+              baseAmount: subtotal,
+              extrasAmount: shippingCost,
+              description: order.order_number || productLineItems.map((item) => item.name).join(", ") || "Product Order",
+              lineItems: productLineItems,
+              serviceName: order.order_number || "Product Order",
+              serviceType: "product_order",
+              status: "paid",
+              paidAt: order.paid_at,
             });
 
             if (orderCustomerEmail) {

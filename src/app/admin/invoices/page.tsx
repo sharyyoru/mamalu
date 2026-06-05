@@ -28,12 +28,22 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatPrice, formatDate } from "@/lib/utils";
 
+type InvoiceLineItem = {
+  name?: string;
+  title?: string;
+  quantity?: number;
+  price?: number;
+};
+
 interface Invoice {
   id: string;
   invoice_number: string;
   booking_id: string | null;
   service_booking_id: string | null;
   payment_link_id: string | null;
+  source_type: string | null;
+  product_order_id: string | null;
+  voucher_purchase_id: string | null;
   customer_name: string;
   customer_email: string;
   customer_phone: string | null;
@@ -42,7 +52,7 @@ interface Invoice {
   extras_amount: number | null;
   currency: string;
   description: string | null;
-  line_items: any[] | null;
+  line_items: InvoiceLineItem[] | null;
   service_name: string | null;
   service_type: string | null;
   event_date: string | null;
@@ -63,6 +73,29 @@ interface Invoice {
     event_date: string;
     event_time: string;
     guest_count: number;
+  } | null;
+  class_booking?: {
+    id: string;
+    booking_number: string;
+    class_title: string;
+    attendee_name: string;
+    class_date: string | null;
+    class_time: string | null;
+    start_date: string | null;
+    number_of_guests: number | null;
+  } | null;
+  voucher_purchase?: {
+    id: string;
+    amount: number;
+    voucher_code: string | null;
+    status: string;
+  } | null;
+  product_order?: {
+    id: string;
+    order_number: string;
+    items: InvoiceLineItem[] | null;
+    shipping_cost: number | null;
+    total_amount: number;
   } | null;
   payment_link_ref?: {
     id: string;
@@ -136,13 +169,42 @@ export default function AdminInvoicesPage() {
   const filteredInvoices = invoices.filter((invoice) => {
     if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
+    const displayName = getInvoiceDisplayName(invoice).toLowerCase();
     return (
       invoice.invoice_number.toLowerCase().includes(query) ||
       invoice.customer_name.toLowerCase().includes(query) ||
       invoice.customer_email.toLowerCase().includes(query) ||
-      (invoice.service_name?.toLowerCase().includes(query) || false)
+      displayName.includes(query) ||
+      (invoice.product_order?.order_number?.toLowerCase().includes(query) || false)
     );
   });
+
+  const getInvoiceDisplayName = (invoice: Invoice) => {
+    if (invoice.source_type === "voucher_purchase" || invoice.voucher_purchase_id) {
+      return "Gift Voucher";
+    }
+
+    if (invoice.source_type === "product_order" || invoice.product_order_id) {
+      const productNames = (invoice.product_order?.items || invoice.line_items || [])
+        .map((item) => item.title || item.name)
+        .filter(Boolean);
+      return invoice.product_order?.order_number || productNames.join(", ") || "Product Order";
+    }
+
+    if (invoice.source_type === "class_booking" || invoice.booking_id) {
+      return invoice.class_booking?.class_title || invoice.service_name || "Class Booking";
+    }
+
+    return invoice.service_booking?.service_name || invoice.service_name || invoice.description || "Custom Invoice";
+  };
+
+  const getInvoiceEventDate = (invoice: Invoice) => {
+    return invoice.event_date || invoice.service_booking?.event_date || invoice.class_booking?.class_date || invoice.class_booking?.start_date || null;
+  };
+
+  const getInvoiceGuestCount = (invoice: Invoice) => {
+    return invoice.guest_count || invoice.service_booking?.guest_count || invoice.class_booking?.number_of_guests || null;
+  };
 
   const createInvoice = async () => {
     if (!newInvoice.customerName || !newInvoice.customerEmail || !newInvoice.amount) {
@@ -239,10 +301,10 @@ export default function AdminInvoicesPage() {
       inv.customer_name,
       inv.customer_email,
       inv.customer_phone || "",
-      inv.service_name || inv.description || "",
+      getInvoiceDisplayName(inv),
       inv.service_type || "",
-      inv.event_date ? new Date(inv.event_date).toLocaleDateString() : "",
-      inv.guest_count || "",
+      getInvoiceEventDate(inv) ? new Date(getInvoiceEventDate(inv)!).toLocaleDateString() : "",
+      getInvoiceGuestCount(inv) || "",
       inv.base_amount || inv.amount,
       inv.extras_amount || 0,
       inv.amount,
@@ -439,6 +501,7 @@ export default function AdminInvoicesPage() {
             >
               <option value="all">All Status</option>
               <option value="draft">Draft</option>
+              <option value="pending">Pending</option>
               <option value="sent">Sent</option>
               <option value="paid">Paid</option>
               <option value="cancelled">Cancelled</option>
@@ -571,7 +634,7 @@ export default function AdminInvoicesPage() {
                               {invoice.invoice_number}
                             </div>
                             <div className="text-xs text-stone-500 truncate max-w-[200px]">
-                              {invoice.service_name || invoice.description || "Custom Invoice"}
+                              {getInvoiceDisplayName(invoice)}
                             </div>
                           </div>
                         </div>
@@ -583,9 +646,9 @@ export default function AdminInvoicesPage() {
                         <div className="text-sm text-stone-500">
                           {invoice.customer_email}
                         </div>
-                        {invoice.event_date && (
+                        {getInvoiceEventDate(invoice) && (
                           <div className="text-xs text-amber-600">
-                            Event: {new Date(invoice.event_date).toLocaleDateString()}
+                            Event: {new Date(getInvoiceEventDate(invoice)!).toLocaleDateString()}
                           </div>
                         )}
                       </td>
@@ -883,21 +946,21 @@ export default function AdminInvoicesPage() {
                     <p className="text-stone-600">{selectedInvoice.customer_phone}</p>
                   )}
                 </div>
-                {selectedInvoice.event_date && (
+                {getInvoiceEventDate(selectedInvoice) && (
                   <div>
                     <h3 className="text-sm font-semibold text-stone-500 uppercase mb-2">Event Details</h3>
                     <p className="text-stone-900">
                       <span className="font-medium">Date:</span>{" "}
-                      {new Date(selectedInvoice.event_date).toLocaleDateString("en-US", {
+                      {new Date(getInvoiceEventDate(selectedInvoice)!).toLocaleDateString("en-US", {
                         weekday: "long",
                         year: "numeric",
                         month: "long",
                         day: "numeric",
                       })}
                     </p>
-                    {selectedInvoice.guest_count && (
+                    {getInvoiceGuestCount(selectedInvoice) && (
                       <p className="text-stone-900">
-                        <span className="font-medium">Guests:</span> {selectedInvoice.guest_count}
+                        <span className="font-medium">Guests:</span> {getInvoiceGuestCount(selectedInvoice)}
                       </p>
                     )}
                     {selectedInvoice.service_type && (
@@ -927,11 +990,11 @@ export default function AdminInvoicesPage() {
                     <tr>
                       <td className="px-4 py-3">
                         <p className="font-medium text-stone-900">
-                          {selectedInvoice.service_name || selectedInvoice.description || "Services"}
+                          {getInvoiceDisplayName(selectedInvoice)}
                         </p>
-                        {selectedInvoice.guest_count && (
+                        {getInvoiceGuestCount(selectedInvoice) && (
                           <p className="text-sm text-stone-500">
-                            {selectedInvoice.guest_count} guests
+                            {getInvoiceGuestCount(selectedInvoice)} guests
                           </p>
                         )}
                       </td>
@@ -939,19 +1002,24 @@ export default function AdminInvoicesPage() {
                         {formatPrice(selectedInvoice.base_amount || selectedInvoice.amount)}
                       </td>
                     </tr>
-                    {selectedInvoice.line_items?.map((item: any, index: number) => (
-                      <tr key={index}>
-                        <td className="px-4 py-3">
-                          <p className="text-stone-900">{item.name}</p>
-                          {item.quantity > 1 && (
-                            <p className="text-sm text-stone-500">Qty: {item.quantity}</p>
-                          )}
-                        </td>
-                        <td className="px-4 py-3 text-right text-stone-900">
-                          {formatPrice(item.price * (item.quantity || 1))}
-                        </td>
-                      </tr>
-                    ))}
+                    {selectedInvoice.line_items?.map((item, index: number) => {
+                      const quantity = item.quantity || 1;
+                      const price = item.price || 0;
+
+                      return (
+                        <tr key={index}>
+                          <td className="px-4 py-3">
+                            <p className="text-stone-900">{item.name || item.title}</p>
+                            {quantity > 1 && (
+                              <p className="text-sm text-stone-500">Qty: {quantity}</p>
+                            )}
+                          </td>
+                          <td className="px-4 py-3 text-right text-stone-900">
+                            {formatPrice(price * quantity)}
+                          </td>
+                        </tr>
+                      );
+                    })}
                     {selectedInvoice.extras_amount && selectedInvoice.extras_amount > 0 && !selectedInvoice.line_items && (
                       <tr>
                         <td className="px-4 py-3 text-stone-900">Extras & Add-ons</td>
