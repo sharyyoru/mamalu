@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Clock, Loader2, Plus, Save, Trash2 } from "lucide-react";
+import { CalendarDays, Clock, Loader2, Plus, Save, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   BOOKING_SLOT_CATEGORIES,
@@ -21,6 +21,10 @@ interface TimeSlot {
   is_active: boolean;
   sort_order: number;
 }
+
+type DateRules = Partial<Record<BookingSlotCategoryId, string[]>>;
+
+const MONTHLY_SLOT_CATEGORY_IDS: BookingSlotCategoryId[] = ["monthly_mini", "monthly_big"];
 
 function toMinutes(time: string) {
   const [hours, minutes] = time.split(":").map(Number);
@@ -59,12 +63,16 @@ function normalizeSlot(slot: TimeSlot, index: number): TimeSlot {
 
 export default function AdminTimeSlotsPage() {
   const [slots, setSlots] = useState<TimeSlot[]>([]);
+  const [dateRules, setDateRules] = useState<DateRules>({});
+  const [dateInput, setDateInput] = useState("");
   const [activeCategory, setActiveCategory] = useState<BookingSlotCategoryId>(BOOKING_SLOT_CATEGORIES[0].id);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
   const activeCategoryMeta = BOOKING_SLOT_CATEGORIES.find((category) => category.id === activeCategory);
+  const isMonthlyCategory = MONTHLY_SLOT_CATEGORY_IDS.includes(activeCategory);
+  const datesForCategory = dateRules[activeCategory] || [];
 
   const slotsForCategory = useMemo(
     () =>
@@ -96,11 +104,32 @@ export default function AdminTimeSlotsPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to load time slots");
       setSlots(data.slots || []);
+      setDateRules(data.dateRules || {});
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Failed to load time slots");
     } finally {
       setLoading(false);
     }
+  }
+
+  function addAvailableDate() {
+    if (!dateInput || !isMonthlyCategory) return;
+
+    setDateRules((current) => {
+      const dates = current[activeCategory] || [];
+      return {
+        ...current,
+        [activeCategory]: [...new Set([...dates, dateInput])].sort(),
+      };
+    });
+    setDateInput("");
+  }
+
+  function removeAvailableDate(date: string) {
+    setDateRules((current) => ({
+      ...current,
+      [activeCategory]: (current[activeCategory] || []).filter((currentDate) => currentDate !== date),
+    }));
   }
 
   function updateSlot(index: number, updates: Partial<TimeSlot>) {
@@ -180,11 +209,18 @@ export default function AdminTimeSlotsPage() {
       const res = await fetch("/api/admin/time-slots", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slots: normalizedSlots }),
+        body: JSON.stringify({
+          slots: normalizedSlots,
+          dateRules: MONTHLY_SLOT_CATEGORY_IDS.map((categoryId) => ({
+            category_id: categoryId,
+            available_dates: dateRules[categoryId] || [],
+          })),
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to save time slots");
       setSlots(data.slots || []);
+      setDateRules(data.dateRules || {});
       setMessage("Time slots saved.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Failed to save time slots");
@@ -260,6 +296,63 @@ export default function AdminTimeSlotsPage() {
               Add Slot
             </Button>
           </div>
+
+          {isMonthlyCategory && (
+            <div className="border-b border-stone-200 bg-orange-50/60 p-4">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div>
+                  <div className="flex items-center gap-2 font-semibold text-stone-900">
+                    <CalendarDays className="h-4 w-4 text-[#FF7A5C]" />
+                    Available Dates
+                  </div>
+                  <p className="mt-1 text-sm text-stone-600">
+                    Monthly Specials only show time slots on the dates selected here.
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <input
+                    type="date"
+                    value={dateInput}
+                    onChange={(event) => setDateInput(event.target.value)}
+                    className="rounded-md border border-stone-300 bg-white px-3 py-2 text-sm"
+                  />
+                  <Button type="button" variant="outline" onClick={addAvailableDate} disabled={!dateInput}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Date
+                  </Button>
+                </div>
+              </div>
+
+              <div className="mt-4 flex flex-wrap gap-2">
+                {datesForCategory.length > 0 ? (
+                  datesForCategory.map((date) => (
+                    <span
+                      key={date}
+                      className="inline-flex items-center gap-2 rounded-full border border-[#FF7A5C]/30 bg-white px-3 py-1.5 text-sm text-stone-800"
+                    >
+                      {new Date(`${date}T00:00:00`).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
+                      <button
+                        type="button"
+                        onClick={() => removeAvailableDate(date)}
+                        className="rounded-full p-0.5 text-stone-400 hover:bg-red-50 hover:text-red-600"
+                        aria-label={`Remove ${date}`}
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </span>
+                  ))
+                ) : (
+                  <p className="text-sm text-amber-700">
+                    No available dates set. Public booking pages will show no monthly special slots for this category.
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
 
           {loading ? (
             <div className="flex items-center gap-2 p-8 text-stone-500">

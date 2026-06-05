@@ -28,6 +28,7 @@ import {
   Ticket,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { MonthlyAvailableDatePicker } from "@/components/booking/monthly-available-date-picker";
 import { MiniChefPageContent, defaultMiniChefContent } from "@/types/site-content";
 
 // Menu item interface
@@ -247,6 +248,8 @@ export default function MiniChefPage() {
   // Booking details
   const [eventDate, setEventDate] = useState("");
   const [eventTime, setEventTime] = useState("");
+  const [monthlyAvailableDates, setMonthlyAvailableDates] = useState<string[]>([]);
+  const [loadingMonthlyDates, setLoadingMonthlyDates] = useState(false);
   const [allTimeSlots, setAllTimeSlots] = useState<{ start: string; end: string; duration: number; label: string }[]>([]);
   const [availableTimeSlots, setAvailableTimeSlots] = useState<{ start: string; end: string; duration: number; label: string }[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
@@ -274,6 +277,7 @@ export default function MiniChefPage() {
   const categoryConfig = getCategoryConfig(pageContent);
   const currentConfig = categoryConfig[activeCategory];
   const isBirthday = activeCategory === "birthdays";
+  const isMonthly = activeCategory === "monthly";
   const isMommyAndMe = activeCategory === "mommy_me";
   const isPackage = activeCategory === "packages";
   const hasExtras = isBirthday;
@@ -449,9 +453,6 @@ export default function MiniChefPage() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [previewExtra]);
 
-  // Check if current selection is a monthly special with fixed date
-  const isMonthlySpecial = activeCategory === "monthly" && selectedMenu?.scheduled_date;
-
   // Fetch capacity for monthly special menu items
   const fetchCapacity = async (menuId: string) => {
     if (menuCapacities[menuId] !== undefined) return;
@@ -475,23 +476,33 @@ export default function MiniChefPage() {
     }
   }, [activeCategory, menuItemsByCategory]);
 
-  // Auto-populate date/time when a monthly special is selected
   useEffect(() => {
-    if (activeCategory === "monthly" && selectedMenu?.scheduled_date) {
-      const scheduledDate = new Date(selectedMenu.scheduled_date);
-      const dateStr = scheduledDate.toISOString().split('T')[0];
-      const hours = scheduledDate.getHours();
-      const minutes = scheduledDate.getMinutes();
-      const timeStr = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-      setEventDate(dateStr);
-      setEventTime(timeStr);
+    if (!isMonthly) {
+      setMonthlyAvailableDates([]);
+      setLoadingMonthlyDates(false);
+      return;
     }
-  }, [selectedMenu, activeCategory]);
+
+    setLoadingMonthlyDates(true);
+    fetch(`/api/services/monthly-dates?category=${AVAILABILITY_CATEGORY_BY_TAB.monthly}`)
+      .then(res => res.json())
+      .then(data => {
+        const dates = data.dates || [];
+        setMonthlyAvailableDates(dates);
+        if (eventDate && !dates.includes(eventDate)) {
+          setEventDate("");
+          setEventTime("");
+        }
+      })
+      .catch(err => {
+        console.error("Failed to fetch monthly dates:", err);
+        setMonthlyAvailableDates([]);
+      })
+      .finally(() => setLoadingMonthlyDates(false));
+  }, [eventDate, isMonthly]);
 
   // Fetch available time slots when date changes
   useEffect(() => {
-    // Skip fetching slots if this is a monthly special (date is fixed)
-    if (isMonthlySpecial) return;
     if (!eventDate) {
       setAllTimeSlots([]);
       setAvailableTimeSlots([]);
@@ -507,7 +518,7 @@ export default function MiniChefPage() {
       })
       .catch(err => console.error("Failed to fetch availability:", err))
       .finally(() => setLoadingSlots(false));
-  }, [eventDate, activeCategory, isMonthlySpecial]);
+  }, [eventDate, activeCategory]);
 
   // Calculate totals
   const getMenuPrice = (menu = selectedMenu) => {
@@ -674,6 +685,7 @@ export default function MiniChefPage() {
           ageRange,
           waiverAccepted: waiverAccepted || acceptedWaiver,
           category: activeCategory,
+          bookingSlotCategory: AVAILABILITY_CATEGORY_BY_TAB[activeCategory],
           voucherCode: appliedVoucher?.code || null,
         }),
       });
@@ -1282,42 +1294,34 @@ export default function MiniChefPage() {
                       </div>
                     </div>
 
-                    {isMonthlySpecial ? (
-                      <div className="p-4 bg-[#FF8C6B]/10 border border-[#FF8C6B]/25 rounded-lg">
-                        <p className="flex items-center gap-2 text-sm font-bold text-stone-900 mb-3">
-                          <Calendar className="h-4 w-4 shrink-0 text-[#FF8C6B]" />
-                          This monthly special has a fixed schedule:
-                        </p>
-                        <div className="grid sm:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-bold text-[#FF8C6B] mb-1">Event Date</label>
-                            <div className="px-4 py-2 bg-white border border-[#FF8C6B]/30 rounded-lg text-stone-900 font-medium">
-                              {new Date(eventDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                            </div>
-                          </div>
-                          <div>
-                            <label className="block text-sm font-bold text-[#FF8C6B] mb-1">Time</label>
-                            <div className="px-4 py-2 bg-white border border-[#FF8C6B]/30 rounded-lg text-stone-900 font-medium">
-                              {selectedMenu?.scheduled_date ? new Date(selectedMenu.scheduled_date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) : eventTime}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
                       <div className="grid sm:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-base font-bold text-stone-700 mb-1">
                             <Calendar className="inline h-4 w-4 mr-1" />
                             Event Date *
                           </label>
-                          <input
-                            type="date"
-                            value={eventDate}
-                            onChange={(e) => setEventDate(e.target.value)}
-                            min={today}
-                            className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-[#FF8C6B] focus:border-transparent"
-                            required
-                          />
+                          {isMonthly ? (
+                            loadingMonthlyDates ? (
+                              <div className="flex items-center gap-2 rounded-lg border border-stone-300 px-4 py-3 text-stone-500">
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                Loading dates...
+                              </div>
+                            ) : (
+                              <MonthlyAvailableDatePicker
+                                availableDates={monthlyAvailableDates}
+                                value={eventDate}
+                                onChange={setEventDate}
+                                today={today}
+                              />
+                            )
+                          ) : (
+                            <MonthlyAvailableDatePicker
+                              value={eventDate}
+                              onChange={setEventDate}
+                              today={today}
+                              restrictToAvailableDates={false}
+                            />
+                          )}
                         </div>
                         <div>
                           <label className="block text-base font-bold text-stone-700 mb-1">
@@ -1355,7 +1359,6 @@ export default function MiniChefPage() {
                           )}
                         </div>
                       </div>
-                    )}
 
                     <div>
                       <label className="block text-base font-bold text-stone-700 mb-1">Special Requests</label>

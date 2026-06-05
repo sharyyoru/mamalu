@@ -11,6 +11,7 @@ import {
   Ticket,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { MonthlyAvailableDatePicker } from "@/components/booking/monthly-available-date-picker";
 import { BigChefPageContent, defaultBigChefContent } from "@/types/site-content";
 
 interface MenuItem { id: string; name: string; price: number; image: string; dishes: string[]; category: string; scheduled_date?: string | null; allowed_persons?: number | null; }
@@ -131,6 +132,8 @@ export default function BigChefPage() {
 
   const [eventDate, setEventDate] = useState("");
   const [eventTime, setEventTime] = useState("");
+  const [monthlyAvailableDates, setMonthlyAvailableDates] = useState<string[]>([]);
+  const [loadingMonthlyDates, setLoadingMonthlyDates] = useState(false);
   const [allTimeSlots, setAllTimeSlots] = useState<TimeSlot[]>([]);
   const [availableTimeSlots, setAvailableTimeSlots] = useState<TimeSlot[]>([]);
   const [nannySchedules, setNannySchedules] = useState<Record<string, NannyMenuSchedule>>({});
@@ -152,6 +155,7 @@ export default function BigChefPage() {
   const currentConfig = categoryConfig[activeCategory];
   const isCorporate = activeCategory === "corporate";
   const isNanny = activeCategory === "nanny";
+  const isMonthly = activeCategory === "monthly";
   const hasExtras = isCorporate;
   const maxStep = hasExtras ? 4 : 3;
   // Fetch menu items from DB on mount
@@ -243,9 +247,6 @@ export default function BigChefPage() {
     setEventTime("");
   }, [activeCategory]);
 
-  // Check if current selection is a monthly special with fixed date
-  const isMonthlySpecial = activeCategory === "monthly" && selectedMenu?.scheduled_date;
-
   // Fetch capacity for monthly special menu items
   const fetchCapacity = async (menuId: string) => {
     if (menuCapacities[menuId] !== undefined) return;
@@ -269,22 +270,32 @@ export default function BigChefPage() {
     }
   }, [activeCategory, menuItemsByCategory]);
 
-  // Auto-populate date/time when a monthly special is selected
   useEffect(() => {
-    if (activeCategory === "monthly" && selectedMenu?.scheduled_date) {
-      const scheduledDate = new Date(selectedMenu.scheduled_date);
-      const dateStr = scheduledDate.toISOString().split('T')[0];
-      const hours = scheduledDate.getHours();
-      const minutes = scheduledDate.getMinutes();
-      const timeStr = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-      setEventDate(dateStr);
-      setEventTime(timeStr);
+    if (!isMonthly) {
+      setMonthlyAvailableDates([]);
+      setLoadingMonthlyDates(false);
+      return;
     }
-  }, [selectedMenu, activeCategory]);
+
+    setLoadingMonthlyDates(true);
+    fetch(`/api/services/monthly-dates?category=${AVAILABILITY_CATEGORY_BY_TAB.monthly}`)
+      .then(res => res.json())
+      .then(data => {
+        const dates = data.dates || [];
+        setMonthlyAvailableDates(dates);
+        if (eventDate && !dates.includes(eventDate)) {
+          setEventDate("");
+          setEventTime("");
+        }
+      })
+      .catch(err => {
+        console.error("Failed to fetch monthly dates:", err);
+        setMonthlyAvailableDates([]);
+      })
+      .finally(() => setLoadingMonthlyDates(false));
+  }, [eventDate, isMonthly]);
 
   useEffect(() => {
-    // Skip fetching slots if this is a monthly special (date is fixed)
-    if (isMonthlySpecial) return;
     if (!eventDate) { setAllTimeSlots([]); setAvailableTimeSlots([]); return; }
     setLoadingSlots(true);
     setEventTime("");
@@ -292,7 +303,7 @@ export default function BigChefPage() {
       .then(res => res.json())
       .then(data => { setAllTimeSlots(data.allSlots || []); setAvailableTimeSlots(data.availableSlots || []); })
       .finally(() => setLoadingSlots(false));
-  }, [eventDate, activeCategory, isMonthlySpecial]);
+  }, [eventDate, activeCategory]);
 
   const emptyNannySchedule = (): NannyMenuSchedule => ({
     date: "",
@@ -450,7 +461,7 @@ export default function BigChefPage() {
       const res = await fetch("/api/services/book", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ serviceType: "corporate_deck", serviceName: `Big Chef - ${currentConfig.label}`, packageName: isNanny ? "Nanny Class (4 Sessions)" : selectedMenu?.name, ...menuData, customerName, customerEmail, customerPhone, companyName, eventDate: bookingEventDate, eventTime: bookingEventTime, guestCount: isNanny ? 1 : guestCount, items: isNanny ? nannyScheduleItems : [], extras: extrasData, baseAmount, extrasAmount: extrasTotal, totalAmount, isDepositPayment: requiresDeposit, depositAmount: requiresDeposit ? depositAmount : null, balanceAmount: requiresDeposit ? balanceAmount : null, specialRequests: isNanny && scheduleSummary ? `${specialRequests ? `${specialRequests}\n\n` : ""}Nanny class schedule:\n${scheduleSummary}` : specialRequests, waiverAccepted: waiverAccepted || acceptedWaiver, category: activeCategory, voucherCode: appliedVoucher?.code || null }),
+        body: JSON.stringify({ serviceType: "corporate_deck", serviceName: `Big Chef - ${currentConfig.label}`, packageName: isNanny ? "Nanny Class (4 Sessions)" : selectedMenu?.name, ...menuData, customerName, customerEmail, customerPhone, companyName, eventDate: bookingEventDate, eventTime: bookingEventTime, guestCount: isNanny ? 1 : guestCount, items: isNanny ? nannyScheduleItems : [], extras: extrasData, baseAmount, extrasAmount: extrasTotal, totalAmount, isDepositPayment: requiresDeposit, depositAmount: requiresDeposit ? depositAmount : null, balanceAmount: requiresDeposit ? balanceAmount : null, specialRequests: isNanny && scheduleSummary ? `${specialRequests ? `${specialRequests}\n\n` : ""}Nanny class schedule:\n${scheduleSummary}` : specialRequests, waiverAccepted: waiverAccepted || acceptedWaiver, category: activeCategory, bookingSlotCategory: AVAILABILITY_CATEGORY_BY_TAB[activeCategory], voucherCode: appliedVoucher?.code || null }),
       });
       if (res.ok) { const data = await res.json(); if (data.checkoutUrl) window.location.href = data.checkoutUrl; else if (data.booking?.booking_number) window.location.href = `/booking/success?booking=${data.booking.booking_number}`; }
       else { const error = await res.json(); alert(error.error || "Failed to create booking"); }
@@ -689,13 +700,11 @@ export default function BigChefPage() {
                                     <Calendar className="inline h-4 w-4 mr-1" />
                                     Date *
                                   </label>
-                                  <input
-                                    type="date"
+                                  <MonthlyAvailableDatePicker
                                     value={schedule.date}
-                                    onChange={e => updateNannyScheduleDate(menu.id, e.target.value)}
-                                    min={today}
-                                    className="w-full px-4 py-2 border border-stone-300 rounded-lg bg-white"
-                                    required
+                                    onChange={(date) => updateNannyScheduleDate(menu.id, date)}
+                                    today={today}
+                                    restrictToAvailableDates={false}
                                   />
                                 </div>
                                 <div>
@@ -737,30 +746,36 @@ export default function BigChefPage() {
                         })}
                       </div>
                     </div>
-                  ) : isMonthlySpecial ? (
-                    <div className="p-4 bg-[#FF8C6B]/10 border border-[#FF8C6B]/25 rounded-lg">
-                      <p className="text-sm font-medium text-[#FF8C6B] mb-3">
-                        <Calendar className="inline h-4 w-4 mr-1" />
-                        This monthly special has a fixed schedule:
-                      </p>
-                      <div className="grid sm:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-bold text-[#FF8C6B] mb-1">Event Date</label>
-                          <div className="px-4 py-2 bg-white border border-[#FF8C6B]/30 rounded-lg text-stone-900 font-medium">
-                            {new Date(eventDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                          </div>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-bold text-[#FF8C6B] mb-1">Time</label>
-                          <div className="px-4 py-2 bg-white border border-[#FF8C6B]/30 rounded-lg text-stone-900 font-medium">
-                            {selectedMenu?.scheduled_date ? new Date(selectedMenu.scheduled_date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) : eventTime}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
                   ) : (
                     <div className="grid sm:grid-cols-2 gap-4">
-                      <div><label className="block text-base font-bold text-stone-700 mb-1"><Calendar className="inline h-4 w-4 mr-1" />Event Date *</label><input type="date" value={eventDate} onChange={e => setEventDate(e.target.value)} min={today} className="w-full px-4 py-2 border border-stone-300 rounded-lg" required /></div>
+                      <div>
+                        <label className="block text-base font-bold text-stone-700 mb-1">
+                          <Calendar className="inline h-4 w-4 mr-1" />
+                          Event Date *
+                        </label>
+                        {isMonthly ? (
+                          loadingMonthlyDates ? (
+                            <div className="flex items-center gap-2 rounded-lg border border-stone-300 px-4 py-3 text-stone-500">
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              Loading dates...
+                            </div>
+                          ) : (
+                            <MonthlyAvailableDatePicker
+                              availableDates={monthlyAvailableDates}
+                              value={eventDate}
+                              onChange={setEventDate}
+                              today={today}
+                            />
+                          )
+                        ) : (
+                          <MonthlyAvailableDatePicker
+                            value={eventDate}
+                            onChange={setEventDate}
+                            today={today}
+                            restrictToAvailableDates={false}
+                          />
+                        )}
+                      </div>
                       <div><label className="block text-base font-bold text-stone-700 mb-1"><Clock className="inline h-4 w-4 mr-1" />Time Slot *</label>
                         {loadingSlots ? <div className="flex items-center gap-2 py-2 text-stone-500"><Loader2 className="h-4 w-4 animate-spin" />Loading...</div> : eventDate && displayedTimeSlots.length > 0 ? (
                           <div className="grid grid-cols-2 gap-2">{displayedTimeSlots.map((slot) => { return (<button key={slot.start} type="button" onClick={() => setEventTime(slot.start)} className={`px-3 py-2 text-sm rounded-lg border ${eventTime === slot.start ? "bg-[#FF8C6B] text-white border border-[#FF8C6B]" : "border-stone-300 hover:border-[#FF8C6B]"}`}>{slot.label}</button>); })}</div>

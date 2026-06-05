@@ -9,6 +9,7 @@ import { validateVoucherPurchaseWindow } from "@/lib/vouchers/validate-voucher-p
 const BOOKED_SLOT_STATUSES = ["confirmed", "pending", "deposit_paid"];
 const MIN_BOOKING_NOTICE_MINUTES = 120;
 const BUSINESS_TIME_ZONE = "Asia/Dubai";
+const MONTHLY_SLOT_CATEGORY_IDS = new Set(["monthly_mini", "monthly_big"]);
 
 function normalizeTimeForQuery(time: string) {
   return time.length === 5 ? `${time}:00` : time;
@@ -85,6 +86,7 @@ export async function POST(request: NextRequest) {
       userId,
       createdBy,
       category,
+      bookingSlotCategory,
       voucherCode,
     } = body;
 
@@ -145,6 +147,31 @@ export async function POST(request: NextRequest) {
         { error: "Please choose a time slot at least 2 hours from now." },
         { status: 400 }
       );
+    }
+
+    if (
+      typeof bookingSlotCategory === "string" &&
+      MONTHLY_SLOT_CATEGORY_IDS.has(bookingSlotCategory) &&
+      eventDate
+    ) {
+      const { data: dateRule, error: dateRuleError } = await supabase
+        .from("booking_slot_date_rules")
+        .select("available_dates")
+        .eq("category_id", bookingSlotCategory)
+        .maybeSingle();
+
+      if (dateRuleError) {
+        console.error("Monthly date rule check error:", dateRuleError);
+        return NextResponse.json({ error: "Could not verify monthly special date availability" }, { status: 500 });
+      }
+
+      const availableDates = Array.isArray(dateRule?.available_dates) ? dateRule.available_dates : [];
+      if (availableDates.length === 0 || !availableDates.includes(eventDate)) {
+        return NextResponse.json(
+          { error: "This monthly special is not available on the selected date. Please choose another date." },
+          { status: 409 }
+        );
+      }
     }
 
     const shouldBlockBookedSlot = category === "birthdays" || category === "corporate";

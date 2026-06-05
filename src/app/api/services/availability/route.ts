@@ -6,6 +6,7 @@ import { DEFAULT_BOOKING_TIME_SLOTS } from "@/lib/booking-time-slots";
 const BUFFER_MINUTES = 60;
 const MIN_BOOKING_NOTICE_MINUTES = 120;
 const BUSINESS_TIME_ZONE = "Asia/Dubai";
+const MONTHLY_CATEGORY_IDS = new Set(["monthly_mini", "monthly_big"]);
 
 interface BookedSlot {
   event_time: string;
@@ -26,6 +27,10 @@ interface TimeSlotRow {
   duration_minutes: number;
   label: string;
   days_of_week: number[];
+}
+
+interface DateRuleRow {
+  available_dates: string[] | null;
 }
 
 function parseTime(timeStr: string): number {
@@ -155,6 +160,33 @@ export async function GET(request: NextRequest) {
     let configuredSlots = fallbackSlots;
 
     if (category) {
+      if (MONTHLY_CATEGORY_IDS.has(category)) {
+        const { data: dateRule, error: dateRuleError } = await supabase
+          .from("booking_slot_date_rules")
+          .select("available_dates")
+          .eq("category_id", category)
+          .maybeSingle<DateRuleRow>();
+
+        if (dateRuleError) {
+          console.warn("Monthly date rules are not available yet:", dateRuleError.message);
+        } else {
+          const availableDates = dateRule?.available_dates || [];
+          if (availableDates.length === 0 || !availableDates.includes(date)) {
+            return NextResponse.json({
+              date,
+              dayOfWeek,
+              category,
+              allSlots: [],
+              availableSlots: [],
+              blockedSlots: [],
+              bufferMinutes: BUFFER_MINUTES,
+              minBookingNoticeMinutes: MIN_BOOKING_NOTICE_MINUTES,
+              dateRestricted: true,
+            });
+          }
+        }
+      }
+
       const { data: timeSlots, error: slotError } = await supabase
         .from("booking_time_slots")
         .select("start_time, end_time, duration_minutes, label, days_of_week")
