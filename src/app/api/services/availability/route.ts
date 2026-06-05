@@ -7,7 +7,7 @@ const BUFFER_MINUTES = 60;
 
 interface BookedSlot {
   event_time: string;
-  duration_minutes: number;
+  duration_minutes?: number;
 }
 
 interface TimeSlotInfo {
@@ -42,8 +42,7 @@ function isSlotBlockedByBooking(
     if (!booking.event_time) continue;
     
     const bookingStart = parseTime(booking.event_time);
-    // Use the slot's duration or booking's stored duration
-    const bookingDuration = booking.duration_minutes || 120;
+    const bookingDuration = booking.duration_minutes || slot.duration;
     const bookingEnd = bookingStart + bookingDuration + BUFFER_MINUTES;
 
     // Check if the slot overlaps with existing booking (including buffer)
@@ -147,7 +146,7 @@ export async function GET(request: NextRequest) {
     try {
       const { data: bookings, error } = await supabase
         .from("service_bookings")
-        .select("event_time, duration_minutes")
+        .select("event_time")
         .eq("event_date", date)
         .in("status", ["confirmed", "pending", "deposit_paid"]);
 
@@ -168,7 +167,6 @@ export async function GET(request: NextRequest) {
 
       bookedSlots = (bookings || []).map((b) => ({
         event_time: b.event_time || "",
-        duration_minutes: b.duration_minutes || 120,
       }));
     } catch (dbError) {
       console.error("Database error:", dbError);

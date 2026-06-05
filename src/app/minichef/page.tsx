@@ -1328,22 +1328,18 @@ export default function MiniChefPage() {
                               <Loader2 className="h-4 w-4 animate-spin" />
                               Loading available slots...
                             </div>
-                          ) : eventDate && allTimeSlots.length > 0 ? (
+                          ) : eventDate && availableTimeSlots.length > 0 ? (
                             <div className="grid grid-cols-2 gap-2">
-                              {allTimeSlots.map((slot) => {
-                                const isAvailable = availableTimeSlots.some(s => s.start === slot.start);
+                              {availableTimeSlots.map((slot) => {
                                 return (
                                   <button
                                     key={slot.start}
                                     type="button"
-                                    disabled={!isAvailable}
                                     onClick={() => setEventTime(slot.start)}
                                     className={`px-3 py-2 text-sm rounded-lg border transition-all ${
                                       eventTime === slot.start
                                         ? "bg-[#FF8C6B] text-white border-[#FF8C6B]"
-                                        : isAvailable
-                                        ? "border-stone-300 hover:border-[#FF8C6B]"
-                                        : "border-stone-200 bg-stone-100 text-stone-400 cursor-not-allowed line-through"
+                                        : "border-stone-300 hover:border-[#FF8C6B]"
                                     }`}
                                   >
                                     {slot.label}

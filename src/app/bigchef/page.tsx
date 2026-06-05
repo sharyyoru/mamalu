@@ -122,7 +122,7 @@ export default function BigChefPage() {
 
   const [eventDate, setEventDate] = useState("");
   const [eventTime, setEventTime] = useState("");
-  const [allTimeSlots, setAllTimeSlots] = useState<TimeSlot[]>([]);
+  const [, setAllTimeSlots] = useState<TimeSlot[]>([]);
   const [availableTimeSlots, setAvailableTimeSlots] = useState<TimeSlot[]>([]);
   const [nannySchedules, setNannySchedules] = useState<Record<string, NannyMenuSchedule>>({});
   const [loadingSlots, setLoadingSlots] = useState(false);
@@ -660,22 +660,18 @@ export default function BigChefPage() {
                                       <Loader2 className="h-4 w-4 animate-spin" />
                                       Loading...
                                     </div>
-                                  ) : schedule.date && schedule.allTimeSlots.length > 0 ? (
+                                  ) : schedule.date && schedule.availableTimeSlots.length > 0 ? (
                                     <div className="grid grid-cols-2 gap-2">
-                                      {schedule.allTimeSlots.map((slot) => {
-                                        const isAvailable = schedule.availableTimeSlots.some((s) => s.start === slot.start);
+                                      {schedule.availableTimeSlots.map((slot) => {
                                         return (
                                           <button
                                             key={slot.start}
                                             type="button"
-                                            disabled={!isAvailable}
                                             onClick={() => updateNannyScheduleTime(menu.id, slot.start)}
                                             className={`px-3 py-2 text-sm rounded-lg border ${
                                               schedule.time === slot.start
                                                 ? "bg-[#FF8C6B] text-white border border-[#FF8C6B]"
-                                                : isAvailable
-                                                ? "border-stone-300 bg-white hover:border-[#FF8C6B]"
-                                                : "bg-stone-100 text-stone-400 cursor-not-allowed line-through"
+                                                : "border-stone-300 bg-white hover:border-[#FF8C6B]"
                                             }`}
                                           >
                                             {slot.label}
@@ -718,8 +714,8 @@ export default function BigChefPage() {
                     <div className="grid sm:grid-cols-2 gap-4">
                       <div><label className="block text-base font-bold text-stone-700 mb-1"><Calendar className="inline h-4 w-4 mr-1" />Event Date *</label><input type="date" value={eventDate} onChange={e => setEventDate(e.target.value)} min={today} className="w-full px-4 py-2 border border-stone-300 rounded-lg" required /></div>
                       <div><label className="block text-base font-bold text-stone-700 mb-1"><Clock className="inline h-4 w-4 mr-1" />Time Slot *</label>
-                        {loadingSlots ? <div className="flex items-center gap-2 py-2 text-stone-500"><Loader2 className="h-4 w-4 animate-spin" />Loading...</div> : eventDate && allTimeSlots.length > 0 ? (
-                          <div className="grid grid-cols-2 gap-2">{allTimeSlots.map((slot) => { const isAvailable = availableTimeSlots.some((s) => s.start === slot.start); return (<button key={slot.start} type="button" disabled={!isAvailable} onClick={() => setEventTime(slot.start)} className={`px-3 py-2 text-sm rounded-lg border ${eventTime === slot.start ? "bg-[#FF8C6B] text-white border border-[#FF8C6B]" : isAvailable ? "border-stone-300 hover:border-[#FF8C6B]" : "bg-stone-100 text-stone-400 cursor-not-allowed line-through"}`}>{slot.label}</button>); })}</div>
+                        {loadingSlots ? <div className="flex items-center gap-2 py-2 text-stone-500"><Loader2 className="h-4 w-4 animate-spin" />Loading...</div> : eventDate && availableTimeSlots.length > 0 ? (
+                          <div className="grid grid-cols-2 gap-2">{availableTimeSlots.map((slot) => { return (<button key={slot.start} type="button" onClick={() => setEventTime(slot.start)} className={`px-3 py-2 text-sm rounded-lg border ${eventTime === slot.start ? "bg-[#FF8C6B] text-white border border-[#FF8C6B]" : "border-stone-300 hover:border-[#FF8C6B]"}`}>{slot.label}</button>); })}</div>
                         ) : <p className="text-sm text-stone-500 py-2">{eventDate ? "No slots available" : "Select a date first"}</p>}
                       </div>
                     </div>

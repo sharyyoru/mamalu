@@ -4,6 +4,12 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { ensureCustomerAccountAndSendAccess } from "@/lib/account/customer-account";
 import { sendServiceBookingConfirmationEmail } from "@/lib/email/service-booking-confirmation";
 
+const BOOKED_SLOT_STATUSES = ["confirmed", "pending", "deposit_paid"];
+
+function normalizeTimeForQuery(time: string) {
+  return time.length === 5 ? `${time}:00` : time;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const supabase = createAdminClient();
@@ -87,6 +93,28 @@ export async function POST(request: NextRequest) {
     const paymentAmount = isDepositPayment ? adjustedDepositAmount || 0 : discountedTotalAmount;
     const paymentStatus = paymentAmount <= 0 ? "paid" : (isDepositPayment ? "deposit_pending" : "pending");
     const bookingStatus = paymentAmount <= 0 ? "confirmed" : "pending";
+
+    if (eventDate && eventTime) {
+      const { data: existingBookings, error: availabilityError } = await supabase
+        .from("service_bookings")
+        .select("id, booking_number")
+        .eq("event_date", eventDate)
+        .eq("event_time", normalizeTimeForQuery(eventTime))
+        .in("status", BOOKED_SLOT_STATUSES)
+        .limit(1);
+
+      if (availabilityError) {
+        console.error("Slot availability check error:", availabilityError);
+        return NextResponse.json({ error: "Could not verify slot availability" }, { status: 500 });
+      }
+
+      if (existingBookings && existingBookings.length > 0) {
+        return NextResponse.json(
+          { error: "The selected time slot is already booked. Please choose another time." },
+          { status: 409 }
+        );
+      }
+    }
 
     // Create booking record
     const bookingData = {
