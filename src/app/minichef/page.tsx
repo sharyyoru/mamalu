@@ -546,11 +546,11 @@ export default function MiniChefPage() {
   const selectedTimeSlotLabel = allTimeSlots.find((slot) => slot.start === eventTime)?.label || eventTime;
   const displayedTimeSlots = isBirthday ? availableTimeSlots : allTimeSlots;
 
-  // Payment calculation - all public Mini Chef bookings are 50% deposit.
+  // Payment calculation - Mini Chef packages are paid in full.
   const totalAmount = calculateTotal();
   const voucherDiscount = appliedVoucher ? Math.min(totalAmount, Number(appliedVoucher.amount) || 0) : 0;
   const discountedTotalAmount = Math.max(0, totalAmount - voucherDiscount);
-  const requiresDeposit = true;
+  const requiresDeposit = !isPackage;
   const depositAmount = requiresDeposit ? Math.ceil(discountedTotalAmount * 0.5) : discountedTotalAmount;
   const balanceAmount = requiresDeposit ? discountedTotalAmount - depositAmount : 0;
 
@@ -610,7 +610,7 @@ export default function MiniChefPage() {
           quantity: selectedExtras[e.id],
       }));
 
-      const isDepositPayment = true;
+      const isDepositPayment = requiresDeposit;
       const packageClassNames = selectedPackageMenuItems.map((item) => item.name).join(", ");
 
       const res = await fetch("/api/services/book", {
