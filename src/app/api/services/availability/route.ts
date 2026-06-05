@@ -4,6 +4,8 @@ import { DEFAULT_BOOKING_TIME_SLOTS } from "@/lib/booking-time-slots";
 
 // Buffer time after each booking for preparation/cleaning (in minutes)
 const BUFFER_MINUTES = 60;
+const MIN_BOOKING_NOTICE_MINUTES = 120;
+const BUSINESS_TIME_ZONE = "Asia/Dubai";
 
 interface BookedSlot {
   event_time: string;
@@ -29,6 +31,34 @@ interface TimeSlotRow {
 function parseTime(timeStr: string): number {
   const [hours, minutes] = timeStr.split(":").map(Number);
   return hours * 60 + minutes;
+}
+
+function getBusinessDateParts(date = new Date()) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: BUSINESS_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(date);
+
+  const value = (type: string) => parts.find((part) => part.type === type)?.value || "00";
+
+  return {
+    date: `${value("year")}-${value("month")}-${value("day")}`,
+    minutes: Number(value("hour")) * 60 + Number(value("minute")),
+  };
+}
+
+function isSlotBookableByNotice(date: string, slot: TimeSlotInfo): boolean {
+  const now = getBusinessDateParts();
+
+  if (date < now.date) return false;
+  if (date > now.date) return true;
+
+  return parseTime(slot.start) - now.minutes >= MIN_BOOKING_NOTICE_MINUTES;
 }
 
 function isSlotBlockedByBooking(
@@ -107,7 +137,9 @@ export async function GET(request: NextRequest) {
     // If no supabase client, return all default slots as available
     if (!supabase) {
       console.log("Supabase not configured, returning all slots as available");
-      const slotsForDay = getSlotsForDay(dayOfWeek, fallbackSlots);
+      const slotsForDay = getSlotsForDay(dayOfWeek, fallbackSlots).filter((slot) =>
+        isSlotBookableByNotice(date, slot)
+      );
       return NextResponse.json({
         date,
         dayOfWeek,
@@ -116,6 +148,7 @@ export async function GET(request: NextRequest) {
         availableSlots: slotsForDay,
         blockedSlots: [],
         bufferMinutes: BUFFER_MINUTES,
+        minBookingNoticeMinutes: MIN_BOOKING_NOTICE_MINUTES,
       });
     }
 
@@ -138,7 +171,9 @@ export async function GET(request: NextRequest) {
     }
 
     // Get slots available for this day of the week
-    const slotsForDay = getSlotsForDay(dayOfWeek, configuredSlots);
+    const slotsForDay = getSlotsForDay(dayOfWeek, configuredSlots).filter((slot) =>
+      isSlotBookableByNotice(date, slot)
+    );
 
     // Fetch all confirmed bookings for the given date
     let bookedSlots: BookedSlot[] = [];
@@ -161,6 +196,7 @@ export async function GET(request: NextRequest) {
           availableSlots: slotsForDay,
           blockedSlots: [],
           bufferMinutes: BUFFER_MINUTES,
+          minBookingNoticeMinutes: MIN_BOOKING_NOTICE_MINUTES,
           warning: "Could not check existing bookings",
         });
       }
@@ -179,6 +215,7 @@ export async function GET(request: NextRequest) {
         availableSlots: slotsForDay,
         blockedSlots: [],
         bufferMinutes: BUFFER_MINUTES,
+        minBookingNoticeMinutes: MIN_BOOKING_NOTICE_MINUTES,
         warning: "Database connection error",
       });
     }
@@ -200,6 +237,7 @@ export async function GET(request: NextRequest) {
       availableSlots,
       blockedSlots,
       bufferMinutes: BUFFER_MINUTES,
+      minBookingNoticeMinutes: MIN_BOOKING_NOTICE_MINUTES,
     });
   } catch (error) {
     console.error("Availability check error:", error);

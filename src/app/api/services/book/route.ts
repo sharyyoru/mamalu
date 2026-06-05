@@ -5,9 +5,44 @@ import { ensureCustomerAccountAndSendAccess } from "@/lib/account/customer-accou
 import { sendServiceBookingConfirmationEmail } from "@/lib/email/service-booking-confirmation";
 
 const BOOKED_SLOT_STATUSES = ["confirmed", "pending", "deposit_paid"];
+const MIN_BOOKING_NOTICE_MINUTES = 120;
+const BUSINESS_TIME_ZONE = "Asia/Dubai";
 
 function normalizeTimeForQuery(time: string) {
   return time.length === 5 ? `${time}:00` : time;
+}
+
+function parseTime(time: string) {
+  const [hours, minutes] = time.split(":").map(Number);
+  return hours * 60 + minutes;
+}
+
+function getBusinessDateParts(date = new Date()) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: BUSINESS_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(date);
+
+  const value = (type: string) => parts.find((part) => part.type === type)?.value || "00";
+
+  return {
+    date: `${value("year")}-${value("month")}-${value("day")}`,
+    minutes: Number(value("hour")) * 60 + Number(value("minute")),
+  };
+}
+
+function hasMinimumBookingNotice(eventDate: string, eventTime: string) {
+  const now = getBusinessDateParts();
+
+  if (eventDate < now.date) return false;
+  if (eventDate > now.date) return true;
+
+  return parseTime(eventTime) - now.minutes >= MIN_BOOKING_NOTICE_MINUTES;
 }
 
 export async function POST(request: NextRequest) {
@@ -94,6 +129,13 @@ export async function POST(request: NextRequest) {
     const paymentAmount = isDepositPayment ? adjustedDepositAmount || 0 : discountedTotalAmount;
     const paymentStatus = paymentAmount <= 0 ? "paid" : (isDepositPayment ? "deposit_pending" : "pending");
     const bookingStatus = paymentAmount <= 0 ? "confirmed" : "pending";
+
+    if (eventDate && eventTime && !hasMinimumBookingNotice(eventDate, eventTime)) {
+      return NextResponse.json(
+        { error: "Please choose a time slot at least 2 hours from now." },
+        { status: 400 }
+      );
+    }
 
     const shouldBlockBookedSlot = category === "birthdays" || category === "corporate";
 
