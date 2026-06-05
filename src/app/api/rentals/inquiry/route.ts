@@ -16,6 +16,7 @@ export async function POST(request: NextRequest) {
       phone,
       date,
       guests,
+      timeSlot,
       purpose,
       message,
       rentalOption,
@@ -36,6 +37,7 @@ export async function POST(request: NextRequest) {
 Rental Type: ${rentalOption}
 Rental Price: AED ${rentalPrice}
 Preferred Date: ${date}
+Time Slot: ${timeSlot || "Not specified"}
 Number of Guests: ${guests || "Not specified"}
 Purpose: ${purpose || "Not specified"}
 Add-ons: ${addOns?.length > 0 ? addOns.join(", ") : "None"}
@@ -90,6 +92,10 @@ Additional Notes: ${message || "None"}
             <tr>
               <td style="padding: 8px 0; color: #6b7280;">Preferred Date:</td>
               <td style="padding: 8px 0; color: #1f2937;">${date}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; color: #6b7280;">Time Slot:</td>
+              <td style="padding: 8px 0; color: #1f2937;">${timeSlot || "Not specified"}</td>
             </tr>
             <tr>
               <td style="padding: 8px 0; color: #6b7280;">Number of Guests:</td>
@@ -171,6 +177,10 @@ Additional Notes: ${message || "None"}
             <tr>
               <td style="padding: 8px 0; color: #6b7280;">Preferred Date:</td>
               <td style="padding: 8px 0; color: #1f2937;">${date}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; color: #6b7280;">Time Slot:</td>
+              <td style="padding: 8px 0; color: #1f2937;">${timeSlot || "Not specified"}</td>
             </tr>
             <tr>
               <td style="padding: 8px 0; color: #6b7280;">Estimated Total:</td>

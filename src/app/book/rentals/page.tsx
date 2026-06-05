@@ -3,24 +3,26 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, Clock, Users, Calendar, CheckCircle2, Plus, Minus, Loader2 } from "lucide-react";
+import { ArrowLeft, ChevronDown, Clock, CheckCircle2 } from "lucide-react";
 import ImageSlider from "@/components/ImageSlider";
+import { MonthlyAvailableDatePicker } from "@/components/booking/monthly-available-date-picker";
 import { RentalsPageContent, defaultRentalsContent } from "@/types/site-content";
 
-interface RentalOption {
-  id: string;
-  name: string;
-  duration: string;
-  price: number;
-  description: string;
-  icon: string;
-}
-
 const PRIMARY_BUTTON_CLASS = "bg-[rgb(255_140_107)] hover:bg-[rgb(255_126_91)] text-white border border-[rgb(255_140_107)] disabled:!bg-[rgb(255_170_145)] disabled:!border-[rgb(255_170_145)] disabled:!text-white disabled:!opacity-100 disabled:cursor-not-allowed";
+const FORM_LABEL_CLASS = "block text-base font-bold text-stone-700 mb-2";
+const PURPOSE_OPTIONS = [
+  { value: "", label: "Select purpose" },
+  { value: "cooking-session", label: "Private Cooking Session" },
+  { value: "content-creation", label: "Content Creation / Filming" },
+  { value: "corporate-event", label: "Corporate Event" },
+  { value: "private-party", label: "Private Party" },
+  { value: "workshop", label: "Workshop / Class" },
+  { value: "other", label: "Other" },
+];
+const HALF_DAY_TIME_SLOTS = ["9am - 1pm", "1pm - 5pm", "5pm - 9pm"];
 
 export default function RentalsPage() {
   const [content, setContent] = useState<RentalsPageContent>(defaultRentalsContent);
-  const [loading, setLoading] = useState(true);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [selectedAddOns, setSelectedAddOns] = useState<string[]>([]);
   const [formData, setFormData] = useState({
@@ -29,11 +31,17 @@ export default function RentalsPage() {
     phone: "",
     date: "",
     guests: "",
+    timeSlot: "",
     purpose: "",
     message: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isPurposeOpen, setIsPurposeOpen] = useState(false);
+  const today = new Date().toISOString().split("T")[0];
+  const selectedPurposeLabel = PURPOSE_OPTIONS.find((option) => option.value === formData.purpose)?.label || "Select purpose";
+  const selectedRentalOption = content.rentalOptions.find((o) => o.id === selectedOption);
+  const isHalfDayRental = selectedRentalOption?.id === "half-day";
 
   useEffect(() => {
     fetchContent();
@@ -46,8 +54,6 @@ export default function RentalsPage() {
       setContent(data);
     } catch (error) {
       console.error("Error fetching rentals content:", error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -69,6 +75,14 @@ export default function RentalsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedOption) return;
+    if (!formData.date) {
+      alert("Please select a preferred date.");
+      return;
+    }
+    if (isHalfDayRental && !formData.timeSlot) {
+      alert("Please select a time slot for the half day rental.");
+      return;
+    }
 
     setIsSubmitting(true);
 
@@ -85,6 +99,7 @@ export default function RentalsPage() {
           phone: formData.phone,
           date: formData.date,
           guests: formData.guests,
+          timeSlot: formData.timeSlot,
           purpose: formData.purpose,
           message: formData.message,
           rentalOption: selectedRental?.name,
@@ -183,7 +198,12 @@ export default function RentalsPage() {
                 {content.rentalOptions.map((option) => (
                   <button
                     key={option.id}
-                    onClick={() => setSelectedOption(option.id)}
+                    onClick={() => {
+                      setSelectedOption(option.id);
+                      if (option.id !== "half-day") {
+                        setFormData({ ...formData, timeSlot: "" });
+                      }
+                    }}
                     className={`p-6 rounded-2xl border-2 text-left transition-all ${
                       selectedOption === option.id
                         ? "border-[var(--c-accent)] bg-[var(--c-peach)]/30"
@@ -258,7 +278,7 @@ export default function RentalsPage() {
                 
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-2">Full Name *</label>
+                    <label className={FORM_LABEL_CLASS}>Full Name *</label>
                     <input
                       type="text"
                       required
@@ -268,7 +288,7 @@ export default function RentalsPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">Email *</label>
+                    <label className={FORM_LABEL_CLASS}>Email *</label>
                     <input
                       type="email"
                       required
@@ -278,7 +298,7 @@ export default function RentalsPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">Phone *</label>
+                    <label className={FORM_LABEL_CLASS}>Phone *</label>
                     <input
                       type="tel"
                       required
@@ -288,45 +308,94 @@ export default function RentalsPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">Preferred Date *</label>
-                    <input
-                      type="date"
-                      required
+                    <label className={FORM_LABEL_CLASS}>Preferred Date *</label>
+                    <MonthlyAvailableDatePicker
                       value={formData.date}
-                      onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                      className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[var(--c-accent)] focus:outline-none"
+                      onChange={(date) => setFormData({ ...formData, date })}
+                      today={today}
+                      restrictToAvailableDates={false}
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">Number of Guests</label>
+                    <label className={FORM_LABEL_CLASS}>Number of Guests</label>
                     <input
                       type="number"
                       min="1"
+                      max="35"
                       value={formData.guests}
-                      onChange={(e) => setFormData({ ...formData, guests: e.target.value })}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        const guestCount = Number(value);
+                        setFormData({
+                          ...formData,
+                          guests: value && guestCount > 35 ? "35" : value,
+                        });
+                      }}
                       className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[var(--c-accent)] focus:outline-none"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">Purpose of Rental</label>
-                    <select
-                      value={formData.purpose}
-                      onChange={(e) => setFormData({ ...formData, purpose: e.target.value })}
-                      className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[var(--c-accent)] focus:outline-none"
-                    >
-                      <option value="">Select purpose</option>
-                      <option value="cooking-session">Private Cooking Session</option>
-                      <option value="content-creation">Content Creation / Filming</option>
-                      <option value="corporate-event">Corporate Event</option>
-                      <option value="private-party">Private Party</option>
-                      <option value="workshop">Workshop / Class</option>
-                      <option value="other">Other</option>
-                    </select>
+                    <label className={FORM_LABEL_CLASS}>Purpose of Rental</label>
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() => setIsPurposeOpen((open) => !open)}
+                        className="flex min-h-[60px] w-full items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-3 text-left text-base font-bold leading-6 text-stone-700 focus:border-[var(--c-accent)] focus:outline-none"
+                      >
+                        <span className={formData.purpose ? "text-stone-700" : "text-stone-400"}>
+                          {selectedPurposeLabel}
+                        </span>
+                        <ChevronDown className={`h-4 w-4 text-stone-700 transition-transform ${isPurposeOpen ? "rotate-180" : ""}`} />
+                      </button>
+                      {isPurposeOpen && (
+                        <div className="absolute left-0 top-full z-30 mt-2 w-full overflow-hidden rounded-xl border border-gray-200 bg-white py-1 shadow-lg">
+                          {PURPOSE_OPTIONS.map((option) => (
+                            <button
+                              key={option.value || "empty"}
+                              type="button"
+                              onClick={() => {
+                                setFormData({ ...formData, purpose: option.value });
+                                setIsPurposeOpen(false);
+                              }}
+                              className={`block w-full px-4 py-3 text-left text-base font-bold transition-colors hover:bg-[#FF8C6B]/10 ${
+                                formData.purpose === option.value
+                                  ? "bg-[#FF8C6B]/15 text-[#E95F3F]"
+                                  : "text-stone-700"
+                              }`}
+                            >
+                              {option.label}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
+
+                {isHalfDayRental && (
+                  <div>
+                    <label className={FORM_LABEL_CLASS}>Time Slot *</label>
+                    <div className="grid sm:grid-cols-3 gap-3">
+                      {HALF_DAY_TIME_SLOTS.map((slot) => (
+                        <button
+                          key={slot}
+                          type="button"
+                          onClick={() => setFormData({ ...formData, timeSlot: slot })}
+                          className={`rounded-xl border px-4 py-3 text-center text-base font-bold transition-colors ${
+                            formData.timeSlot === slot
+                              ? "border-[#FF8C6B] bg-[#FF8C6B] text-white"
+                              : "border-gray-200 bg-white text-stone-700 hover:border-[#FF8C6B] hover:bg-[#FF8C6B]/10"
+                          }`}
+                        >
+                          {slot}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 
                 <div>
-                  <label className="block text-sm font-medium mb-2">Additional Notes</label>
+                  <label className={FORM_LABEL_CLASS}>Additional Notes</label>
                   <textarea
                     rows={4}
                     value={formData.message}
@@ -364,6 +433,11 @@ export default function RentalsPage() {
                       <p className="text-sm text-gray-500">
                         {content.rentalOptions.find((o) => o.id === selectedOption)?.duration}
                       </p>
+                      {isHalfDayRental && formData.timeSlot && (
+                        <p className="text-sm font-medium text-[#E95F3F]">
+                          {formData.timeSlot}
+                        </p>
+                      )}
                     </div>
                     <p className="font-bold">
                       AED {content.rentalOptions.find((o) => o.id === selectedOption)?.price.toLocaleString()}
