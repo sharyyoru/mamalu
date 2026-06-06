@@ -42,6 +42,10 @@ const sortByNewest = <T extends RecordMap>(items: T[], fields: string[]) =>
     return bTime - aTime;
   });
 
+const uniqueValues = (values: Array<string | null | undefined>) => [
+  ...new Set(values.filter((value): value is string => Boolean(value))),
+];
+
 const createActivity = (
   id: string,
   type: "order" | "booking" | "voucher" | "rental",
@@ -160,6 +164,56 @@ export async function GET(
       ["created_at", "redeemed_at", "paid_at", "event_date"]
     );
 
+    let invoices: RecordMap[] = [];
+    const invoiceFilters: string[] = [];
+    const serviceBookingIds = uniqueValues(serviceBookings.map((booking) => booking.id));
+    const classBookingIds = uniqueValues(classBookings.map((booking) => booking.id));
+    const productOrderIds = uniqueValues(orders.map((order) => order.id));
+    const voucherPurchaseIds = uniqueValues(voucherPurchases.map((voucher) => voucher.id));
+    const invoiceNumbers = uniqueValues([
+      ...classBookings.map((booking) => booking.invoice_number),
+      ...serviceBookings.map((booking) => booking.invoice_number),
+      ...orders.map((order) => order.invoice_number),
+      ...voucherPurchases.map((voucher) => voucher.invoice_number),
+    ]);
+
+    if (email) invoiceFilters.push(`customer_email.ilike.${email}`);
+    if (serviceBookingIds.length > 0) invoiceFilters.push(`service_booking_id.in.(${serviceBookingIds.join(",")})`);
+    if (classBookingIds.length > 0) invoiceFilters.push(`booking_id.in.(${classBookingIds.join(",")})`);
+    if (productOrderIds.length > 0) invoiceFilters.push(`product_order_id.in.(${productOrderIds.join(",")})`);
+    if (voucherPurchaseIds.length > 0) invoiceFilters.push(`voucher_purchase_id.in.(${voucherPurchaseIds.join(",")})`);
+    if (invoiceNumbers.length > 0) invoiceFilters.push(`invoice_number.in.(${invoiceNumbers.join(",")})`);
+
+    if (invoiceFilters.length > 0) {
+      const { data: invoiceRows, error: invoicesError } = await supabase
+        .from("invoices")
+        .select("*")
+        .or(invoiceFilters.join(","))
+        .order("created_at", { ascending: false })
+        .limit(100);
+
+      if (invoicesError) {
+        console.warn(`Error fetching user invoices: ${invoicesError.message}`);
+
+        if (email) {
+          const { data: fallbackInvoices, error: fallbackInvoicesError } = await supabase
+            .from("invoices")
+            .select("*")
+            .ilike("customer_email", email)
+            .order("created_at", { ascending: false })
+            .limit(100);
+
+          if (fallbackInvoicesError) {
+            console.warn(`Fallback user invoice lookup failed: ${fallbackInvoicesError.message}`);
+          } else {
+            invoices = fallbackInvoices || [];
+          }
+        }
+      } else {
+        invoices = invoiceRows || [];
+      }
+    }
+
     const orderSpend = orders.reduce((sum, order) => sum + toNumber(order.total_amount), 0);
     const bookingSpend = bookings.reduce((sum, booking) => sum + toNumber(booking.total_amount), 0);
     const voucherSpend = voucherPurchases
@@ -237,6 +291,7 @@ export async function GET(
       bookings,
       vouchers,
       rentals,
+      invoices,
       activity,
     });
   } catch (error: unknown) {

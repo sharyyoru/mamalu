@@ -22,6 +22,10 @@ import {
   TicketPercent,
   CheckCircle,
   AlertCircle,
+  FileText,
+  ExternalLink,
+  Copy,
+  Eye,
   type LucideIcon
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -65,6 +69,23 @@ interface ActivityItem {
   amount?: number | null;
   date?: string | null;
   status: string;
+}
+
+interface CustomerInvoice {
+  id: string;
+  invoice_number: string;
+  customer_name?: string | null;
+  customer_email?: string | null;
+  amount: number;
+  status: string;
+  created_at: string;
+  paid_at?: string | null;
+  due_date?: string | null;
+  description?: string | null;
+  service_name?: string | null;
+  service_type?: string | null;
+  source_type?: string | null;
+  payment_link?: string | null;
 }
 
 // API records are normalized from unrelated order, booking, voucher, and lead tables.
@@ -111,7 +132,28 @@ const statusVariant = (status?: string): BadgeVariant => {
   return "secondary";
 };
 
+const getInvoiceStatusClass = (status?: string) => {
+  switch (String(status || "").toLowerCase()) {
+    case "paid":
+      return "bg-green-100 text-green-700";
+    case "sent":
+      return "bg-blue-100 text-blue-700";
+    case "pending":
+      return "bg-amber-100 text-amber-700";
+    case "draft":
+      return "bg-stone-100 text-stone-600";
+    case "cancelled":
+    case "overdue":
+      return "bg-red-100 text-red-700";
+    default:
+      return "bg-stone-100 text-stone-700";
+  }
+};
+
 const formatDateSafe = (date?: string | null) => date ? formatDate(date) : "Not set";
+
+const getInvoiceTitle = (invoice: CustomerInvoice) =>
+  invoice.description || invoice.service_name || invoice.service_type || "Customer invoice";
 
 const getRentalDetail = (notes?: string | null, label?: string) => {
   if (!notes || !label) return null;
@@ -160,6 +202,83 @@ function ActivityRows({ activities }: { activities: ActivityItem[] }) {
   );
 }
 
+function InvoiceRows({
+  invoices,
+  limit,
+  copiedInvoiceLink,
+  onCopyPaymentLink,
+}: {
+  invoices: CustomerInvoice[];
+  limit?: number;
+  copiedInvoiceLink: string | null;
+  onCopyPaymentLink: (link: string, invoiceId: string) => void;
+}) {
+  const visibleInvoices = typeof limit === "number" ? invoices.slice(0, limit) : invoices;
+
+  if (visibleInvoices.length === 0) {
+    return <EmptyState icon={FileText} message="No invoices found for this customer." />;
+  }
+
+  return (
+    <div className="rounded-lg border border-stone-200 overflow-hidden">
+      {visibleInvoices.map((invoice) => (
+        <div
+          key={invoice.id}
+          className="flex flex-col gap-3 border-b border-stone-100 p-4 last:border-b-0 sm:flex-row sm:items-center sm:justify-between"
+        >
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="font-medium text-stone-900">{invoice.invoice_number}</p>
+              <Badge className={getInvoiceStatusClass(invoice.status)}>
+                {invoice.status || "unknown"}
+              </Badge>
+            </div>
+            <p className="text-sm text-stone-600 truncate">{getInvoiceTitle(invoice)}</p>
+            <p className="text-xs text-stone-500">
+              Created {formatDateSafe(invoice.created_at)}
+              {invoice.paid_at ? ` - Paid ${formatDateSafe(invoice.paid_at)}` : ""}
+              {!invoice.paid_at && invoice.due_date ? ` - Due ${formatDateSafe(invoice.due_date)}` : ""}
+            </p>
+          </div>
+          <div className="flex items-center justify-between gap-3 sm:justify-end">
+            <p className="font-semibold text-stone-900">{formatPrice(Number(invoice.amount) || 0)}</p>
+            <div className="flex items-center gap-1">
+              {invoice.payment_link && invoice.status !== "paid" && (
+                <>
+                  <a
+                    href={invoice.payment_link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="rounded-md p-2 text-stone-500 hover:bg-stone-100 hover:text-stone-900"
+                    title="Open payment link"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => onCopyPaymentLink(invoice.payment_link!, invoice.id)}
+                    className="rounded-md p-2 text-stone-500 hover:bg-stone-100 hover:text-stone-900"
+                    title={copiedInvoiceLink === invoice.id ? "Copied payment link" : "Copy payment link"}
+                  >
+                    <Copy className="h-4 w-4" />
+                  </button>
+                </>
+              )}
+              <Link
+                href={`/admin/invoices?invoice=${invoice.invoice_number}`}
+                className="rounded-md p-2 text-stone-500 hover:bg-stone-100 hover:text-stone-900"
+                title="Open invoice"
+              >
+                <Eye className="h-4 w-4" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function UserDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -171,6 +290,7 @@ export default function UserDetailPage() {
   const [bookings, setBookings] = useState<DataRecord[]>([]);
   const [vouchers, setVouchers] = useState<DataRecord[]>([]);
   const [rentals, setRentals] = useState<DataRecord[]>([]);
+  const [invoices, setInvoices] = useState<CustomerInvoice[]>([]);
   const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingRole, setEditingRole] = useState(false);
@@ -183,6 +303,7 @@ export default function UserDetailPage() {
   const [passwordError, setPasswordError] = useState("");
   const [passwordSuccess, setPasswordSuccess] = useState("");
   const [resettingPassword, setResettingPassword] = useState(false);
+  const [copiedInvoiceLink, setCopiedInvoiceLink] = useState<string | null>(null);
 
   useEffect(() => {
     fetchUser();
@@ -206,6 +327,7 @@ export default function UserDetailPage() {
         setBookings(data.bookings || []);
         setVouchers(data.vouchers || []);
         setRentals(data.rentals || []);
+        setInvoices(data.invoices || []);
         setActivities(data.activity || []);
       }
     } catch (error) {
@@ -213,6 +335,12 @@ export default function UserDetailPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const copyPaymentLink = (link: string, invoiceId: string) => {
+    navigator.clipboard.writeText(link);
+    setCopiedInvoiceLink(invoiceId);
+    setTimeout(() => setCopiedInvoiceLink(null), 2000);
   };
 
   const handleSaveRole = async () => {
@@ -304,6 +432,7 @@ export default function UserDetailPage() {
   const tabs = [
     { id: "overview", label: "Overview" },
     { id: "orders", label: "Orders" },
+    { id: "invoices", label: "Invoices" },
     { id: "bookings", label: "Bookings" },
     { id: "vouchers", label: "Vouchers" },
     { id: "rentals", label: "Rentals" },
@@ -543,6 +672,36 @@ export default function UserDetailPage() {
               </CardContent>
             </Card>
           </div>
+
+          <div className="lg:col-span-3">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between text-lg">
+                  <span className="flex items-center gap-2">
+                    <FileText className="h-5 w-5 text-amber-500" />
+                    Invoices
+                  </span>
+                  {invoices.length > 5 && (
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab("invoices")}
+                      className="text-sm font-medium text-amber-600 hover:text-amber-700"
+                    >
+                      View all
+                    </button>
+                  )}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <InvoiceRows
+                  invoices={invoices}
+                  limit={5}
+                  copiedInvoiceLink={copiedInvoiceLink}
+                  onCopyPaymentLink={copyPaymentLink}
+                />
+              </CardContent>
+            </Card>
+          </div>
         </div>
       )}
 
@@ -570,6 +729,19 @@ export default function UserDetailPage() {
                 </table>
               </div>
             )}
+          </CardContent>
+        </Card>
+      )}
+
+      {activeTab === "invoices" && (
+        <Card>
+          <CardHeader><CardTitle>Invoices</CardTitle></CardHeader>
+          <CardContent>
+            <InvoiceRows
+              invoices={invoices}
+              copiedInvoiceLink={copiedInvoiceLink}
+              onCopyPaymentLink={copyPaymentLink}
+            />
           </CardContent>
         </Card>
       )}
