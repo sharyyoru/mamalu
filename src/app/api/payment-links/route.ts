@@ -2,11 +2,43 @@ import { NextRequest, NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAuth } from "@/lib/auth/api-auth";
+import { sendPaymentLinkCreatedEmail } from "@/lib/email/payment-link-created";
 
 interface PaymentLinkExtra {
+  name?: string;
   price: number;
   quantity?: number;
 }
+
+interface CreatedInvoice {
+  id: string;
+  [key: string]: unknown;
+}
+
+const optionalInvoiceColumns = new Set([
+  "payment_link_id",
+  "lead_id",
+  "base_amount",
+  "extras_amount",
+  "service_name",
+  "service_type",
+  "event_date",
+  "guest_count",
+  "source_type",
+]);
+
+const getInvoiceCustomerName = (customerName: string | null | undefined, title: string) => {
+  return customerName?.trim() || title;
+};
+
+const getInvoiceCustomerEmail = (customerEmail: string | null | undefined) => {
+  return customerEmail?.trim() || "no-email@mamalukitchen.local";
+};
+
+const getMissingInvoiceColumn = (error: { message?: string }) => {
+  const match = error.message?.match(/'([^']+)' column of 'invoices'/);
+  return match?.[1] || null;
+};
 
 // GET: Fetch all payment links
 export async function GET(request: NextRequest) {
@@ -206,9 +238,132 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: insertError.message }, { status: 500 });
     }
 
+    const { data: invoiceNumData } = await supabase.rpc("generate_invoice_number");
+    const invoiceNumber = invoiceNumData || `INV-${new Date().getFullYear().toString().slice(-2)}-${Date.now().toString().slice(-5)}`;
+    const baseAmount = amount - extrasTotal;
+    const lineItems = [
+      {
+        name: title,
+        quantity: 1,
+        price: baseAmount > 0 ? baseAmount : amount,
+      },
+      ...(extras as PaymentLinkExtra[]).map((extra) => ({
+        name: extra.name || "Extra",
+        quantity: extra.quantity || 1,
+        price: extra.price,
+      })),
+    ];
+
+    const invoiceData: Record<string, unknown> = {
+      invoice_number: invoiceNumber,
+      payment_link_id: paymentLink.id,
+      lead_id: leadId || null,
+      customer_name: getInvoiceCustomerName(customerName, title),
+      customer_email: getInvoiceCustomerEmail(customerEmail),
+      customer_phone: customerPhone || null,
+      amount,
+      base_amount: baseAmount > 0 ? baseAmount : amount,
+      extras_amount: extrasTotal,
+      currency: "AED",
+      description: description || title,
+      line_items: lineItems,
+      service_name: title,
+      service_type: referenceType || "payment_link",
+      guest_count: numberOfPeople,
+      status: "sent",
+      payment_method: "stripe",
+      payment_link: stripePaymentLink.url,
+      sent_at: new Date().toISOString(),
+      notes: notes || null,
+      created_by: createdBy || null,
+      source_type: "payment_link",
+    };
+
+    let invoice: CreatedInvoice | null = null;
+    let invoiceDataForInsert = { ...invoiceData };
+
+    for (let attempt = 0; attempt <= optionalInvoiceColumns.size; attempt += 1) {
+      const { data: insertedInvoice, error: invoiceError } = await supabase
+        .from("invoices")
+        .insert(invoiceDataForInsert)
+        .select()
+        .single();
+
+      if (!invoiceError) {
+        invoice = insertedInvoice as CreatedInvoice;
+        break;
+      }
+
+      const missingColumn = getMissingInvoiceColumn(invoiceError);
+      if (
+        missingColumn &&
+        optionalInvoiceColumns.has(missingColumn) &&
+        Object.prototype.hasOwnProperty.call(invoiceDataForInsert, missingColumn)
+      ) {
+        const retryInvoiceData = { ...invoiceDataForInsert };
+        delete retryInvoiceData[missingColumn];
+        invoiceDataForInsert = retryInvoiceData;
+        console.warn(`Retrying payment link invoice insert without missing column: ${missingColumn}`);
+        continue;
+      }
+
+      console.error("Insert payment link invoice error:", invoiceError);
+      return NextResponse.json({ error: invoiceError.message }, { status: 500 });
+    }
+
+    if (!invoice) {
+      console.error("Insert payment link invoice error: invoice was not created after schema fallback");
+      return NextResponse.json({ error: "Failed to create invoice" }, { status: 500 });
+    }
+
+    const { error: paymentLinkInvoiceError } = await supabase
+      .from("payment_links")
+      .update({ invoice_id: invoice.id })
+      .eq("id", paymentLink.id);
+
+    if (paymentLinkInvoiceError) {
+      const missingPaymentLinkColumn = paymentLinkInvoiceError.message?.match(/'([^']+)' column of 'payment_links'/)?.[1];
+      if (missingPaymentLinkColumn === "invoice_id") {
+        console.warn("Payment link invoice created, but payment_links.invoice_id is missing in the schema cache");
+      } else {
+        console.error("Link payment link invoice error:", paymentLinkInvoiceError);
+        return NextResponse.json({ error: paymentLinkInvoiceError.message }, { status: 500 });
+      }
+    }
+
+    let emailSent = false;
+    let emailError: string | null = null;
+    const emailAddress = typeof customerEmail === "string" ? customerEmail.trim() : "";
+
+    if (emailAddress) {
+      const emailResult = await sendPaymentLinkCreatedEmail({
+        customerName: getInvoiceCustomerName(customerName, title),
+        customerEmail: emailAddress,
+        title,
+        amount,
+        paymentUrl: stripePaymentLink.url,
+        linkCode,
+        invoiceNumber,
+        description: description || null,
+      });
+
+      emailSent = emailResult.success;
+      emailError = emailResult.error || null;
+
+      if (!emailResult.success) {
+        console.error(`Payment link email failed for ${emailAddress}: ${emailResult.error}`);
+      }
+    } else {
+      emailError = "Customer email not provided";
+      console.warn(`Payment link ${linkCode} created without customer email; skipping payment link email`);
+    }
+
     return NextResponse.json({
       success: true,
-      paymentLink,
+      paymentLink: { ...paymentLink, invoice_id: invoice.id },
+      invoice,
+      emailSent,
+      emailError,
       stripeUrl: stripePaymentLink.url,
     });
   } catch (error) {

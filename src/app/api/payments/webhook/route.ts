@@ -573,12 +573,54 @@ export async function POST(request: NextRequest) {
                 }
               }
 
-              // Update associated invoice if exists
-              const { data: invoice } = await supabase
-                .from("invoices")
-                .select("id")
-                .eq("payment_link_id", paymentLink.id)
-                .single();
+              // Update associated invoice if exists. Some deployments may be
+              // missing newer FK columns in PostgREST's schema cache, so match
+              // by every durable link we store.
+              let invoice: { id: string } | null = null;
+
+              if (paymentLink.invoice_id) {
+                const { data: invoiceById, error: invoiceByIdError } = await supabase
+                  .from("invoices")
+                  .select("id")
+                  .eq("id", paymentLink.invoice_id)
+                  .maybeSingle();
+
+                if (invoiceByIdError) {
+                  console.warn(`Invoice lookup by payment_links.invoice_id failed: ${invoiceByIdError.message}`);
+                } else {
+                  invoice = invoiceById;
+                }
+              }
+
+              if (!invoice) {
+                const { data: invoiceByPaymentLinkId, error: invoiceByPaymentLinkIdError } = await supabase
+                  .from("invoices")
+                  .select("id")
+                  .eq("payment_link_id", paymentLink.id)
+                  .maybeSingle();
+
+                if (invoiceByPaymentLinkIdError) {
+                  console.warn(`Invoice lookup by payment_link_id failed: ${invoiceByPaymentLinkIdError.message}`);
+                } else {
+                  invoice = invoiceByPaymentLinkId;
+                }
+              }
+
+              if (!invoice && paymentLink.stripe_payment_link_url) {
+                const { data: invoiceByUrl, error: invoiceByUrlError } = await supabase
+                  .from("invoices")
+                  .select("id")
+                  .eq("payment_link", paymentLink.stripe_payment_link_url)
+                  .order("created_at", { ascending: false })
+                  .limit(1)
+                  .maybeSingle();
+
+                if (invoiceByUrlError) {
+                  console.warn(`Invoice lookup by payment link URL failed: ${invoiceByUrlError.message}`);
+                } else {
+                  invoice = invoiceByUrl;
+                }
+              }
 
               if (invoice) {
                 await supabase
@@ -590,6 +632,22 @@ export async function POST(request: NextRequest) {
                   .eq("id", invoice.id);
 
                 console.log(`Updated invoice ${invoice.id} to paid status`);
+              }
+
+              if (paymentLink.lead_id) {
+                const { error: leadUpdateError } = await supabase
+                  .from("leads")
+                  .update({
+                    status: "won",
+                    updated_at: new Date().toISOString(),
+                  })
+                  .eq("id", paymentLink.lead_id);
+
+                if (leadUpdateError) {
+                  console.warn(`Failed to mark lead ${paymentLink.lead_id} as won: ${leadUpdateError.message}`);
+                } else {
+                  console.log(`Marked lead ${paymentLink.lead_id} as won after payment`);
+                }
               }
 
               // Record transaction

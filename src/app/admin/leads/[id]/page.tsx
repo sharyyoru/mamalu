@@ -80,6 +80,7 @@ interface Invoice {
   amount: number;
   status: string;
   created_at: string;
+  payment_link?: string | null;
 }
 
 interface StaffMember {
@@ -87,6 +88,107 @@ interface StaffMember {
   full_name: string;
   email: string;
 }
+
+interface AdminUser extends StaffMember {
+  role: string;
+}
+
+type PaymentLinkForm = {
+  title: string;
+  amount: string;
+  numberOfPeople: number;
+  description: string;
+  notes: string;
+};
+
+const emptyPaymentLinkForm: PaymentLinkForm = {
+  title: "",
+  amount: "",
+  numberOfPeople: 1,
+  description: "",
+  notes: "",
+};
+
+const escapeRegex = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+const getLeadNoteValue = (notes: string | null | undefined, label: string) => {
+  if (!notes) return null;
+  const match = notes.match(new RegExp(`(?:^|\\n)\\s*${escapeRegex(label)}\\s*:\\s*(.+)`, "i"));
+  return match?.[1]?.trim() || null;
+};
+
+const parseLeadNoteAmount = (notes: string | null | undefined, labels: string[]) => {
+  for (const label of labels) {
+    const value = getLeadNoteValue(notes, label);
+    if (!value) continue;
+
+    const amountMatch = value.match(/(?:AED\s*)?([\d,]+(?:\.\d+)?)/i);
+    if (!amountMatch) continue;
+
+    const amount = parseFloat(amountMatch[1].replace(/,/g, ""));
+    if (Number.isFinite(amount) && amount > 0) return amount;
+  }
+
+  return null;
+};
+
+const formatAmountForInput = (amount: number) => {
+  return Number.isInteger(amount) ? amount.toString() : amount.toFixed(2);
+};
+
+const isKitchenStudioRentalLead = (lead: Lead | null) => {
+  if (!lead) return false;
+
+  const searchable = [
+    lead.lead_type,
+    lead.notes,
+    ...(lead.interests || []),
+  ].join(" ").toLowerCase();
+
+  return searchable.includes("renter")
+    || searchable.includes("rental")
+    || searchable.includes("kitchen studio");
+};
+
+const getRentalType = (lead: Lead | null) => {
+  if (!lead) return null;
+
+  const noteRentalType = getLeadNoteValue(lead.notes, "Rental Type");
+  if (noteRentalType) return noteRentalType;
+
+  const rentalInterest = lead.interests?.find((interest) =>
+    interest.toLowerCase().includes("kitchen studio rental")
+  );
+
+  return rentalInterest?.replace(/Kitchen Studio Rental\s*-\s*/i, "").trim() || null;
+};
+
+const buildPaymentLinkDefaults = (lead: Lead | null): PaymentLinkForm => {
+  if (!isKitchenStudioRentalLead(lead)) return { ...emptyPaymentLinkForm };
+
+  const rentalType = getRentalType(lead);
+  const amount = parseLeadNoteAmount(lead?.notes, ["Total Amount", "Amount", "Rental Price", "Price"]);
+  const preferredDate = getLeadNoteValue(lead?.notes, "Preferred Date");
+  const timeSlot = getLeadNoteValue(lead?.notes, "Time Slot");
+  const purpose = getLeadNoteValue(lead?.notes, "Purpose");
+  const addOns = getLeadNoteValue(lead?.notes, "Add-ons");
+
+  const description = [
+    rentalType ? `Rental type: ${rentalType}` : null,
+    preferredDate ? `Preferred date: ${preferredDate}` : null,
+    timeSlot ? `Time slot: ${timeSlot}` : null,
+    purpose && purpose.toLowerCase() !== "not specified" ? `Purpose: ${purpose}` : null,
+    addOns && addOns.toLowerCase() !== "none" ? `Add-ons: ${addOns}` : null,
+  ].filter(Boolean).join("\n");
+
+  return {
+    title: rentalType ? `Kitchen Studio Rental - ${rentalType}` : "Kitchen Studio Rental",
+    amount: amount ? formatAmountForInput(amount) : "",
+    numberOfPeople: 1,
+    description,
+    notes: "",
+  };
+};
 
 const leadStatuses = [
   { id: "new", name: "New", color: "bg-blue-100 text-blue-700" },
@@ -148,13 +250,7 @@ export default function LeadDetailPage() {
   // Payment Link Modal State
   const [showPaymentLinkModal, setShowPaymentLinkModal] = useState(false);
   const [creatingPaymentLink, setCreatingPaymentLink] = useState(false);
-  const [newPaymentLink, setNewPaymentLink] = useState({
-    title: "",
-    amount: "",
-    numberOfPeople: 1,
-    description: "",
-    notes: "",
-  });
+  const [newPaymentLink, setNewPaymentLink] = useState<PaymentLinkForm>(emptyPaymentLinkForm);
   const [createdPaymentLinkUrl, setCreatedPaymentLinkUrl] = useState<string | null>(null);
   const [copiedLink, setCopiedLink] = useState(false);
 
@@ -239,15 +335,16 @@ export default function LeadDetailPage() {
   const bookingTotalAmount = baseAmount + extrasTotal;
   const isDepositPayment = bookingForm.serviceType === "corporate_deck";
   const depositAmount = isDepositPayment ? Math.ceil(bookingTotalAmount * 0.5) : bookingTotalAmount;
+  const isRentalLead = isKitchenStudioRentalLead(lead);
 
   useEffect(() => {
     fetchLead();
     fetchStaffMembers();
   }, [leadId]);
 
-  const fetchLead = async () => {
+  const fetchLead = async (showLoading = true) => {
     try {
-      setLoading(true);
+      if (showLoading) setLoading(true);
       const res = await fetch(`/api/leads/${leadId}`);
       if (res.ok) {
         const data = await res.json();
@@ -261,7 +358,7 @@ export default function LeadDetailPage() {
     } catch (error) {
       console.error("Error fetching lead:", error);
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   };
 
@@ -271,7 +368,7 @@ export default function LeadDetailPage() {
       if (res.ok) {
         const data = await res.json();
         // Filter to staff and admin roles
-        const staff = (data.users || []).filter((u: any) => 
+        const staff = ((data.users || []) as AdminUser[]).filter((u) =>
           u.role === 'staff' || u.role === 'admin' || u.role === 'super_admin'
         );
         setStaffMembers(staff);
@@ -380,6 +477,17 @@ export default function LeadDetailPage() {
     return s?.color || "bg-stone-100 text-stone-700";
   };
 
+  const openPaymentLinkModal = () => {
+    setNewPaymentLink(buildPaymentLinkDefaults(lead));
+    setCreatedPaymentLinkUrl(null);
+    setShowPaymentLinkModal(true);
+  };
+
+  const closePaymentLinkModal = () => {
+    setShowPaymentLinkModal(false);
+    setCreatedPaymentLinkUrl(null);
+  };
+
   // Create Payment Link for this lead
   const handleCreatePaymentLink = async () => {
     if (!newPaymentLink.title || !newPaymentLink.amount) {
@@ -389,7 +497,8 @@ export default function LeadDetailPage() {
 
     setCreatingPaymentLink(true);
     try {
-      const totalAmount = parseFloat(newPaymentLink.amount) * newPaymentLink.numberOfPeople;
+      const numberOfPeople = isRentalLead ? 1 : newPaymentLink.numberOfPeople;
+      const totalAmount = parseFloat(newPaymentLink.amount) * numberOfPeople;
       const res = await fetch("/api/payment-links", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -398,7 +507,7 @@ export default function LeadDetailPage() {
           description: newPaymentLink.description || null,
           amount: totalAmount,
           pricePerPerson: parseFloat(newPaymentLink.amount),
-          numberOfPeople: newPaymentLink.numberOfPeople,
+          numberOfPeople,
           customerName: lead?.name || null,
           customerEmail: lead?.email || null,
           customerPhone: lead?.phone || null,
@@ -411,13 +520,8 @@ export default function LeadDetailPage() {
       if (res.ok) {
         const data = await res.json();
         setCreatedPaymentLinkUrl(data.stripeUrl);
-        setNewPaymentLink({
-          title: "",
-          amount: "",
-          numberOfPeople: 1,
-          description: "",
-          notes: "",
-        });
+        setNewPaymentLink({ ...emptyPaymentLinkForm });
+        await fetchLead(false);
       } else {
         const error = await res.json();
         alert(error.error || "Failed to create payment link");
@@ -449,7 +553,7 @@ export default function LeadDetailPage() {
     try {
       // Build extras array
       const extrasArray = Object.entries(selectedExtras)
-        .filter(([_, qty]) => qty > 0)
+        .filter(([, qty]) => qty > 0)
         .map(([id, qty]) => {
           const extra = availableExtras.find(e => e.id === id);
           return { id, name: extra?.name, price: extra?.price, quantity: qty };
@@ -580,10 +684,7 @@ export default function LeadDetailPage() {
             <>
               <Button 
                 variant="outline" 
-                onClick={() => {
-                  setShowPaymentLinkModal(true);
-                  setCreatedPaymentLinkUrl(null);
-                }}
+                onClick={openPaymentLinkModal}
                 className="border-amber-300 text-amber-700 hover:bg-amber-50"
               >
                 <LinkIcon className="h-4 w-4 mr-2" /> Generate Payment Link
@@ -1094,34 +1195,44 @@ export default function LeadDetailPage() {
               <CardContent>
                 {invoices.length > 0 ? (
                   <div className="space-y-2">
-                    {invoices.map((invoice) => (
-                      <div
-                        key={invoice.id}
-                        className="flex items-center justify-between p-3 border rounded-lg hover:bg-stone-50"
-                      >
-                        <div className="flex items-center gap-4">
-                          <div className="p-2 bg-purple-100 rounded-lg">
-                            <Receipt className="h-4 w-4 text-purple-600" />
+                    {invoices.map((invoice) => {
+                      const invoiceHref = invoice.payment_link || "/admin/invoices";
+
+                      return (
+                        <a
+                          key={invoice.id}
+                          href={invoiceHref}
+                          target={invoice.payment_link ? "_blank" : undefined}
+                          rel={invoice.payment_link ? "noopener noreferrer" : undefined}
+                          className="flex items-center justify-between p-3 border rounded-lg hover:bg-stone-50 transition-colors"
+                        >
+                          <div className="flex items-center gap-4">
+                            <div className="p-2 bg-purple-100 rounded-lg">
+                              <Receipt className="h-4 w-4 text-purple-600" />
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <p className="font-medium">{invoice.invoice_number}</p>
+                                <ExternalLink className="h-3.5 w-3.5 text-stone-400" />
+                              </div>
+                              <p className="text-sm text-stone-500">{formatDate(invoice.created_at)}</p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="font-medium">{invoice.invoice_number}</p>
-                            <p className="text-sm text-stone-500">{formatDate(invoice.created_at)}</p>
+                          <div className="text-right">
+                            <p className="font-semibold">{formatPrice(invoice.amount)}</p>
+                            <Badge
+                              className={
+                                invoice.status === "paid"
+                                  ? "bg-green-100 text-green-700"
+                                  : "bg-amber-100 text-amber-700"
+                              }
+                            >
+                              {invoice.status}
+                            </Badge>
                           </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-semibold">{formatPrice(invoice.amount)}</p>
-                          <Badge
-                            className={
-                              invoice.status === "paid"
-                                ? "bg-green-100 text-green-700"
-                                : "bg-amber-100 text-amber-700"
-                            }
-                          >
-                            {invoice.status}
-                          </Badge>
-                        </div>
-                      </div>
-                    ))}
+                        </a>
+                      );
+                    })}
                   </div>
                 ) : (
                   <div className="text-center py-8">
@@ -1183,10 +1294,7 @@ export default function LeadDetailPage() {
                   <p className="text-amber-100 text-sm mt-1">For {lead?.name}</p>
                 </div>
                 <button
-                  onClick={() => {
-                    setShowPaymentLinkModal(false);
-                    setCreatedPaymentLinkUrl(null);
-                  }}
+                  onClick={closePaymentLinkModal}
                   className="text-white/80 hover:text-white"
                 >
                   <X className="h-6 w-6" />
@@ -1226,10 +1334,7 @@ export default function LeadDetailPage() {
 
                 <Button
                   variant="outline"
-                  onClick={() => {
-                    setShowPaymentLinkModal(false);
-                    setCreatedPaymentLinkUrl(null);
-                  }}
+                  onClick={closePaymentLinkModal}
                   className="w-full"
                 >
                   Done
@@ -1253,7 +1358,7 @@ export default function LeadDetailPage() {
 
                   <div>
                     <label className="block text-sm font-medium text-stone-700 mb-1">
-                      Price Per Person (AED) *
+                      {isRentalLead ? "Price (AED) *" : "Price Per Person (AED) *"}
                     </label>
                     <input
                       type="number"
@@ -1265,19 +1370,21 @@ export default function LeadDetailPage() {
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-stone-700 mb-1">
-                      Number of People
-                    </label>
-                    <input
-                      type="number"
-                      min="1"
-                      max="40"
-                      value={newPaymentLink.numberOfPeople}
-                      onChange={(e) => setNewPaymentLink({ ...newPaymentLink, numberOfPeople: parseInt(e.target.value) || 1 })}
-                      className="w-full px-4 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
-                    />
-                  </div>
+                  {!isRentalLead && (
+                    <div>
+                      <label className="block text-sm font-medium text-stone-700 mb-1">
+                        Number of People
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="40"
+                        value={newPaymentLink.numberOfPeople}
+                        onChange={(e) => setNewPaymentLink({ ...newPaymentLink, numberOfPeople: parseInt(e.target.value) || 1 })}
+                        className="w-full px-4 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                      />
+                    </div>
+                  )}
 
                   <div>
                     <label className="block text-sm font-medium text-stone-700 mb-1">
@@ -1297,7 +1404,7 @@ export default function LeadDetailPage() {
                       <div className="flex justify-between text-sm">
                         <span className="text-amber-800">Total Amount:</span>
                         <span className="font-bold text-amber-900">
-                          AED {(parseFloat(newPaymentLink.amount || "0") * newPaymentLink.numberOfPeople).toFixed(2)}
+                          AED {(parseFloat(newPaymentLink.amount || "0") * (isRentalLead ? 1 : newPaymentLink.numberOfPeople)).toFixed(2)}
                         </span>
                       </div>
                     </div>
@@ -1312,7 +1419,7 @@ export default function LeadDetailPage() {
                 </div>
 
                 <div className="p-6 border-t bg-stone-50 flex gap-2 justify-end">
-                  <Button variant="outline" onClick={() => setShowPaymentLinkModal(false)}>
+                  <Button variant="outline" onClick={closePaymentLinkModal}>
                     Cancel
                   </Button>
                   <Button

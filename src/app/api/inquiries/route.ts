@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 
 export async function POST(request: NextRequest) {
   try {
@@ -26,23 +26,45 @@ export async function POST(request: NextRequest) {
       console.error("Error creating inquiry:", inquiryError);
     }
 
-    // Also create a lead for tracking
-    const { data: lead, error: leadError } = await supabase
+    const serviceSupabase = createServiceClient();
+    if (!serviceSupabase) throw new Error("Failed to create Supabase service client");
+
+    const isContactPageInquiry = source === "contact_page";
+    const leadPayload = isContactPageInquiry
+      ? {
+          name,
+          email,
+          phone,
+          source: "website",
+          status: "new",
+          lead_type: "contact_inquiry",
+          notes: [
+            `Subject: ${type || "General Inquiry"}`,
+            "Original source: contact_page",
+            `Message: ${message || "N/A"}`,
+          ].join("\n"),
+        }
+      : {
+          name,
+          email,
+          phone,
+          source: source || "website",
+          status: "new",
+          lead_type: type || "website",
+          notes: `Source: ${source || "website"}\nInitial message: ${message || "N/A"}`,
+        };
+
+    // Also create a lead for tracking. Use the service client so public
+    // inquiry submissions are not blocked by leads RLS policies.
+    const { data: lead, error: leadError } = await serviceSupabase
       .from("leads")
-      .insert({
-        name,
-        email,
-        phone,
-        source: source || "website",
-        status: "new",
-        lead_type: type || "website",
-        notes: `Source: ${source || "website"}\nInitial message: ${message || "N/A"}`,
-      })
+      .insert(leadPayload)
       .select()
       .single();
 
     if (leadError) {
       console.error("Error creating lead:", leadError);
+      throw leadError;
     }
 
     return NextResponse.json({
