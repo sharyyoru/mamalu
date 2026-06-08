@@ -26,6 +26,7 @@ const emptyArticle: PressArticle = {
   videoUrl: null,
   url: null,
   image: "",
+  images: [],
   isActive: true,
   sortOrder: 0,
 };
@@ -53,6 +54,8 @@ export default function AdminPressPage() {
         videoSource: item.videoSource || (item.isVideo ? "youtube" : "youtube"),
         videoUrl: item.videoUrl || (item.isVideo ? item.url : null),
         url: item.url || null,
+        images: Array.isArray(item.images) && item.images.length > 0 ? item.images : item.image ? [item.image] : [],
+        image: item.image || item.images?.[0] || "",
         isActive: item.isActive !== false,
         sortOrder: item.sortOrder ?? index,
       }))
@@ -84,6 +87,8 @@ export default function AdminPressPage() {
           ...article,
           sortOrder: index,
           url: article.url?.trim() || null,
+          images: Array.isArray(article.images) ? article.images.map((image) => image.trim()).filter(Boolean) : [],
+          image: article.image?.trim() || article.images?.[0]?.trim() || "",
         })),
       };
 
@@ -124,7 +129,11 @@ export default function AdminPressPage() {
       alert("Title is required");
       return;
     }
-    if (editingArticle.mediaType !== "video" && !editingArticle.image.trim()) {
+    if (
+      editingArticle.mediaType !== "video" &&
+      !editingArticle.image.trim() &&
+      (!Array.isArray(editingArticle.images) || editingArticle.images.length === 0)
+    ) {
       alert("Image path or URL is required");
       return;
     }
@@ -142,19 +151,19 @@ export default function AdminPressPage() {
   };
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
+    const files = Array.from(event.target.files || []);
     event.target.value = "";
-    if (!file || !editingArticle) return;
+    if (files.length === 0 || !editingArticle) return;
 
     const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif"];
-    if (!validTypes.includes(file.type)) {
+    if (files.some((file) => !validTypes.includes(file.type))) {
       alert("Please upload a JPG, PNG, WebP, or GIF image.");
       return;
     }
 
     const maxSize = 5 * 1024 * 1024;
-    if (file.size > maxSize) {
-      alert("Image must be less than 5MB.");
+    if (files.some((file) => file.size > maxSize)) {
+      alert("Each image must be less than 5MB.");
       return;
     }
 
@@ -163,20 +172,29 @@ export default function AdminPressPage() {
       const supabase = createClient();
       if (!supabase) throw new Error("Supabase not configured");
 
-      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
-      const fileName = `press/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const uploadedUrls: string[] = [];
+      for (const file of files) {
+        const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+        const fileName = `press/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
 
-      const { error } = await supabase.storage
-        .from("images")
-        .upload(fileName, file, {
-          cacheControl: "3600",
-          upsert: false,
-        });
+        const { error } = await supabase.storage
+          .from("images")
+          .upload(fileName, file, {
+            cacheControl: "3600",
+            upsert: false,
+          });
 
-      if (error) throw error;
+        if (error) throw error;
 
-      const { data } = supabase.storage.from("images").getPublicUrl(fileName);
-      setEditingArticle({ ...editingArticle, image: data.publicUrl });
+        const { data } = supabase.storage.from("images").getPublicUrl(fileName);
+        uploadedUrls.push(data.publicUrl);
+      }
+
+      const nextImages =
+        editingArticle.mediaType === "photo"
+          ? [...(editingArticle.images || []), ...uploadedUrls]
+          : uploadedUrls;
+      setEditingArticle({ ...editingArticle, image: nextImages[0] || "", images: nextImages });
     } catch (error) {
       console.error("Error uploading press image:", error);
       alert("Failed to upload image. Please try again.");
@@ -325,6 +343,14 @@ export default function AdminPressPage() {
                         mediaType: event.target.value as "article" | "video" | "photo",
                         videoSource: event.target.value === "video" ? editingArticle.videoSource || "youtube" : editingArticle.videoSource,
                         url: event.target.value === "photo" ? null : editingArticle.url,
+                        images:
+                          event.target.value === "photo"
+                            ? editingArticle.images?.length
+                              ? editingArticle.images
+                              : editingArticle.image
+                                ? [editingArticle.image]
+                                : []
+                            : editingArticle.images,
                       })
                     }
                     className="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-100"
@@ -417,21 +443,40 @@ export default function AdminPressPage() {
                   </div>
                 ) : (
                   <div className="rounded-lg border border-stone-200 bg-stone-50 px-3 py-2 text-sm text-stone-600">
-                    Photo-only items show the image with the title, date, and description. No article link is displayed.
+                    Photo-only items can show multiple images with the title, date, and description. No article link is displayed.
                   </div>
                 )}
                 <div className="space-y-2">
-                  <label className="space-y-1">
-                    <span className="text-sm font-medium text-stone-700">
-                      {editingArticle.mediaType === "video" ? "Poster Image Path or URL" : "Image Path or URL"}
-                    </span>
-                    <input
-                      value={editingArticle.image}
-                      onChange={(event) => setEditingArticle({ ...editingArticle, image: event.target.value })}
-                      placeholder="/images/press/press-01.png"
-                      className="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-100"
-                    />
-                  </label>
+                  {editingArticle.mediaType === "photo" ? (
+                    <label className="space-y-1">
+                      <span className="text-sm font-medium text-stone-700">Image Paths or URLs</span>
+                      <textarea
+                        value={(editingArticle.images?.length ? editingArticle.images : editingArticle.image ? [editingArticle.image] : []).join("\n")}
+                        onChange={(event) => {
+                          const nextImages = event.target.value
+                            .split("\n")
+                            .map((image) => image.trim())
+                            .filter(Boolean);
+                          setEditingArticle({ ...editingArticle, images: nextImages, image: nextImages[0] || "" });
+                        }}
+                        rows={5}
+                        placeholder="/images/press/press-01.png"
+                        className="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-100"
+                      />
+                    </label>
+                  ) : (
+                    <label className="space-y-1">
+                      <span className="text-sm font-medium text-stone-700">
+                        {editingArticle.mediaType === "video" ? "Poster Image Path or URL" : "Image Path or URL"}
+                      </span>
+                      <input
+                        value={editingArticle.image}
+                        onChange={(event) => setEditingArticle({ ...editingArticle, image: event.target.value, images: event.target.value ? [event.target.value] : [] })}
+                        placeholder="/images/press/press-01.png"
+                        className="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-100"
+                      />
+                    </label>
+                  )}
                   <div className="flex items-center gap-3">
                     <div className="relative h-16 w-16 overflow-hidden rounded-lg border border-stone-200 bg-stone-100">
                       {editingArticle.image ? (
@@ -448,6 +493,7 @@ export default function AdminPressPage() {
                       <input
                         type="file"
                         accept="image/*"
+                        multiple={editingArticle.mediaType === "photo"}
                         className="hidden"
                         onChange={handleImageUpload}
                         disabled={imageUploading}
@@ -519,6 +565,11 @@ export default function AdminPressPage() {
                     )}
                     {article.mediaType === "photo" && (
                       <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-700">Photo only</span>
+                    )}
+                    {article.mediaType === "photo" && Array.isArray(article.images) && article.images.length > 1 && (
+                      <span className="rounded-full bg-stone-100 px-2 py-0.5 text-xs text-stone-600">
+                        {article.images.length} photos
+                      </span>
                     )}
                     {article.isActive === false && (
                       <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs text-red-700">Hidden</span>

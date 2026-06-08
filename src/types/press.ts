@@ -8,6 +8,7 @@ export interface PressArticle {
   videoUrl?: string | null;
   url: string | null;
   image: string;
+  images?: string[];
   isVideo?: boolean;
   isActive?: boolean;
   sortOrder?: number;
