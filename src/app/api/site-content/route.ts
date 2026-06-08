@@ -1,27 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
-import { 
-  SiteContent, 
+import {
   defaultSiteContent,
-  AboutPageContent,
   defaultAboutContent,
-  MiniChefPageContent,
   defaultMiniChefContent,
-  BigChefPageContent,
   defaultBigChefContent,
-  RentalsPageContent,
   defaultRentalsContent,
-  FooterContent,
   defaultFooterContent,
 } from "@/types/site-content";
+import { defaultPressContent } from "@/types/press";
 
-const defaultContentMap: Record<string, any> = {
+const defaultContentMap: Record<string, unknown> = {
   homepage: defaultSiteContent,
   about: defaultAboutContent,
   minichef: defaultMiniChefContent,
   bigchef: defaultBigChefContent,
   rentals: defaultRentalsContent,
   footer: defaultFooterContent,
+  press: defaultPressContent,
 };
 
 export async function GET(request: NextRequest) {

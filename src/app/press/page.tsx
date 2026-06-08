@@ -1,8 +1,10 @@
 import { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { getPressArticles } from "@/lib/sanity/queries";
-import { urlFor } from "@/lib/sanity/client";
+import { ExternalLink } from "lucide-react";
+import { createClient } from "@/lib/supabase/server";
+import { defaultPressContent, PressArticle, PressContent } from "@/types/press";
+import { PressMediaPreview } from "@/components/press/PressMediaPreview";
 
 export const metadata: Metadata = {
   title: "Press | Mamalu Kitchen",
@@ -10,289 +12,35 @@ export const metadata: Metadata = {
     "Just a few highlights about our story, cooking classes and more!",
 };
 
-// Complete press articles data scraped from mamalukitchen.com/press (fallback if CMS is empty)
-const fallbackPressArticles = [
-  {
-    id: "1",
-    title: "Time out Dubai",
-    date: "December 2023",
-    description: "Featured by Time out Dubai - Dubai Bling filming locations: All the places to visit for certified bougie vibes",
-    url: "https://www.timeoutdubai.com/news/dubai-bling-locations",
-    image: "/images/press/press-01.png",
-  },
-  {
-    id: "2",
-    title: "What's on",
-    date: "March 2023",
-    description: "Featured by What's on Dubai - 6 delicious foodie workshops you need to try in Dubai.",
-    url: "https://whatson.ae/2023/03/food-workshops-and-cooking-classes-in-dubai/",
-    image: "/images/press/press-02.png",
-  },
-  {
-    id: "3",
-    title: "Spinneys",
-    date: "March 2023",
-    description: "Women in food: Lama Jammal, founder, Mamalu Kitchen & Eazy Freezy",
-    url: "https://www.spinneys.com/en-ae/lifestyle/international-womens-day-lama-jammal-founder-mamalu-kitchen--eazy-freezy/",
-    image: "/images/press/press-6.jpg",
-  },
-  {
-    id: "4",
-    title: "Harper's Bazaar Arabia",
-    date: "December 2023",
-    description: "Dubai Bling Season 2 Locations: 13 Places Spotted In The New Release",
-    url: "https://www.harpersbazaararabia.com/culture/entertainment/dubai-bling-season-2-locations",
-    image: "/images/press/press-03.png",
-  },
-  {
-    id: "5",
-    title: "Arabian Diaries",
-    date: "December 2023",
-    description: "Featured by Arabian Diaries Dubai - Culinary Excellence: Mamalu Kitchen Delights and Recipes",
-    url: "https://arabiandiaries.com/culinary-excellence-mamalu-kitchen-delights-and-recipes/",
-    image: "/images/press/press-04.png",
-  },
-  {
-    id: "6",
-    title: "Brand Collaboration for Puck on Shahid",
-    date: "May 2022",
-    description: "A Brand collaboration with Puck for Ramadan to do easy and delicious Iftar recipe",
-    url: null,
-    image: "/images/press/press-05.png",
-  },
-  {
-    id: "7",
-    title: "Meet The Founders",
-    date: "April 2022",
-    description: "An interview with Helen Farmer & Nakheel Mall to talk about Mamalu's entrepreneurial journey.",
-    url: null,
-    image: "/images/press/press-7.jpg",
-  },
-  {
-    id: "8",
-    title: "Bosch",
-    date: "March 2022",
-    description: "Special mothers day class at the Bosch kitchen",
-    url: null,
-    image: "/images/press/press-8.jpg",
-  },
-  {
-    id: "9",
-    title: "Facebook",
-    date: "February 2022",
-    description: "A little about the world of Mamalu Kitchen and Eazy Freezy",
-    url: null,
-    image: "/images/press/press-9.jpg",
-  },
-  {
-    id: "10",
-    title: "Facebook",
-    date: "February 2022",
-    description: "Exclusive Japanese cuisine event held at Mamalu Kitchen",
-    url: null,
-    image: "/images/press/press-10.jpg",
-  },
-  {
-    id: "11",
-    title: "Al Arabiya",
-    date: "January 2022",
-    description: "Morning show with Al Arabiya for a healthy meal",
-    url: "https://www.youtube.com/watch?v=CTG9pX9EM84",
-    image: "/images/press/press-20.jpg",
-    isVideo: true,
-  },
-  {
-    id: "12",
-    title: "WhatsOn Dubai",
-    date: "December 2022",
-    description: "Featured by Whatson Dubai - fun Christmas presents to buy your friends and family. 6 best kitchen tools for cooking with kids this summer in UAE, for 2023",
-    url: null,
-    image: "/images/press/press-11.jpg",
-  },
-  {
-    id: "13",
-    title: "Expo 2020",
-    date: "December 2021",
-    description: "Women's panel session at the EXPO2020 women's pavilion",
-    url: null,
-    image: "/images/press/press-12.jpg",
-  },
-  {
-    id: "14",
-    title: "Timeout Dubai",
-    date: "June 2021",
-    description: "9 Creative things to try out this summer",
-    url: null,
-    image: "/images/press/press-13.jpg",
-  },
-  {
-    id: "15",
-    title: "Lovin' Dubai",
-    date: "June 2021",
-    description: "6 Places to visit perfect for foodies",
-    url: null,
-    image: "/images/press/press-14.jpg",
-  },
-  {
-    id: "16",
-    title: "Fifi's Birthday Celebration",
-    date: "March 2021",
-    description: "Featured in the Daily Mail UK, celebrating Fifi's birthday at Mamalu Kitchen",
-    url: null,
-    image: "/images/press/press-15.jpg",
-  },
-  {
-    id: "17",
-    title: "Marie Claire Arabia",
-    date: "May 2021",
-    description: "Ramadan Special",
-    url: null,
-    image: "/images/press/press-16.png",
-  },
-  {
-    id: "18",
-    title: "What's On Dubai",
-    date: "July 2020",
-    description: "Summer special for kids",
-    url: null,
-    image: "/images/press/press-17.png",
-  },
-  {
-    id: "19",
-    title: "What's On Dubai",
-    date: "July 2020",
-    description: "Food hall of fame",
-    url: null,
-    image: "/images/press/press-18.png",
-  },
-  {
-    id: "20",
-    title: "The National",
-    date: "June 2020",
-    description: "Tips to keep children entertained indoors.",
-    url: null,
-    image: "/images/press/press-19.png",
-  },
-  {
-    id: "21",
-    title: "Elle Arabia",
-    date: "May 2020",
-    description: "Favorite dish to cook while in quarantine, using pantry staples. Staying home and staying healthy.",
-    url: null,
-    image: "/images/Mamalou Kitchen - 101.jpg",
-  },
-  {
-    id: "22",
-    title: "Depachika",
-    date: "March 2020",
-    description: "Mothers day gift ideas - bring some fun and ease to the kitchen by buying her some kitchen accessories to make kitchen prep a breeze.",
-    url: null,
-    image: "/images/Mamalou Kitchen - 102.jpg",
-  },
-  {
-    id: "23",
-    title: "Mojeh Magazine",
-    date: "March 2020",
-    description: "One of the entrepreneurs in Dubai dedicated to making people healthier and happier from the inside out.",
-    url: null,
-    image: "/images/Mamalou Kitchen - 103.jpg",
-  },
-  {
-    id: "24",
-    title: "What's On Dubai",
-    date: "February 2020",
-    description: "Mamalu Kitchen was in the top 15 things to do in Dubai for the Valentines weekend.",
-    url: "https://whatson.ae/2020/02/15-great-things-to-do-in-dubai-this-weekend-10/",
-    image: "/images/Mamalou Kitchen - 104.jpg",
-  },
-  {
-    id: "25",
-    title: "The National Arts & Lifestyle",
-    date: "November 2019",
-    description: "Lama Jammal of Mamalu Kitchen wants to put healthy, home-cooked meals back on the table",
-    url: "https://www.mamalukitchen.com/_files/ugd/f73e67_40f3998fa9ff4b7b983b640cf1b7104a.pdf",
-    image: "/images/Mamalou Kitchen - 105.jpg",
-  },
-  {
-    id: "26",
-    title: "Harpers Bazaar",
-    date: "Summer 2018",
-    description: "Ever since I can remember I have always loved to cook",
-    url: "https://www.mamalukitchen.com/_files/ugd/f73e67_40f3998fa9ff4b7b983b640cf1b7104a.pdf",
-    image: "/images/Mamalou Kitchen - 110.jpg",
-  },
-  {
-    id: "27",
-    title: "My Fash Diary",
-    date: "November 2017",
-    description: "An Entrepreneurs story - Cooking classes for housekeepers",
-    url: null,
-    image: "/images/Mamalou Kitchen - 151.jpg",
-  },
-  {
-    id: "28",
-    title: "Harpers Bazaar Junior",
-    date: "April 2017",
-    description: "I wasn't interested in dolls as a child, I preferred to play with toy kitchens",
-    url: null,
-    image: "/images/Mamalou Kitchen - 164.jpg",
-  },
-  {
-    id: "29",
-    title: "Sassy Mama",
-    date: "October 2017",
-    description: "Mamalu can make a cook out of you and your kids",
-    url: null,
-    image: "/images/Mamalou Kitchen - 165.jpg",
-  },
-  {
-    id: "30",
-    title: "Gourmet Magazine",
-    date: "January 2017",
-    description: "A recipe for success - If you want to dish up the dinner party of your dreams or simply serve up a family meal to be proud of",
-    url: null,
-    image: "/images/Mamalou Kitchen - 175.jpg",
-  },
-];
+async function getPressContent(): Promise<PressContent> {
+  const supabase = await createClient();
+  if (!supabase) return defaultPressContent;
 
-interface SanityPressArticle {
-  _id: string;
-  title: string;
-  slug: { current: string };
-  excerpt: string;
-  mainImage?: { asset: { _ref: string }; alt?: string };
-  source: string;
-  externalUrl?: string;
-  publishedAt: string;
-}
+  const { data, error } = await supabase
+    .from("site_content")
+    .select("content")
+    .eq("id", "press")
+    .single();
 
-// Helper to format Sanity date to display format
-function formatPressDate(dateString: string): string {
-  const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  if (error || !data?.content) return defaultPressContent;
+
+  const content = data.content as PressContent;
+  return {
+    articles: Array.isArray(content.articles) ? content.articles : [],
+  };
 }
 
 export default async function PressPage() {
-  // Fetch from Sanity CMS
-  const sanityArticles: SanityPressArticle[] = await getPressArticles() || [];
-  
-  // Transform Sanity articles to display format, or use fallback if empty
-  const pressArticles = sanityArticles.length > 0 
-    ? sanityArticles.map((article) => ({
-        id: article._id,
-        title: article.source || article.title,
-        date: formatPressDate(article.publishedAt),
-        description: article.excerpt,
-        url: article.externalUrl || null,
-        image: article.mainImage ? urlFor(article.mainImage).width(600).height(450).url() : "/images/Mamalou Kitchen - 101.jpg",
-      }))
-    : fallbackPressArticles;
+  const pressContent = await getPressContent();
+  const pressArticles = pressContent.articles
+    .filter((article) => article.isActive !== false)
+    .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
 
   return (
     <div className="bg-white min-h-screen">
       {/* Hero Section with Doodle Icons */}
       <section className="py-12 md:py-20 relative overflow-hidden">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           {/* Header with doodle icons */}
           <div className="flex items-center justify-center gap-8 md:gap-16 mb-12 md:mb-20">
             {/* Left doodle - utensils */}
@@ -312,15 +60,15 @@ export default async function PressPage() {
                 className="w-auto h-16 md:h-20 object-contain"
               />
             </div>
-            
+
             {/* Title - PRESS in coral color */}
-            <h1 
+            <h1
               className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-[0.3em] uppercase"
-              style={{ fontFamily: 'var(--font-mossy), cursive', color: '#FF8C6B' }}
+              style={{ fontFamily: "var(--font-mossy), cursive", color: "#FF8C6B" }}
             >
               PRESS
             </h1>
-            
+
             {/* Right doodle - notepad */}
             <div className="hidden md:block">
               <Image
@@ -333,84 +81,89 @@ export default async function PressPage() {
             </div>
           </div>
 
-          {/* Press Articles */}
-          <div className="space-y-16 md:space-y-24">
-            {pressArticles.map((article, index) => (
-              <article 
-                key={article.id}
-                className={`flex flex-col ${index % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'} gap-8 md:gap-12 items-start`}
-              >
-                {/* Image */}
-                <div className="w-full md:w-2/5 flex-shrink-0">
-                  <div className="aspect-[4/3] relative overflow-hidden rounded-lg shadow-lg">
-                    <Image
-                      src={article.image}
-                      alt={article.title}
-                      fill
-                      className="object-cover hover:scale-105 transition-transform duration-500"
-                    />
+          {pressArticles.length > 0 ? (
+            <div className="space-y-16 md:space-y-24">
+              {pressArticles.map((article: PressArticle, index: number) => (
+                <article
+                  key={article.id}
+                  className={`flex flex-col ${index % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"} gap-8 md:gap-16 items-center`}
+                >
+                  <div className="w-full md:w-[54%] flex-shrink-0">
+                    <div className="aspect-[4/3] relative overflow-hidden rounded-lg shadow-lg bg-white">
+                      <PressMediaPreview article={article} />
+                    </div>
                   </div>
-                </div>
-                
-                {/* Content */}
-                <div className="flex-1 space-y-3">
-                  {/* Title in black */}
-                  <h2 
-                    className="text-2xl md:text-3xl font-bold"
-                    style={{ fontFamily: 'var(--font-mossy), cursive', color: '#1c1917' }}
-                  >
-                    {article.title}
-                  </h2>
-                  {/* Date in coral */}
-                  <p 
-                    className="font-bold text-lg"
-                    style={{ fontFamily: 'var(--font-mossy), cursive', color: '#FF8C6B' }}
-                  >
-                    {article.date}
-                  </p>
-                  <p 
-                    className="text-stone-700 font-bold leading-relaxed"
-                    style={{ fontFamily: 'var(--font-mossy), cursive' }}
-                  >
-                    {article.description}
-                  </p>
-                  {article.url && (
-                    <Link
-                      href={article.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-block text-stone-600 font-bold hover:text-[#FF8C6B] transition-colors break-all"
-                      style={{ fontFamily: 'var(--font-mossy), cursive' }}
+
+                  <div className="flex-1 max-w-xl space-y-3">
+                    <h2
+                      className="text-2xl md:text-3xl font-bold"
+                      style={{ fontFamily: "var(--font-mossy), cursive", color: "#1c1917" }}
                     >
-                      {article.url}
-                    </Link>
-                  )}
-                </div>
-              </article>
-            ))}
-          </div>
+                      {article.title}
+                    </h2>
+                    <p
+                      className="font-bold text-lg"
+                      style={{ fontFamily: "var(--font-mossy), cursive", color: "#FF8C6B" }}
+                    >
+                      {article.date}
+                    </p>
+                    <p
+                      className="text-stone-700 font-bold leading-relaxed"
+                      style={{ fontFamily: "var(--font-mossy), cursive" }}
+                    >
+                      {article.description}
+                    </p>
+                    {article.url && article.mediaType !== "video" && !article.isVideo && (
+                      <div className="flex justify-center md:justify-start">
+                      <Link
+                        href={article.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={`Read ${article.title} press article`}
+                        className="inline-flex w-fit items-center gap-2 rounded-full border-2 border-[#FF8C6B] bg-[#FF8C6B] px-5 py-2 text-sm font-bold text-white shadow-sm transition-colors hover:bg-white hover:text-[#FF8C6B] focus:outline-none focus:ring-2 focus:ring-[#FF8C6B] focus:ring-offset-2"
+                        style={{ fontFamily: "var(--font-mossy), cursive" }}
+                      >
+                        Read feature
+                        <ExternalLink className="h-4 w-4" aria-hidden="true" strokeWidth={2.5} />
+                      </Link>
+                      </div>
+                    )}
+                  </div>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <div className="mx-auto max-w-xl rounded-lg border border-stone-200 bg-stone-50 px-6 py-10 text-center">
+              <p
+                className="text-xl font-bold text-stone-700"
+                style={{ fontFamily: "var(--font-mossy), cursive" }}
+              >
+                Press articles will be available soon.
+              </p>
+            </div>
+          )}
         </div>
       </section>
 
       {/* Media Inquiries */}
       <section className="py-16 bg-[#fff5eb]">
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 text-center">
-          <h2 
+          <h2
             className="text-2xl md:text-3xl font-bold text-[#FF8C6B] mb-4"
-            style={{ fontFamily: 'var(--font-mossy), cursive' }}
+            style={{ fontFamily: "var(--font-mossy), cursive" }}
           >
             Media Inquiries
           </h2>
-          <p 
+          <p
             className="text-stone-700 font-bold mb-6"
-            style={{ fontFamily: 'var(--font-mossy), cursive' }}
+            style={{ fontFamily: "var(--font-mossy), cursive" }}
           >
             For press inquiries, interview requests, or media kit access, please contact our communications team.
           </p>
           <a
             href="mailto:info@mamalukitchen.com"
             className="inline-flex items-center text-[#FF8C6B] font-bold hover:underline text-lg"
-            style={{ fontFamily: 'var(--font-mossy), cursive' }}
+            style={{ fontFamily: "var(--font-mossy), cursive" }}
           >
             info@mamalukitchen.com
           </a>

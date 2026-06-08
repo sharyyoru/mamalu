@@ -1,6 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
+export const runtime = "nodejs";
+
+const uploadLimits: Record<string, { maxSize: number; contentTypes: string[] }> = {
+  images: {
+    maxSize: 5 * 1024 * 1024,
+    contentTypes: ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif"],
+  },
+  videos: {
+    maxSize: 50 * 1024 * 1024,
+    contentTypes: ["video/mp4", "video/webm", "video/quicktime"],
+  },
+};
+
 export async function POST(request: NextRequest) {
   try {
     const supabase = createAdminClient();
@@ -17,8 +30,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
+    const limit = uploadLimits[bucket];
+    if (limit) {
+      if (!limit.contentTypes.includes(file.type)) {
+        return NextResponse.json({ error: "Unsupported file type" }, { status: 400 });
+      }
+
+      if (file.size > limit.maxSize) {
+        return NextResponse.json({ error: "File is too large" }, { status: 413 });
+      }
+    }
+
     // Create a unique filename
-    const ext = file.name.split('.').pop();
+    const ext = file.name.split(".").pop();
     const filename = `${userId}-${Date.now()}.${ext}`;
     const path = `${filename}`;
 
