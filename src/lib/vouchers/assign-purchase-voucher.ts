@@ -15,10 +15,29 @@ export type AssignedVoucher = {
   code: string;
 };
 
-export async function findAvailableVoucherForAmount(
+async function getPaidVoucherAssignments(supabase: SupabaseClient) {
+  const { data, error } = await supabase
+    .from("voucher_purchases")
+    .select("voucher_id, voucher_code")
+    .eq("status", "paid");
+
+  if (error) throw error;
+
+  const usedVouchers = (data || []) as UsedVoucher[];
+  return {
+    usedIds: new Set(
+      usedVouchers.map((voucher) => voucher.voucher_id).filter((id): id is string => Boolean(id))
+    ),
+    usedCodes: new Set(
+      usedVouchers.map((voucher) => voucher.voucher_code).filter((code): code is string => Boolean(code))
+    ),
+  };
+}
+
+export async function listAvailableVouchersForAmount(
   supabase: SupabaseClient,
   amount: number
-): Promise<AssignedVoucher | null> {
+): Promise<AssignedVoucher[]> {
   const { data: voucherData, error: voucherError } = await supabase
     .from("vouchers")
     .select("id, code")
@@ -27,30 +46,33 @@ export async function findAvailableVoucherForAmount(
 
   if (voucherError) throw voucherError;
 
-  const { data: usedVoucherData, error: usedError } = await supabase
-    .from("voucher_purchases")
-    .select("voucher_id, voucher_code")
-    .eq("status", "paid");
-
-  if (usedError) throw usedError;
-
-  const usedVouchers = (usedVoucherData || []) as UsedVoucher[];
-  const usedIds = new Set(
-    usedVouchers.map((voucher) => voucher.voucher_id).filter((id): id is string => Boolean(id))
-  );
-  const usedCodes = new Set(
-    usedVouchers.map((voucher) => voucher.voucher_code).filter((code): code is string => Boolean(code))
-  );
+  const { usedIds, usedCodes } = await getPaidVoucherAssignments(supabase);
 
   const vouchers = (voucherData || []) as Voucher[];
-  const voucher = vouchers.find((candidate) => {
-    if (!candidate.code) return false;
-    if (usedIds.has(candidate.id)) return false;
-    if (usedCodes.has(candidate.code)) return false;
-    return true;
-  });
+  return vouchers
+    .filter((candidate) => {
+      if (!candidate.code) return false;
+      if (usedIds.has(candidate.id)) return false;
+      if (usedCodes.has(candidate.code)) return false;
+      return true;
+    })
+    .map((voucher) => ({ id: voucher.id, code: voucher.code as string }));
+}
 
-  return voucher?.code ? { id: voucher.id, code: voucher.code } : null;
+export async function countAvailableVouchersForAmount(
+  supabase: SupabaseClient,
+  amount: number
+): Promise<number> {
+  const vouchers = await listAvailableVouchersForAmount(supabase, amount);
+  return vouchers.length;
+}
+
+export async function findAvailableVoucherForAmount(
+  supabase: SupabaseClient,
+  amount: number
+): Promise<AssignedVoucher | null> {
+  const vouchers = await listAvailableVouchersForAmount(supabase, amount);
+  return vouchers[0] || null;
 }
 
 export async function assignVoucherToPaidPurchase(

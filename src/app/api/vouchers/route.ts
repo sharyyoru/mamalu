@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { listAvailableVouchersForAmount } from "@/lib/vouchers/assign-purchase-voucher";
 
 export async function GET() {
   try {
@@ -8,36 +9,26 @@ export async function GET() {
 
     const { data, error } = await supabase
       .from("vouchers")
-      .select("id, code, discount_value, is_active")
+      .select("discount_value")
       .eq("is_active", true)
       .order("discount_value", { ascending: true });
 
     if (error) throw error;
 
-    // Get all purchased voucher codes (status = 'paid')
-    const { data: purchases } = await supabase
-      .from("voucher_purchases")
-      .select("voucher_code")
-      .eq("status", "paid");
-
-    const purchasedCodes = new Set(purchases?.map(p => p.voucher_code).filter(Boolean) || []);
-
-    // Filter out purchased vouchers and group by amount
-    const groups: Record<number, { amount: number; count: number }> = {};
-    for (const v of data || []) {
-      // Skip if this voucher has been purchased
-      if (v.code && purchasedCodes.has(v.code)) {
-        continue;
+    const amounts = Array.from(new Set((data || []).map((voucher) => Number(voucher.discount_value))));
+    const groups: Array<{ amount: number; count: number }> = [];
+    for (const amount of amounts) {
+      const available = await listAvailableVouchersForAmount(supabase, amount);
+      if (available.length > 0) {
+        groups.push({ amount, count: available.length });
       }
-
-      if (!groups[v.discount_value]) {
-        groups[v.discount_value] = { amount: v.discount_value, count: 0 };
-      }
-      groups[v.discount_value].count++;
     }
 
-    return NextResponse.json({ vouchers: Object.values(groups) });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ vouchers: groups });
+  } catch (error: unknown) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Failed to fetch vouchers" },
+      { status: 500 }
+    );
   }
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendVoucherRedemptionConfirmation } from "@/lib/email/voucher-redemption-confirmation";
+import { consumeVoucherUse, getRedeemableVoucherByCode } from "@/lib/vouchers/voucher-usage";
 
 export async function POST(request: NextRequest) {
   try {
@@ -26,31 +27,10 @@ export async function POST(request: NextRequest) {
     const supabase = createAdminClient();
     if (!supabase) throw new Error("Failed to create Supabase client");
 
-    // First check if voucher exists at all (without is_active filter)
-    const { data: anyVoucher, error: anyError } = await supabase
-      .from("vouchers")
-      .select("id, code, discount_value, is_active")
-      .eq("code", voucherCode.trim().toUpperCase())
-      .single();
-
-    console.log("Voucher lookup (any):", { anyVoucher, anyError });
-
-    // Get the voucher and verify it's still valid
-    const { data: voucher, error: voucherError } = await supabase
-      .from("vouchers")
-      .select("id, code, discount_value, is_active")
-      .eq("code", voucherCode.trim().toUpperCase())
-      .eq("is_active", true)
-      .single();
-
-    console.log("Voucher lookup (active):", { voucher, voucherError });
-
-    if (voucherError || !voucher) {
-      console.error("Voucher lookup error:", voucherError);
+    const { voucher, error: voucherError } = await getRedeemableVoucherByCode(supabase, voucherCode);
+    if (!voucher) {
       return NextResponse.json(
-        { error: anyVoucher && !anyVoucher.is_active 
-          ? "This voucher has already been used" 
-          : "Invalid or expired voucher code" },
+        { error: voucherError || "Invalid or expired voucher code" },
         { status: 404 }
       );
     }
@@ -112,18 +92,11 @@ export async function POST(request: NextRequest) {
       // Continue anyway - we'll still mark the voucher as used
     }
 
-    // Mark the voucher as used (deactivate it)
-    const { error: updateError } = await supabase
-      .from("vouchers")
-      .update({
-        is_active: false,
-      })
-      .eq("id", voucher.id);
-
-    if (updateError) {
-      console.error("Failed to update voucher:", updateError);
+    const consumeResult = await consumeVoucherUse(supabase, voucher.id);
+    if (!consumeResult.success) {
+      console.error("Failed to update voucher:", consumeResult.error);
       return NextResponse.json(
-        { error: "Failed to process redemption" },
+        { error: consumeResult.error || "Failed to process redemption" },
         { status: 500 }
       );
     }
@@ -175,10 +148,10 @@ export async function POST(request: NextRequest) {
         },
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error redeeming voucher:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to redeem voucher" },
+      { error: error instanceof Error ? error.message : "Failed to redeem voucher" },
       { status: 500 }
     );
   }

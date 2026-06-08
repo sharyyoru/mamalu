@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createSourceInvoice, updateSourceInvoiceCheckout } from "@/lib/invoices/source-invoices";
+import { countAvailableVouchersForAmount } from "@/lib/vouchers/assign-purchase-voucher";
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,15 +15,8 @@ export async function POST(request: NextRequest) {
     const supabase = createAdminClient();
     if (!supabase) throw new Error("Database not configured");
 
-    // Check at least one active voucher of this amount exists
-    const { data: available } = await supabase
-      .from("vouchers")
-      .select("id")
-      .eq("discount_value", amount)
-      .eq("is_active", true)
-      .limit(1);
-
-    if (!available || available.length === 0) {
+    const availableCount = await countAvailableVouchersForAmount(supabase, Number(amount));
+    if (availableCount < 1) {
       return NextResponse.json({ error: "No gift cards available for this amount" }, { status: 400 });
     }
 

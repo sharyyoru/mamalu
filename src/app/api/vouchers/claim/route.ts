@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { validateVoucherPurchaseWindow } from "@/lib/vouchers/validate-voucher-purchase";
+import { getRedeemableVoucherByCode } from "@/lib/vouchers/voucher-usage";
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,25 +16,11 @@ export async function POST(request: NextRequest) {
     const supabase = createAdminClient();
     if (!supabase) throw new Error("Failed to create Supabase client");
 
-    const { data: voucher, error } = await supabase
-      .from("vouchers")
-      .select("id, code, discount_value, is_active")
-      .eq("code", code.trim().toUpperCase())
-      .eq("is_active", true)
-      .single();
-
-    if (error || !voucher) {
+    const { voucher, error } = await getRedeemableVoucherByCode(supabase, code);
+    if (!voucher) {
       return NextResponse.json(
-        { error: "Invalid or expired voucher code" },
+        { error: error || "Invalid or expired voucher code" },
         { status: 404 }
-      );
-    }
-
-    const validity = await validateVoucherPurchaseWindow(supabase, voucher.code);
-    if (!validity.valid) {
-      return NextResponse.json(
-        { error: validity.error },
-        { status: 400 }
       );
     }
 
@@ -43,7 +29,7 @@ export async function POST(request: NextRequest) {
       voucher: {
         code: voucher.code,
         amount: voucher.discount_value,
-        expiresAt: validity.expiresAt,
+        expiresAt: voucher.expiresAt,
       },
     });
   } catch (error: unknown) {

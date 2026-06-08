@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe/server";
 import { sendVoucherFollowUpEmail } from "@/lib/email/voucher-confirmation";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { countAvailableVouchersForAmount } from "@/lib/vouchers/assign-purchase-voucher";
 
 type AdminClient = NonNullable<ReturnType<typeof createAdminClient>>;
 
@@ -12,16 +13,6 @@ type VoucherPurchase = {
   amount: number;
   status: string;
   stripe_session_id: string | null;
-};
-
-type Voucher = {
-  id: string;
-  code: string | null;
-};
-
-type UsedVoucher = {
-  voucher_id: string | null;
-  voucher_code: string | null;
 };
 
 export async function POST(
@@ -55,7 +46,7 @@ export async function POST(
       return NextResponse.json({ error: "Customer email is missing" }, { status: 400 });
     }
 
-    const availableCount = await getAvailableVoucherCount(supabase, Number(purchase.amount));
+    const availableCount = await countAvailableVouchersForAmount(supabase, Number(purchase.amount));
     if (availableCount < 1) {
       return NextResponse.json({ error: "No available voucher remains for this amount" }, { status: 409 });
     }
@@ -82,34 +73,6 @@ export async function POST(
       { status: 500 }
     );
   }
-}
-
-async function getAvailableVoucherCount(supabase: AdminClient, amount: number) {
-  const { data: voucherData, error: vouchersError } = await supabase
-    .from("vouchers")
-    .select("id, code")
-    .eq("discount_value", amount)
-    .eq("is_active", true);
-
-  if (vouchersError) throw vouchersError;
-
-  const { data: usedVoucherData, error: usedError } = await supabase
-    .from("voucher_purchases")
-    .select("voucher_id, voucher_code")
-    .eq("status", "paid");
-
-  if (usedError) throw usedError;
-
-  const vouchers = (voucherData || []) as Voucher[];
-  const usedVouchers = (usedVoucherData || []) as UsedVoucher[];
-  const usedIds = new Set(usedVouchers.map((voucher) => voucher.voucher_id).filter((id): id is string => Boolean(id)));
-  const usedCodes = new Set(usedVouchers.map((voucher) => voucher.voucher_code).filter((code): code is string => Boolean(code)));
-
-  return vouchers.filter((voucher) => {
-    if (usedIds.has(voucher.id)) return false;
-    if (voucher.code && usedCodes.has(voucher.code)) return false;
-    return true;
-  }).length;
 }
 
 async function getCheckoutUrl(supabase: AdminClient, purchase: VoucherPurchase) {

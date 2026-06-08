@@ -4,7 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { ensureCustomerAccountAndSendAccess } from "@/lib/account/customer-account";
 import { sendServiceBookingConfirmationEmail } from "@/lib/email/service-booking-confirmation";
 import { createSourceInvoice, markSourceInvoicePaid, updateSourceInvoiceCheckout } from "@/lib/invoices/source-invoices";
-import { validateVoucherPurchaseWindow } from "@/lib/vouchers/validate-voucher-purchase";
+import { consumeVoucherUse, getRedeemableVoucherByCode } from "@/lib/vouchers/voucher-usage";
 
 const BOOKED_SLOT_STATUSES = ["confirmed", "pending", "deposit_paid"];
 const MIN_BOOKING_NOTICE_MINUTES = 120;
@@ -101,24 +101,10 @@ export async function POST(request: NextRequest) {
     let discountAmount = 0;
 
     if (voucherCode && typeof voucherCode === "string") {
-      const { data: voucherData, error: voucherError } = await supabase
-        .from("vouchers")
-        .select("id, code, discount_value")
-        .eq("code", voucherCode.trim().toUpperCase())
-        .eq("is_active", true)
-        .single();
-
-      if (voucherError || !voucherData) {
+      const { voucher: voucherData, error } = await getRedeemableVoucherByCode(supabase, voucherCode);
+      if (!voucherData) {
         return NextResponse.json(
-          { error: "Invalid or expired voucher code" },
-          { status: 400 }
-        );
-      }
-
-      const validity = await validateVoucherPurchaseWindow(supabase, voucherData.code);
-      if (!validity.valid) {
-        return NextResponse.json(
-          { error: validity.error },
+          { error: error || "Invalid or expired voucher code" },
           { status: 400 }
         );
       }
@@ -286,10 +272,13 @@ export async function POST(request: NextRequest) {
       await markSourceInvoicePaid(supabase, { serviceBookingId: booking.id });
 
       if (voucher) {
-        await supabase
-          .from("vouchers")
-          .update({ is_active: false })
-          .eq("id", voucher.id);
+        const consumeResult = await consumeVoucherUse(supabase, voucher.id);
+        if (!consumeResult.success) {
+          return NextResponse.json(
+            { error: consumeResult.error || "Failed to apply voucher" },
+            { status: 409 }
+          );
+        }
       }
 
       const accountResult = await ensureCustomerAccountAndSendAccess({

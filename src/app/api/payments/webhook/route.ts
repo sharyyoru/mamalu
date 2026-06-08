@@ -7,6 +7,7 @@ import { sendServiceBookingConfirmationEmail } from "@/lib/email/service-booking
 import { sendVoucherConfirmationEmail } from "@/lib/email/voucher-confirmation";
 import { createSourceInvoice, markSourceInvoicePaid } from "@/lib/invoices/source-invoices";
 import { findAvailableVoucherForAmount } from "@/lib/vouchers/assign-purchase-voucher";
+import { consumeVoucherUse } from "@/lib/vouchers/voucher-usage";
 import Stripe from "stripe";
 
 type ProductCheckoutItem = {
@@ -179,13 +180,10 @@ export async function POST(request: NextRequest) {
               });
 
               if (voucherId) {
-                const { error: voucherUpdateError } = await supabase
-                  .from("vouchers")
-                  .update({ is_active: false })
-                  .eq("id", voucherId);
+                const voucherResult = await consumeVoucherUse(supabase, voucherId);
 
-                if (voucherUpdateError) {
-                  console.error("Voucher deactivation failed:", voucherUpdateError);
+                if (!voucherResult.success) {
+                  console.error("Voucher usage update failed:", voucherResult.error);
                 } else {
                   console.log(`Voucher ${voucherCode || voucherId} marked as used for service booking ${bookingId}`);
                 }
