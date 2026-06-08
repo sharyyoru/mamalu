@@ -12,6 +12,7 @@ import {
   Plus,
   Save,
   Search,
+  Star,
   Tags,
   Trash2,
   Upload,
@@ -107,6 +108,7 @@ export default function AdminProductsPage() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [search, setSearch] = useState("");
+  const [showFeaturedOnly, setShowFeaturedOnly] = useState(false);
   const [activeTab, setActiveTab] = useState<"products" | "categories">("products");
   const [editingProduct, setEditingProduct] = useState<ProductDraft | null>(null);
   const [editingCategory, setEditingCategory] = useState<CategoryDraft | null>(null);
@@ -135,15 +137,16 @@ export default function AdminProductsPage() {
 
   const filteredProducts = useMemo(() => {
     const query = search.trim().toLowerCase();
-    if (!query) return products;
     return products.filter((product) => {
+      if (showFeaturedOnly && !product.featured) return false;
+      if (!query) return true;
       return (
         product.title.toLowerCase().includes(query) ||
         (product.description || "").toLowerCase().includes(query) ||
         product.categories?.some((category) => category.title.toLowerCase().includes(query))
       );
     });
-  }, [products, search]);
+  }, [products, search, showFeaturedOnly]);
 
   const openProductEditor = (product?: Product) => {
     if (!product) {
@@ -357,14 +360,28 @@ export default function AdminProductsPage() {
           </div>
 
           {activeTab === "products" && (
-            <div className="relative w-full max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" />
-              <input
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder="Search products..."
-                className="w-full pl-10 pr-4 py-2.5 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-500 bg-white"
-              />
+            <div className="flex w-full max-w-2xl items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setShowFeaturedOnly((current) => !current)}
+                className={`flex h-11 items-center gap-2 rounded-lg border px-4 text-sm font-medium transition-colors ${
+                  showFeaturedOnly
+                    ? "border-amber-400 bg-amber-50 text-amber-800"
+                    : "border-stone-200 bg-white text-stone-600 hover:bg-stone-50"
+                }`}
+              >
+                <Star className={`h-4 w-4 ${showFeaturedOnly ? "fill-amber-400 text-amber-500" : "text-stone-400"}`} />
+                Featured
+              </button>
+              <div className="relative min-w-0 flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" />
+                <input
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                  placeholder="Search products..."
+                  className="w-full pl-10 pr-4 py-2.5 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-500 bg-white"
+                />
+              </div>
             </div>
           )}
         </div>

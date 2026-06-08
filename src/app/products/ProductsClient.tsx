@@ -37,6 +37,10 @@ interface ProductsClientProps {
 
 type SortOption = "latest" | "a-z" | "z-a" | "price-low" | "price-high";
 
+function featuredRank(product: Product) {
+  return product.featured ? 0 : 1;
+}
+
 export default function ProductsClient({
   products,
   categories,
@@ -85,17 +89,19 @@ export default function ProductsClient({
     // Sort
     switch (sortBy) {
       case "a-z":
-        result = [...result].sort((a, b) => a.title.localeCompare(b.title));
+        result = [...result].sort((a, b) => featuredRank(a) - featuredRank(b) || a.title.localeCompare(b.title));
         break;
       case "z-a":
-        result = [...result].sort((a, b) => b.title.localeCompare(a.title));
+        result = [...result].sort((a, b) => featuredRank(a) - featuredRank(b) || b.title.localeCompare(a.title));
         break;
       case "price-low":
-        result = [...result].sort((a, b) => a.price - b.price);
+        result = [...result].sort((a, b) => featuredRank(a) - featuredRank(b) || a.price - b.price);
         break;
       case "price-high":
-        result = [...result].sort((a, b) => b.price - a.price);
+        result = [...result].sort((a, b) => featuredRank(a) - featuredRank(b) || b.price - a.price);
         break;
+      default:
+        result = [...result].sort((a, b) => featuredRank(a) - featuredRank(b));
     }
 
     return result;
