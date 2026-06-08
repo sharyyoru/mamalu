@@ -26,6 +26,7 @@ export interface Product {
   previewImageUrl?: string | null;
   categories?: Category[];
   inStock: boolean;
+  stockQuantity?: number;
   featured?: boolean;
 }
 

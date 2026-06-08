@@ -25,6 +25,7 @@ interface ProductRequestBody {
   categoryIds?: string[];
   tags?: string[] | string;
   inStock?: boolean;
+  isActive?: boolean;
   stockQuantity?: number | string | null;
   sku?: string;
   weight?: number | string | null;
@@ -71,6 +72,7 @@ function productPayload(body: ProductRequestBody) {
           .map((tag) => tag.trim())
           .filter(Boolean),
     inStock: body.inStock !== false,
+    isActive: body.isActive !== false,
     stockQuantity:
       body.stockQuantity === "" || body.stockQuantity == null
         ? undefined
@@ -99,6 +101,7 @@ export async function GET() {
           categories[]->{_id, title, slug},
           tags,
           inStock,
+          isActive,
           stockQuantity,
           sku,
           weight,

@@ -4,6 +4,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import {
   Edit3,
+  Eye,
+  EyeOff,
   Image as ImageIcon,
   Loader2,
   Package,
@@ -49,6 +51,7 @@ interface Product {
   categories?: ProductCategory[];
   tags?: string[];
   inStock: boolean;
+  isActive?: boolean;
   stockQuantity?: number;
   sku?: string;
   weight?: number;
@@ -75,6 +78,7 @@ const emptyProduct: ProductDraft = {
   categoryIds: [],
   tags: [],
   inStock: true,
+  isActive: true,
   stockQuantity: undefined,
   sku: "",
   weight: undefined,
@@ -187,15 +191,26 @@ export default function AdminProductsPage() {
     }
   };
 
-  const deleteProduct = async (product: Product) => {
-    if (!confirm(`Delete ${product.title}?`)) return;
+  const toggleProductActive = async (product: Product) => {
     try {
-      const res = await fetch(`/api/admin/products/${product._id}`, { method: "DELETE" });
+      const nextIsActive = product.isActive === false;
+      const res = await fetch(`/api/admin/products/${product._id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...product,
+          categoryIds: product.categories?.map((category) => category._id) || [],
+          tags: product.tags || [],
+          isActive: nextIsActive,
+        }),
+      });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to delete product");
-      setProducts((current) => current.filter((item) => item._id !== product._id));
+      if (!res.ok) throw new Error(data.error || "Failed to update product");
+      setProducts((current) =>
+        current.map((item) => item._id === product._id ? { ...item, isActive: nextIsActive } : item)
+      );
     } catch (error: unknown) {
-      alert(getErrorMessage(error, "Failed to delete product"));
+      alert(getErrorMessage(error, "Failed to update product"));
     }
   };
 
@@ -275,7 +290,7 @@ export default function AdminProductsPage() {
 
   const stats = {
     products: products.length,
-    active: products.filter((product) => product.inStock).length,
+    active: products.filter((product) => product.isActive !== false).length,
     categories: categories.length,
   };
 
@@ -317,7 +332,7 @@ export default function AdminProductsPage() {
           </div>
           <div className="rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 p-5 text-white">
             <p className="text-3xl font-bold">{stats.active}</p>
-            <p className="text-sm opacity-80 mt-1">In Stock</p>
+            <p className="text-sm opacity-80 mt-1">Active Products</p>
           </div>
           <div className="rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 p-5 text-white">
             <p className="text-3xl font-bold">{stats.categories}</p>
@@ -405,14 +420,25 @@ export default function AdminProductsPage() {
                       <Badge className={product.inStock ? "bg-green-100 text-green-700" : "bg-stone-100 text-stone-600"}>
                         {product.inStock ? "In Stock" : "Sold Out"}
                       </Badge>
+                      <Badge className={product.isActive !== false ? "ml-2 bg-blue-100 text-blue-700" : "ml-2 bg-stone-100 text-stone-600"}>
+                        {product.isActive !== false ? "Active" : "Inactive"}
+                      </Badge>
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end gap-2">
                         <button onClick={() => openProductEditor(product)} className="p-2 rounded-lg hover:bg-stone-100">
                           <Edit3 className="h-4 w-4 text-stone-600" />
                         </button>
-                        <button onClick={() => deleteProduct(product)} className="p-2 rounded-lg hover:bg-red-50">
-                          <Trash2 className="h-4 w-4 text-red-600" />
+                        <button
+                          onClick={() => toggleProductActive(product)}
+                          className="p-2 rounded-lg hover:bg-stone-100"
+                          title={product.isActive !== false ? "Set inactive" : "Set active"}
+                        >
+                          {product.isActive !== false ? (
+                            <EyeOff className="h-4 w-4 text-stone-600" />
+                          ) : (
+                            <Eye className="h-4 w-4 text-green-600" />
+                          )}
                         </button>
                       </div>
                     </td>
@@ -625,6 +651,15 @@ export default function AdminProductsPage() {
                       className="rounded"
                     />
                     <span className="text-sm text-stone-700">In Stock</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={editingProduct.isActive !== false}
+                      onChange={(event) => setEditingProduct((current) => ({ ...current, isActive: event.target.checked }))}
+                      className="rounded"
+                    />
+                    <span className="text-sm text-stone-700">Active</span>
                   </label>
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input

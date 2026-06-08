@@ -93,7 +93,7 @@ export async function getRecipeCategories() {
 // ============ PRODUCT QUERIES ============
 export async function getProducts() {
   return sanityClient.fetch(`
-    *[_type == "product"] | order(_createdAt desc) {
+    *[_type == "product" && (isActive == true || !defined(isActive))] | order(_createdAt desc) {
       _id,
       title,
       slug,
@@ -104,6 +104,8 @@ export async function getProducts() {
       categories[]->{_id, title, slug},
       tags,
       inStock,
+      isActive,
+      stockQuantity,
       featured
     }
   `);
@@ -112,7 +114,7 @@ export async function getProducts() {
 export async function getProductsByCategory(categorySlug: string) {
   return sanityClient.fetch(
     `
-    *[_type == "product" && $categorySlug in categories[]->slug.current] | order(_createdAt desc) {
+    *[_type == "product" && (isActive == true || !defined(isActive)) && $categorySlug in categories[]->slug.current] | order(_createdAt desc) {
       _id,
       title,
       slug,
@@ -121,7 +123,9 @@ export async function getProductsByCategory(categorySlug: string) {
       compareAtPrice,
       images,
       categories[]->{_id, title, slug},
-      inStock
+      inStock,
+      isActive,
+      stockQuantity
     }
   `,
     { categorySlug }
@@ -131,7 +135,7 @@ export async function getProductsByCategory(categorySlug: string) {
 export async function getProductBySlug(slug: string) {
   return sanityClient.fetch(
     `
-    *[_type == "product" && slug.current == $slug][0] {
+    *[_type == "product" && (isActive == true || !defined(isActive)) && slug.current == $slug][0] {
       _id,
       title,
       slug,
@@ -144,6 +148,8 @@ export async function getProductBySlug(slug: string) {
       categories[]->{_id, title, slug},
       tags,
       inStock,
+      isActive,
+      stockQuantity,
       sku,
       weight
     }

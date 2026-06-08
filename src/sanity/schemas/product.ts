@@ -97,6 +97,13 @@ export const product = defineType({
       initialValue: true,
     }),
     defineField({
+      name: "isActive",
+      title: "Active",
+      type: "boolean",
+      description: "Inactive products are hidden from the public products page.",
+      initialValue: true,
+    }),
+    defineField({
       name: "stockQuantity",
       title: "Stock Quantity",
       type: "number",
@@ -136,13 +143,15 @@ export const product = defineType({
       price: "price",
       media: "images.0",
       inStock: "inStock",
+      isActive: "isActive",
     },
     prepare(selection) {
-      const { title, price, inStock } = selection;
+      const { title, price, inStock, isActive } = selection;
+      const status = isActive === false ? " - Inactive" : inStock ? "" : " - Out of Stock";
       return {
         ...selection,
         title,
-        subtitle: `AED ${price} ${inStock ? "" : "- Out of Stock"}`,
+        subtitle: `AED ${price}${status}`,
       };
     },
   },

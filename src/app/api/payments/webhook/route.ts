@@ -8,9 +8,11 @@ import { sendVoucherConfirmationEmail } from "@/lib/email/voucher-confirmation";
 import { createSourceInvoice, markSourceInvoicePaid } from "@/lib/invoices/source-invoices";
 import { findAvailableVoucherForAmount } from "@/lib/vouchers/assign-purchase-voucher";
 import { consumeVoucherUse } from "@/lib/vouchers/voucher-usage";
+import { createSanityAdminClient } from "@/lib/sanity/admin";
 import Stripe from "stripe";
 
 type ProductCheckoutItem = {
+  id?: string;
   title?: string;
   name?: string;
   quantity?: number | string;
@@ -435,6 +437,17 @@ export async function POST(request: NextRequest) {
             const orderCustomerEmail = customerDetails?.email || session.customer_email || "";
             const orderCustomerPhone = customerDetails?.phone || "";
 
+            const { data: existingOrder } = await supabase
+              .from("product_orders")
+              .select("id")
+              .eq("stripe_checkout_session_id", session.id)
+              .maybeSingle();
+
+            if (existingOrder) {
+              console.log(`Product order already exists for session ${session.id}`);
+              break;
+            }
+
             // Create product order
             const { data: order, error: orderInsertError } = await supabase.from("product_orders").insert({
               customer_name: orderCustomerName,
@@ -458,6 +471,21 @@ export async function POST(request: NextRequest) {
             if (orderInsertError) {
               throw new Error(orderInsertError.message);
             }
+
+            const sanity = createSanityAdminClient();
+            await Promise.all((items as ProductCheckoutItem[])
+              .filter((item) => item.id)
+              .map(async (item) => {
+                const quantity = Math.max(1, Math.floor(Number(item.quantity || 1)));
+                const updatedProduct = await sanity
+                  .patch(item.id as string)
+                  .dec({ stockQuantity: quantity })
+                  .commit<{ stockQuantity?: number }>();
+
+                if (typeof updatedProduct.stockQuantity === "number" && updatedProduct.stockQuantity <= 0) {
+                  await sanity.patch(item.id as string).set({ inStock: false, stockQuantity: 0 }).commit();
+                }
+              }));
 
             const productLineItems = (items as ProductCheckoutItem[]).map((item) => ({
               name: item.title || item.name || "Product",
