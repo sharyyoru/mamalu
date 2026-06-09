@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Play, X } from "lucide-react";
 import { PressArticle } from "@/types/press";
 
 function getYoutubeEmbedUrl(url: string) {
@@ -60,6 +60,16 @@ export function PressMediaPreview({ article }: { article: PressArticle }) {
         preload="metadata"
         className="h-full w-full object-cover"
       />
+    );
+  }
+
+  if (isVideo) {
+    return (
+      <div className="flex h-full w-full items-center justify-center bg-black">
+        <span className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-white text-white">
+          <Play className="ml-1 h-8 w-8 fill-white" aria-hidden="true" />
+        </span>
+      </div>
     );
   }
 
