@@ -19,6 +19,11 @@ interface BookingScheduleItem {
   event_time?: string | null;
 }
 
+interface BookingConflictInfo {
+  guest_count?: number | null;
+  service_name?: string | null;
+}
+
 interface TimeSlotInfo {
   start: string;
   end: string;
@@ -98,6 +103,15 @@ function isSlotBlockedByBooking(
 
 function normalizeTime(time: string): string {
   return time.slice(0, 5);
+}
+
+function blocksEntireTimeSlot(booking: BookingConflictInfo): boolean {
+  const serviceName = (booking.service_name || "").toLowerCase();
+  const isPrivateCategory = serviceName.includes("birthday")
+    || serviceName.includes("corporate / private")
+    || serviceName.includes("corporate/private");
+
+  return isPrivateCategory || Number(booking.guest_count || 0) >= 6;
 }
 
 function toTimeSlotInfo(slot: typeof DEFAULT_BOOKING_TIME_SLOTS[number] | TimeSlotRow): TimeSlotInfo {
@@ -219,7 +233,7 @@ export async function GET(request: NextRequest) {
     try {
       const { data: bookings, error } = await supabase
         .from("service_bookings")
-        .select("event_time, items")
+        .select("event_time, items, guest_count, service_name")
         .eq("event_date", date)
         .in("status", BOOKED_SLOT_STATUSES);
 
@@ -240,6 +254,8 @@ export async function GET(request: NextRequest) {
       }
 
       bookedSlots = (bookings || []).flatMap((booking) => {
+        if (!blocksEntireTimeSlot(booking)) return [];
+
         const slots: BookedSlot[] = booking.event_time ? [{ event_time: booking.event_time }] : [];
         const items = Array.isArray(booking.items) ? booking.items as BookingScheduleItem[] : [];
 

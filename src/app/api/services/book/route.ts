@@ -15,6 +15,15 @@ function normalizeTimeForQuery(time: string) {
   return time.slice(0, 5);
 }
 
+function blocksEntireTimeSlot(booking: { guest_count?: number | null; service_name?: string | null }) {
+  const serviceName = (booking.service_name || "").toLowerCase();
+  const isPrivateCategory = serviceName.includes("birthday")
+    || serviceName.includes("corporate / private")
+    || serviceName.includes("corporate/private");
+
+  return isPrivateCategory || Number(booking.guest_count || 0) >= 6;
+}
+
 function parseTime(time: string) {
   const [hours, minutes] = time.split(":").map(Number);
   return hours * 60 + minutes;
@@ -162,7 +171,7 @@ export async function POST(request: NextRequest) {
     if (eventDate && eventTime) {
       const { data: existingBookings, error: availabilityError } = await supabase
         .from("service_bookings")
-        .select("id, booking_number, event_time, items")
+        .select("id, booking_number, event_time, items, guest_count, service_name")
         .eq("event_date", eventDate)
         .in("status", BOOKED_SLOT_STATUSES)
         .limit(100);
@@ -174,6 +183,8 @@ export async function POST(request: NextRequest) {
 
       const requestedTime = normalizeTimeForQuery(eventTime);
       const hasConflict = (existingBookings || []).some((booking) => {
+        if (!blocksEntireTimeSlot(booking)) return false;
+
         if (booking.event_time && normalizeTimeForQuery(booking.event_time) === requestedTime) {
           return true;
         }
