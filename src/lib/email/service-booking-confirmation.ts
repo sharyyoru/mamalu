@@ -9,8 +9,10 @@ interface ServiceBookingDetails {
   customerName: string;
   customerEmail: string;
   serviceName: string;
+  serviceType?: string | null;
   packageName?: string | null;
   menuName?: string | null;
+  invoiceNumber?: string | null;
   eventDate?: string | null;
   eventTime?: string | null;
   guestCount: number;
@@ -29,10 +31,13 @@ export async function sendServiceBookingConfirmationEmail(
   }
 
   try {
+    const isRental =
+      booking.serviceType === "rental" ||
+      booking.serviceName.toLowerCase().includes("rental");
     const { error } = await resend.emails.send({
       from: getEmailFrom(),
       to: booking.customerEmail,
-      subject: `Booking Confirmed - ${booking.bookingNumber} | Mamalu Kitchen`,
+      subject: `${isRental ? "Rental" : "Booking"} Confirmed - ${booking.bookingNumber} | Mamalu Kitchen`,
       html: generateEmailHtml(booking),
     });
 
@@ -54,6 +59,9 @@ function generateEmailHtml(booking: ServiceBookingDetails): string {
   const eventDate = booking.eventDate || "TBD";
   const eventTime = booking.eventTime || "TBD";
   const packageLabel = [booking.packageName, booking.menuName].filter(Boolean).join(" - ") || booking.serviceName;
+  const isRental =
+    booking.serviceType === "rental" ||
+    booking.serviceName.toLowerCase().includes("rental");
   const paidLabel = booking.isDepositPayment ? "Deposit Paid" : "Amount Paid";
   const paidAmount = booking.isDepositPayment
     ? booking.depositAmount ?? Math.ceil(booking.totalAmount * 0.5)
@@ -65,7 +73,7 @@ function generateEmailHtml(booking: ServiceBookingDetails): string {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Booking Confirmation</title>
+  <title>${isRental ? "Rental" : "Booking"} Confirmation</title>
 </head>
 <body style="margin: 0; padding: 0; font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif; background-color: #fff7f2;">
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
@@ -76,8 +84,8 @@ function generateEmailHtml(booking: ServiceBookingDetails): string {
     </tr>
     <tr>
       <td style="padding: 50px 30px 30px; text-align: center;">
-        <h1 style="color: #1c1917; margin: 0 0 10px; font-size: 24px; font-weight: 600;">Booking Confirmed</h1>
-        <p style="color: #6b5f59; margin: 0; font-size: 15px;">Thank you for your booking. Your payment has been received successfully.</p>
+        <h1 style="color: #1c1917; margin: 0 0 10px; font-size: 24px; font-weight: 600;">${isRental ? "Rental Booking" : "Booking"} Confirmed</h1>
+        <p style="color: #6b5f59; margin: 0; font-size: 15px;">Your ${booking.isDepositPayment ? "deposit" : "payment"} has been received successfully and your invoice has been updated.</p>
       </td>
     </tr>
     <tr>
@@ -87,12 +95,18 @@ function generateEmailHtml(booking: ServiceBookingDetails): string {
             <td style="color: #666666; width: 150px; padding: 12px 0;">Booking Number</td>
             <td style="color: #000000; font-weight: 600; padding: 12px 0;">${booking.bookingNumber}</td>
           </tr>
+          ${booking.invoiceNumber ? `
+          <tr>
+            <td style="color: #666666; padding: 12px 0; border-top: 1px solid #f5f5f5;">Invoice Number</td>
+            <td style="color: #000000; font-weight: 600; padding: 12px 0; border-top: 1px solid #f5f5f5;">${booking.invoiceNumber}</td>
+          </tr>
+          ` : ""}
           <tr>
             <td style="color: #666666; padding: 12px 0; border-top: 1px solid #f5f5f5;">Name</td>
             <td style="color: #000000; font-weight: 500; padding: 12px 0; border-top: 1px solid #f5f5f5;">${booking.customerName}</td>
           </tr>
           <tr>
-            <td style="color: #666666; padding: 12px 0; border-top: 1px solid #f5f5f5;">Experience</td>
+            <td style="color: #666666; padding: 12px 0; border-top: 1px solid #f5f5f5;">${isRental ? "Rental" : "Experience"}</td>
             <td style="color: #000000; font-weight: 500; padding: 12px 0; border-top: 1px solid #f5f5f5;">${packageLabel}</td>
           </tr>
           <tr>
@@ -125,8 +139,9 @@ function generateEmailHtml(booking: ServiceBookingDetails): string {
         <h3 style="color: #FF8C6B; margin: 0 0 15px 0; font-size: 14px; font-weight: 600; text-transform: uppercase;">Important Information</h3>
         <ul style="color: #6b5f59; margin: 0; padding-left: 20px; font-size: 13px; line-height: 1.8;">
           <li>Please arrive 10-15 minutes before your scheduled time</li>
-          <li>Wear comfortable clothing suitable for cooking</li>
-          <li>Notify us in advance about allergies or dietary restrictions</li>
+          ${isRental
+            ? "<li>Please contact us in advance for access, setup, or equipment requirements</li><li>Only the booked rental period and selected add-ons are included</li>"
+            : "<li>Wear comfortable clothing suitable for cooking</li><li>Notify us in advance about allergies or dietary restrictions</li>"}
           <li>Contact us if any booking details need to be updated</li>
         </ul>
       </td>

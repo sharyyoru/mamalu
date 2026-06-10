@@ -20,6 +20,11 @@ const PURPOSE_OPTIONS = [
   { value: "other", label: "Other" },
 ];
 const HALF_DAY_TIME_SLOTS = ["9am - 1pm", "1pm - 5pm", "5pm - 9pm"];
+const HALF_DAY_START_TIMES: Record<string, string> = {
+  "9am - 1pm": "09:00",
+  "1pm - 5pm": "13:00",
+  "5pm - 9pm": "17:00",
+};
 
 export default function RentalsPage() {
   const [content, setContent] = useState<RentalsPageContent>(defaultRentalsContent);
@@ -42,6 +47,13 @@ export default function RentalsPage() {
   const selectedPurposeLabel = PURPOSE_OPTIONS.find((option) => option.value === formData.purpose)?.label || "Select purpose";
   const selectedRentalOption = content.rentalOptions.find((o) => o.id === selectedOption);
   const isHalfDayRental = selectedRentalOption?.id === "half-day";
+  const selectedDateAllowsDeposit = formData.date
+    ? Math.round(
+        (new Date(`${formData.date}T00:00:00`).getTime() -
+          new Date(`${today}T00:00:00`).getTime()) /
+          86_400_000
+      ) > 2
+    : false;
 
   useEffect(() => {
     fetchContent();
@@ -88,35 +100,55 @@ export default function RentalsPage() {
 
     try {
       const selectedRental = content.rentalOptions.find((o) => o.id === selectedOption);
-      const selectedAddOnNames = selectedAddOns.map(id => content.addOns.find(a => a.id === id)?.name).filter(Boolean);
+      const selectedAddOnItems = selectedAddOns
+        .map((id) => content.addOns.find((addOn) => addOn.id === id))
+        .filter((addOn): addOn is NonNullable<typeof addOn> => Boolean(addOn));
       
-      const response = await fetch("/api/rentals/inquiry", {
+      const response = await fetch("/api/services/book", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
-          date: formData.date,
-          guests: formData.guests,
-          timeSlot: formData.timeSlot,
-          purpose: formData.purpose,
-          message: formData.message,
-          rentalOption: selectedRental?.name,
-          rentalPrice: selectedRental?.price,
-          addOns: selectedAddOnNames,
+          serviceType: "walkin_menu",
+          serviceName: "Kitchen Studio Rental",
+          packageName: selectedRental?.name,
+          customerName: formData.name,
+          customerEmail: formData.email,
+          customerPhone: formData.phone,
+          eventDate: formData.date,
+          eventTime: formData.timeSlot ? HALF_DAY_START_TIMES[formData.timeSlot] : null,
+          guestCount: Number(formData.guests) || 1,
+          extras: selectedAddOnItems.map((addOn) => ({
+            id: addOn.id,
+            name: addOn.name,
+            price: addOn.price,
+            quantity: 1,
+          })),
+          baseAmount: selectedRental?.price || 0,
+          extrasAmount: selectedAddOnItems.reduce((sum, addOn) => sum + addOn.price, 0),
           totalAmount: calculateTotal(),
+          specialRequests: [
+            formData.timeSlot ? `Rental time slot: ${formData.timeSlot}` : "",
+            formData.purpose ? `Purpose: ${selectedPurposeLabel}` : "",
+            formData.message,
+          ].filter(Boolean).join("\n"),
         }),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to submit inquiry");
+        const data = await response.json();
+        throw new Error(data.error || "Failed to create rental booking");
+      }
+
+      const data = await response.json();
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
+        return;
       }
 
       setIsSubmitted(true);
     } catch (error) {
-      console.error("Error submitting rental inquiry:", error);
-      alert("Failed to submit inquiry. Please try again.");
+      console.error("Error creating rental booking:", error);
+      alert(error instanceof Error ? error.message : "Failed to create rental booking. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -130,10 +162,10 @@ export default function RentalsPage() {
             <CheckCircle2 className="w-12 h-12 text-[#FF8C6B]" />
           </div>
           <h1 className="text-4xl font-bold mb-4" style={{ fontFamily: 'var(--font-mossy), cursive' }}>
-            Inquiry Received!
+            Booking Confirmed!
           </h1>
           <p className="text-lg text-gray-600 mb-8">
-            Thank you for your interest in renting our kitchen studio. Our team will contact you within 24 hours to confirm availability and finalize your booking.
+            Your kitchen rental booking has been created and is available in your account.
           </p>
           <Link
             href="/"
@@ -410,7 +442,7 @@ export default function RentalsPage() {
                   disabled={isSubmitting}
                   className={`w-full py-4 rounded-full font-bold text-lg transition-colors ${PRIMARY_BUTTON_CLASS}`}
                 >
-                  {isSubmitting ? "Submitting..." : "Submit Inquiry"}
+                  {isSubmitting ? "Opening Stripe..." : selectedDateAllowsDeposit ? "Pay 50% Deposit" : "Pay in Full"}
                 </button>
               </form>
             )}
@@ -461,6 +493,13 @@ export default function RentalsPage() {
                         AED {calculateTotal().toLocaleString()}
                       </p>
                     </div>
+                    {formData.date && (
+                      <p className="mt-2 text-sm text-gray-500">
+                        {selectedDateAllowsDeposit
+                          ? `Due now: AED ${Math.ceil(calculateTotal() * 0.5).toLocaleString()} (50% deposit)`
+                          : "Full payment is required for rentals within 2 days."}
+                      </p>
+                    )}
                   </div>
                 </div>
               ) : (

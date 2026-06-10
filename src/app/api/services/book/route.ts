@@ -10,6 +10,7 @@ const BOOKED_SLOT_STATUSES = ["confirmed", "pending", "deposit_paid", "completed
 const MIN_BOOKING_NOTICE_MINUTES = 120;
 const BUSINESS_TIME_ZONE = "Asia/Dubai";
 const MONTHLY_SLOT_CATEGORY_IDS = new Set(["monthly_mini", "monthly_big"]);
+const RENTAL_DEPOSIT_CUTOFF_DAYS = 2;
 
 function normalizeTimeForQuery(time: string) {
   return time.slice(0, 5);
@@ -57,6 +58,15 @@ function hasMinimumBookingNotice(eventDate: string, eventTime: string) {
   return parseTime(eventTime) - now.minutes >= MIN_BOOKING_NOTICE_MINUTES;
 }
 
+function rentalAllowsDeposit(eventDate: string) {
+  const today = getBusinessDateParts().date;
+  const start = new Date(`${today}T00:00:00Z`);
+  const event = new Date(`${eventDate}T00:00:00Z`);
+  const daysUntilRental = Math.round((event.getTime() - start.getTime()) / 86_400_000);
+
+  return daysUntilRental > RENTAL_DEPOSIT_CUTOFF_DAYS;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const supabase = createAdminClient();
@@ -88,7 +98,7 @@ export async function POST(request: NextRequest) {
       extrasAmount,
       totalAmount,
       // Split payment info
-      isDepositPayment,
+      isDepositPayment: requestedDepositPayment,
       specialRequests,
       ageRange,
       waiverAccepted,
@@ -125,6 +135,12 @@ export async function POST(request: NextRequest) {
       discountAmount = Math.min(Number(totalAmount), voucher.discount_value);
     }
 
+    const isRentalBooking =
+      serviceType === "rental" ||
+      String(serviceName).toLowerCase().includes("rental");
+    const isDepositPayment = isRentalBooking && eventDate
+      ? rentalAllowsDeposit(eventDate)
+      : Boolean(requestedDepositPayment);
     const discountedTotalAmount = Math.max(0, Number(totalAmount) - discountAmount);
     const adjustedDepositAmount = isDepositPayment ? Math.ceil(discountedTotalAmount * 0.5) : null;
     const adjustedBalanceAmount = isDepositPayment
@@ -328,8 +344,10 @@ export async function POST(request: NextRequest) {
         customerName: booking.customer_name,
         customerEmail: booking.customer_email,
         serviceName: booking.service_name,
+        serviceType: booking.service_type,
         packageName: booking.package_name,
         menuName: booking.menu_name,
+        invoiceNumber: booking.invoice_number,
         eventDate: booking.event_date,
         eventTime: booking.event_time,
         guestCount: booking.guest_count || 1,
