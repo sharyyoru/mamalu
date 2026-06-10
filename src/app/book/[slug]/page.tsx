@@ -4,6 +4,7 @@ import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { dateAllowsDeposit, getDubaiDate } from "@/lib/payments/deposit-policy";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -426,7 +427,7 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
   
   // Calculate deposit (50%) and balance - ONLY Birthday requires 50% deposit, everything else is 100% upfront
   const totalAmount = calculateTotal();
-  const requiresDeposit = isBirthday; // Only birthday requires 50% deposit
+  const requiresDeposit = isBirthday && dateAllowsDeposit(eventDate, getDubaiDate());
   const depositAmount = requiresDeposit ? Math.ceil(totalAmount * 0.5) : totalAmount;
   const balanceAmount = requiresDeposit ? totalAmount - depositAmount : 0;
 
@@ -449,7 +450,7 @@ export default function ServiceBookingPage({ params }: { params: Promise<{ slug:
         }));
 
       // Determine if this is a deposit payment - ONLY Birthday requires 50% deposit
-      const isDepositPayment = isBirthday;
+      const isDepositPayment = requiresDeposit;
       const paymentAmount = isDepositPayment ? Math.ceil(totalAmount * 0.5) : totalAmount;
 
       const res = await fetch("/api/services/book", {

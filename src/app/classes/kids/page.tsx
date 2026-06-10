@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Check, Plus, Minus, ShoppingCart, Users, Clock, ChefHat, Loader2, CalendarDays, Ticket } from "lucide-react";
+import { dateAllowsDeposit, getDubaiDate } from "@/lib/payments/deposit-policy";
 
 interface MenuPackage {
   id: string;
@@ -205,7 +206,10 @@ export default function KidsBookingPage() {
       const totalAmount = baseAmount + extrasAmount;
       const discountAmount = getVoucherDiscount(totalAmount);
       const discountedTotalAmount = Math.max(0, totalAmount - discountAmount);
-      const depositAmount = Math.ceil(discountedTotalAmount * 0.5);
+      const isDepositPayment = dateAllowsDeposit(eventDate, getDubaiDate());
+      const depositAmount = isDepositPayment
+        ? Math.ceil(discountedTotalAmount * 0.5)
+        : discountedTotalAmount;
 
       const res = await fetch("/api/services/book", {
         method: "POST",
@@ -226,9 +230,9 @@ export default function KidsBookingPage() {
           baseAmount,
           extrasAmount,
           totalAmount,
-          isDepositPayment: true,
-          depositAmount,
-          balanceAmount: discountedTotalAmount - depositAmount,
+          isDepositPayment,
+          depositAmount: isDepositPayment ? depositAmount : null,
+          balanceAmount: isDepositPayment ? discountedTotalAmount - depositAmount : null,
           specialRequests,
           ageRange,
           waiverAccepted,

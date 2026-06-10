@@ -13,6 +13,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { MonthlyAvailableDatePicker } from "@/components/booking/monthly-available-date-picker";
 import { BigChefPageContent, defaultBigChefContent } from "@/types/site-content";
+import { dateAllowsDeposit, getDubaiDate } from "@/lib/payments/deposit-policy";
 
 interface MenuItem { id: string; name: string; price: number; image: string; dishes: string[]; category: string; scheduled_date?: string | null; allowed_persons?: number | null; }
 interface ExtraItem { id: string; name: string; description: string; price: number; icon: LucideIcon; category: string; image?: string; }
@@ -407,7 +408,7 @@ export default function BigChefPage() {
   const totalAmount = baseAmount + extrasTotal;
   const voucherDiscount = appliedVoucher ? Math.min(totalAmount, Number(appliedVoucher.amount) || 0) : 0;
   const discountedTotalAmount = Math.max(0, totalAmount - voucherDiscount);
-  const requiresDeposit = true;
+  const requiresDeposit = isCorporate && dateAllowsDeposit(eventDate, getDubaiDate());
   const depositAmount = requiresDeposit ? Math.ceil(discountedTotalAmount * 0.5) : discountedTotalAmount;
   const balanceAmount = requiresDeposit ? discountedTotalAmount - depositAmount : 0;
 

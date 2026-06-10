@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import { dateAllowsDeposit, getDubaiDate } from "@/lib/payments/deposit-policy";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -557,11 +558,11 @@ export default function MiniChefPage() {
   const selectedTimeSlotLabel = allTimeSlots.find((slot) => slot.start === eventTime)?.label || eventTime;
   const displayedTimeSlots = availableTimeSlots;
 
-  // Payment calculation - Mini Chef packages are paid in full.
+  // Birthday bookings allow a 50% deposit when booked more than two days ahead.
   const totalAmount = calculateTotal();
   const voucherDiscount = appliedVoucher ? Math.min(totalAmount, Number(appliedVoucher.amount) || 0) : 0;
   const discountedTotalAmount = Math.max(0, totalAmount - voucherDiscount);
-  const requiresDeposit = !isPackage;
+  const requiresDeposit = dateAllowsDeposit(eventDate, getDubaiDate());
   const depositAmount = requiresDeposit ? Math.ceil(discountedTotalAmount * 0.5) : discountedTotalAmount;
   const balanceAmount = requiresDeposit ? discountedTotalAmount - depositAmount : 0;
 

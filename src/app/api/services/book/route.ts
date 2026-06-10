@@ -5,12 +5,12 @@ import { ensureCustomerAccountAndSendAccess } from "@/lib/account/customer-accou
 import { sendServiceBookingConfirmationEmail } from "@/lib/email/service-booking-confirmation";
 import { createSourceInvoice, markSourceInvoicePaid, updateSourceInvoiceCheckout } from "@/lib/invoices/source-invoices";
 import { consumeVoucherUse, getRedeemableVoucherByCode } from "@/lib/vouchers/voucher-usage";
+import { dateAllowsDeposit } from "@/lib/payments/deposit-policy";
 
 const BOOKED_SLOT_STATUSES = ["confirmed", "pending", "deposit_paid", "completed"];
 const MIN_BOOKING_NOTICE_MINUTES = 120;
 const BUSINESS_TIME_ZONE = "Asia/Dubai";
 const MONTHLY_SLOT_CATEGORY_IDS = new Set(["monthly_mini", "monthly_big"]);
-const RENTAL_DEPOSIT_CUTOFF_DAYS = 2;
 
 function normalizeTimeForQuery(time: string) {
   return time.slice(0, 5);
@@ -56,15 +56,6 @@ function hasMinimumBookingNotice(eventDate: string, eventTime: string) {
   if (eventDate > now.date) return true;
 
   return parseTime(eventTime) - now.minutes >= MIN_BOOKING_NOTICE_MINUTES;
-}
-
-function rentalAllowsDeposit(eventDate: string) {
-  const today = getBusinessDateParts().date;
-  const start = new Date(`${today}T00:00:00Z`);
-  const event = new Date(`${eventDate}T00:00:00Z`);
-  const daysUntilRental = Math.round((event.getTime() - start.getTime()) / 86_400_000);
-
-  return daysUntilRental > RENTAL_DEPOSIT_CUTOFF_DAYS;
 }
 
 export async function POST(request: NextRequest) {
@@ -138,8 +129,13 @@ export async function POST(request: NextRequest) {
     const isRentalBooking =
       serviceType === "rental" ||
       String(serviceName).toLowerCase().includes("rental");
-    const isDepositPayment = isRentalBooking && eventDate
-      ? rentalAllowsDeposit(eventDate)
+    const isBirthdayBooking = serviceType === "birthday_deck";
+    const isCorporatePrivateBooking =
+      serviceType === "corporate_deck" &&
+      String(serviceName).toLowerCase().includes("corporate / private");
+    const usesDateBasedDeposit = isRentalBooking || isBirthdayBooking || isCorporatePrivateBooking;
+    const isDepositPayment = usesDateBasedDeposit && eventDate
+      ? dateAllowsDeposit(eventDate, getBusinessDateParts().date)
       : Boolean(requestedDepositPayment);
     const discountedTotalAmount = Math.max(0, Number(totalAmount) - discountAmount);
     const adjustedDepositAmount = isDepositPayment ? Math.ceil(discountedTotalAmount * 0.5) : null;
