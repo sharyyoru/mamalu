@@ -513,7 +513,7 @@ export default function BigChefPage() {
               <div className="hidden lg:block">
                 <Image src="/images/0312b1_27732e4abccb4925bca29ff7f349d958~mv2_d_1772_1772_s_2.avif" alt="" width={160} height={160} className="float-gentle opacity-70" />
               </div>
-              <div><h1 className="text-2xl text-black" style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 900 }}>{pageContent.pageTitle}</h1><p className="text-black text-base" style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 700 }}>{pageContent.pageSubtitle}</p></div>
+              <div><h1 className="text-2xl" style={{ fontFamily: 'var(--font-mossy), cursive' }}>{pageContent.pageTitle}</h1><p className="text-black text-base" style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 700 }}>{pageContent.pageSubtitle}</p></div>
             </div>
             <div className="hidden lg:block">
               <Image src="/images/0312b1_fee52e9b65c54277bd129615e50d68ff~mv2_d_1772_1772_s_2.avif" alt="" width={150} height={150} className="float-medium opacity-70" />
@@ -532,9 +532,9 @@ export default function BigChefPage() {
             {step === 1 && (
               <div className="space-y-6">
                 <div>
-                  <h2 className="text-2xl text-black" style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 900 }}>{isNanny ? "Select 4 Menus for Your Course" : "Pick your perfect Menu"}</h2>
+                  <h2 className="text-2xl" style={{ fontFamily: 'var(--font-mossy), cursive' }}>{isNanny ? "Select 4 Menus for Your Course" : "Pick your perfect Menu"}</h2>
                   <p className="text-stone-500 mt-1">{currentConfig.description}</p>
-                  {isNanny ? <div className="mt-3 p-4 bg-[#FF8C6B]/10 rounded-lg border border-[#FF8C6B]/25"><p className="text-lg font-bold text-[#FF8C6B]">AED 1,200 for 4 classes</p><p className="text-base text-[#FF8C6B] mt-1">Select any 4 menus. Each class is 1.5 hours. Available Monday and Tuesday at 11am</p></div> : <p className="text-base text-stone-400 mt-2">Min: {currentConfig.minGuests} • Max: {currentConfig.maxGuests} guests • Price per person</p>}
+                  {isNanny ? <p className="text-base text-stone-400 mt-2">AED 1,200 for 4 classes. Select any 4 menus. Each class is 1.5 hours. Available Monday and Tuesday at 11am</p> : <p className="text-base text-stone-400 mt-2">Min: {currentConfig.minGuests} • Max: {currentConfig.maxGuests} guests • Price per person</p>}
                 </div>
                 {!isNanny && (
                   <Card><CardContent className="p-5">
@@ -672,17 +672,17 @@ export default function BigChefPage() {
                           const qty = selectedExtras[extra.id] || 0;
                           return (
                             <Card key={extra.id} className={qty > 0 ? "ring-2 ring-[#FF8C6B]" : ""}>
-                              <CardContent className="p-4 flex items-start gap-3">
+                              <CardContent className="p-6 flex items-start gap-3">
                                 <div className="flex-shrink-0">
                                   {extra.image ? (
-                                    <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-stone-100">
+                                    <div className="relative w-40 h-40 rounded-lg overflow-hidden bg-stone-100">
                                       <Image src={extra.image} alt={extra.name} fill className="object-cover" />
                                     </div>
                                   ) : (
                                     <div className="p-2 bg-stone-100 rounded-lg"><Icon className="h-5 w-5 text-stone-600" /></div>
                                   )}
                                 </div>
-                                <div className="flex-1"><h4 className="font-medium text-stone-900">{extra.name}</h4><p className="text-sm text-stone-500">{extra.description}</p><p className="text-sm font-bold text-stone-900 mt-1">AED {extra.price}</p></div>
+                                <div className="flex-1"><h4 className="font-medium text-stone-900">{extra.name}</h4><p className="text-sm text-stone-900">{extra.description}</p><p className="text-sm font-bold text-stone-900 mt-1">AED {extra.price}</p></div>
                                 <div className="flex items-center gap-2">
                                   <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setSelectedExtras(p => ({ ...p, [extra.id]: Math.max(0, (p[extra.id] || 0) - 1) }))} disabled={qty === 0}><Minus className="h-3 w-3" /></Button>
                                   <span className="w-6 text-center font-bold">{qty}</span>

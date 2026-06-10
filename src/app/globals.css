@@ -93,7 +93,8 @@ h1, h2, h3 {
 }
 
 /* Make all Mossy font text bolder and more legible */
-[style*="font-mossy"], [style*="--font-mossy"] {
+:not(h1):not(h2):not(h3)[style*="font-mossy"],
+:not(h1):not(h2):not(h3)[style*="--font-mossy"] {
   font-weight: 900 !important;
   color: #1c1917;
   -webkit-font-smoothing: antialiased;
@@ -637,6 +638,12 @@ a:focus-visible, button:focus-visible {
 .text-zinc-800 { color: #09090b !important; }
 .text-zinc-900 { color: #000000 !important; }
 
+/* ===== MINIMUM FONT SIZE 16px ===== */
+@layer utilities {
+  .text-sm { font-size: 1rem; }
+  .text-xs { font-size: 1rem; }
+}
+
 /* ===== INCREASE FONT WEIGHTS FOR BETTER READABILITY ===== */
 .font-medium { font-weight: 600 !important; }
 
@@ -646,4 +653,18 @@ select {
 }
 select option {
   color: #0a0a0a !important;
+}
+
+/* ===== PINK HEADINGS - REMOVE BOLD ===== */
+/* :root gives pseudo-class specificity (0,1,0,1) > any class (0,1,0,0) */
+:root h1, :root h2, :root h3,
+:root h1 *, :root h2 *, :root h3 * {
+  font-weight: 300 !important;
+  color: #d4748a !important;
+}
+
+/* ===== FOOTER NAV HEADINGS - KEEP ORIGINAL WEIGHT & COLOR ===== */
+:root h3.footer-nav-heading {
+  font-weight: 900 !important;
+  color: #1c1917 !important;
 }

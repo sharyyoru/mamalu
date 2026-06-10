@@ -26,15 +26,21 @@ export default async function AboutPage() {
   const content = await getAboutContent();
 
   return (
-    <div className="bg-white">
+    <div className="bg-white relative overflow-x-hidden">
+      {/* Decorative margin images */}
+      <div className="pointer-events-none hidden xl:block">
+        <Image src="/images/image-random/whisk-01.png" alt="" width={110} height={110} className="absolute left-4 top-32 opacity-60" style={{ transform: "rotate(-15deg)" }} />
+        <Image src="/images/image-random/pot-01.png" alt="" width={120} height={120} className="absolute right-4 top-56 opacity-60" style={{ transform: "rotate(10deg)" }} />
+        <Image src="/images/image-random/recipe-01.png" alt="" width={90} height={90} className="absolute left-6 top-[60%] opacity-50" style={{ transform: "rotate(8deg)" }} />
+      </div>
       {/* About Mamalu Section */}
       <section className="py-8 lg:py-12">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
           {/* About Mamalu Header with curly arrow doodle */}
           <div className="flex items-center justify-center mb-12">
             <h1
-              className="text-4xl sm:text-5xl text-stone-600"
-              style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 400 }}
+              className="text-4xl sm:text-5xl"
+              style={{ fontFamily: 'var(--font-mossy), cursive' }}
             >
               {content.pageTitle}
             </h1>
@@ -86,7 +92,7 @@ export default async function AboutPage() {
             />
             <h2 
               className="text-3xl sm:text-4xl md:text-5xl text-center"
-              style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 400, color: '#FF8C6B' }}
+              style={{ fontFamily: 'var(--font-mossy), cursive' }}
             >
               {content.feedingFamiliesTitle}
             </h2>

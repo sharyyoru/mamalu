@@ -103,7 +103,7 @@ export function Footer() {
 
             {/* Primary Links */}
             <div>
-              <h3 className="text-sm font-semibold text-stone-900 uppercase tracking-wider mb-4" style={{ fontFamily: 'var(--font-mossy), cursive' }}>Main</h3>
+              <h3 className="footer-nav-heading text-sm uppercase tracking-wider mb-4" style={{ fontFamily: 'var(--font-mossy), cursive' }}>Main</h3>
               <ul className="space-y-3">
                 {primaryLinks.map((link) => (
                   <li key={link.name}>
@@ -133,7 +133,7 @@ export function Footer() {
 
             {/* Explore */}
             <div>
-              <h3 className="text-sm font-semibold text-stone-900 uppercase tracking-wider mb-4" style={{ fontFamily: 'var(--font-mossy), cursive' }}>Explore</h3>
+              <h3 className="footer-nav-heading text-sm uppercase tracking-wider mb-4" style={{ fontFamily: 'var(--font-mossy), cursive' }}>Explore</h3>
             <ul className="space-y-3">
               {secondaryLinks.explore.map((link) => (
                 <li key={link.name}>
@@ -151,7 +151,7 @@ export function Footer() {
 
           {/* Services */}
           <div>
-            <h3 className="text-sm font-semibold text-stone-900 uppercase tracking-wider mb-4" style={{ fontFamily: 'var(--font-mossy), cursive' }}>Services</h3>
+            <h3 className="footer-nav-heading text-sm uppercase tracking-wider mb-4" style={{ fontFamily: 'var(--font-mossy), cursive' }}>Services</h3>
             <ul className="space-y-3">
               {secondaryLinks.services.map((link) => (
                 <li key={link.name}>
@@ -169,7 +169,7 @@ export function Footer() {
 
           {/* Support */}
           <div>
-            <h3 className="text-sm font-semibold text-stone-900 uppercase tracking-wider mb-4" style={{ fontFamily: 'var(--font-mossy), cursive' }}>Support</h3>
+            <h3 className="footer-nav-heading text-sm uppercase tracking-wider mb-4" style={{ fontFamily: 'var(--font-mossy), cursive' }}>Support</h3>
             <ul className="space-y-3">
               {secondaryLinks.support.map((link) => (
                 <li key={link.name}>

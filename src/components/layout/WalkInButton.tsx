@@ -14,7 +14,7 @@ export function WalkInButton() {
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <ChefHat className="h-5 w-5 text-black" />
-              <h3 className="text-black" style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 900 }}>Walk-In Customers</h3>
+              <h3 style={{ fontFamily: 'var(--font-mossy), cursive' }}>Walk-In Customers</h3>
             </div>
             <button
               onClick={() => setExpanded(false)}

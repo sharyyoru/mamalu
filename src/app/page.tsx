@@ -193,7 +193,14 @@ export default function HomePage() {
   }, []);
 
   return (
-    <main className="overflow-hidden">
+    <main className="overflow-hidden relative">
+      {/* Decorative margin images */}
+      <div className="pointer-events-none hidden xl:block">
+        <Image src="/images/image-random/turkey-01.png" alt="" width={110} height={110} className="absolute left-4 top-[30%] opacity-55" style={{ transform: "rotate(-12deg)" }} />
+        <Image src="/images/image-random/pizza cutter-01.png" alt="" width={100} height={100} className="absolute right-4 top-[28%] opacity-55" style={{ transform: "rotate(15deg)" }} />
+        <Image src="/images/image-random/gloves-01.png" alt="" width={105} height={105} className="absolute left-5 top-[55%] opacity-50" style={{ transform: "rotate(8deg)" }} />
+        <Image src="/images/image-random/spoon big-01-2.png" alt="" width={95} height={95} className="absolute right-5 top-[58%] opacity-50" style={{ transform: "rotate(-10deg)" }} />
+      </div>
       {/* Hero Section - Modern Image Slider */}
       <section
         ref={heroRef}
@@ -218,7 +225,6 @@ export default function HomePage() {
                   priority
                   className="object-cover transition-transform duration-700 group-hover:scale-105"
                 />
-                <div className="absolute inset-0 bg-white/50" />
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 lg:w-48 lg:h-48 rounded-full bg-[#ffeee8] border-2 border-stone-800 flex items-center justify-center transition-transform duration-500 group-hover:scale-110">
                     <span 
@@ -256,8 +262,8 @@ export default function HomePage() {
                 style={{ transform: "rotate(249.1356596547737deg)" }}
               />
               <h2
-                className="section-title text-4xl md:text-5xl lg:text-6xl text-black text-center leading-tight"
-                style={{ fontFamily: "var(--font-mossy), cursive", fontWeight: 900 }}
+                className="section-title text-4xl md:text-5xl lg:text-6xl text-center leading-tight"
+                style={{ fontFamily: "var(--font-mossy), cursive" }}
               >
                 {shouldBreakLifeAtTitle ? (
                   <>
@@ -307,8 +313,8 @@ export default function HomePage() {
         <div className="container px-4 md:px-6">
           {/* Section Title */}
           <div className="relative text-center mb-8 md:mb-16">
-            <h2 style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 900 }}>
-              <span className="text-3xl md:text-4xl lg:text-5xl tracking-wide text-black">{siteContent.ourStoryTitle}</span>
+            <h2 style={{ fontFamily: 'var(--font-mossy), cursive' }}>
+              <span className="text-3xl md:text-4xl lg:text-5xl tracking-wide">{siteContent.ourStoryTitle}</span>
               <span className="inline-block ml-2 text-[#f5d5d0]">❤</span>
             </h2>
             <Image

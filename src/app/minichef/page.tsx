@@ -122,7 +122,7 @@ const PRIMARY_BUTTON_CLASS = "bg-[rgb(255_140_107)] hover:bg-[rgb(255_126_91)] t
 const getCategoryConfig = (pageContent: MiniChefPageContent): Record<CategoryType, { label: string; icon: string; minGuests: number; maxGuests: number; description: string }> => ({
   classics: { label: "Our Classics", icon: pageContent.categoryIcons?.classics || "/icons/boy.png", minGuests: 1, maxGuests: 35, description: "2-hour hands-on cooking experience with professional chefs" },
   monthly: { label: "Monthly Specials", icon: pageContent.categoryIcons?.monthly || "/icons/girl.png", minGuests: 1, maxGuests: 35, description: "Seasonal rotating menus" },
-  mommy_me: { label: "Mommy & Me", icon: pageContent.categoryIcons?.mommy_me || "/icons/boy.png", minGuests: 1, maxGuests: 20, description: "Mom and kid share their own station" },
+  mommy_me: { label: "Mommy & Me", icon: pageContent.categoryIcons?.mommy_me || "/icons/boy.png", minGuests: 1, maxGuests: 20, description: "Mom and kid have their own station where they share laughter, learning, and delicious moments together!" },
   birthdays: { label: "Birthdays", icon: pageContent.categoryIcons?.birthdays || "/icons/girl.png", minGuests: 6, maxGuests: 35, description: "2-hour private birthday cooking experience" },
   packages: { label: "Packages", icon: pageContent.categoryIcons?.packages || "/icons/boy.png", minGuests: 6, maxGuests: 35, description: "Bundled menu packages for groups" },
 });
@@ -909,7 +909,7 @@ export default function MiniChefPage() {
                 <Image src="/images/0312b1_27732e4abccb4925bca29ff7f349d958~mv2_d_1772_1772_s_2.avif" alt="" width={160} height={160} className="float-gentle opacity-70" />
               </div>
               <div>
-                <h1 className="text-2xl text-black" style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 900 }}>{pageContent.pageTitle}</h1>
+                <h1 className="text-2xl" style={{ fontFamily: 'var(--font-mossy), cursive' }}>{pageContent.pageTitle}</h1>
                 <p className="text-black text-base" style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 700 }}>
                   {pageContent.pageSubtitle}
                 </p>
@@ -948,24 +948,12 @@ export default function MiniChefPage() {
             {step === 1 && (
               <div className="space-y-6">
                 <div>
-                  <h2 className="text-2xl text-black" style={{ fontFamily: 'var(--font-mossy), cursive', fontWeight: 900 }}>Pick your perfect Menu</h2>
+                  <h2 className="text-2xl" style={{ fontFamily: 'var(--font-mossy), cursive' }}>Pick your perfect Menu</h2>
                   <p className="text-stone-500 mt-1">{currentConfig.description}</p>
                   <p className="text-base text-stone-400 mt-2">
                     Min: {currentConfig.minGuests} {isMommyAndMe ? "child" : isBirthday ? "kid(s)" : "guest(s)"} • Max: {currentConfig.maxGuests} {isMommyAndMe ? "children" : isBirthday ? "kids" : "guests"} • {isMommyAndMe ? `AED ${MOMMY_ME_ADDITIONAL_CHILD_PRICE} per additional child` : "Price per person"}
                   </p>
                 </div>
-
-                {/* Mommy & Me Description */}
-                {activeCategory === "mommy_me" && (
-                  <div className="p-4 bg-[#FF8C6B]/10 rounded-lg border border-[#FF8C6B]/25">
-                    <p className="font-bold text-stone-900">
-                      Mom and kid have their own station where they share laughter, learning, and delicious moments together!
-                    </p>
-                    <p className="text-sm text-stone-700 mt-2">
-                      Each menu includes 1 child. Add AED {MOMMY_ME_ADDITIONAL_CHILD_PRICE} for every additional child.
-                    </p>
-                  </div>
-                )}
 
                 {/* Guest Count Selector with Desktop Navigation */}
                 <Card>
@@ -1193,14 +1181,14 @@ export default function MiniChefPage() {
                               const qty = selectedExtras[extra.id] || 0;
                               return (
                                 <Card key={extra.id} className={qty > 0 ? "ring-2 ring-[#FF8C6B]" : ""}>
-                                  <CardContent className="p-4">
+                                  <CardContent className="p-6">
                                     <div className="flex items-start gap-3">
                                       <div className="flex-shrink-0">
                                         {extra.image ? (
                                           <button
                                             type="button"
                                             onClick={() => setPreviewExtra(extra)}
-                                            className="group relative h-16 w-16 overflow-hidden rounded-lg bg-stone-100 focus:outline-none focus:ring-2 focus:ring-[#FF8C6B] focus:ring-offset-2"
+                                            className="group relative h-40 w-40 overflow-hidden rounded-lg bg-stone-100 focus:outline-none focus:ring-2 focus:ring-[#FF8C6B] focus:ring-offset-2"
                                             aria-label={`Preview ${extra.name}`}
                                           >
                                             <Image src={extra.image} alt={extra.name} fill className="object-cover transition group-hover:scale-105" />
@@ -1213,7 +1201,7 @@ export default function MiniChefPage() {
                                       </div>
                                       <div className="flex-1">
                                         <h4 className="font-bold text-stone-900">{extra.name}</h4>
-                                        <p className="text-sm text-stone-500">{extra.description}</p>
+                                        <p className="text-sm text-stone-900">{extra.description}</p>
                                         <p className="text-sm font-bold text-stone-900 mt-1">AED {extra.price}</p>
                                       </div>
                                       <div className="flex items-center gap-2">

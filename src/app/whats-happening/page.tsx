@@ -48,7 +48,12 @@ export default function WhatsHappeningPage() {
   const imageUrl = calendarItem?.image_url || defaultImage;
 
   return (
-    <main className="min-h-screen bg-stone-50">
+    <main className="min-h-screen bg-stone-50 relative overflow-x-hidden">
+      {/* Decorative margin images */}
+      <div className="pointer-events-none hidden xl:block">
+        <Image src="/images/image-random/notepad.png" alt="" width={100} height={100} className="absolute left-4 top-44 opacity-55" style={{ transform: "rotate(-12deg)" }} />
+        <Image src="/images/image-random/flames.png" alt="" width={90} height={90} className="absolute right-4 top-36 opacity-55" style={{ transform: "rotate(8deg)" }} />
+      </div>
       {/* Header */}
       <div className="bg-white border-b border-stone-200">
         <div className="container mx-auto px-4 py-6">

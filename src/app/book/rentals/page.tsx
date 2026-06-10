@@ -194,7 +194,7 @@ export default function RentalsPage() {
 
       {/* Image Slider */}
       <div className="container max-w-6xl mx-auto px-6 mb-12">
-        <h2 className="text-2xl font-bold mb-6" style={{ fontFamily: 'var(--font-mossy), cursive' }}>
+        <h2 className="text-2xl mb-6" style={{ fontFamily: 'var(--font-mossy), cursive' }}>
           Photo Gallery
         </h2>
         <ImageSlider images={content.galleryImages} alt="Kitchen Studio Photos" />

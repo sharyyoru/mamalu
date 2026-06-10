@@ -46,7 +46,7 @@ export default function NewsletterSection() {
     <section className="py-16 md:py-20 bg-stone-100">
       <div className="container mx-auto px-4 text-center">
         <h2 
-          className="text-3xl md:text-4xl lg:text-5xl text-stone-900 mb-4"
+          className="text-3xl md:text-4xl lg:text-5xl mb-4"
           style={{ fontFamily: 'var(--font-mossy), cursive' }}
         >
           Get Cooking Tips in Your Inbox
