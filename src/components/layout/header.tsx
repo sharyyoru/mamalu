@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect } from "react";
-import { X, Instagram } from "lucide-react";
+import { CircleUserRound, X, Instagram } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
@@ -136,6 +136,14 @@ export function Header() {
 
             {/* Right: Vouchers + Eazy Freezy + Cart */}
             <div className="flex items-center gap-4">
+              <Link
+                href="/account"
+                aria-label="Account"
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--c-black)]/20 bg-white text-[var(--c-black)] transition-all duration-300 hover:border-[var(--c-black)] hover:bg-stone-50"
+              >
+                <CircleUserRound className="h-5 w-5" />
+              </Link>
+
               {/* Vouchers */}
               <Link
                 href="/vouchers"
@@ -219,7 +227,7 @@ export function Header() {
 
           {/* Menu Links - Large centered text with peach underline highlight on hover */}
           <div className="flex-1 flex flex-col items-center justify-center gap-6 px-6 relative z-10">
-            {[{ name: "Home", href: "/" }, ...navLinks, { name: "Vouchers", href: "/vouchers" }, { name: "Eazy Freezy", href: "/products" }].map((link, i) => (
+            {[{ name: "Home", href: "/" }, ...navLinks, { name: "Vouchers", href: "/vouchers" }, { name: "Eazy Freezy", href: "/products" }, { name: "Account", href: "/account" }].map((link, i) => (
               <Link
                 key={link.name}
                 href={link.href}
