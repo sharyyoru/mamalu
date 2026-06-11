@@ -1,6 +1,48 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { stripe } from "@/lib/stripe/server";
+import { sendPaymentLinkCreatedEmail } from "@/lib/email/payment-link-created";
+
+interface AdminBookingScheduleItem {
+  id?: string;
+  name?: string;
+  event_date?: string | null;
+  event_time?: string | null;
+}
+
+interface CreatedInvoice {
+  id: string;
+  [key: string]: unknown;
+}
+
+const OPTIONAL_INVOICE_COLUMNS = new Set([
+  "service_booking_id",
+  "payment_link_id",
+  "lead_id",
+  "base_amount",
+  "extras_amount",
+  "service_name",
+  "service_type",
+  "event_date",
+  "guest_count",
+]);
+
+const getMissingInvoiceColumn = (error: { message?: string }) => {
+  return error.message?.match(/'([^']+)' column of 'invoices'/)?.[1] || null;
+};
+
+const ADMIN_CATEGORY_RULES: Record<string, { minGuests: number; maxGuests: number; menuCount: number; separateSchedules?: boolean }> = {
+  classics_mini: { minGuests: 1, maxGuests: 35, menuCount: 1 },
+  monthly_mini: { minGuests: 1, maxGuests: 35, menuCount: 1 },
+  mommy_me: { minGuests: 1, maxGuests: 20, menuCount: 1 },
+  birthday: { minGuests: 6, maxGuests: 35, menuCount: 1 },
+  packages: { minGuests: 6, maxGuests: 35, menuCount: 1 },
+  corporate: { minGuests: 6, maxGuests: 35, menuCount: 1 },
+  classics_big: { minGuests: 1, maxGuests: 35, menuCount: 1 },
+  monthly_big: { minGuests: 1, maxGuests: 35, menuCount: 1 },
+  teenagers: { minGuests: 1, maxGuests: 20, menuCount: 4, separateSchedules: true },
+  nanny: { minGuests: 1, maxGuests: 1, menuCount: 4, separateSchedules: true },
+};
 
 // GET: Fetch all service bookings with filtering
 export async function GET(request: NextRequest) {
@@ -220,6 +262,7 @@ export async function POST(request: NextRequest) {
       eventDate,
       eventTime,
       guestCount,
+      items,
       extras,
       baseAmount,
       extrasAmount,
@@ -232,6 +275,7 @@ export async function POST(request: NextRequest) {
       createdBy,
       generatePaymentLink,
       leadId,
+      bookingSlotCategory,
     } = body;
 
     if (!serviceName || !customerName || !customerEmail || !totalAmount) {
@@ -241,10 +285,48 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const categoryRule = typeof bookingSlotCategory === "string"
+      ? ADMIN_CATEGORY_RULES[bookingSlotCategory]
+      : null;
+    const normalizedGuestCount = Number(guestCount || 1);
+    const menuIds = typeof menuId === "string" ? menuId.split(",").filter(Boolean) : [];
+    const scheduleItems = Array.isArray(items) ? items as AdminBookingScheduleItem[] : [];
+
+    if (!categoryRule) {
+      return NextResponse.json({ error: "A valid booking category is required" }, { status: 400 });
+    }
+    if (normalizedGuestCount < categoryRule.minGuests || normalizedGuestCount > categoryRule.maxGuests) {
+      return NextResponse.json(
+        { error: `Guest count must be between ${categoryRule.minGuests} and ${categoryRule.maxGuests}` },
+        { status: 400 }
+      );
+    }
+    if (menuIds.length !== categoryRule.menuCount) {
+      return NextResponse.json(
+        { error: `This category requires exactly ${categoryRule.menuCount} menu selection${categoryRule.menuCount === 1 ? "" : "s"}` },
+        { status: 400 }
+      );
+    }
+    if (categoryRule.separateSchedules && (
+      scheduleItems.length !== categoryRule.menuCount
+      || scheduleItems.some((item) => !item.event_date || !item.event_time)
+    )) {
+      return NextResponse.json(
+        { error: "Every selected class requires its own date and time slot" },
+        { status: 400 }
+      );
+    }
+    if (!categoryRule.separateSchedules && (!eventDate || !eventTime)) {
+      return NextResponse.json({ error: "Event date and time are required" }, { status: 400 });
+    }
+
     // Create booking record
     const bookingData = {
       service_id: serviceId || null,
-      package_id: packageId || null,
+      // Admin package selections come from the `packages` catalog. This column
+      // references the legacy `service_packages` table, so catalog package
+      // details are retained in package_name/items instead.
+      package_id: bookingSlotCategory === "packages" ? null : packageId || null,
       service_type: serviceType || null,
       service_name: serviceName,
       package_name: packageName || null,
@@ -258,6 +340,7 @@ export async function POST(request: NextRequest) {
       event_date: eventDate || null,
       event_time: eventTime || null,
       guest_count: guestCount || 1,
+      items: items || [],
       extras: extras || [],
       base_amount: baseAmount || totalAmount,
       extras_amount: extrasAmount || 0,
@@ -321,7 +404,7 @@ export async function POST(request: NextRequest) {
         currency: "aed",
       });
 
-      const stripePaymentLink = await stripe.paymentLinks.create({
+        const stripePaymentLink = await stripe.paymentLinks.create({
         line_items: [{ price: price.id, quantity: 1 }],
         after_completion: {
           type: "hosted_confirmation",
@@ -329,11 +412,13 @@ export async function POST(request: NextRequest) {
             custom_message: "Thank you for your payment! Your booking has been confirmed.",
           },
         },
-        metadata: {
+          metadata: {
           type: "service_booking",
           booking_id: booking.id,
           booking_number: booking.booking_number,
-          link_code: linkCode,
+            link_code: linkCode,
+            customer_email: customerEmail,
+            booking_slot_category: bookingSlotCategory || "",
         },
       });
 
@@ -386,51 +471,113 @@ export async function POST(request: NextRequest) {
           ? `${productName} - 50% Deposit`
           : productName;
 
-        const { data: invoice } = await supabase
-          .from("invoices")
-          .insert({
-            invoice_number: invoiceNumber,
-            service_booking_id: booking.id,
-            payment_link_id: paymentLink.id,
-            customer_name: customerName,
-            customer_email: customerEmail,
-            customer_phone: customerPhone || null,
-            amount: paymentAmount,
-            base_amount: paymentAmount,
-            extras_amount: 0,
-            currency: "AED",
-            description: initialInvoiceDescription,
-            line_items: [
-              {
-                name: initialInvoiceDescription,
-                quantity: 1,
-                price: paymentAmount,
-              },
-            ],
-            service_name: serviceName,
-            service_type: serviceType,
-            event_date: eventDate || null,
-            guest_count: guestCount,
-            status: "sent",
-            payment_link: stripePaymentLink.url,
-            sent_at: new Date().toISOString(),
-            notes: notes || null,
-            created_by: createdBy || null,
-            lead_id: leadId || null,
-          })
-          .select()
-          .single();
+        const invoiceData: Record<string, unknown> = {
+          invoice_number: invoiceNumber,
+          service_booking_id: booking.id,
+          payment_link_id: paymentLink.id,
+          customer_name: customerName,
+          customer_email: customerEmail,
+          customer_phone: customerPhone || null,
+          amount: paymentAmount,
+          base_amount: paymentAmount,
+          extras_amount: 0,
+          currency: "AED",
+          description: initialInvoiceDescription,
+          line_items: [
+            {
+              name: initialInvoiceDescription,
+              quantity: 1,
+              price: paymentAmount,
+            },
+          ],
+          service_name: serviceName,
+          service_type: serviceType,
+          event_date: eventDate || null,
+          guest_count: guestCount,
+          status: "sent",
+          payment_link: stripePaymentLink.url,
+          sent_at: new Date().toISOString(),
+          notes: notes || null,
+          created_by: createdBy || null,
+          lead_id: leadId || null,
+        };
 
-        if (invoice) {
-          // Update booking with invoice reference
-          await supabase
-            .from("service_bookings")
-            .update({ 
-              invoice_id: invoice.id,
-              invoice_number: invoiceNumber,
-            })
-            .eq("id", booking.id);
+        let invoice: CreatedInvoice | null = null;
+        let invoiceDataForInsert = { ...invoiceData };
+        let finalInvoiceError: { message?: string } | null = null;
+
+        for (let attempt = 0; attempt <= OPTIONAL_INVOICE_COLUMNS.size; attempt += 1) {
+          const { data: insertedInvoice, error: invoiceError } = await supabase
+            .from("invoices")
+            .insert(invoiceDataForInsert)
+            .select()
+            .single();
+
+          if (!invoiceError) {
+            invoice = insertedInvoice as CreatedInvoice;
+            break;
+          }
+
+          finalInvoiceError = invoiceError;
+          const missingColumn = getMissingInvoiceColumn(invoiceError);
+          if (
+            missingColumn &&
+            OPTIONAL_INVOICE_COLUMNS.has(missingColumn) &&
+            Object.prototype.hasOwnProperty.call(invoiceDataForInsert, missingColumn)
+          ) {
+            delete invoiceDataForInsert[missingColumn];
+            console.warn(`Retrying admin booking invoice insert without missing column: ${missingColumn}`);
+            continue;
+          }
+
+          break;
         }
+
+        if (!invoice) {
+          console.error("Create booking invoice error:", finalInvoiceError);
+          return NextResponse.json(
+            {
+              error: "Booking and payment link were created, but the invoice could not be created.",
+              booking,
+              paymentLink: paymentLinkData,
+            },
+            { status: 500 }
+          );
+        }
+
+        await supabase
+          .from("payment_links")
+          .update({ invoice_id: invoice.id })
+          .eq("id", paymentLink.id);
+
+        // Update booking with invoice reference
+        await supabase
+          .from("service_bookings")
+          .update({
+            invoice_id: invoice.id,
+            invoice_number: invoiceNumber,
+          })
+          .eq("id", booking.id);
+
+        const emailResult = await sendPaymentLinkCreatedEmail({
+          customerName,
+          customerEmail,
+          title: productName,
+          amount: paymentAmount,
+          paymentUrl: stripePaymentLink.url,
+          linkCode,
+          invoiceNumber,
+          description: productDescription,
+        });
+
+        return NextResponse.json({
+          success: true,
+          booking,
+          paymentLink: paymentLinkData,
+          invoice,
+          emailSent: emailResult.success,
+          emailError: emailResult.error || null,
+        });
       }
     }
 

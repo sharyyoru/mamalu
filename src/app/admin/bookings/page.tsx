@@ -37,6 +37,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatPrice, formatDate } from "@/lib/utils";
 import { DEFAULT_BOOKING_TIME_SLOTS } from "@/lib/booking-time-slots";
+import { AdminCreateBookingModal } from "@/components/admin/admin-create-booking-modal";
 
 const CALENDAR_HOURS = Array.from({ length: 13 }, (_, index) => {
   const hour = 9 + index;
@@ -1451,7 +1452,7 @@ export default function AdminBookingsPage() {
 
       {/* Create Booking Modal */}
       {showCreateModal && (
-        <CreateBookingModal
+        <AdminCreateBookingModal
           isOpen={showCreateModal}
           onClose={() => setShowCreateModal(false)}
           onSuccess={() => {
