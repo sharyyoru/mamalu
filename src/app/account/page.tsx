@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { User as UserIcon, Mail, Lock, ArrowRight, AlertCircle, CheckCircle, LogOut, Package, Calendar, Gift, KeyRound, X } from "lucide-react";
 
-type AuthMode = "login" | "register";
+type AuthMode = "login" | "register" | "forgot-password" | "reset-password";
 
 interface Profile {
   id: string;
@@ -88,6 +88,87 @@ export default function AccountPage() {
   useEffect(() => {
     checkUser();
   }, [checkUser]);
+
+  useEffect(() => {
+    if (!supabase) return;
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") {
+        setMode("reset-password");
+        setUser(null);
+        setProfile(null);
+        setError("");
+        setSuccess("");
+        setCheckingAuth(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [supabase]);
+
+  async function handleForgotPassword(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+    setSuccess("");
+
+    if (!supabase) {
+      setError("Authentication service not configured");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/account`,
+      });
+
+      if (error) throw error;
+
+      setSuccess("If an account exists for this email, a password reset link has been sent.");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Unable to send password reset email");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleResetPassword(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+    setSuccess("");
+
+    if (!supabase) {
+      setError("Authentication service not configured");
+      return;
+    }
+
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password });
+      if (error) throw error;
+
+      await supabase.auth.signOut();
+      setPassword("");
+      setConfirmPassword("");
+      setMode("login");
+      setSuccess("Password updated successfully. You can now sign in.");
+      window.history.replaceState({}, "", "/account");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Unable to update password");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -409,12 +490,22 @@ export default function AccountPage() {
               <UserIcon className="h-7 w-7 text-[#FF8C6B]" />
             </div>
             <CardTitle className="text-2xl">
-              {mode === "login" ? "Welcome Back" : "Create Account"}
+              {mode === "login"
+                ? "Welcome Back"
+                : mode === "register"
+                  ? "Create Account"
+                  : mode === "forgot-password"
+                    ? "Reset Password"
+                    : "Choose New Password"}
             </CardTitle>
             <p className="text-stone-600 text-sm mt-2">
               {mode === "login"
                 ? "Sign in to access your orders and bookings"
-                : "Join Mamalu Kitchen for exclusive benefits"}
+                : mode === "register"
+                  ? "Join Mamalu Kitchen for exclusive benefits"
+                  : mode === "forgot-password"
+                    ? "Enter your email to receive a password reset link"
+                    : "Enter and confirm your new password"}
             </p>
           </CardHeader>
           <CardContent>
@@ -431,7 +522,16 @@ export default function AccountPage() {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form
+              onSubmit={
+                mode === "forgot-password"
+                  ? handleForgotPassword
+                  : mode === "reset-password"
+                    ? handleResetPassword
+                    : handleSubmit
+              }
+              className="space-y-4"
+            >
               {mode === "register" && (
                 <div>
                   <label className="block text-sm font-medium text-stone-700 mb-2">
@@ -449,6 +549,7 @@ export default function AccountPage() {
                   </div>
                 </div>
               )}
+              {mode !== "reset-password" && (
               <div>
                 <label className="block text-sm font-medium text-stone-700 mb-2">
                   Email
@@ -465,9 +566,11 @@ export default function AccountPage() {
                   />
                 </div>
               </div>
+              )}
+              {mode !== "forgot-password" && (
               <div>
                 <label className="block text-sm font-medium text-stone-700 mb-2">
-                  Password
+                  {mode === "reset-password" ? "New Password" : "Password"}
                 </label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400 z-10" />
@@ -481,10 +584,11 @@ export default function AccountPage() {
                   />
                 </div>
               </div>
-              {mode === "register" && (
+              )}
+              {(mode === "register" || mode === "reset-password") && (
                 <div>
                   <label className="block text-sm font-medium text-stone-700 mb-2">
-                    Confirm Password
+                    {mode === "reset-password" ? "Confirm New Password" : "Confirm Password"}
                   </label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400 z-10" />
@@ -503,6 +607,12 @@ export default function AccountPage() {
                 <div className="text-right">
                   <a
                     href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setMode("forgot-password");
+                      setError("");
+                      setSuccess("");
+                    }}
                     className="text-sm text-[#FF8C6B] hover:text-[#ff7a54]"
                   >
                     Forgot password?
@@ -510,12 +620,32 @@ export default function AccountPage() {
                 </div>
               )}
               <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "Please wait..." : mode === "login" ? "Sign In" : "Create Account"}
+                {loading
+                  ? "Please wait..."
+                  : mode === "login"
+                    ? "Sign In"
+                    : mode === "register"
+                      ? "Create Account"
+                      : mode === "forgot-password"
+                        ? "Send Reset Link"
+                        : "Update Password"}
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
             </form>
 
             <div className="mt-6 text-center">
+              {(mode === "forgot-password" || mode === "reset-password") ? (
+                <button
+                  onClick={() => {
+                    setMode("login");
+                    setError("");
+                    setSuccess("");
+                  }}
+                  className="text-sm text-[#FF8C6B] hover:text-[#ff7a54] font-medium"
+                >
+                  Back to sign in
+                </button>
+              ) : (
               <p className="text-sm text-stone-600">
                 {mode === "login"
                   ? "Don't have an account?"
@@ -531,6 +661,7 @@ export default function AccountPage() {
                   {mode === "login" ? "Sign up" : "Sign in"}
                 </button>
               </p>
+              )}
             </div>
           </CardContent>
         </Card>
