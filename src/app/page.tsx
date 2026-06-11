@@ -193,13 +193,15 @@ export default function HomePage() {
   }, []);
 
   return (
-    <main className="overflow-hidden relative">
+    <main className="relative">
       {/* Decorative margin images */}
-      <div className="pointer-events-none hidden xl:block">
-        <Image src="/images/image-random/turkey-01.png" alt="" width={110} height={110} className="absolute left-4 top-[30%] opacity-55" style={{ transform: "rotate(-12deg)" }} />
-        <Image src="/images/image-random/pizza cutter-01.png" alt="" width={100} height={100} className="absolute right-4 top-[28%] opacity-55" style={{ transform: "rotate(15deg)" }} />
-        <Image src="/images/image-random/gloves-01.png" alt="" width={105} height={105} className="absolute left-5 top-[55%] opacity-50" style={{ transform: "rotate(8deg)" }} />
-        <Image src="/images/image-random/spoon big-01-2.png" alt="" width={95} height={95} className="absolute right-5 top-[58%] opacity-50" style={{ transform: "rotate(-10deg)" }} />
+      <div className="pointer-events-none" style={{ position: "absolute", inset: 0, zIndex: 100 }}>
+        <Image src="/images/knives-01-01.png" alt="" width={130} height={130} style={{ position: "absolute", left: 16, top: 80, transform: "rotate(-15deg)", opacity: 0.85 }} />
+        <Image src="/images/image-random/knives-01.png" alt="" width={130} height={130} style={{ position: "absolute", right: 16, top: 80, transform: "rotate(15deg)", opacity: 0.85 }} />
+        <Image src="/images/image-random/turkey-01.png" alt="" width={110} height={110} style={{ position: "absolute", left: 16, top: "35%", transform: "rotate(-12deg)", opacity: 0.7 }} />
+        <Image src="/images/image-random/pizza cutter-01.png" alt="" width={100} height={100} style={{ position: "absolute", right: 16, top: "33%", transform: "rotate(15deg)", opacity: 0.7 }} />
+        <Image src="/images/image-random/gloves-01.png" alt="" width={105} height={105} style={{ position: "absolute", left: 16, top: "60%", transform: "rotate(8deg)", opacity: 0.65 }} />
+        <Image src="/images/image-random/spoon big-01-2.png" alt="" width={95} height={95} style={{ position: "absolute", right: 16, top: "63%", transform: "rotate(-10deg)", opacity: 0.65 }} />
       </div>
       {/* Hero Section - Modern Image Slider */}
       <section
@@ -357,6 +359,9 @@ export default function HomePage() {
                 <span>{siteContent.ourStoryButtonText}</span>
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
+              <div className="mt-6">
+                <Image src="/images/image-random/notepad.png" alt="" width={100} height={100} className="opacity-60" style={{ transform: "rotate(10deg)" }} />
+              </div>
             </div>
           </div>
         </div>

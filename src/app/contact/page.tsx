@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { MapPin, Phone, Mail, Clock, CheckCircle, Loader2, Send } from "lucide-react";
+import { MapPin, Phone, Mail, Clock, CheckCircle, Loader2, Send, ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 
 const contactInfo = [
@@ -89,213 +89,193 @@ export default function ContactPage() {
     }
   };
 
+  const galleryImages = [
+    "/kitchen-photos/_C3A0991.JPG",
+    "/kitchen-photos/_C3A0993.JPG",
+    "/kitchen-photos/_C3A0995.JPG",
+    "/kitchen-photos/_C3A0997.JPG",
+    "/kitchen-photos/_C3A0998.JPG",
+    "/kitchen-photos/_C3A1001.JPG",
+    "/kitchen-photos/WhatsApp Image 2022-08-01 at 11.23.42 AM.jpeg",
+    "/kitchen-photos/WhatsApp Image 2022-08-01 at 11.23.44 AM.jpeg",
+  ];
+
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide(prev => (prev + 1) % galleryImages.length);
+    }, 3500);
+    return () => clearInterval(timer);
+  }, [galleryImages.length]);
+
+
   return (
-    <div>
-      {/* Hero */}
-      <section className="bg-gradient-to-br from-stone-50 via-[#ff7f5c]/5 to-stone-100 py-16 lg:py-20 relative overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none">
-          <Image src="/images/speech-bubble.png" alt="" width={70} height={70} className="absolute top-[10%] left-[4%] opacity-[0.06] animate-doodle-float" />
-          <Image src="/images/pot-01.png" alt="" width={60} height={60} className="absolute top-[15%] right-[5%] opacity-[0.05] animate-doodle-wiggle" style={{animationDelay: '1s'}} />
-          <Image src="/images/notepad.png" alt="" width={55} height={55} className="absolute bottom-[10%] left-[8%] opacity-[0.05] animate-doodle-scale" style={{animationDelay: '2s'}} />
+    <div className="bg-white min-h-screen">
+
+      {/* Hero Header */}
+      <section className="bg-gradient-to-br from-stone-50 via-[#ff7f5c]/5 to-stone-100 py-16 lg:py-20 text-center">
+        <h1 className="text-4xl sm:text-5xl" style={{ fontFamily: 'var(--font-mossy), cursive' }}>
+          Contact Us
+        </h1>
+        <p className="mt-4 text-lg text-stone-600 max-w-xl mx-auto px-4">
+          Have a question or want to work with us? We&apos;d love to hear from you.
+        </p>
+      </section>
+
+      {/* ── Section 1: Our Location + Gallery Slider ── */}
+      <section className="px-6 sm:px-10 lg:px-20 py-16 lg:py-20">
+        <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-10 items-center">
+          {/* Left: Location */}
+          <div>
+            <h2 className="text-4xl sm:text-5xl mb-8" style={{ fontFamily: 'var(--font-mossy), cursive' }}>
+              Our Location
+            </h2>
+            <div className="space-y-1 text-stone-600 text-base leading-relaxed">
+              <p>Mamalu Kitchen</p>
+              <p>Depachika Food Hall, Nakheel Mall inside ,</p>
+              <p>Center of Palm Jumeirah,</p>
+              <p>Dubai - United Arab Emirates</p>
+            </div>
+            <div className="mt-8 space-y-1 text-stone-600">
+              <p>Every day: 9AM – 10PM</p>
+              <p>
+                <a href="https://wa.me/971527479512" target="_blank" rel="noopener noreferrer" className="hover:text-[#ff8c6b] transition-colors">
+                  +971 52 747 9512
+                </a>
+              </p>
+            </div>
+          </div>
+
+          {/* Right: Gallery Slider */}
+          <div className="relative w-full h-64 sm:h-80 lg:h-96 overflow-hidden rounded-lg shadow-md">
+            {galleryImages.map((src, idx) => (
+              <div
+                key={src}
+                className="absolute inset-0 transition-opacity duration-700"
+                style={{ opacity: idx === currentSlide ? 1 : 0 }}
+              >
+                <Image src={src} alt="Mamalu Kitchen" fill className="object-cover" priority={idx === 0} />
+              </div>
+            ))}
+            <button
+              onClick={() => setCurrentSlide(prev => (prev - 1 + galleryImages.length) % galleryImages.length)}
+              className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-1.5 shadow transition z-10"
+            >
+              <ChevronLeft className="h-4 w-4 text-stone-700" />
+            </button>
+            <button
+              onClick={() => setCurrentSlide(prev => (prev + 1) % galleryImages.length)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-1.5 shadow transition z-10"
+            >
+              <ChevronRight className="h-4 w-4 text-stone-700" />
+            </button>
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+              {galleryImages.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setCurrentSlide(idx)}
+                  className={`h-1.5 rounded-full transition-all ${idx === currentSlide ? "bg-white w-4" : "bg-white/50 w-1.5"}`}
+                />
+              ))}
+            </div>
+          </div>
         </div>
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-4xl sm:text-5xl font-bold text-stone-900">
-              Contact Us
-            </h1>
-            <p className="mt-6 text-lg text-stone-600">
-              Have a question or want to work with us? We&apos;d love to hear
-              from you.
+      </section>
+
+      {/* ── Section 2: Contact Us Form ── */}
+      <section className="px-6 sm:px-10 lg:px-20 py-16 relative">
+        <div className="max-w-2xl mx-auto relative">
+
+          {/* Phone doodle — left */}
+          <div className="hidden sm:block absolute -left-24 top-0 pointer-events-none">
+            <Image src="/images/phone 01-01.png" alt="" width={90} height={110} className="opacity-90" />
+          </div>
+
+          {/* Envelope doodle — right */}
+          <div className="hidden sm:block absolute -right-24 bottom-24 pointer-events-none">
+            <Image src="/images/email-01.png" alt="" width={90} height={80} className="opacity-90" />
+          </div>
+
+          <h1 className="text-4xl sm:text-5xl text-center mb-12" style={{ fontFamily: 'var(--font-mossy), cursive' }}>
+            Contact Us
+          </h1>
+
+          {isSubmitted ? (
+            <div className="text-center py-16">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <CheckCircle className="h-8 w-8 text-green-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-stone-900 mb-2">Message Sent!</h3>
+              <p className="text-stone-500 mb-6">We&apos;ll get back to you within 24 hours.</p>
+              <button onClick={() => setIsSubmitted(false)} className="text-[#ff8c6b] underline">Send another message</button>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-stone-700 mb-2">First Name *</label>
+                  <Input name="firstName" value={formData.firstName} onChange={handleChange} placeholder="John" required className="border-stone-200 focus:border-[#ff7f5c] focus:ring-[#ff7f5c]" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-stone-700 mb-2">Last Name *</label>
+                  <Input name="lastName" value={formData.lastName} onChange={handleChange} placeholder="Doe" required className="border-stone-200 focus:border-[#ff7f5c] focus:ring-[#ff7f5c]" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-2">Email *</label>
+                <Input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="john@example.com" required className="border-stone-200 focus:border-[#ff7f5c] focus:ring-[#ff7f5c]" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-2">Phone</label>
+                <Input type="tel" name="phone" value={formData.phone} onChange={handleChange} placeholder="+971 50 123 4567" className="border-stone-200 focus:border-[#ff7f5c] focus:ring-[#ff7f5c]" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-2">Subject *</label>
+                <Input name="subject" value={formData.subject} onChange={handleChange} placeholder="How can we help?" required className="border-stone-200 focus:border-[#ff7f5c] focus:ring-[#ff7f5c]" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-2">Message *</label>
+                <textarea name="message" value={formData.message} onChange={handleChange} rows={4} required className="flex w-full rounded-md border border-stone-200 bg-white px-3 py-2 text-sm placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-[#ff7f5c] focus:border-[#ff7f5c]" placeholder="Tell us more about your inquiry..." />
+              </div>
+
+              {error && <div className="text-red-600 text-sm bg-red-50 p-3 rounded-lg">{error}</div>}
+
+              <Button type="submit" className="w-full bg-[#ff7f5c] hover:bg-[#e67854] text-white h-12" disabled={isSubmitting}>
+                {isSubmitting ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Sending...</> : <><Send className="h-4 w-4 mr-2" />Send Message</>}
+              </Button>
+            </form>
+          )}
+
+          {/* Footer info */}
+          <div className="mt-14 text-center space-y-1 text-stone-600">
+            <p>
+              For collaborations :{" "}
+              <a href="mailto:info@mamalukitchen.com" className="hover:text-[#ff8c6b] transition-colors">
+                info@mamalukitchen.com
+              </a>
+            </p>
+            <p>
+              Tel{" "}
+              <a href="https://wa.me/971527479512" target="_blank" rel="noopener noreferrer" className="hover:text-[#ff8c6b] transition-colors">
+                +971 52 747 9512
+              </a>
             </p>
           </div>
         </div>
       </section>
 
-      {/* Contact Section */}
-      <section className="py-16 lg:py-20 bg-white">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-12">
-            {/* Contact Form */}
-            <div className="bg-stone-50 p-6 sm:p-8 rounded-2xl">
-              <h2 className="text-2xl font-bold text-stone-900 mb-6">
-                Send us a message
-              </h2>
-              
-              {isSubmitted ? (
-                <div className="text-center py-12">
-                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <CheckCircle className="h-8 w-8 text-green-600" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-stone-900 mb-2">Message Sent!</h3>
-                  <p className="text-stone-600 mb-6">Thank you for reaching out. We&apos;ll get back to you within 24 hours.</p>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setIsSubmitted(false)}
-                  >
-                    Send Another Message
-                  </Button>
-                </div>
-              ) : (
-                <form onSubmit={handleSubmit} className="space-y-5">
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-stone-700 mb-2">
-                        First Name *
-                      </label>
-                      <Input 
-                        name="firstName"
-                        value={formData.firstName}
-                        onChange={handleChange}
-                        placeholder="John" 
-                        required
-                        className="border-stone-200 focus:border-[#ff7f5c] focus:ring-[#ff7f5c]"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-stone-700 mb-2">
-                        Last Name *
-                      </label>
-                      <Input 
-                        name="lastName"
-                        value={formData.lastName}
-                        onChange={handleChange}
-                        placeholder="Doe" 
-                        required
-                        className="border-stone-200 focus:border-[#ff7f5c] focus:ring-[#ff7f5c]"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-stone-700 mb-2">
-                      Email *
-                    </label>
-                    <Input 
-                      type="email" 
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      placeholder="john@example.com" 
-                      required
-                      className="border-stone-200 focus:border-[#ff7f5c] focus:ring-[#ff7f5c]"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-stone-700 mb-2">
-                      Phone
-                    </label>
-                    <Input 
-                      type="tel" 
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      placeholder="+971 50 123 4567" 
-                      className="border-stone-200 focus:border-[#ff7f5c] focus:ring-[#ff7f5c]"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-stone-700 mb-2">
-                      Subject *
-                    </label>
-                    <Input 
-                      name="subject"
-                      value={formData.subject}
-                      onChange={handleChange}
-                      placeholder="How can we help?" 
-                      required
-                      className="border-stone-200 focus:border-[#ff7f5c] focus:ring-[#ff7f5c]"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-stone-700 mb-2">
-                      Message *
-                    </label>
-                    <textarea
-                      name="message"
-                      value={formData.message}
-                      onChange={handleChange}
-                      rows={4}
-                      required
-                      className="flex w-full rounded-md border border-stone-200 bg-white px-3 py-2 text-sm placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-[#ff7f5c] focus:border-[#ff7f5c]"
-                      placeholder="Tell us more about your inquiry..."
-                    />
-                  </div>
-                  
-                  {error && (
-                    <div className="text-red-600 text-sm bg-red-50 p-3 rounded-lg">
-                      {error}
-                    </div>
-                  )}
-                  
-                  <Button 
-                    type="submit" 
-                    className="w-full bg-[#ff7f5c] hover:bg-[#e67854] text-white h-12"
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Sending...
-                      </>
-                    ) : (
-                      <>
-                        <Send className="h-4 w-4 mr-2" />
-                        Send Message
-                      </>
-                    )}
-                  </Button>
-                </form>
-              )}
-            </div>
-
-            {/* Contact Info */}
-            <div>
-              <h2 className="text-2xl font-bold text-stone-900 mb-8">
-                Get in touch
-              </h2>
-              <div className="space-y-6">
-                {contactInfo.map((item) => (
-                  <div key={item.title} className="flex gap-4">
-                    <div className="h-12 w-12 rounded-xl bg-[#ff7f5c]/10 flex items-center justify-center flex-shrink-0">
-                      <item.icon className="h-6 w-6 text-[#ff7f5c]" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-stone-900">
-                        {item.title}
-                      </h3>
-                      {item.details.map((detail, idx) => (
-                        <p key={idx} className="text-stone-600">
-                          {(item as any).href ? (
-                            <a href={(item as any).href} target={((item as any).href as string).startsWith('http') ? '_blank' : undefined} rel="noopener noreferrer" className="hover:text-[#ff7f5c] transition-colors">{detail}</a>
-                          ) : detail}
-                        </p>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Map or Additional CTA */}
-              <div className="mt-10 p-6 bg-gradient-to-br from-[#ff7f5c]/10 to-[#ff7f5c]/5 rounded-2xl">
-                <h3 className="font-semibold text-stone-900 mb-2">Prefer WhatsApp?</h3>
-                <p className="text-stone-600 text-sm mb-4">
-                  Chat with us directly for quick responses about classes and bookings.
-                </p>
-                <a 
-                  href="https://wa.me/971527479512" 
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-green-600 transition-colors"
-                >
-                  <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-                  </svg>
-                  Chat on WhatsApp
-                </a>
-              </div>
-            </div>
-          </div>
+      {/* Testimonial */}
+      <section className="py-12 bg-stone-50 text-center">
+        <div className="max-w-2xl mx-auto px-4">
+          <h2 className="text-3xl mb-6" style={{ fontFamily: 'var(--font-mossy), cursive' }}>What People Say</h2>
+          <blockquote className="text-stone-600 text-lg leading-relaxed italic mb-3">
+            &ldquo;The nanny classes were one of the best investments I have ever made!&rdquo;
+          </blockquote>
+          <p className="text-stone-800 font-semibold">— Maya A.</p>
         </div>
       </section>
+
     </div>
   );
 }

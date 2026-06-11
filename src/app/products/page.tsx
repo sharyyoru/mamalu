@@ -58,28 +58,6 @@ export default async function ProductsPage() {
               </div>
             </div>
           </div>
-
-          {/* Features */}
-          <div className="mt-12 grid grid-cols-3 gap-4 max-w-2xl mx-auto">
-            <div className="glass-card rounded-2xl p-4 text-center">
-              <div className="w-10 h-10 mx-auto rounded-full bg-stone-100 flex items-center justify-center mb-2">
-                <ShoppingBag className="h-5 w-5 text-stone-900" />
-              </div>
-              <div className="text-sm font-semibold text-stone-900">Quality Products</div>
-            </div>
-            <div className="glass-card rounded-2xl p-4 text-center">
-              <div className="w-10 h-10 mx-auto rounded-full bg-stone-100 flex items-center justify-center mb-2">
-                <Truck className="h-5 w-5 text-stone-900" />
-              </div>
-              <div className="text-sm font-semibold text-stone-900">Fast Delivery</div>
-            </div>
-            <div className="glass-card rounded-2xl p-4 text-center">
-              <div className="w-10 h-10 mx-auto rounded-full bg-stone-100 flex items-center justify-center mb-2">
-                <Shield className="h-5 w-5 text-stone-900" />
-              </div>
-              <div className="text-sm font-semibold text-stone-900">Secure Payment</div>
-            </div>
-          </div>
         </div>
       </section>
 

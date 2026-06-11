@@ -180,16 +180,11 @@ export default function RentalsPage() {
 
   return (
     <main className="min-h-screen bg-white pt-4 pb-20">
-      {/* Hero Image */}
-      <div className="w-full h-64 md:h-80 relative mb-8">
-        <Image
-          src={content.heroImage}
-          alt="Kitchen Studio"
-          fill
-          className="object-cover"
-          priority
-        />
-        <div className="absolute inset-0 bg-black/20" />
+      {/* Page Title */}
+      <div className="container max-w-6xl mx-auto px-6 mb-8">
+        <h1 className="text-4xl sm:text-5xl text-center" style={{ fontFamily: 'var(--font-mossy), cursive' }}>
+          Rentals
+        </h1>
       </div>
 
       {/* Image Slider */}
