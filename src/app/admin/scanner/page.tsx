@@ -2,7 +2,20 @@
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
-import { Camera, CheckCircle, XCircle, AlertCircle, RefreshCw, User, Calendar, Loader2 } from "lucide-react";
+import { Camera, CheckCircle, XCircle, AlertCircle, Calendar, Loader2, Users } from "lucide-react";
+import jsQR from "jsqr";
+
+interface DetectedBarcode {
+  rawValue: string;
+}
+
+interface BarcodeDetectorInstance {
+  detect(source: CanvasImageSource): Promise<DetectedBarcode[]>;
+}
+
+interface BarcodeDetectorConstructor {
+  new (options: { formats: string[] }): BarcodeDetectorInstance;
+}
 
 interface CheckInResult {
   success: boolean;
@@ -17,6 +30,10 @@ interface CheckInResult {
     classTitle: string;
     classId?: string;
     sessionsBooked?: number;
+    date?: string;
+    time?: string;
+    totalGuests?: number;
+    attendance?: number | null;
     checkedInAt?: string;
   };
 }
@@ -28,13 +45,16 @@ export default function EventScannerPage() {
   const [scanning, setScanning] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [result, setResult] = useState<CheckInResult | null>(null);
-  const [manualToken, setManualToken] = useState("");
+  const [scannedToken, setScannedToken] = useState("");
+  const [attendance, setAttendance] = useState(1);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [recentCheckins, setRecentCheckins] = useState<CheckInResult["booking"][]>([]);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
+  const barcodeDetectorRef = useRef<BarcodeDetectorInstance | null>(null);
 
   // Process token from URL on mount
   useEffect(() => {
@@ -55,28 +75,45 @@ export default function EventScannerPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
           token,
+          action: "preview",
           deviceInfo: navigator.userAgent,
         }),
       });
 
       const data: CheckInResult = await res.json();
       setResult(data);
-
       if (data.success && data.booking) {
-        setRecentCheckins(prev => [data.booking!, ...prev.slice(0, 9)]);
-      }
-
-      // Auto-clear result after 5 seconds for successful scans
-      if (data.success) {
-        setTimeout(() => setResult(null), 5000);
+        setScannedToken(token);
+        setAttendance(data.booking.attendance ?? data.booking.totalGuests ?? 1);
       }
     } catch (error) {
       setResult({ success: false, error: "Network error - please try again" });
     } finally {
       setProcessing(false);
-      setManualToken("");
     }
   }, [processing]);
+
+  const saveAttendance = async () => {
+    if (!scannedToken || processing) return;
+    setProcessing(true);
+    try {
+      const res = await fetch("/api/checkin/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: scannedToken, action: "confirm", attendance, deviceInfo: navigator.userAgent }),
+      });
+      const data: CheckInResult = await res.json();
+      setResult(data);
+      if (data.success && data.booking) {
+        setRecentCheckins(prev => [data.booking!, ...prev.slice(0, 9)]);
+        setScannedToken("");
+      }
+    } catch {
+      setResult({ success: false, error: "Network error - please try again" });
+    } finally {
+      setProcessing(false);
+    }
+  };
 
   const startCamera = async () => {
     try {
@@ -84,13 +121,18 @@ export default function EventScannerPage() {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: "environment" }
       });
-      
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        streamRef.current = stream;
-        setScanning(true);
-        scanQRCode();
+
+      const video = videoRef.current;
+      if (!video) {
+        stream.getTracks().forEach(track => track.stop());
+        throw new Error("Camera preview is not ready");
       }
+
+      video.srcObject = stream;
+      streamRef.current = stream;
+      await video.play();
+      setScanning(true);
+      animationFrameRef.current = requestAnimationFrame(scanQRCode);
     } catch (error) {
       setCameraError("Unable to access camera. Please check permissions.");
       console.error("Camera error:", error);
@@ -102,18 +144,22 @@ export default function EventScannerPage() {
       streamRef.current.getTracks().forEach(track => track.stop());
       streamRef.current = null;
     }
+    if (animationFrameRef.current !== null) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
     setScanning(false);
   };
 
   const scanQRCode = async () => {
-    if (!videoRef.current || !canvasRef.current || !scanning) return;
+    if (!videoRef.current || !canvasRef.current || !streamRef.current) return;
 
     const video = videoRef.current;
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
 
     if (!ctx || video.readyState !== video.HAVE_ENOUGH_DATA) {
-      requestAnimationFrame(scanQRCode);
+      animationFrameRef.current = requestAnimationFrame(scanQRCode);
       return;
     }
 
@@ -122,42 +168,48 @@ export default function EventScannerPage() {
     ctx.drawImage(video, 0, 0);
 
     try {
-      // Use BarcodeDetector API if available
+      let qrData: string | null = null;
+
       if ("BarcodeDetector" in window) {
-        const barcodeDetector = new (window as any).BarcodeDetector({ formats: ["qr_code"] });
-        const barcodes = await barcodeDetector.detect(canvas);
-        
+        if (!barcodeDetectorRef.current) {
+          const Detector = (window as Window & { BarcodeDetector: BarcodeDetectorConstructor }).BarcodeDetector;
+          barcodeDetectorRef.current = new Detector({ formats: ["qr_code"] });
+        }
+        const barcodes = await barcodeDetectorRef.current.detect(canvas);
         if (barcodes.length > 0) {
-          const qrData = barcodes[0].rawValue;
-          // Extract token from URL
-          const url = new URL(qrData);
-          const token = url.searchParams.get("token");
-          if (token) {
-            stopCamera();
-            processCheckIn(token);
-            return;
-          }
+          qrData = barcodes[0].rawValue;
         }
       }
-    } catch (error) {
-      // BarcodeDetector not supported or error, continue scanning
+
+      if (!qrData) {
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        qrData = jsQR(imageData.data, imageData.width, imageData.height, {
+          inversionAttempts: "attemptBoth",
+        })?.data || null;
+      }
+
+      if (qrData) {
+        let token = qrData;
+        try {
+          token = new URL(qrData).searchParams.get("token") || qrData;
+        } catch {}
+
+        stopCamera();
+        processCheckIn(token);
+        return;
+      }
+    } catch {
+      // Keep scanning when a frame cannot be decoded.
     }
 
-    if (scanning) {
-      requestAnimationFrame(scanQRCode);
+    if (streamRef.current) {
+      animationFrameRef.current = requestAnimationFrame(scanQRCode);
     }
   };
 
   useEffect(() => {
     return () => stopCamera();
   }, []);
-
-  const handleManualSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (manualToken.trim()) {
-      processCheckIn(manualToken.trim());
-    }
-  };
 
   return (
     <div className="p-4 md:p-8 max-w-4xl mx-auto">
@@ -186,13 +238,15 @@ export default function EventScannerPage() {
             <h3 className={`font-semibold text-lg ${
               result.success ? "text-green-800" : result.alreadyCheckedIn ? "text-amber-800" : "text-red-800"
             }`}>
-              {result.success ? "Check-In Successful!" : result.alreadyCheckedIn ? "Already Checked In" : "Check-In Failed"}
+              {result.success ? (scannedToken ? "Booking Found" : "Attendance Saved") : result.alreadyCheckedIn ? "Already Checked In" : "Scan Failed"}
             </h3>
             {result.booking && (
               <div className="mt-2 space-y-1">
                 <p className="text-stone-700"><strong>{result.booking.attendeeName}</strong></p>
                 <p className="text-stone-600 text-sm">{result.booking.classTitle}</p>
                 <p className="text-stone-500 text-sm">Booking: {result.booking.bookingNumber}</p>
+                {result.booking.date && <p className="text-stone-500 text-sm">Date: {result.booking.date} {result.booking.time || ""}</p>}
+                <p className="text-stone-500 text-sm">Booked guests: {result.booking.totalGuests || 1}</p>
                 {result.booking.checkedInAt && (
                   <p className="text-stone-500 text-sm">
                     Checked in: {new Date(result.booking.checkedInAt).toLocaleString()}
@@ -229,15 +283,15 @@ export default function EventScannerPage() {
           )}
 
           <div className="relative aspect-square bg-stone-100 rounded-lg overflow-hidden mb-4">
+            <video
+              ref={videoRef}
+              autoPlay
+              playsInline
+              muted
+              className={`absolute inset-0 w-full h-full object-cover ${scanning ? "block" : "hidden"}`}
+            />
             {scanning ? (
               <>
-                <video
-                  ref={videoRef}
-                  autoPlay
-                  playsInline
-                  muted
-                  className="w-full h-full object-cover"
-                />
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                   <div className="w-48 h-48 border-2 border-amber-500 rounded-lg"></div>
                 </div>
@@ -268,30 +322,35 @@ export default function EventScannerPage() {
           </p>
         </div>
 
-        {/* Manual Entry */}
+        {/* Booking details and attendance */}
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <User className="h-5 w-5" />
-            Manual Entry
+            <Users className="h-5 w-5" />
+            Booking Attendance
           </h2>
 
-          <form onSubmit={handleManualSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-stone-700 mb-1">
-                QR Code Token
-              </label>
+          {scannedToken && result?.booking ? (
+            <div className="space-y-4">
+              <div className="rounded-lg bg-stone-50 p-4 space-y-1 text-sm">
+                <p className="font-semibold text-stone-900">{result.booking.attendeeName}</p>
+                <p className="text-stone-600">{result.booking.classTitle}</p>
+                <p className="text-stone-500">{result.booking.bookingNumber}</p>
+              </div>
+              <label className="block text-sm font-medium text-stone-700">
+                Guests Attended
               <input
-                type="text"
-                value={manualToken}
-                onChange={(e) => setManualToken(e.target.value)}
-                placeholder="Paste token or booking number"
-                className="w-full px-4 py-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                type="number"
+                min={0}
+                max={result.booking.totalGuests || 1}
+                value={attendance}
+                onChange={(e) => setAttendance(Number(e.target.value))}
+                className="mt-1 w-full px-4 py-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500"
               />
-            </div>
+              </label>
             <button
-              type="submit"
-              disabled={processing || !manualToken.trim()}
-              className="w-full py-3 bg-stone-800 text-white rounded-lg font-medium hover:bg-stone-900 disabled:opacity-50 flex items-center justify-center gap-2"
+                onClick={saveAttendance}
+                disabled={processing}
+                className="w-full py-3 bg-amber-600 text-white rounded-lg font-medium hover:bg-amber-700 disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {processing ? (
                 <>
@@ -299,10 +358,16 @@ export default function EventScannerPage() {
                   Processing...
                 </>
               ) : (
-                "Check In"
+                  "Save Attendance"
               )}
             </button>
-          </form>
+            </div>
+          ) : (
+            <div className="min-h-52 flex flex-col items-center justify-center text-center text-stone-400">
+              <Users className="h-12 w-12 mb-3" />
+              <p>Scan a booking QR code to view details and record attendance.</p>
+            </div>
+          )}
 
           {/* Recent Check-ins */}
           {recentCheckins.length > 0 && (
@@ -333,8 +398,8 @@ export default function EventScannerPage() {
         <ol className="list-decimal list-inside space-y-2 text-sm text-stone-600">
           <li>Click &quot;Start Camera&quot; to enable the QR scanner</li>
           <li>Point the camera at the attendee&apos;s QR code</li>
-          <li>The system will automatically detect and process the check-in</li>
-          <li>Alternatively, manually enter the token if camera scanning fails</li>
+          <li>Review the booking details after the QR code is detected</li>
+          <li>Enter the number of guests who attended and save attendance</li>
         </ol>
       </div>
     </div>

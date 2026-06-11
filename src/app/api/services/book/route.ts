@@ -457,6 +457,7 @@ export async function POST(request: NextRequest) {
         depositAmount: booking.deposit_amount,
         balanceAmount: booking.balance_amount,
         isDepositPayment: booking.is_deposit_payment,
+        qrToken: booking.qr_code_token,
       });
 
       if (!success) {

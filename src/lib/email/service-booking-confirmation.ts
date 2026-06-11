@@ -1,6 +1,7 @@
 import { Resend } from "resend";
 import { getEmailFrom } from "@/lib/email/config";
 import { getPublicSiteUrl } from "@/lib/url/site";
+import { generateBookingQRCode } from "@/lib/qrcode/generate";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
@@ -20,6 +21,7 @@ interface ServiceBookingDetails {
   depositAmount?: number | null;
   balanceAmount?: number | null;
   isDepositPayment?: boolean | null;
+  qrToken: string;
 }
 
 export async function sendServiceBookingConfirmationEmail(
@@ -34,11 +36,17 @@ export async function sendServiceBookingConfirmationEmail(
     const isRental =
       booking.serviceType === "rental" ||
       booking.serviceName.toLowerCase().includes("rental");
+    const qrCodeDataUrl = await generateBookingQRCode(booking.qrToken);
     const { error } = await resend.emails.send({
       from: getEmailFrom(),
       to: booking.customerEmail,
       subject: `${isRental ? "Rental" : "Booking"} Confirmed - ${booking.bookingNumber} | Mamalu Kitchen`,
-      html: generateEmailHtml(booking),
+      html: generateEmailHtml(booking, qrCodeDataUrl),
+      attachments: [{
+        filename: `booking-qr-${booking.bookingNumber}.png`,
+        content: qrCodeDataUrl.replace(/^data:image\/png;base64,/, ""),
+        contentType: "image/png",
+      }],
     });
 
     if (error) {
@@ -54,7 +62,7 @@ export async function sendServiceBookingConfirmationEmail(
   }
 }
 
-function generateEmailHtml(booking: ServiceBookingDetails): string {
+function generateEmailHtml(booking: ServiceBookingDetails, qrCodeDataUrl: string): string {
   const baseUrl = getPublicSiteUrl();
   const eventDate = booking.eventDate || "TBD";
   const eventTime = booking.eventTime || "TBD";
@@ -135,7 +143,16 @@ function generateEmailHtml(booking: ServiceBookingDetails): string {
       </td>
     </tr>
     <tr>
-      <td style="padding: 30px; background-color: #fff7f2; border-top: 1px solid #f1d8cf; border-bottom: 1px solid #f1d8cf;">
+      <td style="padding: 30px; text-align: center; background-color: #fff7f2; border-top: 1px solid #f1d8cf; border-bottom: 1px solid #f1d8cf;">
+        <h3 style="color: #FF8C6B; margin: 0 0 10px; font-size: 14px; text-transform: uppercase;">Your Check-In QR Code</h3>
+        <p style="color: #666666; margin: 0 0 20px; font-size: 13px;">Present this QR code when you arrive.</p>
+        <div style="display: inline-block; padding: 16px; background: #ffffff; border: 2px solid #1c1917;">
+          <img src="${qrCodeDataUrl}" alt="Booking check-in QR code" width="180" height="180" style="display: block;" />
+        </div>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding: 30px; background-color: #fff7f2; border-bottom: 1px solid #f1d8cf;">
         <h3 style="color: #FF8C6B; margin: 0 0 15px 0; font-size: 14px; font-weight: 600; text-transform: uppercase;">Important Information</h3>
         <ul style="color: #6b5f59; margin: 0; padding-left: 20px; font-size: 13px; line-height: 1.8;">
           <li>Please arrive 10-15 minutes before your scheduled time</li>

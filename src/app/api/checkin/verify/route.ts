@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { token, staffId, deviceInfo } = body;
+    const { token, staffId, deviceInfo, action, attendance } = body;
 
     if (!token) {
       return NextResponse.json({ success: false, error: "Token required" }, { status: 400 });
@@ -31,6 +31,89 @@ export async function POST(request: NextRequest) {
     const supabase = createAdminClient();
     if (!supabase) {
       return NextResponse.json({ success: false, error: "Database not configured" }, { status: 500 });
+    }
+
+    if (action === "preview" || action === "confirm") {
+      const { data: classBooking } = await supabase
+        .from("class_bookings")
+        .select("*")
+        .eq("qr_code_token", token)
+        .maybeSingle();
+
+      const { data: serviceBooking } = classBooking ? { data: null } : await supabase
+        .from("service_bookings")
+        .select("*")
+        .eq("qr_code_token", token)
+        .maybeSingle();
+
+      const source = classBooking ? "class" : serviceBooking ? "service" : null;
+      const booking = classBooking || serviceBooking;
+
+      if (!booking || !source) {
+        return NextResponse.json({ success: false, error: "Invalid booking QR code" }, { status: 404 });
+      }
+
+      const bookingDetails = source === "class" ? {
+        id: booking.id,
+        bookingNumber: booking.booking_number,
+        attendeeName: booking.attendee_name,
+        attendeeEmail: booking.attendee_email,
+        classTitle: booking.class_title,
+        date: booking.class_date,
+        time: booking.class_time,
+        totalGuests: booking.number_of_guests || 1,
+        attendance: booking.attendance_count,
+        checkedInAt: booking.checked_in_at,
+      } : {
+        id: booking.id,
+        bookingNumber: booking.booking_number,
+        attendeeName: booking.customer_name,
+        attendeeEmail: booking.customer_email,
+        classTitle: [booking.service_name, booking.package_name || booking.menu_name].filter(Boolean).join(" - "),
+        date: booking.event_date,
+        time: booking.event_time,
+        totalGuests: booking.guest_count || 1,
+        attendance: booking.attendance_count,
+        checkedInAt: booking.checked_in_at,
+      };
+
+      if (action === "preview") {
+        return NextResponse.json({ success: true, preview: true, source, booking: bookingDetails });
+      }
+
+      const attendanceCount = Number(attendance);
+      if (!Number.isInteger(attendanceCount) || attendanceCount < 0 || attendanceCount > bookingDetails.totalGuests) {
+        return NextResponse.json({
+          success: false,
+          error: `Attendance must be between 0 and ${bookingDetails.totalGuests}`,
+        }, { status: 400 });
+      }
+
+      const table = source === "class" ? "class_bookings" : "service_bookings";
+      const update = source === "class"
+        ? { attendance_count: attendanceCount, guests_checked_in: attendanceCount, checked_in_at: new Date().toISOString(), checked_in_by: staffId || null }
+        : { attendance_count: attendanceCount, checked_in_at: new Date().toISOString(), checked_in_by: staffId || null };
+      const { error: updateError } = await supabase.from(table).update(update).eq("id", booking.id);
+
+      if (updateError) {
+        return NextResponse.json({ success: false, error: "Failed to save attendance" }, { status: 500 });
+      }
+
+      if (source === "class") {
+        await supabase.from("booking_checkins").insert({
+          booking_id: booking.id,
+          checked_in_by: staffId || null,
+          check_in_method: "qr_scan",
+          device_info: deviceInfo || null,
+          notes: `Attendance recorded: ${attendanceCount} of ${bookingDetails.totalGuests}`,
+        });
+      }
+
+      return NextResponse.json({
+        success: true,
+        message: `Attendance saved: ${attendanceCount} of ${bookingDetails.totalGuests}`,
+        booking: { ...bookingDetails, attendance: attendanceCount, checkedInAt: new Date().toISOString() },
+      });
     }
 
     // First, try to find a booking guest by QR token

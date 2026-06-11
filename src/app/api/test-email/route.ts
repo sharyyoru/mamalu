@@ -66,6 +66,7 @@ export async function POST(req: NextRequest) {
           guestCount: 1,
           totalAmount: 375.00,
           isDepositPayment: false,
+          qrToken: crypto.randomUUID(),
         });
         break;
 
