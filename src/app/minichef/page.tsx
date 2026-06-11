@@ -99,13 +99,28 @@ interface DbPackage {
   menu_items?: DbPackageMenuItem[] | null;
 }
 
+interface SummerCampApiItem {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  price_unit: string;
+  image_url: string | null;
+}
+
+interface SummerCampApiBatch {
+  id: string;
+  name: string;
+  dates: string[];
+}
+
 interface AppliedVoucher {
   code: string;
   amount: number;
 }
 
 // Category type
-type CategoryType = "classics" | "monthly" | "mommy_me" | "birthdays" | "packages";
+type CategoryType = "classics" | "monthly" | "mommy_me" | "birthdays" | "packages" | "summer_camp";
 
 const AVAILABILITY_CATEGORY_BY_TAB: Record<CategoryType, string> = {
   classics: "classics_mini",
@@ -113,10 +128,31 @@ const AVAILABILITY_CATEGORY_BY_TAB: Record<CategoryType, string> = {
   mommy_me: "mommy_me",
   birthdays: "birthday",
   packages: "packages",
+  summer_camp: "summer_camp",
 };
 
 const MOMMY_ME_ADDITIONAL_CHILD_PRICE = 200;
+const SUMMER_CAMP_SELECTION_COUNT = 1;
 const PRIMARY_BUTTON_CLASS = "bg-[rgb(255_140_107)] hover:bg-[rgb(255_126_91)] text-white border border-[rgb(255_140_107)] font-bold disabled:!bg-[rgb(255_170_145)] disabled:!border-[rgb(255_170_145)] disabled:!text-white disabled:!opacity-100 disabled:cursor-not-allowed";
+
+const STATIC_SUMMER_CAMP_MENUS: MenuItem[] = [
+  {
+    id: "summer-camp-per-day",
+    name: "Per Day",
+    price: 250,
+    image: "/images/summer camp .png",
+    dishes: ["Summer camp class by day"],
+    category: "summer_camp",
+  },
+  {
+    id: "summer-camp-per-week",
+    name: "Per Week",
+    price: 1000,
+    image: "/images/week 1 summer camp.png",
+    dishes: ["Summer camp class by week"],
+    category: "summer_camp",
+  },
+];
 
 // Category configuration with min guests - Birthdays last
 const getCategoryConfig = (pageContent: MiniChefPageContent): Record<CategoryType, { label: string; icon: string; minGuests: number; maxGuests: number; description: string }> => ({
@@ -125,6 +161,7 @@ const getCategoryConfig = (pageContent: MiniChefPageContent): Record<CategoryTyp
   mommy_me: { label: "Mommy & Me", icon: pageContent.categoryIcons?.mommy_me || "/icons/boy.png", minGuests: 1, maxGuests: 20, description: "Mom and kid have their own station where they share laughter, learning, and delicious moments together!" },
   birthdays: { label: "Birthdays", icon: pageContent.categoryIcons?.birthdays || "/icons/girl.png", minGuests: 6, maxGuests: 35, description: "2-hour private birthday cooking experience" },
   packages: { label: "Packages", icon: pageContent.categoryIcons?.packages || "/icons/boy.png", minGuests: 6, maxGuests: 35, description: "Bundled menu packages for groups" },
+  summer_camp: { label: "Summer Camp", icon: pageContent.categoryIcons?.packages || "/icons/boy.png", minGuests: 1, maxGuests: 35, description: "Choose Per Day or Per Week for the selected camp date." },
 });
 
 
@@ -239,6 +276,8 @@ export default function MiniChefPage() {
   const [pendingPackage, setPendingPackage] = useState<MenuItem | null>(null);
   const [selectedPackageMenuItems, setSelectedPackageMenuItems] = useState<MenuItem[]>([]);
   const [pendingPackageMenuItems, setPendingPackageMenuItems] = useState<MenuItem[]>([]);
+  const [selectedSummerCampMenus, setSelectedSummerCampMenus] = useState<MenuItem[]>([]);
+  const [summerCampDayCount, setSummerCampDayCount] = useState(1);
 
   // Extras
   const [birthdayExtras, setBirthdayExtras] = useState<ExtraItem[]>([]);
@@ -248,9 +287,14 @@ export default function MiniChefPage() {
 
   // Booking details
   const [eventDate, setEventDate] = useState("");
+  const [summerCampSelectedDates, setSummerCampSelectedDates] = useState<string[]>([]);
   const [eventTime, setEventTime] = useState("");
   const [monthlyAvailableDates, setMonthlyAvailableDates] = useState<string[]>([]);
   const [loadingMonthlyDates, setLoadingMonthlyDates] = useState(false);
+  const [summerCampAvailableDates, setSummerCampAvailableDates] = useState<string[]>([]);
+  const [summerCampBatches, setSummerCampBatches] = useState<SummerCampApiBatch[]>([]);
+  const [loadingSummerCampDates, setLoadingSummerCampDates] = useState(false);
+  const [summerCampItems, setSummerCampItems] = useState<MenuItem[]>(STATIC_SUMMER_CAMP_MENUS);
   const [allTimeSlots, setAllTimeSlots] = useState<{ start: string; end: string; duration: number; label: string }[]>([]);
   const [availableTimeSlots, setAvailableTimeSlots] = useState<{ start: string; end: string; duration: number; label: string }[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
@@ -281,6 +325,12 @@ export default function MiniChefPage() {
   const isMonthly = activeCategory === "monthly";
   const isMommyAndMe = activeCategory === "mommy_me";
   const isPackage = activeCategory === "packages";
+  const isSummerCamp = activeCategory === "summer_camp";
+  const selectedSummerCampMenu = selectedSummerCampMenus[0] || null;
+  const isSummerCampPerDay = selectedSummerCampMenu?.id === "summer-camp-per-day";
+  const isSummerCampPerWeek = selectedSummerCampMenu?.id === "summer-camp-per-week";
+  const summerCampBookingOption = selectedSummerCampMenu?.id === "summer-camp-per-week" ? "per-week" : "per-day";
+  const summerCampRequiredDateCount = isSummerCampPerWeek ? 5 : summerCampDayCount;
   const hasExtras = isBirthday;
   // Fetch page content
   useEffect(() => {
@@ -339,9 +389,10 @@ export default function MiniChefPage() {
           "monthly_mini": "monthly",
           "mommy_me": "mommy_me",
           "birthday": "birthdays",
+          "summer_camp": "summer_camp",
         };
 
-        const grouped: Record<string, MenuItem[]> = { classics: [], monthly: [], mommy_me: [], birthdays: [], packages: [] };
+        const grouped: Record<string, MenuItem[]> = { classics: [], monthly: [], mommy_me: [], birthdays: [], packages: [], summer_camp: [] };
 
         for (const item of (itemsData.items || []) as DbMenuItem[]) {
           for (const dbLabel of (item.categories || [])) {
@@ -400,7 +451,11 @@ export default function MiniChefPage() {
   }, []);
 
   // Get menus for current category
-  const getCurrentMenus = (): MenuItem[] => menuItemsByCategory[activeCategory] || [];
+  const getCurrentMenus = (): MenuItem[] => {
+    const menus = menuItemsByCategory[activeCategory] || [];
+    if (isSummerCamp) return menus.length > 0 ? menus : summerCampItems;
+    return menus;
+  };
 
   const getPackageClassLimit = (pkg: MenuItem | null) => {
     if (!pkg) return 1;
@@ -433,11 +488,14 @@ export default function MiniChefPage() {
     setSelectedMenu(null);
     setSelectedPackageMenuItems([]);
     setPendingPackageMenuItems([]);
+    setSelectedSummerCampMenus([]);
+    setSummerCampDayCount(1);
     setGuestCount(currentConfig.minGuests);
     setSelectedExtras({});
     setPreviewExtra(null);
     setStep(1);
     setEventDate("");
+    setSummerCampSelectedDates([]);
     setEventTime("");
   }, [activeCategory]);
 
@@ -502,11 +560,127 @@ export default function MiniChefPage() {
       .finally(() => setLoadingMonthlyDates(false));
   }, [eventDate, isMonthly]);
 
+  useEffect(() => {
+    if (!isSummerCamp) {
+      setSummerCampAvailableDates([]);
+      setSummerCampBatches([]);
+      setLoadingSummerCampDates(false);
+      return;
+    }
+
+    setLoadingSummerCampDates(true);
+    const params = new URLSearchParams({
+      option: summerCampBookingOption,
+      days: String(isSummerCampPerDay ? summerCampDayCount : 1),
+    });
+
+    fetch(`/api/services/summer-camp-dates?${params.toString()}`)
+      .then(res => res.json())
+      .then(data => {
+        const dates = data.dates || [];
+        setSummerCampAvailableDates(dates);
+        setSummerCampBatches(Array.isArray(data.batches) ? data.batches : []);
+        if (Array.isArray(data.items) && data.items.length > 0) {
+          setSummerCampItems(
+            data.items.map((item: SummerCampApiItem) => ({
+              id: item.id,
+              name: item.name,
+              price: Number(item.price) || 0,
+              image: item.image_url || "/images/summer camp .png",
+              dishes: [item.description || item.price_unit],
+              category: "summer_camp",
+            }))
+          );
+        }
+        if (isSummerCampPerWeek) {
+          const selectedBatchStillAvailable = Array.isArray(data.batches)
+            && data.batches.some((batch: SummerCampApiBatch) => batch.dates.join("|") === summerCampSelectedDates.join("|"));
+          if (!selectedBatchStillAvailable && summerCampSelectedDates.length > 0) {
+            setSummerCampSelectedDates([]);
+            setEventDate("");
+            setEventTime("");
+          }
+          return;
+        }
+
+        setSummerCampSelectedDates((prev) => {
+          const validSelectedDates = prev
+            .filter((date) => dates.includes(date))
+            .slice(0, summerCampRequiredDateCount);
+          const nextEventDate = validSelectedDates[0] || "";
+          setEventDate((currentEventDate) => {
+            if (currentEventDate === nextEventDate) return currentEventDate;
+            setEventTime("");
+            return nextEventDate;
+          });
+          return prev.join("|") === validSelectedDates.join("|") ? prev : validSelectedDates;
+        });
+      })
+      .catch(err => {
+        console.error("Failed to fetch summer camp dates:", err);
+        setSummerCampAvailableDates([]);
+        setSummerCampBatches([]);
+      })
+      .finally(() => setLoadingSummerCampDates(false));
+  }, [isSummerCamp, isSummerCampPerDay, isSummerCampPerWeek, summerCampBookingOption, summerCampDayCount, summerCampRequiredDateCount]);
+
+  const handleSummerCampDatesChange = (dates: string[]) => {
+    const nextDates = dates.slice(0, summerCampRequiredDateCount).sort();
+    setSummerCampSelectedDates(nextDates);
+    setEventDate(nextDates[0] || "");
+    setEventTime("");
+  };
+
+  const handleSummerCampBatchSelect = (batch: SummerCampApiBatch) => {
+    handleSummerCampDatesChange(batch.dates);
+  };
+
+  const formatSummerCampDate = (date: string) => {
+    return new Date(`${date}T00:00:00`).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    });
+  };
+
+  const formatSummerCampBatchRange = (dates: string[]) => {
+    if (dates.length === 0) return "";
+    const sortedDates = [...dates].sort();
+    return `${formatSummerCampDate(sortedDates[0])} - ${formatSummerCampDate(sortedDates[sortedDates.length - 1])}`;
+  };
+
+  useEffect(() => {
+    if (!isSummerCamp || !isSummerCampPerDay) return;
+
+    setSummerCampSelectedDates((prev) => {
+      if (prev.length <= summerCampDayCount) return prev;
+      const nextDates = prev.slice(0, summerCampDayCount);
+      setEventDate(nextDates[0] || "");
+      return nextDates;
+    });
+  }, [isSummerCamp, isSummerCampPerDay, summerCampDayCount]);
+
+  useEffect(() => {
+    if (!isSummerCamp || !isSummerCampPerDay || summerCampDayCount < 5) return;
+
+    const perWeekMenu = getCurrentMenus().find((menu) => menu.id === "summer-camp-per-week");
+    if (!perWeekMenu) return;
+
+    setSelectedSummerCampMenus([perWeekMenu]);
+    setSelectedMenu(perWeekMenu);
+    setSummerCampDayCount(1);
+  }, [isSummerCamp, isSummerCampPerDay, summerCampDayCount, menuItemsByCategory, summerCampItems]);
+
   // Fetch available time slots when date changes
   useEffect(() => {
     if (!eventDate) {
       setAllTimeSlots([]);
       setAvailableTimeSlots([]);
+      return;
+    }
+    if (isSummerCamp) {
+      setAllTimeSlots([]);
+      setAvailableTimeSlots([]);
+      setEventTime("");
       return;
     }
     setLoadingSlots(true);
@@ -519,7 +693,7 @@ export default function MiniChefPage() {
       })
       .catch(err => console.error("Failed to fetch availability:", err))
       .finally(() => setLoadingSlots(false));
-  }, [eventDate, activeCategory]);
+  }, [eventDate, activeCategory, isSummerCamp]);
 
   // Calculate totals
   const getMenuPrice = (menu = selectedMenu) => {
@@ -532,6 +706,12 @@ export default function MiniChefPage() {
   };
 
   const calculateBaseAmount = () => {
+    if (isSummerCamp) {
+      return selectedSummerCampMenus.reduce((total, menu) => {
+        const quantity = menu.id === "summer-camp-per-day" ? summerCampDayCount : 1;
+        return total + menu.price * guestCount * quantity;
+      }, 0);
+    }
     if (!selectedMenu) return 0;
     return getMenuPrice();
   };
@@ -604,6 +784,7 @@ export default function MiniChefPage() {
   const handleSubmit = async (acceptedWaiver = false) => {
     if (!selectedMenu) return;
     if (isPackage && !isPackageSelectionComplete(selectedMenu, selectedPackageMenuItems)) return;
+    if (isSummerCamp && selectedSummerCampMenus.length !== SUMMER_CAMP_SELECTION_COUNT) return;
     
     // Show waiver modal if not accepted
     if (!waiverAccepted && !acceptedWaiver) {
@@ -624,6 +805,8 @@ export default function MiniChefPage() {
 
       const isDepositPayment = requiresDeposit;
       const packageClassNames = selectedPackageMenuItems.map((item) => item.name).join(", ");
+      const summerCampClassNames = selectedSummerCampMenus.map((item) => item.name).join(", ");
+      const bookingMenuItems = isSummerCamp ? selectedSummerCampMenus : selectedPackageMenuItems;
 
       const res = await fetch("/api/services/book", {
         method: "POST",
@@ -631,23 +814,27 @@ export default function MiniChefPage() {
         body: JSON.stringify({
           serviceType: "birthday_deck",
           serviceName: `Mini Chef - ${currentConfig.label}`,
-          packageName: selectedMenu.name,
-          menuId: isPackage && selectedPackageMenuItems.length > 0
+          packageName: isSummerCamp ? "Summer Camp" : selectedMenu.name,
+          menuId: isSummerCamp
+            ? selectedSummerCampMenus.map((item) => item.id).join(",")
+            : isPackage && selectedPackageMenuItems.length > 0
             ? selectedPackageMenuItems.map((item) => item.id).join(",")
             : selectedMenu.id,
-          menuName: isPackage && selectedPackageMenuItems.length > 0
+          menuName: isSummerCamp
+            ? summerCampClassNames
+            : isPackage && selectedPackageMenuItems.length > 0
             ? `${selectedMenu.name} — ${packageClassNames}`
             : selectedMenu.name,
-          menuPrice: getMenuPrice(),
-          chosenMenuItem: selectedPackageMenuItems[0]
-            ? { id: selectedPackageMenuItems[0].id, name: selectedPackageMenuItems[0].name }
+          menuPrice: calculateBaseAmount(),
+          chosenMenuItem: bookingMenuItems[0]
+            ? { id: bookingMenuItems[0].id, name: bookingMenuItems[0].name }
             : null,
-          chosenMenuItems: selectedPackageMenuItems.map((item) => ({ id: item.id, name: item.name })),
+          chosenMenuItems: bookingMenuItems.map((item) => ({ id: item.id, name: item.name })),
           customerName,
           customerEmail,
           customerPhone,
           eventDate: eventDate || null,
-          eventTime: eventTime || null,
+          eventTime: isSummerCamp ? null : eventTime || null,
           guestCount,
           items: isMommyAndMe
             ? [{
@@ -670,6 +857,18 @@ export default function MiniChefPage() {
                 event_time: index === 0 ? eventTime || null : null,
                 time_label: index === 0 ? selectedTimeSlotLabel || null : null,
               }))
+            : isSummerCamp
+            ? selectedSummerCampMenus.map((item, index) => ({
+                id: item.id,
+                name: item.name,
+                quantity: item.id === "summer-camp-per-day" ? summerCampDayCount : 1,
+                unitPrice: item.price,
+                session: index + 1,
+                event_date: eventDate || null,
+                camp_dates: summerCampSelectedDates,
+                event_time: null,
+                time_label: null,
+              }))
             : [],
           extras: extrasData,
           baseAmount: calculateBaseAmount(),
@@ -682,6 +881,8 @@ export default function MiniChefPage() {
             ? `${specialRequests ? `${specialRequests}\n\n` : ""}Mommy & Me children: ${guestCount}${guestCount > 1 ? ` (${guestCount - 1} additional child${guestCount - 1 === 1 ? "" : "ren"} at AED ${MOMMY_ME_ADDITIONAL_CHILD_PRICE} each)` : ""}`
             : isPackage && selectedPackageMenuItems.length > 0
             ? `${specialRequests ? `${specialRequests}\n\n` : ""}Selected package classes:\n${selectedPackageMenuItems.map((item, index) => `${index + 1}. ${item.name}`).join("\n")}`
+            : isSummerCamp
+            ? `${specialRequests ? `${specialRequests}\n\n` : ""}Selected summer camp option:\n${selectedSummerCampMenus.map((item, index) => `${index + 1}. ${item.name}${item.id === "summer-camp-per-day" ? ` (${summerCampDayCount} day${summerCampDayCount === 1 ? "" : "s"})` : ""}`).join("\n")}\nSelected camp dates: ${summerCampSelectedDates.join(", ")}`
             : specialRequests,
           ageRange,
           waiverAccepted: waiverAccepted || acceptedWaiver,
@@ -719,7 +920,7 @@ export default function MiniChefPage() {
   };
 
   // Get today's date for min date
-  const today = new Date().toISOString().split("T")[0];
+  const today = getDubaiDate();
 
   // Determine max step
   const maxStep = hasExtras ? 4 : 3;
@@ -732,12 +933,15 @@ export default function MiniChefPage() {
     if (step === 1) {
       if (!selectedMenu) return false;
       if (isPackage && !isPackageSelectionComplete(selectedMenu, selectedPackageMenuItems)) return false;
+      if (isSummerCamp && selectedSummerCampMenus.length !== SUMMER_CAMP_SELECTION_COUNT) return false;
+      if (isSummerCamp) return summerCampSelectedDates.length === summerCampRequiredDateCount;
       return Boolean(eventDate && eventTime);
     }
     if (hasExtras && step === 2) return true; // Extras are optional
     const detailsStep = hasExtras ? 3 : 2;
     if (step === detailsStep) {
-      if (!customerName || !customerEmail || !eventDate || !eventTime) return false;
+      if (!customerName || !customerEmail || !eventDate || (!isSummerCamp && !eventTime)) return false;
+      if (isSummerCamp && summerCampSelectedDates.length !== summerCampRequiredDateCount) return false;
       if (activeCategory === "monthly" && selectedMenu) {
         const cap = menuCapacities[selectedMenu.id];
         if (cap !== undefined && cap !== null && cap.available <= 0) return false;
@@ -755,6 +959,12 @@ export default function MiniChefPage() {
   };
 
   const selectMenu = (menu: MenuItem) => {
+    if (isSummerCamp) {
+      setSelectedSummerCampMenus([menu]);
+      setSelectedMenu(menu);
+      return;
+    }
+
     setSelectedMenu(menu);
     setSelectedPackageMenuItems([]);
 
@@ -983,11 +1193,11 @@ export default function MiniChefPage() {
                         (Min: {currentConfig.minGuests}, Max: {currentConfig.maxGuests})
                       </span>
                     </div>
-                    <div className="grid sm:grid-cols-2 gap-4 pb-4 lg:pb-6">
+                    <div className={`grid gap-4 pb-4 lg:pb-6 ${isSummerCamp ? "" : "sm:grid-cols-2"}`}>
                       <div>
                         <label className="block text-base font-bold text-stone-700 mb-1">
                           <Calendar className="inline h-4 w-4 mr-1" />
-                          Event Date *
+                          {isSummerCampPerWeek ? "Camp Batch *" : "Event Date *"}
                         </label>
                         {isMonthly ? (
                           loadingMonthlyDates ? (
@@ -998,11 +1208,64 @@ export default function MiniChefPage() {
                           ) : (
                             <MonthlyAvailableDatePicker availableDates={monthlyAvailableDates} value={eventDate} onChange={setEventDate} today={today} />
                           )
+                        ) : isSummerCamp ? (
+                          loadingSummerCampDates ? (
+                            <div className="flex items-center gap-2 rounded-lg border border-stone-300 px-4 py-3 text-stone-500">
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              Loading camp dates...
+                            </div>
+                          ) : isSummerCampPerWeek ? (
+                            <div className="space-y-2">
+                              {summerCampBatches.length > 0 ? (
+                                <div className="grid gap-2 sm:grid-cols-2">
+                                  {summerCampBatches.map((batch) => {
+                                    const isSelected = summerCampSelectedDates.join("|") === batch.dates.join("|");
+                                    return (
+                                      <button
+                                        key={batch.id}
+                                        type="button"
+                                        onClick={() => handleSummerCampBatchSelect(batch)}
+                                        className={`rounded-lg border px-4 py-3 text-left transition-all ${
+                                          isSelected
+                                            ? "border-[#FF8C6B] bg-[#FF8C6B]/10 ring-2 ring-[#FF8C6B]"
+                                            : "border-stone-300 bg-white hover:border-[#FF8C6B]"
+                                        }`}
+                                      >
+                                        <span className="block font-bold text-stone-900">{batch.name}</span>
+                                        <span className="block text-sm text-stone-600">{formatSummerCampBatchRange(batch.dates)}</span>
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              ) : (
+                                <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-800">
+                                  No full summer camp batches are available yet.
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <MonthlyAvailableDatePicker
+                              availableDates={summerCampAvailableDates}
+                              value={eventDate}
+                              values={summerCampSelectedDates}
+                              onChange={(date) => {
+                                if (summerCampRequiredDateCount > 1) {
+                                  setEventDate(date);
+                                  return;
+                                }
+                                handleSummerCampDatesChange(date ? [date] : []);
+                              }}
+                              onValuesChange={handleSummerCampDatesChange}
+                              multiple={summerCampRequiredDateCount > 1}
+                              maxSelections={summerCampRequiredDateCount}
+                              today={today}
+                            />
+                          )
                         ) : (
                           <MonthlyAvailableDatePicker value={eventDate} onChange={setEventDate} today={today} restrictToAvailableDates={false} />
                         )}
                       </div>
-                      <div>
+                      {!isSummerCamp && <div>
                         <label className="block text-base font-bold text-stone-700 mb-1">
                           <Clock className="inline h-4 w-4 mr-1" />
                           Time Slot *
@@ -1023,11 +1286,49 @@ export default function MiniChefPage() {
                         ) : (
                           <p className="text-sm text-stone-500 py-2">{eventDate ? "No slots available for this date" : "Select a date first"}</p>
                         )}
-                      </div>
+                      </div>}
                     </div>
                     {isMommyAndMe && selectedMenu && (
                       <div className="mb-4 rounded-lg border border-[#FF8C6B]/25 bg-[#FF8C6B]/10 px-4 py-3 text-sm text-stone-900">
                         <span className="font-bold">{selectedMenu.name} total:</span> AED {getMenuPrice().toLocaleString()}
+                      </div>
+                    )}
+                    {isSummerCamp && (
+                      <div className="mb-4 space-y-3 rounded-lg border border-[#FF8C6B]/25 bg-[#FF8C6B]/10 px-4 py-3 text-sm text-stone-900">
+                        <div>
+                          <span className="font-bold">Summer Camp:</span> Choose Per Day or Per Week for this camp date.
+                          <span className="ml-2 font-bold">{selectedSummerCampMenus.length}/{SUMMER_CAMP_SELECTION_COUNT} selected</span>
+                          {selectedSummerCampMenus.length > 0 && (
+                            <span className="ml-2 font-bold">
+                              Dates: {summerCampSelectedDates.length}/{summerCampRequiredDateCount}
+                            </span>
+                          )}
+                        </div>
+                        {isSummerCampPerDay && (
+                          <div className="flex flex-wrap items-center gap-3">
+                            <span className="font-bold">How many days?</span>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => setSummerCampDayCount(Math.max(1, summerCampDayCount - 1))}
+                              disabled={summerCampDayCount <= 1}
+                            >
+                              <Minus className="h-4 w-4" />
+                            </Button>
+                            <span className="w-8 text-center text-lg font-bold">{summerCampDayCount}</span>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => setSummerCampDayCount(Math.min(5, summerCampDayCount + 1))}
+                              disabled={summerCampDayCount >= 5}
+                            >
+                              <Plus className="h-4 w-4" />
+                            </Button>
+                            <span className="font-bold text-stone-700">
+                              AED {((selectedSummerCampMenu?.price || 0) * guestCount * summerCampDayCount).toLocaleString()}
+                            </span>
+                          </div>
+                        )}
                       </div>
                     )}
                     {/* Desktop Continue Button - Inside Card */}
@@ -1055,11 +1356,12 @@ export default function MiniChefPage() {
                   {!loadingMenus && getCurrentMenus().map((menu) => {
                     const cap = activeCategory === "monthly" ? menuCapacities[menu.id] : undefined;
                     const isFull = cap !== undefined && cap !== null && cap.available <= 0;
+                    const isSummerCampSelected = selectedSummerCampMenus.some((item) => item.id === menu.id);
                     return (
                     <Card
                       key={menu.id}
                       className={`cursor-pointer transition-all ${
-                        selectedMenu?.id === menu.id ? "ring-2 ring-[#FF8C6B] shadow-lg" : "hover:shadow-md"
+                        selectedMenu?.id === menu.id || isSummerCampSelected ? "ring-2 ring-[#FF8C6B] shadow-lg" : "hover:shadow-md"
                       }`}
                       onClick={() => {
                         if (activeCategory === "packages" && packageMenuItems[menu.id]?.length > 0) {
@@ -1102,8 +1404,21 @@ export default function MiniChefPage() {
                               ✓ {selectedPackageMenuItems.length} class{selectedPackageMenuItems.length === 1 ? "" : "es"} selected
                             </p>
                           )}
+                          {isSummerCampSelected && (
+                            <p className="text-xs text-[#ff7f5c] font-bold mb-1.5">Selected for Summer Camp</p>
+                          )}
                           <div className="flex items-center justify-between">
-                            <span className="text-base text-stone-500">{activeCategory === "packages" ? "flat rate" : isMommyAndMe ? "mom + 1 child" : "per person"}</span>
+                            <span className="text-base text-stone-500">
+                              {activeCategory === "packages"
+                                ? "flat rate"
+                                : isMommyAndMe
+                                ? "mom + 1 child"
+                                : isSummerCamp && menu.id === "summer-camp-per-day"
+                                ? "per guest per day"
+                                : isSummerCamp && menu.id === "summer-camp-per-week"
+                                ? "per guest per week"
+                                : "per person"}
+                            </span>
                             <span className="text-xl font-bold text-stone-900">
                               AED {isMommyAndMe && selectedMenu?.id === menu.id ? getMenuPrice(menu).toLocaleString() : menu.price.toLocaleString()}
                             </span>
@@ -1473,6 +1788,18 @@ export default function MiniChefPage() {
                           </div>
                         </div>
                       )}
+                      {isSummerCamp && selectedSummerCampMenus.length > 0 && (
+                        <div className="sm:col-span-2">
+                          <span className="font-bold text-stone-700">Selected Summer Camp Items:</span>
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            {selectedSummerCampMenus.map((item, index) => (
+                              <span key={item.id} className="rounded-full bg-stone-100 px-3 py-1 text-sm font-bold text-stone-700">
+                                {index + 1}. {item.name}{item.id === "summer-camp-per-day" ? ` (${summerCampDayCount} day${summerCampDayCount === 1 ? "" : "s"})` : ""}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                       <div>
                         <span className="font-bold text-stone-700">{isMommyAndMe ? "Children:" : "Guests:"}</span>
                         <span className="ml-2 font-bold text-stone-900">{guestCount}</span>
@@ -1484,13 +1811,15 @@ export default function MiniChefPage() {
                         </div>
                       )}
                       <div>
-                        <span className="font-bold text-stone-700">Date:</span>
-                        <span className="ml-2 font-bold text-stone-900">{eventDate}</span>
+                        <span className="font-bold text-stone-700">{isSummerCamp ? "Dates:" : "Date:"}</span>
+                        <span className="ml-2 font-bold text-stone-900">
+                          {isSummerCamp ? summerCampSelectedDates.join(", ") : eventDate}
+                        </span>
                       </div>
-                      <div>
+                      {!isSummerCamp && <div>
                         <span className="font-bold text-stone-700">Time:</span>
                         <span className="ml-2 font-bold text-stone-900">{eventTime}</span>
-                      </div>
+                      </div>}
                       <div>
                         <span className="font-bold text-stone-700">Name:</span>
                         <span className="ml-2 font-bold text-stone-900">{customerName}</span>
@@ -1546,6 +1875,10 @@ export default function MiniChefPage() {
                             <p className="text-sm text-stone-500">
                               {isMommyAndMe
                                 ? `Mom + 1 child base`
+                                : isSummerCampPerDay
+                                ? `${guestCount} guest${guestCount === 1 ? "" : "s"} x ${summerCampDayCount} day${summerCampDayCount === 1 ? "" : "s"} x AED ${selectedMenu?.price.toLocaleString() || 0}`
+                                : isSummerCamp
+                                ? `${guestCount} guest${guestCount === 1 ? "" : "s"} x AED ${selectedMenu?.price.toLocaleString() || 0}`
                                 : isPackage
                                 ? "Package rate"
                                 : `${guestCount} ${isBirthday ? "kids" : "guests"} x AED ${selectedMenu?.price.toLocaleString() || 0}`}

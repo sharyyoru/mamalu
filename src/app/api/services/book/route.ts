@@ -12,6 +12,7 @@ const BOOKED_SLOT_STATUSES = ["confirmed", "pending", "deposit_paid", "completed
 const MIN_BOOKING_NOTICE_MINUTES = 120;
 const BUSINESS_TIME_ZONE = "Asia/Dubai";
 const MONTHLY_SLOT_CATEGORY_IDS = new Set(["monthly_mini", "monthly_big"]);
+const SUMMER_CAMP_SLOT_CATEGORY_ID = "summer_camp";
 
 function normalizeTimeForQuery(time: string) {
   return time.slice(0, 5);
@@ -59,6 +60,36 @@ function hasMinimumBookingNotice(eventDate: string, eventTime: string) {
   return parseTime(eventTime) - now.minutes >= MIN_BOOKING_NOTICE_MINUTES;
 }
 
+function getSummerCampSelectableDates(
+  batches: Array<{ camp_dates?: string[] | null }>,
+  option: "per-day" | "per-week",
+  dayCount: number,
+  today: string
+) {
+  const normalized = batches
+    .map((batch) => {
+      const allDates = [...new Set(batch.camp_dates || [])].sort();
+      return {
+        allDates,
+        remainingDates: allDates.filter((date) => date > today),
+      };
+    })
+    .filter((batch) => batch.allDates.length > 0);
+
+  if (option === "per-week") {
+    const nextFullBatch = normalized.find((batch) => batch.allDates[0] > today);
+    return nextFullBatch?.allDates || [];
+  }
+
+  return [...new Set(normalized.flatMap((batch) => batch.remainingDates))].sort();
+}
+
+function getSummerCampFullWeekBatches(batches: Array<{ camp_dates?: string[] | null }>, today: string) {
+  return batches
+    .map((batch) => [...new Set(batch.camp_dates || [])].sort())
+    .filter((dates) => dates.length === 5 && dates.every((date) => date > today));
+}
+
 export async function POST(request: NextRequest) {
   try {
     const supabase = createAdminClient();
@@ -100,7 +131,7 @@ export async function POST(request: NextRequest) {
       voucherCode,
     } = body;
 
-    if (!serviceName || !customerName || !customerEmail || !totalAmount) {
+    if (!serviceName || !customerName || !customerEmail || totalAmount === undefined || totalAmount === null) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -176,6 +207,60 @@ export async function POST(request: NextRequest) {
       if (availableDates.length === 0 || !availableDates.includes(eventDate)) {
         return NextResponse.json(
           { error: "This monthly special is not available on the selected date. Please choose another date." },
+          { status: 409 }
+        );
+      }
+    }
+
+    if (bookingSlotCategory === SUMMER_CAMP_SLOT_CATEGORY_ID && eventDate) {
+      const summerCampItems = Array.isArray(items)
+        ? items as Array<{ id?: string | null; quantity?: number | string | null; camp_dates?: string[] | null }>
+        : [];
+      const selectedSummerCampItem = summerCampItems[0];
+      const summerCampOption = selectedSummerCampItem?.id === "summer-camp-per-week" ? "per-week" : "per-day";
+      const selectedDayCount = Number(selectedSummerCampItem?.quantity || 1);
+      const summerCampDayCount = summerCampOption === "per-day"
+        ? Math.min(5, Math.max(1, Number.isFinite(selectedDayCount) ? selectedDayCount : 1))
+        : 1;
+      const requiredCampDateCount = summerCampOption === "per-week" ? 5 : summerCampDayCount;
+      const requestedCampDates = Array.isArray(selectedSummerCampItem?.camp_dates)
+        ? selectedSummerCampItem.camp_dates
+        : [eventDate].filter(Boolean);
+
+      const { data: batches, error: batchesError } = await supabase
+        .from("summer_camp_batches")
+        .select("camp_dates")
+        .eq("is_active", true);
+
+      if (batchesError) {
+        console.error("Summer camp date check error:", batchesError);
+        return NextResponse.json({ error: "Could not verify summer camp date availability" }, { status: 500 });
+      }
+
+      const today = getBusinessDateParts().date;
+      const availableDates = new Set(
+        getSummerCampSelectableDates(
+          batches || [],
+          summerCampOption,
+          summerCampDayCount,
+          today
+        )
+      );
+      const fullWeekBatches = summerCampOption === "per-week"
+        ? getSummerCampFullWeekBatches(batches || [], today)
+        : [];
+      const requestedCampDateKey = [...requestedCampDates].sort().join("|");
+      const matchesFullWeekBatch = fullWeekBatches.some((dates) => dates.join("|") === requestedCampDateKey);
+
+      if (
+        requestedCampDates.length !== requiredCampDateCount ||
+        (summerCampOption === "per-week"
+          ? !matchesFullWeekBatch
+          : requestedCampDates.some((date) => !availableDates.has(date))) ||
+        (summerCampOption !== "per-week" && !availableDates.has(eventDate))
+      ) {
+        return NextResponse.json(
+          { error: "This summer camp class is not available on the selected date. Please choose another camp date." },
           { status: 409 }
         );
       }

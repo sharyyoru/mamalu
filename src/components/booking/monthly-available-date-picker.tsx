@@ -7,6 +7,10 @@ interface MonthlyAvailableDatePickerProps {
   availableDates?: string[];
   value: string;
   onChange: (date: string) => void;
+  values?: string[];
+  onValuesChange?: (dates: string[]) => void;
+  maxSelections?: number;
+  multiple?: boolean;
   today: string;
   restrictToAvailableDates?: boolean;
 }
@@ -51,6 +55,10 @@ export function MonthlyAvailableDatePicker({
   availableDates = [],
   value,
   onChange,
+  values = [],
+  onValuesChange,
+  maxSelections = 1,
+  multiple = false,
   today,
   restrictToAvailableDates = true,
 }: MonthlyAvailableDatePickerProps) {
@@ -68,7 +76,11 @@ export function MonthlyAvailableDatePicker({
     setActiveMonth(getInitialMonthlyCalendarMonth(availableDates, value, today));
   }, [availableDates, value, today]);
 
-  const selectedLabel = value
+  const selectedLabel = multiple && values.length > 0
+    ? values
+        .map((selectedValue) => new Date(`${selectedValue}T00:00:00`).toLocaleDateString("en-GB"))
+        .join(", ")
+    : value
     ? new Date(`${value}T00:00:00`).toLocaleDateString("en-GB")
     : "dd/mm/yyyy";
 
@@ -119,7 +131,7 @@ export function MonthlyAvailableDatePicker({
               const inMonth = dateKey.startsWith(activeMonth);
               const isPast = dateKey < today;
               const isAvailable = !isPast && (!restrictToAvailableDates || availableSet.has(dateKey));
-              const isSelected = value === dateKey;
+              const isSelected = multiple ? values.includes(dateKey) : value === dateKey;
 
               return (
                 <button
@@ -127,6 +139,15 @@ export function MonthlyAvailableDatePicker({
                   type="button"
                   onClick={() => {
                     if (!isAvailable) return;
+                    if (multiple) {
+                      const nextValues = values.includes(dateKey)
+                        ? values.filter((selectedValue) => selectedValue !== dateKey)
+                        : [...values, dateKey].sort().slice(0, maxSelections);
+                      onValuesChange?.(nextValues);
+                      onChange(nextValues[0] || "");
+                      if (nextValues.length >= maxSelections) setIsOpen(false);
+                      return;
+                    }
                     onChange(dateKey);
                     setIsOpen(false);
                   }}

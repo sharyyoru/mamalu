@@ -4,6 +4,7 @@ export const BOOKING_SLOT_CATEGORIES = [
   { id: "classics_mini", name: "Our Classics (Mini Chef)", group: "Mini Chef" },
   { id: "monthly_mini", name: "Monthly Specials (Mini Chef)", group: "Mini Chef" },
   { id: "mommy_me", name: "Mommy & Me", group: "Mini Chef" },
+  { id: "summer_camp", name: "Summer Camp", group: "Mini Chef" },
   { id: "corporate", name: "Corporate / Private", group: "Big Chef" },
   { id: "classics_big", name: "Our Classics (Big Chef)", group: "Big Chef" },
   { id: "monthly_big", name: "Monthly Specials (Big Chef)", group: "Big Chef" },

@@ -27,6 +27,7 @@ import {
   Newspaper,
   BookOpen,
   BellRing,
+  CalendarDays,
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -50,6 +51,7 @@ const navigation = [
   { name: "Products", href: "/admin/products", icon: Package },
   { name: "Menu Items", href: "/admin/menu-items", icon: UtensilsCrossed },
   { name: "Time Slots", href: "/admin/time-slots", icon: Clock },
+  { name: "Summer Camp", href: "/admin/summer-camp", icon: CalendarDays },
   { name: "Party Extras", href: "/admin/party-extras", icon: PartyPopper },
   { name: "Packages", href: "/admin/packages", icon: Package },
   { name: "Marketing", href: "/admin/marketing", icon: Tags, children: [
