@@ -18,7 +18,10 @@ interface Profile {
   email: string;
   full_name: string | null;
   phone: string | null;
+  role: string;
 }
+
+const CUSTOMER_ONLY_MESSAGE = "This account is not registered as a customer.";
 
 export default function AccountPage() {
   const [mode, setMode] = useState<AuthMode>("login");
@@ -52,19 +55,31 @@ export default function AccountPage() {
     }
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
+      const { data: { user: authUser } } = await supabase.auth.getUser();
 
-      if (user) {
-        const { data: profile } = await supabase
+      if (authUser) {
+        const { data: customerProfile } = await supabase
           .from("profiles")
-          .select("*")
-          .eq("id", user.id)
+          .select("id, email, full_name, phone, role")
+          .eq("id", authUser.id)
           .single();
-        setProfile(profile);
+
+        if (customerProfile?.role !== "customer") {
+          await supabase.auth.signOut();
+          setUser(null);
+          setProfile(null);
+          setError(CUSTOMER_ONLY_MESSAGE);
+          return false;
+        }
+
+        setUser(authUser);
+        setProfile(customerProfile);
       } else {
+        setUser(null);
         setProfile(null);
       }
+
+      return true;
     } finally {
       setCheckingAuth(false);
     }
@@ -120,9 +135,10 @@ export default function AccountPage() {
         if (error) throw error;
 
         if (data.user) {
-          setUser(data.user);
-          await checkUser();
-          router.refresh();
+          const isCustomer = await checkUser();
+          if (isCustomer) {
+            router.refresh();
+          }
         }
       }
     } catch (err: unknown) {

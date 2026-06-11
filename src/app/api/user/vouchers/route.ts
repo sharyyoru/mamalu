@@ -24,9 +24,13 @@ export async function GET() {
 
     const { data: profile } = await supabase
       .from("profiles")
-      .select("email")
+      .select("email, role")
       .eq("id", user.id)
       .single();
+
+    if (profile?.role !== "customer") {
+      return NextResponse.json({ error: "Customer access only" }, { status: 403 });
+    }
 
     const email = profile?.email || user.email || "";
     const serviceClient = createServiceClient();
