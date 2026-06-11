@@ -528,14 +528,14 @@ export default function ProductsClient({
                             </span>
                           )}
                         </div>
-                        <div className="mb-3 flex items-center justify-between gap-3">
+                        <div className="mb-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                           <label
                             htmlFor={`quantity-${product._id}`}
-                            className="text-xs font-bold uppercase tracking-wide text-stone-500"
+                            className="text-xs font-bold uppercase tracking-wide text-stone-500 shrink-0"
                           >
                             Qty
                           </label>
-                          <div className="flex h-10 w-32 items-center rounded-full border border-stone-200 bg-white shadow-sm">
+                          <div className="flex h-10 w-full sm:w-28 items-center rounded-full border border-stone-200 bg-white shadow-sm">
                             <button
                               type="button"
                               onClick={() => setProductQuantity(product._id, getQuantity(product._id) - 1)}
@@ -552,7 +552,7 @@ export default function ProductsClient({
                               min={1}
                               value={getQuantity(product._id)}
                               onChange={(event) => setProductQuantity(product._id, Number(event.target.value))}
-                              className="h-full w-14 border-x border-stone-200 bg-transparent text-center text-sm font-bold text-stone-900 outline-none [appearance:textfield] disabled:text-stone-400 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                              className="h-full flex-1 min-w-0 border-x border-stone-200 bg-transparent text-center text-sm font-bold text-stone-900 outline-none [appearance:textfield] disabled:text-stone-400 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                               disabled={!product.inStock}
                             />
                             <button

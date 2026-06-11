@@ -73,7 +73,7 @@ export function Header() {
       {/* Header - Sticky */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-white">
         <nav className="container mx-auto px-6 lg:px-8">
-          <div className="flex items-center justify-between relative py-4 min-h-[140px] lg:min-h-[160px]">
+          <div className="flex items-center justify-between relative py-4 min-h-[100px] lg:min-h-[160px]">
             
             {/* Left: Nav Links - Horizontal layout, 2x bigger text, line separators */}
             <div className="hidden lg:flex flex-row items-center gap-6 z-10">
@@ -128,7 +128,7 @@ export function Header() {
                   alt="Mamalu Kitchen" 
                   width={200} 
                   height={200}
-                  className="w-32 h-32 lg:w-36 lg:h-36"
+                  className="w-20 h-20 lg:w-36 lg:h-36"
                   priority
                 />
               </Link>
@@ -181,7 +181,7 @@ export function Header() {
       </header>
 
       {/* Spacer for fixed header */}
-      <div className="h-[140px] lg:h-[160px]" />
+      <div className="h-[100px] lg:h-[160px]" />
 
       {/* Fullscreen Menu Overlay - white bg, centered logo, peach highlights */}
       <div

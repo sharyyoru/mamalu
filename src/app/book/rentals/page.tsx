@@ -181,17 +181,14 @@ export default function RentalsPage() {
   return (
     <main className="min-h-screen bg-white pt-4 pb-20">
       {/* Page Title */}
-      <div className="container max-w-6xl mx-auto px-6 mb-8">
-        <h1 className="text-4xl sm:text-5xl text-center" style={{ fontFamily: 'var(--font-mossy), cursive' }}>
+      <div className="container max-w-6xl mx-auto px-6">
+        <h1 className="text-4xl sm:text-5xl text-center pb-12" style={{ fontFamily: 'var(--font-mossy), cursive' }}>
           Rentals
         </h1>
       </div>
 
       {/* Image Slider */}
       <div className="container max-w-6xl mx-auto px-6 mb-12">
-        <h2 className="text-2xl mb-6" style={{ fontFamily: 'var(--font-mossy), cursive' }}>
-          Photo Gallery
-        </h2>
         <ImageSlider images={content.galleryImages} alt="Kitchen Studio Photos" />
       </div>
 
@@ -205,10 +202,13 @@ export default function RentalsPage() {
             <ArrowLeft className="w-4 h-4" />
             Back to Booking
           </button>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4" style={{ fontFamily: 'var(--font-mossy), cursive' }}>
-            {content.pageTitle} <Image src={content.headerIcon} alt="" width={40} height={40} className="inline-block ml-2" />
-          </h1>
-          <p className="text-lg text-gray-600 max-w-2xl">
+          <div className="flex flex-col md:flex-row items-center md:items-start gap-2 md:gap-3 text-center md:text-left">
+            <h1 className="text-4xl md:text-5xl font-bold mb-4 md:mb-0" style={{ fontFamily: 'var(--font-mossy), cursive' }}>
+              {content.pageTitle}
+            </h1>
+            <Image src={content.headerIcon} alt="" width={40} height={40} className="w-8 h-8 md:w-10 md:h-10 flex-shrink-0" />
+          </div>
+          <p className="text-lg text-gray-600 max-w-2xl text-center md:text-left">
             {content.pageSubtitle}
           </p>
         </div>

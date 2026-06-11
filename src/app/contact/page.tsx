@@ -214,29 +214,29 @@ export default function ContactPage() {
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-stone-700 mb-2">First Name *</label>
-                  <Input name="firstName" value={formData.firstName} onChange={handleChange} placeholder="John" required className="border-stone-200 focus:border-[#ff7f5c] focus:ring-[#ff7f5c]" />
+                  <label className="block text-lg font-medium text-stone-700 mb-2">First Name *</label>
+                  <Input name="firstName" value={formData.firstName} onChange={handleChange} placeholder="John" required className="border-stone-200 focus:border-[#ff7f5c] focus:ring-[#ff7f5c] text-base" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-stone-700 mb-2">Last Name *</label>
-                  <Input name="lastName" value={formData.lastName} onChange={handleChange} placeholder="Doe" required className="border-stone-200 focus:border-[#ff7f5c] focus:ring-[#ff7f5c]" />
+                  <label className="block text-lg font-medium text-stone-700 mb-2">Last Name *</label>
+                  <Input name="lastName" value={formData.lastName} onChange={handleChange} placeholder="Doe" required className="border-stone-200 focus:border-[#ff7f5c] focus:ring-[#ff7f5c] text-base" />
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-stone-700 mb-2">Email *</label>
-                <Input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="john@example.com" required className="border-stone-200 focus:border-[#ff7f5c] focus:ring-[#ff7f5c]" />
+                <label className="block text-lg font-medium text-stone-700 mb-2">Email *</label>
+                <Input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="john@example.com" required className="border-stone-200 focus:border-[#ff7f5c] focus:ring-[#ff7f5c] text-base" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-stone-700 mb-2">Phone</label>
-                <Input type="tel" name="phone" value={formData.phone} onChange={handleChange} placeholder="+971 50 123 4567" className="border-stone-200 focus:border-[#ff7f5c] focus:ring-[#ff7f5c]" />
+                <label className="block text-lg font-medium text-stone-700 mb-2">Phone</label>
+                <Input type="tel" name="phone" value={formData.phone} onChange={handleChange} placeholder="+971 50 123 4567" className="border-stone-200 focus:border-[#ff7f5c] focus:ring-[#ff7f5c] text-base" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-stone-700 mb-2">Subject *</label>
-                <Input name="subject" value={formData.subject} onChange={handleChange} placeholder="How can we help?" required className="border-stone-200 focus:border-[#ff7f5c] focus:ring-[#ff7f5c]" />
+                <label className="block text-lg font-medium text-stone-700 mb-2">Subject *</label>
+                <Input name="subject" value={formData.subject} onChange={handleChange} placeholder="How can we help?" required className="border-stone-200 focus:border-[#ff7f5c] focus:ring-[#ff7f5c] text-base" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-stone-700 mb-2">Message *</label>
-                <textarea name="message" value={formData.message} onChange={handleChange} rows={4} required className="flex w-full rounded-md border border-stone-200 bg-white px-3 py-2 text-sm placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-[#ff7f5c] focus:border-[#ff7f5c]" placeholder="Tell us more about your inquiry..." />
+                <label className="block text-lg font-medium text-stone-700 mb-2">Message *</label>
+                <textarea name="message" value={formData.message} onChange={handleChange} rows={4} required className="flex w-full rounded-md border border-stone-200 bg-white px-3 py-2 text-base placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-[#ff7f5c] focus:border-[#ff7f5c]" placeholder="Tell us more about your inquiry..." />
               </div>
 
               {error && <div className="text-red-600 text-sm bg-red-50 p-3 rounded-lg">{error}</div>}
