@@ -14,7 +14,6 @@ import {
   Pause,
   BarChart3,
   Send,
-  Target,
   X,
   Copy,
   Check,
@@ -24,6 +23,7 @@ import {
   Sparkles,
   Eye,
   ChevronDown,
+  ChevronUp,
   Cake,
   ShoppingBag,
   Clock,
@@ -126,8 +126,21 @@ interface ContactList {
   name: string;
   description?: string;
   color: string;
-  contact_count: number;
+  member_count: number;
   created_at: string;
+}
+
+interface CampaignRecipient {
+  id: string;
+  email: string;
+  status: string;
+  sent_at?: string;
+}
+
+interface RecipientCategory {
+  id: string;
+  name: string;
+  recipients: CampaignRecipient[];
 }
 
 const CUSTOMER_VARIABLES: CustomerVariable[] = [
@@ -189,6 +202,10 @@ export default function MarketingPage() {
   const [editingDiscount, setEditingDiscount] = useState<Discount | null>(null);
   const [successModal, setSuccessModal] = useState<{ show: boolean; title: string; message: string }>({ show: false, title: "", message: "" });
   const [sendModal, setSendModal] = useState<{ show: boolean; campaign: Campaign | null }>({ show: false, campaign: null });
+  const [expandedCampaignId, setExpandedCampaignId] = useState<string | null>(null);
+  const [recipientCategories, setRecipientCategories] = useState<Record<string, RecipientCategory[]>>({});
+  const [expandedCategoryId, setExpandedCategoryId] = useState<string | null>(null);
+  const [loadingRecipients, setLoadingRecipients] = useState(false);
   const [sendingCampaign, setSendingCampaign] = useState(false);
   const [sendTarget, setSendTarget] = useState<'all' | 'list'>('all');
   const [dateRange, setDateRange] = useState<{ start: string; end: string }>({ start: '', end: '' });
@@ -447,7 +464,8 @@ export default function MarketingPage() {
         body: JSON.stringify({ 
           campaignId, 
           sendToAll,
-          listId: sendTarget === 'list' ? selectedListId : null 
+          listId: sendTarget === 'list' ? selectedListId : null,
+          resendCampaign: sendModal.campaign?.status === 'completed',
         }),
       });
       const data = await res.json();
@@ -489,6 +507,34 @@ export default function MarketingPage() {
     setSendingCampaign(false);
   };
 
+  const handleViewRecipients = async (campaign: Campaign) => {
+    if (expandedCampaignId === campaign.id) {
+      setExpandedCampaignId(null);
+      setExpandedCategoryId(null);
+      return;
+    }
+
+    setExpandedCampaignId(campaign.id);
+    setExpandedCategoryId(null);
+    if (recipientCategories[campaign.id]) return;
+
+    setLoadingRecipients(true);
+    try {
+      const res = await fetch(`/api/admin/marketing/send?campaignId=${campaign.id}`);
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to load recipients");
+      }
+      setRecipientCategories((current) => ({ ...current, [campaign.id]: data.categories || [] }));
+    } catch (error) {
+      console.error("Error loading campaign recipients:", error);
+      setSuccessModal({ show: true, title: "Error", message: "Failed to load campaign recipients" });
+      setExpandedCampaignId(null);
+    } finally {
+      setLoadingRecipients(false);
+    }
+  };
+
   const handleCreateList = async () => {
     if (!listForm.name) return;
     setSending(true);
@@ -526,12 +572,9 @@ export default function MarketingPage() {
     }
   };
 
-  const totalRevenue = campaigns.reduce((sum, c) => sum + (c.total_revenue || 0), 0);
   const stats = [
     { label: 'Active Campaigns', value: campaigns.filter(c => c.status === 'active').length.toString(), icon: Megaphone, color: 'from-violet-500 to-purple-600' },
     { label: 'Total Reach', value: campaigns.reduce((sum, c) => sum + (c.total_sent || 0), 0).toLocaleString(), icon: Users, color: 'from-emerald-500 to-teal-600' },
-    { label: 'Active Discounts', value: discounts.filter(d => d.status === 'active').length.toString(), icon: Target, color: 'from-[#FF8C6B] to-[#ff7a54]' },
-    { label: 'Campaign Revenue', value: totalRevenue > 0 ? formatPrice(totalRevenue) : 'AED 0', icon: DollarSign, color: 'from-cyan-500 to-blue-600' },
   ];
 
   return (
@@ -540,7 +583,7 @@ export default function MarketingPage() {
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-3xl font-bold text-stone-900">Marketing</h1>
-          <p className="text-stone-500 mt-1">Campaigns, discounts, and referral programs</p>
+          <p className="text-stone-500 mt-1">Campaigns and customer lists</p>
         </div>
         <Button onClick={() => setShowCampaignModal(true)}>
           <Plus className="h-4 w-4 mr-2" />
@@ -549,7 +592,7 @@ export default function MarketingPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {stats.map((stat) => {
           const Icon = stat.icon;
           return (
@@ -564,7 +607,7 @@ export default function MarketingPage() {
 
       {/* Tabs */}
       <div className="flex gap-2 border-b border-stone-200">
-        {['campaigns', 'lists', 'discounts', 'referrals'].map((t) => (
+        {['campaigns', 'lists'].map((t) => (
           <button
             key={t}
             onClick={() => setTab(t as any)}
@@ -656,35 +699,66 @@ export default function MarketingPage() {
                       </Button>
                     )}
                     {campaign.status === 'completed' && (
-                      <Badge className="bg-green-100 text-green-700">Sent</Badge>
+                      <>
+                        <Badge className="bg-green-100 text-green-700">Sent</Badge>
+                        <Button size="sm" variant="outline" onClick={() => handleViewRecipients(campaign)}>
+                          <Eye className="h-4 w-4 mr-1" /> {expandedCampaignId === campaign.id ? "Hide" : "View"}
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => setSendModal({ show: true, campaign })}>
+                          <RefreshCw className="h-4 w-4 mr-1" /> Resend
+                        </Button>
+                      </>
                     )}
                   </div>
                 </div>
 
-                {campaign.total_sent > 0 && (
-                  <div className="mt-6 grid grid-cols-2 gap-4 border-t border-stone-100 pt-4 sm:grid-cols-5">
-                    <div>
-                      <p className="text-2xl font-bold text-stone-900">{campaign.total_sent.toLocaleString()}</p>
-                      <p className="text-sm text-stone-500">Sent</p>
-                    </div>
-                    <div>
-                      <p className="text-2xl font-bold text-stone-900">{campaign.total_opened.toLocaleString()}</p>
-                      <p className="text-sm text-stone-500">Opened ({campaign.total_sent > 0 ? Math.round((campaign.total_opened / campaign.total_sent) * 100) : 0}%)</p>
-                    </div>
-                    <div>
-                      <p className="text-2xl font-bold text-stone-900">{campaign.total_clicked.toLocaleString()}</p>
-                      <p className="text-sm text-stone-500">Clicked ({campaign.total_sent > 0 ? Math.round((campaign.total_clicked / campaign.total_sent) * 100) : 0}%)</p>
-                    </div>
-                    <div>
-                      <p className="text-2xl font-bold text-emerald-600">{campaign.total_conversions}</p>
-                      <p className="text-sm text-stone-500">Conversions</p>
-                    </div>
-                    <div>
-                      <p className="text-2xl font-bold text-amber-600">{formatPrice(campaign.total_revenue)}</p>
-                      <p className="text-sm text-stone-500">Revenue</p>
-                    </div>
+                {expandedCampaignId === campaign.id && (
+                  <div className="mt-4 border-t border-stone-200 pt-4">
+                    {loadingRecipients ? (
+                      <div className="py-6 flex justify-center">
+                        <RefreshCw className="h-5 w-5 animate-spin text-amber-500" />
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {(recipientCategories[campaign.id] || []).map((category) => (
+                          <div key={category.id} className="rounded-lg border border-stone-200">
+                            <button
+                              type="button"
+                              onClick={() => setExpandedCategoryId(expandedCategoryId === category.id ? null : category.id)}
+                              className="w-full flex items-center justify-between p-3 text-left hover:bg-stone-50"
+                            >
+                              <div>
+                                <p className="font-medium text-stone-900">{category.name}</p>
+                                <p className="text-sm text-stone-500">
+                                  {category.recipients.length} contact{category.recipients.length === 1 ? "" : "s"}
+                                </p>
+                              </div>
+                              {expandedCategoryId === category.id
+                                ? <ChevronUp className="h-4 w-4 text-stone-500" />
+                                : <ChevronDown className="h-4 w-4 text-stone-500" />}
+                            </button>
+                            {expandedCategoryId === category.id && (
+                              <div className="border-t border-stone-200 divide-y divide-stone-100">
+                                {category.recipients.map((recipient) => (
+                                  <div key={recipient.id} className="flex items-center justify-between gap-4 px-3 py-2">
+                                    <div className="min-w-0">
+                                      <p className="text-sm text-stone-800 truncate">{recipient.email}</p>
+                                      {recipient.sent_at && (
+                                        <p className="text-xs text-stone-500">{new Date(recipient.sent_at).toLocaleString()}</p>
+                                      )}
+                                    </div>
+                                    <Badge className="bg-green-100 text-green-700">{recipient.status}</Badge>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
+
               </CardContent>
             </Card>
           ))}
@@ -726,7 +800,7 @@ export default function MarketingPage() {
                         </div>
                         <div>
                           <h3 className="font-semibold text-stone-900">{list.name}</h3>
-                          <p className="text-sm text-stone-500">{list.contact_count} contacts</p>
+                          <p className="text-sm text-stone-500">{list.member_count} contacts</p>
                         </div>
                       </div>
                       <Button variant="ghost" size="sm" onClick={() => handleDeleteList(list.id)}>
@@ -1211,7 +1285,7 @@ export default function MarketingPage() {
                   >
                     <option value="">Select a list...</option>
                     {lists.map((list) => (
-                      <option key={list.id} value={list.id}>{list.name} ({list.contact_count} contacts)</option>
+                      <option key={list.id} value={list.id}>{list.name} ({list.member_count} contacts)</option>
                     ))}
                   </select>
                 )}

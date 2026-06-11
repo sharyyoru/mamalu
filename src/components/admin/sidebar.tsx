@@ -57,8 +57,6 @@ const navigation = [
   { name: "Marketing", href: "/admin/marketing", icon: Tags, children: [
     { name: "Campaigns", href: "/admin/marketing" },
     { name: "Lists", href: "/admin/marketing/lists" },
-    { name: "Discounts", href: "/admin/marketing/discounts" },
-    { name: "Referrals", href: "/admin/marketing/referrals" },
   ]},
   { name: "Vouchers", href: "/admin/vouchers", icon: TicketPercent, children: [
     { name: "Gift Cards", href: "/admin/vouchers" },

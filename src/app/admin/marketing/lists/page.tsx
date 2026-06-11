@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Plus, Users, Search, Trash2, X, Check, UserPlus, Filter, ChevronDown, Sparkles, DollarSign, Clock, ShoppingBag } from "lucide-react";
+import { Plus, Users, Search, Trash2, X, Check, UserPlus, Filter, ChevronDown, ChevronUp, Sparkles, DollarSign, Clock, ShoppingBag, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,11 @@ interface ContactList {
   color?: string;
   member_count?: number;
   created_at: string;
+}
+
+interface ListMember {
+  id: string;
+  email: string;
 }
 
 interface Contact {
@@ -48,6 +53,9 @@ export default function ListsPage() {
   const [selectedContacts, setSelectedContacts] = useState<Set<string>>(new Set());
   const [loadingContacts, setLoadingContacts] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [syncingCategories, setSyncingCategories] = useState(false);
+  const [expandedListId, setExpandedListId] = useState<string | null>(null);
+  const [listMembers, setListMembers] = useState<Record<string, ListMember[]>>({});
   
   // Smart filter state
   const [filterOptions, setFilterOptions] = useState<FilterOptions | null>(null);
@@ -107,9 +115,47 @@ export default function ListsPage() {
     }
   }, []);
 
-  useEffect(() => {
-    fetchLists();
+  const syncBookingCategories = useCallback(async () => {
+    setSyncingCategories(true);
+    try {
+      const res = await fetch("/api/admin/marketing/lists", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "syncBookingCategories" }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to sync booking categories");
+      }
+      await fetchLists();
+    } catch (error) {
+      console.error("Error syncing booking categories:", error);
+    } finally {
+      setSyncingCategories(false);
+    }
   }, [fetchLists]);
+
+  useEffect(() => {
+    syncBookingCategories();
+  }, [syncBookingCategories]);
+
+  const toggleListMembers = async (listId: string) => {
+    if (expandedListId === listId) {
+      setExpandedListId(null);
+      return;
+    }
+
+    setExpandedListId(listId);
+    if (listMembers[listId]) return;
+
+    try {
+      const res = await fetch(`/api/admin/marketing/lists/members?listId=${listId}`);
+      const data = await res.json();
+      setListMembers((current) => ({ ...current, [listId]: data.members || [] }));
+    } catch (error) {
+      console.error("Error fetching list members:", error);
+    }
+  };
 
   const handleCreateList = async () => {
     if (!newList.name) return;
@@ -245,10 +291,16 @@ export default function ListsPage() {
           </h1>
           <p className="text-stone-600 mt-1">Create and manage contact lists for targeted campaigns</p>
         </div>
-        <Button onClick={() => setShowCreateModal(true)} className="bg-amber-500 hover:bg-amber-600">
-          <Plus className="h-4 w-4 mr-2" />
-          New List
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={syncBookingCategories} disabled={syncingCategories}>
+            <RefreshCw className={`h-4 w-4 mr-2 ${syncingCategories ? "animate-spin" : ""}`} />
+            Refresh Categories
+          </Button>
+          <Button onClick={() => setShowCreateModal(true)} className="bg-amber-500 hover:bg-amber-600">
+            <Plus className="h-4 w-4 mr-2" />
+            New List
+          </Button>
+        </div>
       </div>
 
       {lists.length === 0 ? (
@@ -291,9 +343,35 @@ export default function ListsPage() {
                   </Button>
                 </div>
                 {list.description && (
-                  <p className="text-sm text-stone-600 mt-3">{list.description}</p>
+                  <p className="text-sm text-stone-600 mt-3">
+                    {list.description.startsWith("Auto-synced booking category:")
+                      ? "Customers with confirmed or completed bookings in this category."
+                      : list.description}
+                  </p>
                 )}
                 <div className="mt-4 pt-4 border-t border-stone-100">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => toggleListMembers(list.id)}
+                    className="w-full mb-2"
+                  >
+                    {expandedListId === list.id ? <ChevronUp className="h-4 w-4 mr-2" /> : <ChevronDown className="h-4 w-4 mr-2" />}
+                    {expandedListId === list.id ? "Hide Emails" : "View Emails"}
+                  </Button>
+                  {expandedListId === list.id && (
+                    <div className="mb-3 max-h-40 overflow-y-auto rounded-lg bg-stone-50 p-3">
+                      {(listMembers[list.id] || []).length === 0 ? (
+                        <p className="text-sm text-stone-500">No booked customer emails yet.</p>
+                      ) : (
+                        <div className="space-y-1">
+                          {(listMembers[list.id] || []).map((member) => (
+                            <p key={member.id} className="text-sm text-stone-700 break-all">{member.email}</p>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
                   <Button
                     variant="outline"
                     size="sm"

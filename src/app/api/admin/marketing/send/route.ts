@@ -21,6 +21,68 @@ type ProfileRecipient = {
   referral_code?: string | null;
 };
 
+type TrackedRecipient = {
+  id: string;
+  email: string;
+  status: string;
+  sent_at: string | null;
+  opened_at: string | null;
+  clicked_at: string | null;
+};
+
+export async function GET(request: NextRequest) {
+  try {
+    const supabase = createServiceClient();
+    if (!supabase) {
+      return NextResponse.json({ error: "Database not configured" }, { status: 500 });
+    }
+
+    const campaignId = new URL(request.url).searchParams.get("campaignId");
+    if (!campaignId) {
+      return NextResponse.json({ error: "Campaign ID required" }, { status: 400 });
+    }
+
+    const [{ data, error }, { data: campaign }] = await Promise.all([
+      supabase
+        .from("campaign_recipients")
+        .select("id, email, status, sent_at, opened_at, clicked_at")
+        .eq("campaign_id", campaignId)
+        .order("sent_at", { ascending: false }),
+      supabase
+        .from("marketing_campaigns")
+        .select("audience_name")
+        .eq("id", campaignId)
+        .single(),
+    ]);
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    const uniqueRecipients: TrackedRecipient[] = Array.from(
+      new Map((data || []).map((recipient) => [recipient.email.toLowerCase(), recipient])).values()
+    );
+
+    const audienceName = String(campaign?.audience_name || "").trim();
+    const isCategoryAudience = audienceName
+      && audienceName !== "All Contacts"
+      && audienceName !== "All Customers";
+
+    const categories: Array<{ id: string; name: string; recipients: TrackedRecipient[] }> =
+      isCategoryAudience
+        ? [{ id: `audience-${campaignId}`, name: audienceName, recipients: uniqueRecipients }]
+        : uniqueRecipients.map((recipient) => ({
+            id: recipient.id,
+            name: recipient.email,
+            recipients: [recipient],
+          }));
+
+    return NextResponse.json({ categories });
+  } catch (error: unknown) {
+    return NextResponse.json({ error: getErrorMessage(error) }, { status: 500 });
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const supabase = createServiceClient();
@@ -29,7 +91,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { campaignId, testEmail, sendTest, listId } = body;
+    const { campaignId, testEmail, sendTest, listId, resendCampaign } = body;
 
     if (!campaignId) {
       return NextResponse.json({ error: "Campaign ID required" }, { status: 400 });
@@ -94,14 +156,19 @@ export async function POST(request: NextRequest) {
 
     let crmContacts: CrmContact[] = [];
     let profileRecipients: ProfileRecipient[] = [];
+    let audienceName = "All Contacts";
 
     // If sending to a specific list, get contacts from that list
     if (listId) {
       try {
-        const { data, error } = await supabase
-          .from("contact_list_members")
-          .select("email, contact_id, contact_source")
-          .eq("list_id", listId);
+        const [{ data, error }, { data: selectedList }] = await Promise.all([
+          supabase
+            .from("contact_list_members")
+            .select("email, contact_id, contact_source")
+            .eq("list_id", listId),
+          supabase.from("contact_lists").select("name").eq("id", listId).single(),
+        ]);
+        audienceName = selectedList?.name || "Specific List";
         if (!error && data) {
           // Convert list members to recipients format
           crmContacts = data.map(m => ({
@@ -192,13 +259,15 @@ export async function POST(request: NextRequest) {
       .update({ 
         status: "active", 
         started_at: new Date().toISOString(),
-        estimated_recipients: recipients.length 
+        estimated_recipients: recipients.length,
+        audience_name: audienceName,
       })
       .eq("id", campaignId);
 
     // Send emails in batches
     let sent = 0;
     let failed = 0;
+    const errors: string[] = [];
     const batchSize = 10;
 
     for (let i = 0; i < recipients.length; i += batchSize) {
@@ -217,12 +286,16 @@ export async function POST(request: NextRequest) {
               referral_code: recipient.referral_code || "",
             };
 
-            await resend.emails.send({
+            const { error: sendError } = await resend.emails.send({
               from: getEmailFrom(),
               to: recipient.email,
               subject: replaceVariables(campaign.subject, variables),
               html: replaceVariables(campaign.html_content, variables),
             });
+
+            if (sendError) {
+              throw new Error(sendError.message);
+            }
 
             // Track recipient - skip if table doesn't exist
             try {
@@ -244,27 +317,32 @@ export async function POST(request: NextRequest) {
           } catch (error) {
             console.error(`Failed to send to ${recipient.email}:`, error);
             failed++;
+            errors.push(`${recipient.email}: ${getErrorMessage(error)}`);
           }
         })
       );
     }
 
     // Update campaign stats
+    const previousSent = resendCampaign ? Number(campaign.total_sent || 0) : 0;
     await supabase
       .from("marketing_campaigns")
       .update({ 
-        total_sent: sent,
-        status: "completed",
-        completed_at: new Date().toISOString()
+        total_sent: previousSent + sent,
+        status: sent > 0 ? "completed" : "draft",
+        completed_at: sent > 0 ? new Date().toISOString() : null
       })
       .eq("id", campaignId);
 
-    return NextResponse.json({ 
-      success: true, 
+    const success = sent > 0;
+    return NextResponse.json({
+      success,
       sent,
       failed,
-      message: `Campaign sent to ${sent} recipients` 
-    });
+      message: success ? `Campaign sent to ${sent} recipients` : "No emails were sent",
+      error: success ? undefined : errors[0] || "Email provider rejected all recipients",
+      errors: errors.slice(0, 10),
+    }, { status: success ? 200 : 502 });
   } catch (error: unknown) {
     console.error("Error sending campaign:", error);
     return NextResponse.json({ error: getErrorMessage(error) }, { status: 500 });
