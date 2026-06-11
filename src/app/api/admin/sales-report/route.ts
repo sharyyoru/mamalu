@@ -2,6 +2,116 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAuth } from "@/lib/auth/api-auth";
 
+const DUBAI_OFFSET_MS = 4 * 60 * 60 * 1000;
+
+type ScheduledItem = {
+  name?: string;
+  quantity?: number;
+  event_date?: string;
+  event_time?: string;
+  time_label?: string;
+};
+
+type DailyBooking = {
+  id: string;
+  bookingNumber: string;
+  date: string;
+  time: string | null;
+  customerName: string;
+  customerEmail: string;
+  bookingType: "service" | "class";
+  serviceType: string;
+  bookedItems: Array<{ name: string; quantity: number }>;
+  status: "confirmed" | "completed";
+  paymentStatus: string;
+  guests: number;
+  allocatedAmount: number;
+  amountCollected: number;
+  outstandingBalance: number;
+};
+
+type DailyProductOrder = {
+  id: string;
+  orderNumber: string;
+  date: string;
+  paidAt: string;
+  customerName: string;
+  customerEmail: string;
+  products: Array<{ name: string; quantity: number }>;
+  subtotal: number;
+  shipping: number;
+  totalPaid: number;
+  fulfillmentStatus: string;
+};
+
+type MonthlyTargetBooking = {
+  id: string;
+  bookingNumber: string;
+  createdDate: string;
+  createdAt: string;
+  customerName: string;
+  bookingType: "service" | "class";
+  serviceType: string;
+  status: "partial" | "paid" | "completed";
+  guests: number;
+  bookingValue: number;
+  amountCollected: number;
+};
+
+function dubaiDateString(date: Date) {
+  return new Date(date.getTime() + DUBAI_OFFSET_MS).toISOString().slice(0, 10);
+}
+
+function dubaiRange(startDate: string, endDate: string) {
+  return {
+    from: new Date(`${startDate}T00:00:00+04:00`),
+    to: new Date(`${endDate}T23:59:59.999+04:00`),
+  };
+}
+
+function enumerateDates(from: string, to: string) {
+  const dates: string[] = [];
+  const cursor = new Date(`${from}T00:00:00Z`);
+  const end = new Date(`${to}T00:00:00Z`);
+  while (cursor <= end) {
+    dates.push(cursor.toISOString().slice(0, 10));
+    cursor.setUTCDate(cursor.getUTCDate() + 1);
+  }
+  return dates;
+}
+
+function amountCollected(booking: Record<string, unknown>) {
+  const total = Number(booking.total_amount) || 0;
+  if (booking.payment_status === "paid" || booking.payment_status === "fully_paid" || booking.balance_paid) {
+    return total;
+  }
+  if (booking.deposit_paid || booking.payment_status === "deposit_paid") {
+    return Number(booking.deposit_amount) || 0;
+  }
+  return 0;
+}
+
+function monthlyTargetStatus(booking: Record<string, unknown>): MonthlyTargetBooking["status"] | null {
+  if (booking.status === "completed") return "completed";
+  if (
+    booking.payment_status === "paid" ||
+    booking.payment_status === "fully_paid" ||
+    booking.balance_paid ||
+    booking.paid_at
+  ) {
+    return "paid";
+  }
+  if (
+    booking.payment_status === "partial" ||
+    booking.payment_status === "partially_paid" ||
+    booking.payment_status === "deposit_paid" ||
+    booking.deposit_paid
+  ) {
+    return "partial";
+  }
+  return null;
+}
+
 export async function GET(request: NextRequest) {
   const authResult = await requireAuth(request, ["staff", "admin", "super_admin"]);
   if (authResult instanceof NextResponse) {
@@ -49,8 +159,11 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const fromISO = from.toISOString();
-    const toISO = to.toISOString();
+    const requestedFromDate = startDate || dubaiDateString(from);
+    const requestedToDate = endDate || dubaiDateString(to);
+    const reportRange = dubaiRange(requestedFromDate, requestedToDate);
+    const fromISO = reportRange.from.toISOString();
+    const toISO = reportRange.to.toISOString();
 
     // Get service bookings
     const { data: bookings } = await supabase
@@ -84,6 +197,25 @@ export async function GET(request: NextRequest) {
     const { data: menuItems } = await supabase
       .from("menu_items")
       .select("id, name, categories");
+
+    const [{ data: dailyServiceBookings }, { data: dailyClassBookings }, { data: productOrders }] = await Promise.all([
+      supabase
+        .from("service_bookings")
+        .select("*")
+        .in("status", ["confirmed", "completed"]),
+      supabase
+        .from("class_bookings")
+        .select("*")
+        .in("status", ["confirmed", "completed"])
+        .gte("start_date", fromISO)
+        .lte("start_date", toISO),
+      supabase
+        .from("product_orders")
+        .select("*")
+        .eq("payment_status", "paid")
+        .gte("paid_at", fromISO)
+        .lte("paid_at", toISO),
+    ]);
 
     const isPackageBookingItem = (
       item: unknown,
@@ -428,6 +560,210 @@ export async function GET(request: NextRequest) {
       }))
       .sort((a: any, b: any) => new Date(a.event_date || a.created_at).getTime() - new Date(b.event_date || b.created_at).getTime());
 
+    const dailyBookings: DailyBooking[] = [];
+
+    (dailyServiceBookings || []).forEach((booking: Record<string, unknown>) => {
+      const items = Array.isArray(booking.items) ? booking.items as ScheduledItem[] : [];
+      const scheduledItems = items.filter((item) => item.event_date);
+      const matchingItems = scheduledItems.filter(
+        (item) => item.event_date && item.event_date >= requestedFromDate && item.event_date <= requestedToDate
+      );
+      const occurrences = scheduledItems.length > 0
+        ? matchingItems.map((item) => ({
+            date: item.event_date as string,
+            time: item.event_time || item.time_label || null,
+            items: [{ name: item.name || "Package Item", quantity: Number(item.quantity) || 1 }],
+            divisor: scheduledItems.length,
+          }))
+        : booking.event_date && String(booking.event_date) >= requestedFromDate && String(booking.event_date) <= requestedToDate
+          ? [{
+              date: String(booking.event_date),
+              time: booking.event_time ? String(booking.event_time) : null,
+              items: items.length > 0
+                ? items.map((item) => ({ name: item.name || "Booked Item", quantity: Number(item.quantity) || 1 }))
+                : [{ name: String(booking.package_name || booking.service_name || "Service Booking"), quantity: 1 }],
+              divisor: 1,
+            }]
+          : [];
+
+      const total = Number(booking.total_amount) || 0;
+      const collected = amountCollected(booking);
+      occurrences.forEach((occurrence) => {
+        dailyBookings.push({
+          id: `${booking.id}-${occurrence.date}-${occurrence.time || ""}`,
+          bookingNumber: String(booking.booking_number || ""),
+          date: occurrence.date,
+          time: occurrence.time,
+          customerName: String(booking.customer_name || "Unknown"),
+          customerEmail: String(booking.customer_email || ""),
+          bookingType: "service",
+          serviceType: String(booking.service_name || booking.service_type || "Service"),
+          bookedItems: occurrence.items,
+          status: booking.status as "confirmed" | "completed",
+          paymentStatus: String(booking.payment_status || "pending"),
+          guests: Number(booking.guest_count) || 1,
+          allocatedAmount: total / occurrence.divisor,
+          amountCollected: collected / occurrence.divisor,
+          outstandingBalance: Math.max(total - collected, 0) / occurrence.divisor,
+        });
+      });
+    });
+
+    (dailyClassBookings || []).forEach((booking: Record<string, unknown>) => {
+      if (!booking.start_date) return;
+      const date = dubaiDateString(new Date(String(booking.start_date)));
+      const total = Number(booking.total_amount) || 0;
+      const collected = amountCollected(booking);
+      dailyBookings.push({
+        id: String(booking.id),
+        bookingNumber: String(booking.booking_number || ""),
+        date,
+        time: new Date(String(booking.start_date)).toLocaleTimeString("en-GB", {
+          timeZone: "Asia/Dubai",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+        }),
+        customerName: String(booking.attendee_name || "Unknown"),
+        customerEmail: String(booking.attendee_email || ""),
+        bookingType: "class",
+        serviceType: String(booking.class_title || booking.class_type || "Class"),
+        bookedItems: [{
+          name: String(booking.class_title || "Class Booking"),
+          quantity: Number(booking.sessions_booked) || 1,
+        }],
+        status: booking.status as "confirmed" | "completed",
+        paymentStatus: booking.paid_at ? "paid" : String(booking.payment_status || "pending"),
+        guests: Number(booking.number_of_guests) || 1,
+        allocatedAmount: total,
+        amountCollected: collected || (booking.paid_at ? total : 0),
+        outstandingBalance: Math.max(total - (collected || (booking.paid_at ? total : 0)), 0),
+      });
+    });
+
+    const dailyProductOrders: DailyProductOrder[] = (productOrders || [])
+      .filter((order: Record<string, unknown>) => !["cancelled", "refunded"].includes(String(order.status || "").toLowerCase()))
+      .map((order: Record<string, unknown>) => ({
+        id: String(order.id),
+        orderNumber: String(order.order_number || ""),
+        date: dubaiDateString(new Date(String(order.paid_at))),
+        paidAt: String(order.paid_at),
+        customerName: String(order.customer_name || "Unknown"),
+        customerEmail: String(order.customer_email || ""),
+        products: (Array.isArray(order.items) ? order.items : []).map((item: unknown) => {
+          const value = item && typeof item === "object" ? item as Record<string, unknown> : {};
+          return {
+            name: String(value.name || value.product_name || "Product"),
+            quantity: Number(value.quantity) || 1,
+          };
+        }),
+        subtotal: Number(order.subtotal) || 0,
+        shipping: Number(order.shipping_cost) || 0,
+        totalPaid: Number(order.total_amount) || 0,
+        fulfillmentStatus: String(order.status || "processing"),
+      }));
+
+    dailyBookings.sort((a, b) => `${a.date}${a.time || ""}`.localeCompare(`${b.date}${b.time || ""}`));
+    dailyProductOrders.sort((a, b) => a.paidAt.localeCompare(b.paidAt));
+
+    const dailyTotals = enumerateDates(requestedFromDate, requestedToDate).map((date) => {
+      const dateBookings = dailyBookings.filter((booking) => booking.date === date);
+      const dateOrders = dailyProductOrders.filter((order) => order.date === date);
+      const actualBookingRevenue = dateBookings
+        .filter((booking) => booking.status === "completed")
+        .reduce((sum, booking) => sum + booking.allocatedAmount, 0);
+      const projectedBookingValue = dateBookings
+        .filter((booking) => booking.status === "confirmed")
+        .reduce((sum, booking) => sum + booking.allocatedAmount, 0);
+      const productRevenue = dateOrders.reduce((sum, order) => sum + order.totalPaid, 0);
+      return {
+        date,
+        actualBookingRevenue,
+        projectedBookingValue,
+        productRevenue,
+        guests: dateBookings.reduce((sum, booking) => sum + booking.guests, 0),
+        bookings: dateBookings.length,
+        orders: dateOrders.length,
+        combinedActualSales: actualBookingRevenue + productRevenue,
+      };
+    });
+
+    const dailyReportSummary = dailyTotals.reduce((summary, day) => ({
+      actualSales: summary.actualSales + day.combinedActualSales,
+      projectedBookings: summary.projectedBookings + day.projectedBookingValue,
+      productSales: summary.productSales + day.productRevenue,
+      totalGuests: summary.totalGuests + day.guests,
+      bookingCount: summary.bookingCount + day.bookings,
+      productOrderCount: summary.productOrderCount + day.orders,
+    }), {
+      actualSales: 0,
+      projectedBookings: 0,
+      productSales: 0,
+      totalGuests: 0,
+      bookingCount: 0,
+      productOrderCount: 0,
+    });
+
+    const monthlyTargetBookings: MonthlyTargetBooking[] = [
+      ...(bookings || []).flatMap((booking: Record<string, unknown>) => {
+        const status = monthlyTargetStatus(booking);
+        if (!status || !booking.created_at) return [];
+        return [{
+          id: String(booking.id),
+          bookingNumber: String(booking.booking_number || ""),
+          createdDate: dubaiDateString(new Date(String(booking.created_at))),
+          createdAt: String(booking.created_at),
+          customerName: String(booking.customer_name || "Unknown"),
+          bookingType: "service" as const,
+          serviceType: String(booking.service_name || booking.service_type || "Service"),
+          status,
+          guests: Number(booking.guest_count) || 1,
+          bookingValue: Number(booking.total_amount) || 0,
+          amountCollected: amountCollected(booking),
+        }];
+      }),
+      ...(classBookings || []).flatMap((booking: Record<string, unknown>) => {
+        const status = monthlyTargetStatus(booking);
+        if (!status || !booking.created_at) return [];
+        const total = Number(booking.total_amount) || 0;
+        return [{
+          id: String(booking.id),
+          bookingNumber: String(booking.booking_number || ""),
+          createdDate: dubaiDateString(new Date(String(booking.created_at))),
+          createdAt: String(booking.created_at),
+          customerName: String(booking.attendee_name || "Unknown"),
+          bookingType: "class" as const,
+          serviceType: String(booking.class_title || booking.class_type || "Class"),
+          status,
+          guests: Number(booking.number_of_guests) || 1,
+          bookingValue: total,
+          amountCollected: booking.paid_at ? total : amountCollected(booking),
+        }];
+      }),
+    ].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+
+    const monthlyTotals = Array.from(new Set([
+      ...monthlyTargetBookings.map((booking) => booking.createdDate.slice(0, 7)),
+      ...dailyProductOrders.map((order) => order.date.slice(0, 7)),
+    ])).sort().map((month) => {
+      const monthBookings = monthlyTargetBookings.filter((booking) => booking.createdDate.startsWith(month));
+      const monthOrders = dailyProductOrders.filter((order) => order.date.startsWith(month));
+      return {
+        month,
+        bookingValue: monthBookings.reduce((sum, booking) => sum + booking.bookingValue, 0),
+        amountCollected: monthBookings.reduce((sum, booking) => sum + booking.amountCollected, 0),
+        productSales: monthOrders.reduce((sum, order) => sum + order.totalPaid, 0),
+        totalSales: monthBookings.reduce((sum, booking) => sum + booking.amountCollected, 0)
+          + monthOrders.reduce((sum, order) => sum + order.totalPaid, 0),
+        guests: monthBookings.reduce((sum, booking) => sum + booking.guests, 0),
+        bookings: monthBookings.length,
+        productOrders: monthOrders.length,
+        partialBookings: monthBookings.filter((booking) => booking.status === "partial").length,
+        paidBookings: monthBookings.filter((booking) => booking.status === "paid").length,
+        completedBookings: monthBookings.filter((booking) => booking.status === "completed").length,
+      };
+    });
+
     return NextResponse.json({
       period: { from: fromISO, to: toISO },
       summary: {
@@ -458,6 +794,19 @@ export async function GET(request: NextRequest) {
       })),
       dailyData,
       bookings: formattedBookings,
+      dailyReport: {
+        period: { from: requestedFromDate, to: requestedToDate, timeZone: "Asia/Dubai" },
+        summary: dailyReportSummary,
+        bookings: dailyBookings,
+        productOrders: dailyProductOrders,
+        dailyTotals,
+      },
+      monthlyTargetReport: {
+        period: { from: requestedFromDate, to: requestedToDate, timeZone: "Asia/Dubai" },
+        bookings: monthlyTargetBookings,
+        productOrders: dailyProductOrders,
+        monthlyTotals,
+      },
     });
   } catch (error: any) {
     console.error("Sales report error:", error);

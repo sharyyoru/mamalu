@@ -90,6 +90,97 @@ interface SalesData {
     addons: number;
     total: number;
   }>;
+  dailyReport: {
+    period: { from: string; to: string; timeZone: string };
+    summary: {
+      actualSales: number;
+      projectedBookings: number;
+      productSales: number;
+      totalGuests: number;
+      bookingCount: number;
+      productOrderCount: number;
+    };
+    bookings: DailyReportBooking[];
+    productOrders: DailyReportProductOrder[];
+    dailyTotals: DailyReportTotal[];
+  };
+  monthlyTargetReport: {
+    period: { from: string; to: string; timeZone: string };
+    bookings: MonthlyTargetBooking[];
+    productOrders: DailyReportProductOrder[];
+    monthlyTotals: MonthlyTargetTotal[];
+  };
+}
+
+interface DailyReportBooking {
+  id: string;
+  bookingNumber: string;
+  date: string;
+  time: string | null;
+  customerName: string;
+  customerEmail: string;
+  bookingType: "service" | "class";
+  serviceType: string;
+  bookedItems: Array<{ name: string; quantity: number }>;
+  status: "confirmed" | "completed";
+  paymentStatus: string;
+  guests: number;
+  allocatedAmount: number;
+  amountCollected: number;
+  outstandingBalance: number;
+}
+
+interface DailyReportProductOrder {
+  id: string;
+  orderNumber: string;
+  date: string;
+  paidAt: string;
+  customerName: string;
+  customerEmail: string;
+  products: Array<{ name: string; quantity: number }>;
+  subtotal: number;
+  shipping: number;
+  totalPaid: number;
+  fulfillmentStatus: string;
+}
+
+interface DailyReportTotal {
+  date: string;
+  actualBookingRevenue: number;
+  projectedBookingValue: number;
+  productRevenue: number;
+  guests: number;
+  bookings: number;
+  orders: number;
+  combinedActualSales: number;
+}
+
+interface MonthlyTargetBooking {
+  id: string;
+  bookingNumber: string;
+  createdDate: string;
+  createdAt: string;
+  customerName: string;
+  bookingType: "service" | "class";
+  serviceType: string;
+  status: "partial" | "paid" | "completed";
+  guests: number;
+  bookingValue: number;
+  amountCollected: number;
+}
+
+interface MonthlyTargetTotal {
+  month: string;
+  bookingValue: number;
+  amountCollected: number;
+  productSales: number;
+  totalSales: number;
+  guests: number;
+  bookings: number;
+  productOrders: number;
+  partialBookings: number;
+  paidBookings: number;
+  completedBookings: number;
 }
 
 const serviceIcons: Record<string, any> = {
@@ -115,32 +206,69 @@ const serviceColors: Record<string, string> = {
 };
 
 export default function AdminSalesPage() {
+  const currentDubaiMonth = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Dubai",
+    year: "numeric",
+    month: "2-digit",
+  }).format(new Date()).slice(0, 7);
   const [salesData, setSalesData] = useState<SalesData | null>(null);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState("week");
-  const [activeTab, setActiveTab] = useState<"overview" | "management" | "depachika">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "management" | "monthly-target" | "depachika">("overview");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [paymentFilter, setPaymentFilter] = useState<"all" | "completed" | "deposit_paid" | "pending">("all");
+  const [error, setError] = useState("");
+  const [monthlyTargetMonth, setMonthlyTargetMonth] = useState(currentDubaiMonth);
+  const [monthlyTargetData, setMonthlyTargetData] = useState<SalesData["monthlyTargetReport"] | null>(null);
+  const [monthlyTargetLoading, setMonthlyTargetLoading] = useState(false);
+  const [monthlyTargetError, setMonthlyTargetError] = useState("");
 
   useEffect(() => {
     fetchSalesData();
   }, [period]);
 
+  useEffect(() => {
+    if (activeTab !== "monthly-target") return;
+
+    const fetchMonthlyTargetData = async () => {
+      const [year, month] = monthlyTargetMonth.split("-").map(Number);
+      const lastDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
+      const start = `${monthlyTargetMonth}-01`;
+      const end = `${monthlyTargetMonth}-${String(lastDay).padStart(2, "0")}`;
+
+      try {
+        setMonthlyTargetLoading(true);
+        setMonthlyTargetError("");
+        const response = await fetch(`/api/admin/sales-report?start_date=${start}&end_date=${end}`);
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Failed to load monthly target report");
+        setMonthlyTargetData(data.monthlyTargetReport);
+      } catch (fetchError) {
+        setMonthlyTargetError(fetchError instanceof Error ? fetchError.message : "Failed to load monthly target report");
+      } finally {
+        setMonthlyTargetLoading(false);
+      }
+    };
+
+    fetchMonthlyTargetData();
+  }, [activeTab, monthlyTargetMonth]);
+
   const fetchSalesData = async () => {
     try {
       setLoading(true);
+      setError("");
       let url = `/api/admin/sales-report?period=${period}`;
       if (startDate && endDate) {
         url += `&start_date=${startDate}&end_date=${endDate}`;
       }
       const res = await fetch(url);
-      if (res.ok) {
-        const data = await res.json();
-        setSalesData(data);
-      }
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to load sales report");
+      setSalesData(data);
     } catch (error) {
       console.error("Failed to fetch sales data:", error);
+      setError(error instanceof Error ? error.message : "Failed to load sales report");
     } finally {
       setLoading(false);
     }
@@ -164,79 +292,59 @@ export default function AdminSalesPage() {
   };
 
   const exportManagementReport = () => {
-    if (!salesData) return;
+    if (!salesData?.dailyReport) return;
 
     const wb = XLSX.utils.book_new();
-
-    // Sales Summary Sheet
+    const report = salesData.dailyReport;
     const summaryData = [
-      ["MAMALU KITCHEN - MANAGEMENT REPORT"],
-      [`Period: ${new Date(salesData.period.from).toLocaleDateString()} - ${new Date(salesData.period.to).toLocaleDateString()}`],
+      ["MAMALU KITCHEN - SALES DAILY REPORT"],
+      [`Dubai business dates: ${report.period.from} to ${report.period.to}`],
       [],
-      ["SALES SUMMARY"],
-      ["Category", "Amount (AED)"],
-      ["Service Bookings", salesData.summary.serviceRevenue],
-      ["Class Bookings", salesData.summary.classRevenue],
-      ["Payment Links", salesData.summary.paymentLinkRevenue],
-      ["TOTAL REVENUE", salesData.summary.totalRevenue],
-      [],
-      ["BOOKING STATISTICS"],
-      ["Metric", "Count"],
-      ["Total Bookings", salesData.summary.totalBookings],
-      ["Service Bookings", salesData.summary.serviceBookings],
-      ["Class Bookings", salesData.summary.classBookings],
-      ["Payment Links", salesData.summary.paymentLinks],
-      ["Total Guests", salesData.summary.totalGuests],
+      ["Metric", "Value"],
+      ["Actual Sales", report.summary.actualSales],
+      ["Projected Bookings", report.summary.projectedBookings],
+      ["Product Sales", report.summary.productSales],
+      ["Total Guests", report.summary.totalGuests],
+      ["Booking Count", report.summary.bookingCount],
+      ["Product Order Count", report.summary.productOrderCount],
     ];
     const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
-    XLSX.utils.book_append_sheet(wb, summarySheet, "Sales Summary");
+    XLSX.utils.book_append_sheet(wb, summarySheet, "Summary");
 
-    // Daily Sales Sheet
-    const dailyData = [
-      ["DAILY SALES REPORT"],
-      [],
-      ["Date", "Revenue (AED)", "Bookings"],
-      ...(salesData.dailyData?.map(day => [
-        new Date(day.date).toLocaleDateString(),
-        day.revenue,
-        day.bookings
-      ]) || []),
+    const bookingData = [
+      ["Date", "Time", "Booking Number", "Customer", "Email", "Type", "Service/Class", "Booked Items", "Status", "Payment Status", "Guests", "Allocated Amount", "Amount Collected", "Outstanding"],
+      ...report.bookings.map((booking) => [
+        booking.date, booking.time || "", booking.bookingNumber, booking.customerName,
+        booking.customerEmail, booking.bookingType, booking.serviceType,
+        booking.bookedItems.map((item) => `${item.name} x${item.quantity}`).join(", "),
+        booking.status, booking.paymentStatus, booking.guests, booking.allocatedAmount,
+        booking.amountCollected, booking.outstandingBalance,
+      ]),
     ];
-    const dailySheet = XLSX.utils.aoa_to_sheet(dailyData);
-    XLSX.utils.book_append_sheet(wb, dailySheet, "Daily Sales");
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(bookingData), "Bookings");
 
-    // Sales by Service Type Sheet
-    const serviceData = [
-      ["SALES BY SERVICE TYPE"],
-      [],
-      ["Service Type", "Bookings", "Revenue (AED)", "Guests"],
-      ...(salesData.serviceSales?.map(service => [
-        service.name,
-        service.count,
-        service.revenue,
-        service.guests
-      ]) || []),
+    const orderData = [
+      ["Paid Date", "Paid Time (Dubai)", "Order Number", "Customer", "Email", "Products", "Subtotal", "Shipping", "Total Paid", "Fulfillment Status"],
+      ...report.productOrders.map((order) => [
+        order.date,
+        new Date(order.paidAt).toLocaleTimeString("en-GB", { timeZone: "Asia/Dubai", hour: "2-digit", minute: "2-digit" }),
+        order.orderNumber, order.customerName, order.customerEmail,
+        order.products.map((item) => `${item.name} x${item.quantity}`).join(", "),
+        order.subtotal, order.shipping, order.totalPaid, order.fulfillmentStatus,
+      ]),
     ];
-    const serviceSheet = XLSX.utils.aoa_to_sheet(serviceData);
-    XLSX.utils.book_append_sheet(wb, serviceSheet, "By Service Type");
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(orderData), "Product Orders");
 
-    // Top Sellers Sheet
-    const topData = [
-      ["TOP 10 BEST SELLERS"],
-      [],
-      ["Rank", "Item Name", "Service Type", "Orders", "Revenue (AED)"],
-      ...(salesData.bestSellers?.slice(0, 10).map((item, idx) => [
-        idx + 1,
-        item.name,
-        item.typeName,
-        item.count,
-        item.revenue
-      ]) || []),
+    const totalsData = [
+      ["Date", "Actual Booking Revenue", "Projected Booking Value", "Product Revenue", "Combined Actual Sales", "Guests", "Bookings", "Orders"],
+      ...report.dailyTotals.map((day) => [
+        day.date, day.actualBookingRevenue, day.projectedBookingValue, day.productRevenue,
+        day.combinedActualSales, day.guests, day.bookings, day.orders,
+      ]),
     ];
-    const topSheet = XLSX.utils.aoa_to_sheet(topData);
-    XLSX.utils.book_append_sheet(wb, topSheet, "Top 10 Sellers");
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(totalsData), "Daily Totals");
 
-    XLSX.writeFile(wb, `Management-Report-${new Date().toISOString().split("T")[0]}.xlsx`);
+    XLSX.writeFile(wb, `Sales-Daily-Report-${report.period.from}-to-${report.period.to}.xlsx`);
   };
 
   const exportDepachikaReport = () => {
@@ -285,6 +393,39 @@ export default function AdminSalesPage() {
     XLSX.utils.book_append_sheet(wb, ws, new Date().toLocaleString("default", { month: "long", year: "numeric" }).toUpperCase());
 
     XLSX.writeFile(wb, `Depachika-Report-${new Date().toISOString().split("T")[0]}.xlsx`);
+  };
+
+  const exportMonthlyTargetReport = () => {
+    if (!monthlyTargetData) return;
+    const report = monthlyTargetData;
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
+      ["Month", "Booking Value", "Amount Collected", "Product Sales", "Total Sales", "Guests", "Bookings", "Product Orders", "Partial", "Paid", "Completed"],
+      ...report.monthlyTotals.map((month) => [
+        month.month, month.bookingValue, month.amountCollected, month.productSales,
+        month.totalSales, month.guests, month.bookings, month.productOrders,
+        month.partialBookings, month.paidBookings, month.completedBookings,
+      ]),
+    ]), "Monthly Totals");
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
+      ["Created Date", "Created Time (Dubai)", "Booking Number", "Customer", "Type", "Service/Class", "Status", "Guests", "Booking Value", "Amount Collected"],
+      ...report.bookings.map((booking) => [
+        booking.createdDate,
+        new Date(booking.createdAt).toLocaleTimeString("en-GB", { timeZone: "Asia/Dubai", hour: "2-digit", minute: "2-digit" }),
+        booking.bookingNumber, booking.customerName, booking.bookingType,
+        booking.serviceType, booking.status, booking.guests,
+        booking.bookingValue, booking.amountCollected,
+      ]),
+    ]), "Bookings");
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
+      ["Paid Date", "Order Number", "Customer", "Products", "Subtotal", "Shipping", "Total Paid", "Fulfillment"],
+      ...report.productOrders.map((order) => [
+        order.date, order.orderNumber, order.customerName,
+        order.products.map((item) => `${item.name} x${item.quantity}`).join(", "),
+        order.subtotal, order.shipping, order.totalPaid, order.fulfillmentStatus,
+      ]),
+    ]), "Product Sales");
+    XLSX.writeFile(wb, `Monthly-Target-Report-${report.period.from}-to-${report.period.to}.xlsx`);
   };
 
   const exportToCSV = () => {
@@ -416,7 +557,18 @@ export default function AdminSalesPage() {
           }`}
         >
           <ClipboardList className="h-4 w-4 inline mr-2" />
-          Management Report
+          Sales Daily Report
+        </button>
+        <button
+          onClick={() => setActiveTab("monthly-target")}
+          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+            activeTab === "monthly-target"
+              ? "bg-white text-stone-900 shadow-sm"
+              : "text-stone-600 hover:text-stone-900"
+          }`}
+        >
+          <TrendingUp className="h-4 w-4 inline mr-2" />
+          Monthly Target Report
         </button>
         <button
           onClick={() => setActiveTab("depachika")}
@@ -431,128 +583,220 @@ export default function AdminSalesPage() {
         </button>
       </div>
 
-      {/* Management Report Tab */}
+      {/* Sales Daily Report Tab */}
       {activeTab === "management" && (
         <div className="space-y-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Management Report</CardTitle>
-              <Button onClick={exportManagementReport} className="bg-green-600 hover:bg-green-700">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-xl font-semibold text-stone-900">Sales Daily Report</h2>
+              <p className="text-sm text-stone-500">Dubai business dates. Completed bookings are actual; confirmed bookings are projected.</p>
+            </div>
+            <Button onClick={exportManagementReport} className="bg-green-600 hover:bg-green-700" disabled={!salesData?.dailyReport}>
+              <Download className="h-4 w-4 mr-2" />
+              Export Excel
+            </Button>
+          </div>
+
+          {error ? (
+            <Card><CardContent className="py-10 text-center text-red-600">{error}</CardContent></Card>
+          ) : salesData?.dailyReport ? (
+            <>
+              <div className="grid grid-cols-2 gap-3 lg:grid-cols-6">
+                {[
+                  ["Actual Sales", formatCurrency(salesData.dailyReport.summary.actualSales)],
+                  ["Projected Bookings", formatCurrency(salesData.dailyReport.summary.projectedBookings)],
+                  ["Product Sales", formatCurrency(salesData.dailyReport.summary.productSales)],
+                  ["Total Guests", salesData.dailyReport.summary.totalGuests],
+                  ["Bookings", salesData.dailyReport.summary.bookingCount],
+                  ["Product Orders", salesData.dailyReport.summary.productOrderCount],
+                ].map(([label, value]) => (
+                  <Card key={label}><CardContent className="p-4"><p className="text-xs text-stone-500">{label}</p><p className="mt-1 text-xl font-bold text-stone-900">{value}</p></CardContent></Card>
+                ))}
+              </div>
+
+              {salesData.dailyReport.dailyTotals.map((day) => {
+                const dayBookings = salesData.dailyReport.bookings.filter((booking) => booking.date === day.date);
+                const dayOrders = salesData.dailyReport.productOrders.filter((order) => order.date === day.date);
+                return (
+                  <Card key={day.date}>
+                    <CardHeader>
+                      <CardTitle className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                        <span>{new Date(`${day.date}T00:00:00`).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</span>
+                        <span className="text-sm font-normal text-stone-500">Actual {formatCurrency(day.combinedActualSales)} · Projected {formatCurrency(day.projectedBookingValue)}</span>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      <div>
+                        <h3 className="mb-3 font-semibold">Bookings</h3>
+                        <div className="overflow-x-auto">
+                          <table className="min-w-[1200px] w-full text-sm">
+                            <thead><tr className="bg-stone-100 text-left">
+                              {["Time", "Booking #", "Customer", "Type", "Booked Items", "Status", "Payment", "Guests", "Allocated", "Collected", "Outstanding"].map((heading) => <th key={heading} className="px-3 py-2">{heading}</th>)}
+                            </tr></thead>
+                            <tbody>
+                              {dayBookings.map((booking) => (
+                                <tr key={booking.id} className="border-b border-stone-100">
+                                  <td className="px-3 py-3">{booking.time || "-"}</td><td className="px-3 py-3 font-medium">{booking.bookingNumber}</td>
+                                  <td className="px-3 py-3"><div>{booking.customerName}</div><div className="text-xs text-stone-400">{booking.customerEmail}</div></td>
+                                  <td className="px-3 py-3">{booking.serviceType}</td>
+                                  <td className="px-3 py-3">{booking.bookedItems.map((item) => `${item.name} x${item.quantity}`).join(", ")}</td>
+                                  <td className="px-3 py-3"><Badge className={booking.status === "completed" ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"}>{booking.status}</Badge></td>
+                                  <td className="px-3 py-3">{booking.paymentStatus}</td><td className="px-3 py-3 text-right">{booking.guests}</td>
+                                  <td className="px-3 py-3 text-right">{formatCurrency(booking.allocatedAmount)}</td><td className="px-3 py-3 text-right">{formatCurrency(booking.amountCollected)}</td><td className="px-3 py-3 text-right">{formatCurrency(booking.outstandingBalance)}</td>
+                                </tr>
+                              ))}
+                              {dayBookings.length === 0 && <tr><td colSpan={11} className="px-3 py-8 text-center text-stone-500">No bookings scheduled for this day.</td></tr>}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                      <div>
+                        <h3 className="mb-3 font-semibold">Product Orders</h3>
+                        <div className="overflow-x-auto">
+                          <table className="min-w-[900px] w-full text-sm">
+                            <thead><tr className="bg-stone-100 text-left">
+                              {["Paid Time", "Order #", "Customer", "Products", "Subtotal", "Shipping", "Total Paid", "Fulfillment"].map((heading) => <th key={heading} className="px-3 py-2">{heading}</th>)}
+                            </tr></thead>
+                            <tbody>
+                              {dayOrders.map((order) => (
+                                <tr key={order.id} className="border-b border-stone-100">
+                                  <td className="px-3 py-3">{new Date(order.paidAt).toLocaleTimeString("en-GB", { timeZone: "Asia/Dubai", hour: "2-digit", minute: "2-digit" })}</td>
+                                  <td className="px-3 py-3 font-medium">{order.orderNumber}</td><td className="px-3 py-3"><div>{order.customerName}</div><div className="text-xs text-stone-400">{order.customerEmail}</div></td>
+                                  <td className="px-3 py-3">{order.products.map((item) => `${item.name} x${item.quantity}`).join(", ")}</td>
+                                  <td className="px-3 py-3 text-right">{formatCurrency(order.subtotal)}</td><td className="px-3 py-3 text-right">{formatCurrency(order.shipping)}</td><td className="px-3 py-3 text-right font-medium">{formatCurrency(order.totalPaid)}</td><td className="px-3 py-3">{order.fulfillmentStatus}</td>
+                                </tr>
+                              ))}
+                              {dayOrders.length === 0 && <tr><td colSpan={8} className="px-3 py-8 text-center text-stone-500">No paid product orders for this day.</td></tr>}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </>
+          ) : (
+            <Card><CardContent className="py-10 text-center text-stone-500">No report data available.</CardContent></Card>
+          )}
+        </div>
+      )}
+
+      {/* Monthly Target Report Tab */}
+      {activeTab === "monthly-target" && (
+        <div className="space-y-6">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-xl font-semibold text-stone-900">Monthly Target Report</h2>
+              <p className="text-sm text-stone-500">Bookings are assigned by their Dubai creation date. Product sales are assigned by paid date.</p>
+            </div>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <label className="flex items-center gap-2 text-sm font-medium text-stone-600">
+                Month
+                <input
+                  type="month"
+                  value={monthlyTargetMonth}
+                  onChange={(event) => setMonthlyTargetMonth(event.target.value)}
+                  className="rounded-lg border border-stone-200 bg-white px-3 py-2 text-stone-900"
+                />
+              </label>
+              <Button onClick={exportMonthlyTargetReport} className="bg-green-600 hover:bg-green-700" disabled={!monthlyTargetData || monthlyTargetLoading}>
                 <Download className="h-4 w-4 mr-2" />
                 Export Excel
               </Button>
-            </CardHeader>
-            <CardContent>
-              <p className="text-stone-500 mb-6">
-                Monthly sales breakdown with daily reports, service type analysis, and top sellers.
-              </p>
+            </div>
+          </div>
 
-              {/* Sales Summary Table */}
-              <div className="mb-8">
-                <h3 className="font-semibold text-lg mb-4">Sales Summary</h3>
-                <div className="overflow-x-auto">
-                  <table className="w-full border-collapse">
-                    <thead>
-                      <tr className="bg-stone-100">
-                        <th className="border border-stone-200 px-4 py-2 text-left">Category</th>
-                        <th className="border border-stone-200 px-4 py-2 text-right">Amount (AED)</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td className="border border-stone-200 px-4 py-2">Service Bookings</td>
-                        <td className="border border-stone-200 px-4 py-2 text-right">{formatCurrency(salesData?.summary.serviceRevenue || 0)}</td>
-                      </tr>
-                      <tr>
-                        <td className="border border-stone-200 px-4 py-2">Class Bookings</td>
-                        <td className="border border-stone-200 px-4 py-2 text-right">{formatCurrency(salesData?.summary.classRevenue || 0)}</td>
-                      </tr>
-                      <tr>
-                        <td className="border border-stone-200 px-4 py-2">Payment Links</td>
-                        <td className="border border-stone-200 px-4 py-2 text-right">{formatCurrency(salesData?.summary.paymentLinkRevenue || 0)}</td>
-                      </tr>
-                      <tr className="bg-stone-50 font-bold">
-                        <td className="border border-stone-200 px-4 py-2">TOTAL REVENUE</td>
-                        <td className="border border-stone-200 px-4 py-2 text-right">{formatCurrency(salesData?.summary.totalRevenue || 0)}</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              {/* Daily Sales Table */}
-              <div className="mb-8">
-                <h3 className="font-semibold text-lg mb-4">Daily Sales Report</h3>
-                <div className="overflow-x-auto max-h-96">
-                  <table className="w-full border-collapse">
-                    <thead className="sticky top-0">
-                      <tr className="bg-stone-100">
-                        <th className="border border-stone-200 px-4 py-2 text-left">Date</th>
-                        <th className="border border-stone-200 px-4 py-2 text-right">Revenue (AED)</th>
-                        <th className="border border-stone-200 px-4 py-2 text-right">Bookings</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {salesData?.dailyData?.map((day, idx) => (
-                        <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-stone-50"}>
-                          <td className="border border-stone-200 px-4 py-2">{new Date(day.date).toLocaleDateString()}</td>
-                          <td className="border border-stone-200 px-4 py-2 text-right">{formatCurrency(day.revenue)}</td>
-                          <td className="border border-stone-200 px-4 py-2 text-right">{day.bookings}</td>
-                        </tr>
+          {monthlyTargetLoading ? (
+            <Card><CardContent className="flex items-center justify-center gap-2 py-10 text-stone-500"><RefreshCw className="h-5 w-5 animate-spin" />Loading monthly report...</CardContent></Card>
+          ) : monthlyTargetError ? (
+            <Card><CardContent className="py-10 text-center text-red-600">{monthlyTargetError}</CardContent></Card>
+          ) : monthlyTargetData?.monthlyTotals.length ? (
+            monthlyTargetData.monthlyTotals.map((month) => {
+              const monthBookings = monthlyTargetData.bookings.filter((booking) => booking.createdDate.startsWith(month.month));
+              const monthOrders = monthlyTargetData.productOrders.filter((order) => order.date.startsWith(month.month));
+              return (
+                <Card key={month.month}>
+                  <CardHeader>
+                    <CardTitle>{new Date(`${month.month}-01T00:00:00`).toLocaleDateString("en-US", { month: "long", year: "numeric" })}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="grid grid-cols-2 gap-3 lg:grid-cols-6">
+                      {[
+                        ["Total Sales", formatCurrency(month.totalSales)],
+                        ["Booking Value", formatCurrency(month.bookingValue)],
+                        ["Collected", formatCurrency(month.amountCollected)],
+                        ["Product Sales", formatCurrency(month.productSales)],
+                        ["Bookings", month.bookings],
+                        ["Product Orders", month.productOrders],
+                      ].map(([label, value]) => (
+                        <div key={label} className="rounded-lg bg-stone-50 p-4">
+                          <p className="text-xs text-stone-500">{label}</p>
+                          <p className="mt-1 text-lg font-bold text-stone-900">{value}</p>
+                        </div>
                       ))}
-                      {(!salesData?.dailyData || salesData.dailyData.length === 0) && (
-                        <tr>
-                          <td colSpan={3} className="border border-stone-200 px-4 py-8 text-center text-stone-500">
-                            No daily data available
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge className="bg-amber-100 text-amber-700">Partial {month.partialBookings}</Badge>
+                      <Badge className="bg-blue-100 text-blue-700">Paid {month.paidBookings}</Badge>
+                      <Badge className="bg-green-100 text-green-700">Completed {month.completedBookings}</Badge>
+                      <Badge className="bg-violet-100 text-violet-700">Guests {month.guests}</Badge>
+                    </div>
 
-              {/* Top 10 Sellers */}
-              <div>
-                <h3 className="font-semibold text-lg mb-4">Top 10 Best Sellers</h3>
-                <div className="overflow-x-auto">
-                  <table className="w-full border-collapse">
-                    <thead>
-                      <tr className="bg-stone-100">
-                        <th className="border border-stone-200 px-4 py-2 text-center">Rank</th>
-                        <th className="border border-stone-200 px-4 py-2 text-left">Item Name</th>
-                        <th className="border border-stone-200 px-4 py-2 text-left">Service Type</th>
-                        <th className="border border-stone-200 px-4 py-2 text-right">Orders</th>
-                        <th className="border border-stone-200 px-4 py-2 text-right">Revenue (AED)</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {salesData?.bestSellers?.slice(0, 10).map((item, idx) => (
-                        <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-stone-50"}>
-                          <td className="border border-stone-200 px-4 py-2 text-center font-bold">#{idx + 1}</td>
-                          <td className="border border-stone-200 px-4 py-2">{item.name}</td>
-                          <td className="border border-stone-200 px-4 py-2">
-                            <Badge className={serviceColors[item.type] || "bg-stone-100 text-stone-700"}>
-                              {item.typeName}
-                            </Badge>
-                          </td>
-                          <td className="border border-stone-200 px-4 py-2 text-right">{item.count}</td>
-                          <td className="border border-stone-200 px-4 py-2 text-right">{formatCurrency(item.revenue)}</td>
-                        </tr>
-                      ))}
-                      {(!salesData?.bestSellers || salesData.bestSellers.length === 0) && (
-                        <tr>
-                          <td colSpan={5} className="border border-stone-200 px-4 py-8 text-center text-stone-500">
-                            No sales data available
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+                    <div>
+                      <h3 className="mb-3 font-semibold">Bookings Created This Month</h3>
+                      <div className="overflow-x-auto">
+                        <table className="min-w-[1000px] w-full text-sm">
+                          <thead><tr className="bg-stone-100 text-left">
+                            {["Created", "Booking #", "Customer", "Type", "Service/Class", "Status", "Guests", "Booking Value", "Collected"].map((heading) => <th key={heading} className="px-3 py-2">{heading}</th>)}
+                          </tr></thead>
+                          <tbody>
+                            {monthBookings.map((booking) => (
+                              <tr key={booking.id} className="border-b border-stone-100">
+                                <td className="px-3 py-3">{booking.createdDate} {new Date(booking.createdAt).toLocaleTimeString("en-GB", { timeZone: "Asia/Dubai", hour: "2-digit", minute: "2-digit" })}</td>
+                                <td className="px-3 py-3 font-medium">{booking.bookingNumber}</td>
+                                <td className="px-3 py-3">{booking.customerName}</td>
+                                <td className="px-3 py-3 capitalize">{booking.bookingType}</td>
+                                <td className="px-3 py-3">{booking.serviceType}</td>
+                                <td className="px-3 py-3"><Badge className={booking.status === "completed" ? "bg-green-100 text-green-700" : booking.status === "paid" ? "bg-blue-100 text-blue-700" : "bg-amber-100 text-amber-700"}>{booking.status}</Badge></td>
+                                <td className="px-3 py-3 text-right">{booking.guests}</td>
+                                <td className="px-3 py-3 text-right">{formatCurrency(booking.bookingValue)}</td>
+                                <td className="px-3 py-3 text-right">{formatCurrency(booking.amountCollected)}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h3 className="mb-3 font-semibold">Product Sales This Month</h3>
+                      <div className="overflow-x-auto">
+                        <table className="min-w-[850px] w-full text-sm">
+                          <thead><tr className="bg-stone-100 text-left">
+                            {["Paid Date", "Order #", "Customer", "Products", "Subtotal", "Shipping", "Total Paid", "Fulfillment"].map((heading) => <th key={heading} className="px-3 py-2">{heading}</th>)}
+                          </tr></thead>
+                          <tbody>
+                            {monthOrders.map((order) => (
+                              <tr key={order.id} className="border-b border-stone-100">
+                                <td className="px-3 py-3">{order.date}</td><td className="px-3 py-3 font-medium">{order.orderNumber}</td>
+                                <td className="px-3 py-3">{order.customerName}</td><td className="px-3 py-3">{order.products.map((item) => `${item.name} x${item.quantity}`).join(", ")}</td>
+                                <td className="px-3 py-3 text-right">{formatCurrency(order.subtotal)}</td><td className="px-3 py-3 text-right">{formatCurrency(order.shipping)}</td>
+                                <td className="px-3 py-3 text-right font-medium">{formatCurrency(order.totalPaid)}</td><td className="px-3 py-3">{order.fulfillmentStatus}</td>
+                              </tr>
+                            ))}
+                            {monthOrders.length === 0 && <tr><td colSpan={8} className="px-3 py-8 text-center text-stone-500">No paid product orders for this month.</td></tr>}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })
+          ) : (
+            <Card><CardContent className="py-10 text-center text-stone-500">No partial, paid, or completed bookings and no paid product orders in this period.</CardContent></Card>
+          )}
         </div>
       )}
 
