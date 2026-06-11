@@ -110,6 +110,7 @@ export default function BigChefPage() {
   const [pageContent, setPageContent] = useState<BigChefPageContent>(defaultBigChefContent);
   const [activeCategory, setActiveCategory] = useState<CategoryType>("corporate");
   const [selectedMenu, setSelectedMenu] = useState<MenuItem | null>(null);
+  const [selectedTeenMenus, setSelectedTeenMenus] = useState<MenuItem[]>([]);
   const [selectedNannyMenus, setSelectedNannyMenus] = useState<MenuItem[]>([]);
   const [guestCount, setGuestCount] = useState(6);
   const [selectedExtras, setSelectedExtras] = useState<Record<string, number>>({});
@@ -155,7 +156,9 @@ export default function BigChefPage() {
   const categoryConfig = getCategoryConfig(pageContent);
   const currentConfig = categoryConfig[activeCategory];
   const isCorporate = activeCategory === "corporate";
+  const isTeenager = activeCategory === "teenagers";
   const isNanny = activeCategory === "nanny";
+  const usesFourMenuSelection = isTeenager || isNanny;
   const isMonthly = activeCategory === "monthly";
   const hasExtras = isCorporate;
   const maxStep = hasExtras ? 4 : 3;
@@ -239,6 +242,7 @@ export default function BigChefPage() {
 
   useEffect(() => {
     setSelectedMenu(null);
+    setSelectedTeenMenus([]);
     setSelectedNannyMenus([]);
     setGuestCount(currentConfig.minGuests);
     setSelectedExtras({});
@@ -316,14 +320,14 @@ export default function BigChefPage() {
 
   const getNannySchedule = (menuId: string) => nannySchedules[menuId] || emptyNannySchedule();
 
-  const fetchNannyAvailability = async (menuId: string, date: string) => {
+  const fetchCourseAvailability = async (menuId: string, date: string, category: "nanny" | "teenagers") => {
     setNannySchedules(prev => ({
       ...prev,
       [menuId]: { ...(prev[menuId] || emptyNannySchedule()), date, time: "", loading: true },
     }));
 
     try {
-      const res = await fetch(`/api/services/availability?date=${date}&category=nanny`);
+      const res = await fetch(`/api/services/availability?date=${date}&category=${category}`);
       const data = await res.json();
       setNannySchedules(prev => ({
         ...prev,
@@ -337,7 +341,7 @@ export default function BigChefPage() {
         },
       }));
     } catch (error) {
-      console.error("Failed to fetch nanny availability:", error);
+      console.error(`Failed to fetch ${category} availability:`, error);
       setNannySchedules(prev => ({
         ...prev,
         [menuId]: { ...(prev[menuId] || emptyNannySchedule()), date, time: "", loading: false },
@@ -345,7 +349,7 @@ export default function BigChefPage() {
     }
   };
 
-  const updateNannyScheduleDate = (menuId: string, date: string) => {
+  const updateCourseScheduleDate = (menuId: string, date: string) => {
     if (!date) {
       setNannySchedules(prev => ({
         ...prev,
@@ -353,10 +357,10 @@ export default function BigChefPage() {
       }));
       return;
     }
-    fetchNannyAvailability(menuId, date);
+    fetchCourseAvailability(menuId, date, isTeenager ? "teenagers" : "nanny");
   };
 
-  const updateNannyScheduleTime = (menuId: string, time: string) => {
+  const updateCourseScheduleTime = (menuId: string, time: string) => {
     setNannySchedules(prev => ({
       ...prev,
       [menuId]: { ...(prev[menuId] || emptyNannySchedule()), time },
@@ -380,7 +384,25 @@ export default function BigChefPage() {
     }
   };
 
-  const nannyScheduleItems = selectedNannyMenus.map((menu, index) => {
+  const toggleTeenMenu = (menu: MenuItem) => {
+    const isSelected = selectedTeenMenus.some(item => item.id === menu.id);
+    if (isSelected) {
+      setSelectedTeenMenus(prev => prev.filter(item => item.id !== menu.id));
+      setNannySchedules(prev => {
+        const next = { ...prev };
+        delete next[menu.id];
+        return next;
+      });
+      return;
+    }
+    if (selectedTeenMenus.length < 4) {
+      setSelectedTeenMenus(prev => [...prev, menu]);
+      setNannySchedules(prev => ({ ...prev, [menu.id]: prev[menu.id] || emptyNannySchedule() }));
+    }
+  };
+
+  const selectedCourseMenus = isTeenager ? selectedTeenMenus : selectedNannyMenus;
+  const courseScheduleItems = selectedCourseMenus.map((menu, index) => {
     const schedule = getNannySchedule(menu.id);
     const slot = schedule.availableTimeSlots.find(s => s.start === schedule.time)
       || schedule.allTimeSlots.find(s => s.start === schedule.time);
@@ -394,9 +416,10 @@ export default function BigChefPage() {
     };
   });
 
-  const nannySchedulesComplete = !isNanny || (selectedNannyMenus.length === 4 && nannyScheduleItems.every(item => item.event_date && item.event_time));
+  const courseSchedulesComplete = !usesFourMenuSelection || (selectedCourseMenus.length === 4 && courseScheduleItems.every(item => item.event_date && item.event_time));
 
-  const baseAmount = isNanny ? 1200 : (selectedMenu?.price || 0) * guestCount;
+  const teenMenuPrice = selectedTeenMenus.reduce((total, menu) => total + menu.price, 0);
+  const baseAmount = isNanny ? 1200 : (isTeenager ? teenMenuPrice : (selectedMenu?.price || 0)) * guestCount;
   const extrasTotal = Object.entries(selectedExtras).reduce((t, [id, qty]) => t + (corporateExtras.find(e => e.id === id)?.price || 0) * qty, 0);
   const selectedExtraItems = corporateExtras
     .filter((extra) => selectedExtras[extra.id])
@@ -447,23 +470,28 @@ export default function BigChefPage() {
   };
 
   const handleSubmit = async (acceptedWaiver = false) => {
-    if (!isNanny && !selectedMenu) return;
+    if (!usesFourMenuSelection && !selectedMenu) return;
+    if (isTeenager && selectedTeenMenus.length !== 4) return;
     if (isNanny && selectedNannyMenus.length !== 4) return;
-    if (isNanny && !nannySchedulesComplete) return;
+    if (usesFourMenuSelection && !courseSchedulesComplete) return;
     if (!waiverAccepted && !acceptedWaiver) { setShowWaiverModal(true); return; }
     setSubmitting(true);
     try {
       const extrasData = corporateExtras.filter(e => selectedExtras[e.id]).map(e => ({ id: e.id, name: e.name, price: e.price, quantity: selectedExtras[e.id] }));
-      const menuData = isNanny ? { menuId: selectedNannyMenus.map(m => m.id).join(","), menuName: selectedNannyMenus.map(m => m.name).join(", "), menuPrice: 1200 } : { menuId: selectedMenu?.id, menuName: selectedMenu?.name, menuPrice: selectedMenu?.price };
-      const bookingEventDate = isNanny ? nannyScheduleItems[0]?.event_date : eventDate;
-      const bookingEventTime = isNanny ? nannyScheduleItems[0]?.event_time : eventTime;
-      const scheduleSummary = isNanny
-        ? nannyScheduleItems.map(item => `Session ${item.session}: ${item.name} - ${item.event_date} ${item.time_label}`).join("\n")
+      const menuData = isNanny
+        ? { menuId: selectedNannyMenus.map(m => m.id).join(","), menuName: selectedNannyMenus.map(m => m.name).join(", "), menuPrice: 1200 }
+        : isTeenager
+          ? { menuId: selectedTeenMenus.map(m => m.id).join(","), menuName: selectedTeenMenus.map(m => m.name).join(", "), menuPrice: teenMenuPrice }
+          : { menuId: selectedMenu?.id, menuName: selectedMenu?.name, menuPrice: selectedMenu?.price };
+      const bookingEventDate = usesFourMenuSelection ? courseScheduleItems[0]?.event_date : eventDate;
+      const bookingEventTime = usesFourMenuSelection ? courseScheduleItems[0]?.event_time : eventTime;
+      const scheduleSummary = usesFourMenuSelection
+        ? courseScheduleItems.map(item => `Session ${item.session}: ${item.name} - ${item.event_date} ${item.time_label}`).join("\n")
         : "";
       const res = await fetch("/api/services/book", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ serviceType: "corporate_deck", serviceName: `Big Chef - ${currentConfig.label}`, packageName: isNanny ? "Nanny Class (4 Sessions)" : selectedMenu?.name, ...menuData, customerName, customerEmail, customerPhone, companyName, eventDate: bookingEventDate, eventTime: bookingEventTime, guestCount: isNanny ? 1 : guestCount, items: isNanny ? nannyScheduleItems : [], extras: extrasData, baseAmount, extrasAmount: extrasTotal, totalAmount, isDepositPayment: requiresDeposit, depositAmount: requiresDeposit ? depositAmount : null, balanceAmount: requiresDeposit ? balanceAmount : null, specialRequests: isNanny && scheduleSummary ? `${specialRequests ? `${specialRequests}\n\n` : ""}Nanny class schedule:\n${scheduleSummary}` : specialRequests, waiverAccepted: waiverAccepted || acceptedWaiver, category: activeCategory, bookingSlotCategory: AVAILABILITY_CATEGORY_BY_TAB[activeCategory], voucherCode: appliedVoucher?.code || null }),
+        body: JSON.stringify({ serviceType: "corporate_deck", serviceName: `Big Chef - ${currentConfig.label}`, packageName: isNanny ? "Nanny Class (4 Sessions)" : isTeenager ? "Teenager Course (4 Sessions)" : selectedMenu?.name, ...menuData, customerName, customerEmail, customerPhone, companyName, eventDate: bookingEventDate, eventTime: bookingEventTime, guestCount: isNanny ? 1 : guestCount, items: usesFourMenuSelection ? courseScheduleItems : [], extras: extrasData, baseAmount, extrasAmount: extrasTotal, totalAmount, isDepositPayment: requiresDeposit, depositAmount: requiresDeposit ? depositAmount : null, balanceAmount: requiresDeposit ? balanceAmount : null, specialRequests: usesFourMenuSelection && scheduleSummary ? `${specialRequests ? `${specialRequests}\n\n` : ""}${currentConfig.label} schedule:\n${scheduleSummary}` : specialRequests, waiverAccepted: waiverAccepted || acceptedWaiver, category: activeCategory, bookingSlotCategory: AVAILABILITY_CATEGORY_BY_TAB[activeCategory], voucherCode: appliedVoucher?.code || null }),
       });
       if (res.ok) { const data = await res.json(); if (data.checkoutUrl) window.location.href = data.checkoutUrl; else if (data.booking?.booking_number) window.location.href = `/booking/success?booking=${data.booking.booking_number}`; }
       else { const error = await res.json(); alert(error.error || "Failed to create booking"); }
@@ -476,10 +504,14 @@ export default function BigChefPage() {
   const displayedTimeSlots = availableTimeSlots;
 
   const canProceed = () => {
-    if (step === 1) return isNanny ? selectedNannyMenus.length === 4 : selectedMenu !== null && Boolean(eventDate && eventTime);
+    if (step === 1) {
+      if (isNanny) return selectedNannyMenus.length === 4;
+      if (isTeenager) return selectedTeenMenus.length === 4;
+      return selectedMenu !== null && Boolean(eventDate && eventTime);
+    }
     if (hasExtras && step === 2) return true;
     if (step === detailsStep) {
-      if (isNanny) return Boolean(customerName && customerEmail && nannySchedulesComplete);
+      if (usesFourMenuSelection) return Boolean(customerName && customerEmail && courseSchedulesComplete);
       if (!customerName || !customerEmail || !eventDate || !eventTime) return false;
       if (activeCategory === "monthly" && selectedMenu) {
         const cap = menuCapacities[selectedMenu.id];
@@ -532,9 +564,9 @@ export default function BigChefPage() {
             {step === 1 && (
               <div className="space-y-6">
                 <div>
-                  <h2 className="text-2xl" style={{ fontFamily: 'var(--font-mossy), cursive' }}>{isNanny ? "Select 4 Menus for Your Course" : "Pick your perfect Menu"}</h2>
+                  <h2 className="text-2xl" style={{ fontFamily: 'var(--font-mossy), cursive' }}>{usesFourMenuSelection ? "Select 4 Menus for Your Course" : "Pick your perfect Menu"}</h2>
                   <p className="text-stone-500 mt-1">{currentConfig.description}</p>
-                  {isNanny ? <p className="text-base text-stone-400 mt-2">AED 1,200 for 4 classes. Select any 4 menus. Each class is 1.5 hours. Available Monday and Tuesday at 11am</p> : <p className="text-base text-stone-400 mt-2">Min: {currentConfig.minGuests} • Max: {currentConfig.maxGuests} guests • Price per person</p>}
+                  {isNanny ? <p className="text-base text-stone-400 mt-2">AED 1,200 for 4 classes. Select any 4 menus. Each class is 1.5 hours. Available Monday and Tuesday at 11am</p> : <p className="text-base text-stone-400 mt-2">Min: {currentConfig.minGuests} • Max: {currentConfig.maxGuests} guests • {isTeenager ? "Select 4 menus. Prices are per person" : "Price per person"}</p>}
                 </div>
                 {!isNanny && (
                   <Card><CardContent className="p-5">
@@ -545,7 +577,7 @@ export default function BigChefPage() {
                       <Button variant="outline" size="icon" onClick={() => setGuestCount(Math.min(currentConfig.maxGuests, guestCount + 1))} disabled={guestCount >= currentConfig.maxGuests}><Plus className="h-4 w-4" /></Button>
                       <span className="text-base font-bold text-stone-600">(Min: {currentConfig.minGuests}, Max: {currentConfig.maxGuests})</span>
                     </div>
-                    <div className="grid sm:grid-cols-2 gap-4 pb-4 lg:pb-6">
+                    {!isTeenager && <div className="grid sm:grid-cols-2 gap-4 pb-4 lg:pb-6">
                       <div>
                         <label className="block text-base font-bold text-stone-700 mb-1">
                           <Calendar className="inline h-4 w-4 mr-1" />
@@ -583,13 +615,14 @@ export default function BigChefPage() {
                           <p className="text-sm text-stone-500 py-2">{eventDate ? "No slots available" : "Select a date first"}</p>
                         )}
                       </div>
-                    </div>
+                    </div>}
                     {/* Desktop Continue Button - Inside Card */}
                     <div className="hidden lg:flex justify-end items-center pt-4 border-t">
                       <Button className={`px-8 ${PRIMARY_BUTTON_CLASS}`} onClick={() => setStep(step + 1)} disabled={!canProceed()}>Continue<ArrowRight className="ml-2 h-4 w-4" /></Button>
                     </div>
                   </CardContent></Card>
                 )}
+                {isTeenager && <div className="p-4 bg-[#FF8C6B]/10 rounded-lg"><p className="font-medium text-stone-900">Selected: {selectedTeenMenus.length}/4 menus {selectedTeenMenus.length === 4 && <span className="text-[#FF8C6B] ml-2">✓ Ready</span>}</p>{selectedTeenMenus.length > 0 && <div className="mt-2 flex flex-wrap gap-2">{selectedTeenMenus.map(m => <Badge key={m.id} className="bg-[#FF8C6B] text-white">{m.name}<button onClick={() => toggleTeenMenu(m)} className="ml-1">×</button></Badge>)}</div>}</div>}
                 {isNanny && <div className="p-4 bg-[#FF8C6B]/10 rounded-lg"><p className="font-medium text-stone-900">Selected: {selectedNannyMenus.length}/4 menus {selectedNannyMenus.length === 4 && <span className="text-[#FF8C6B] ml-2">✓ Ready</span>}</p>{selectedNannyMenus.length > 0 && <div className="mt-2 flex flex-wrap gap-2">{selectedNannyMenus.map(m => <Badge key={m.id} className="bg-[#FF8C6B] text-white">{m.name}<button onClick={() => toggleNannyMenu(m)} className="ml-1">×</button></Badge>)}</div>}</div>}
                 
                 {/* Desktop Continue Button for Nanny Class */}
@@ -614,12 +647,13 @@ export default function BigChefPage() {
                 ) : null}
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {!loadingMenus && getCurrentMenus().map(menu => {
-                    const isSelected = isNanny ? selectedNannyMenus.some(m => m.id === menu.id) : selectedMenu?.id === menu.id;
-                    const isDisabled = isNanny && selectedNannyMenus.length >= 4 && !isSelected;
+                    const selectedCourseMenus = isNanny ? selectedNannyMenus : selectedTeenMenus;
+                    const isSelected = usesFourMenuSelection ? selectedCourseMenus.some(m => m.id === menu.id) : selectedMenu?.id === menu.id;
+                    const isDisabled = usesFourMenuSelection && selectedCourseMenus.length >= 4 && !isSelected;
                     const cap = activeCategory === "monthly" ? menuCapacities[menu.id] : undefined;
                     const isFull = cap !== undefined && cap !== null && cap.available <= 0;
                     return (
-                      <Card key={menu.id} className={`cursor-pointer transition-all ${isSelected ? "ring-2 ring-[#FF8C6B] shadow-lg" : isDisabled ? "opacity-50" : "hover:shadow-md"}`} onClick={() => { if (isDisabled) return; if (isNanny) toggleNannyMenu(menu); else selectMenu(menu); }}>
+                      <Card key={menu.id} className={`cursor-pointer transition-all ${isSelected ? "ring-2 ring-[#FF8C6B] shadow-lg" : isDisabled ? "opacity-50" : "hover:shadow-md"}`} onClick={() => { if (isDisabled) return; if (isNanny) toggleNannyMenu(menu); else if (isTeenager) toggleTeenMenu(menu); else selectMenu(menu); }}>
                         <CardContent className="p-0 overflow-hidden flex flex-col h-full">
                           <div className="relative h-64 w-full bg-stone-200"><Image src={menu.image} alt={menu.name} fill className="object-cover" />{cap && !isFull && <div className="absolute top-2 left-2"><span className="text-xs font-bold px-2.5 py-1 rounded-full bg-[#FF8C6B]/15 text-[#FF8C6B]">{cap.available} spot{cap.available === 1 ? "" : "s"} left</span></div>}{isSelected && <div className="absolute top-2 right-2 bg-[#FF8C6B] text-white p-1 rounded-full"><Check className="h-4 w-4" /></div>}</div>
                           <div className="p-4 flex-1 flex flex-col">
@@ -725,14 +759,14 @@ export default function BigChefPage() {
                     <div><label className="block text-base font-bold text-stone-700 mb-1">Phone</label><input type="tel" value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} className="w-full px-4 py-2 border border-stone-300 rounded-lg" /></div>
                     {isCorporate && <div><label className="block text-base font-bold text-stone-700 mb-1">Company Name</label><input type="text" value={companyName} onChange={e => setCompanyName(e.target.value)} className="w-full px-4 py-2 border border-stone-300 rounded-lg" /></div>}
                   </div>
-                  {isNanny ? (
+                  {usesFourMenuSelection ? (
                     <div className="space-y-4">
                       <div>
                         <h3 className="text-base font-bold text-stone-900">Class Schedule *</h3>
                         <p className="text-base text-stone-500">Choose a date and time slot for each selected menu.</p>
                       </div>
                       <div className="space-y-4">
-                        {selectedNannyMenus.map((menu, index) => {
+                        {selectedCourseMenus.map((menu, index) => {
                           const schedule = getNannySchedule(menu.id);
                           return (
                             <div key={menu.id} className="rounded-lg border border-stone-200 bg-stone-50 p-4">
@@ -755,7 +789,7 @@ export default function BigChefPage() {
                                   </label>
                                   <MonthlyAvailableDatePicker
                                     value={schedule.date}
-                                    onChange={(date) => updateNannyScheduleDate(menu.id, date)}
+                                    onChange={(date) => updateCourseScheduleDate(menu.id, date)}
                                     today={today}
                                     restrictToAvailableDates={false}
                                   />
@@ -777,7 +811,7 @@ export default function BigChefPage() {
                                           <button
                                             key={slot.start}
                                             type="button"
-                                            onClick={() => updateNannyScheduleTime(menu.id, slot.start)}
+                                            onClick={() => updateCourseScheduleTime(menu.id, slot.start)}
                                             className={`px-3 py-2 text-sm rounded-lg border ${
                                               schedule.time === slot.start
                                                 ? "bg-[#FF8C6B] text-white border border-[#FF8C6B]"
@@ -852,16 +886,16 @@ export default function BigChefPage() {
                 <Card><CardContent className="p-6 space-y-4">
                   <div className="grid sm:grid-cols-2 gap-4 text-base">
                     <div><span className="font-bold text-stone-700">Category:</span><span className="ml-2 font-bold text-stone-900">{currentConfig.label}</span></div>
-                    <div><span className="font-bold text-stone-700">Package:</span><span className="ml-2 font-bold text-stone-900">{isNanny ? `${selectedNannyMenus.length} Menus` : selectedMenu?.name}</span></div>
+                    <div><span className="font-bold text-stone-700">Package:</span><span className="ml-2 font-bold text-stone-900">{isNanny ? `${selectedNannyMenus.length} Menus` : isTeenager ? `${selectedTeenMenus.length} Menus` : selectedMenu?.name}</span></div>
                     {!isNanny && <div><span className="font-bold text-stone-700">Guests:</span><span className="ml-2 font-bold text-stone-900">{guestCount}</span></div>}
-                    {!isNanny && <div><span className="font-bold text-stone-700">Date:</span><span className="ml-2 font-bold text-stone-900">{eventDate}</span></div>}
-                    {!isNanny && <div><span className="font-bold text-stone-700">Time:</span><span className="ml-2 font-bold text-stone-900">{eventTime}</span></div>}
+                    {!usesFourMenuSelection && <div><span className="font-bold text-stone-700">Date:</span><span className="ml-2 font-bold text-stone-900">{eventDate}</span></div>}
+                    {!usesFourMenuSelection && <div><span className="font-bold text-stone-700">Time:</span><span className="ml-2 font-bold text-stone-900">{eventTime}</span></div>}
                   </div>
-                  {isNanny && (
+                  {usesFourMenuSelection && (
                     <div className="rounded-lg bg-stone-50 p-4">
                       <h3 className="font-bold text-stone-900 mb-3">Class Schedule</h3>
                       <div className="space-y-2">
-                        {nannyScheduleItems.map((item) => (
+                        {courseScheduleItems.map((item) => (
                           <div key={item.id} className="flex flex-col gap-1 rounded-md border border-stone-200 bg-white px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
                             <span className="font-medium text-stone-900">Session {item.session}: {item.name}</span>
                             <span className="text-sm text-stone-600">{item.event_date} • {item.time_label}</span>
@@ -910,23 +944,23 @@ export default function BigChefPage() {
                     <div className="space-y-3 border-b border-stone-200 pb-3">
                       <div className="flex items-start justify-between gap-4 text-base">
                         <div>
-                          <p className="font-bold text-stone-900">{isNanny ? "Nanny Class (4 Sessions)" : selectedMenu?.name}</p>
+                          <p className="font-bold text-stone-900">{isNanny ? "Nanny Class (4 Sessions)" : isTeenager ? "Teenager Course (4 Sessions)" : selectedMenu?.name}</p>
                           <p className="text-sm text-stone-500">
                             {isNanny
                               ? "4-session package"
-                              : `${guestCount} guests x AED ${selectedMenu?.price.toLocaleString() || 0}`}
+                              : `${guestCount} guests x AED ${(isTeenager ? teenMenuPrice : selectedMenu?.price || 0).toLocaleString()}`}
                           </p>
                         </div>
                         <span className="font-bold text-stone-900">AED {baseAmount.toLocaleString()}</span>
                       </div>
 
-                      {isNanny && nannyScheduleItems.length > 0 && (
+                      {usesFourMenuSelection && courseScheduleItems.length > 0 && (
                         <div className="rounded-lg bg-stone-50 px-3 py-2">
                           <p className="text-sm font-bold text-stone-700">Selected Classes</p>
                           <div className="mt-1 space-y-1">
-                            {nannyScheduleItems.map((item) => (
+                            {courseScheduleItems.map((item) => (
                               <p key={item.id} className="text-sm text-stone-600">
-                                Session {item.session}: {item.name}
+                                Session {item.session}: {item.name} - {item.event_date} • {item.time_label}
                               </p>
                             ))}
                           </div>
@@ -979,11 +1013,11 @@ export default function BigChefPage() {
       {/* Floating booking action bar */}
       <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 border-t border-stone-200 shadow-[0_-4px_20px_rgba(0,0,0,0.1)] backdrop-blur">
         <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:pl-8 lg:pr-32">
-          {(selectedMenu || (isNanny && selectedNannyMenus.length > 0)) ? (
+          {(selectedMenu || (isTeenager && selectedTeenMenus.length > 0) || (isNanny && selectedNannyMenus.length > 0)) ? (
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">
                 <p className="truncate text-sm font-bold text-stone-900 sm:text-base">
-                  {isNanny ? `Nanny Class • ${selectedNannyMenus.length} menus` : `${selectedMenu?.name} • ${guestCount} guests`}
+                  {isNanny ? `Nanny Class • ${selectedNannyMenus.length} menus` : isTeenager ? `Teenager Course • ${selectedTeenMenus.length}/4 menus • ${guestCount} guests` : `${selectedMenu?.name} • ${guestCount} guests`}
                 </p>
                 <p className="text-xs font-bold text-stone-600 sm:text-sm">
                   Step {step} of {maxStep} • AED {discountedTotalAmount.toLocaleString()}
@@ -1030,7 +1064,7 @@ export default function BigChefPage() {
               </div>
             </div>
           ) : (
-            <p className="text-center text-stone-600 text-base font-bold py-2">Select a menu to continue</p>
+            <p className="text-center text-stone-600 text-base font-bold py-2">{isTeenager ? "Select 4 menus to continue" : "Select a menu to continue"}</p>
           )}
         </div>
       </div>

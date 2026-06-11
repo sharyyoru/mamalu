@@ -479,13 +479,15 @@ export default function AdminBookingsPage() {
     }
   };
 
-  const isNannyBooking = (booking: ServiceBooking) => {
+  const isCourseScheduleBooking = (booking: ServiceBooking) => {
     const serviceText = `${booking.service_name || ""} ${booking.package_name || ""}`.toLowerCase();
-    return serviceText.includes("nanny") && Array.isArray(booking.items) && booking.items.length > 0;
+    return (serviceText.includes("nanny") || serviceText.includes("teenager"))
+      && Array.isArray(booking.items)
+      && booking.items.length > 0;
   };
 
-  const getNannyScheduleItems = (booking: ServiceBooking) => {
-    if (!isNannyBooking(booking)) return [];
+  const getCourseScheduleItems = (booking: ServiceBooking) => {
+    if (!isCourseScheduleBooking(booking)) return [];
 
     return [...(booking.items || [])]
       .filter((item) => item.name || item.event_date || item.event_time || item.time_label)
@@ -1128,22 +1130,22 @@ export default function AdminBookingsPage() {
                     <p className="text-sm text-stone-600">Menu: {selectedBooking.menu_name}</p>
                   )}
                   {(() => {
-                    const nannyScheduleItems = getNannyScheduleItems(selectedBooking);
+                    const courseScheduleItems = getCourseScheduleItems(selectedBooking);
                     const packageScheduleItems = getPackageScheduleItems(selectedBooking);
 
-                    if (nannyScheduleItems.length > 0) {
+                    if (courseScheduleItems.length > 0) {
                       return (
                         <div className="space-y-2">
                           <p className="text-sm text-stone-500">{selectedBooking.guest_count} guest(s)</p>
                           <div className="rounded-lg border border-stone-200 overflow-hidden">
-                            {nannyScheduleItems.map((item, idx) => (
+                            {courseScheduleItems.map((item, idx) => (
                               <div
                                 key={`${item.id || item.name || "session"}-${idx}`}
                                 className="flex flex-col gap-1 border-b border-stone-100 p-3 last:border-b-0 sm:flex-row sm:items-start sm:justify-between"
                               >
                                 <div>
                                   <p className="text-sm font-medium text-stone-900">
-                                    Session {item.session || idx + 1}: {item.name || "Nanny Class"}
+                                    Session {item.session || idx + 1}: {item.name || "Cooking Class"}
                                   </p>
                                   {item.event_date && (
                                     <p className="text-xs text-stone-500">{formatDate(item.event_date)}</p>
