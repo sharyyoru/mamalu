@@ -38,7 +38,7 @@ export async function sendBookingConfirmationEmail(booking: BookingDetails): Pro
 
   try {
     const numberOfGuests = booking.numberOfGuests || 1;
-    const attachments: Array<{ filename: string; content: string; contentType: string }> = [];
+    const attachments: Array<{ filename: string; content: string; contentType: string; contentId: string }> = [];
     const qrCodeDataUrls: Array<{ guestNumber: number; guestName: string; dataUrl: string }> = [];
 
     if (numberOfGuests > 1 && booking.guestQRs && booking.guestQRs.length > 0) {
@@ -50,13 +50,14 @@ export async function sendBookingConfirmationEmail(booking: BookingDetails): Pro
         qrCodeDataUrls.push({
           guestNumber: guest.guestNumber,
           guestName: guest.guestName || `Guest ${guest.guestNumber}`,
-          dataUrl: qrDataUrl,
+          dataUrl: `cid:guest-${guest.guestNumber}-qr`,
         });
 
         attachments.push({
           filename: `guest-${guest.guestNumber}-qr-${booking.bookingNumber}.png`,
           content: qrBase64,
           contentType: "image/png",
+          contentId: `guest-${guest.guestNumber}-qr`,
         });
       }
     } else {
@@ -67,13 +68,14 @@ export async function sendBookingConfirmationEmail(booking: BookingDetails): Pro
       qrCodeDataUrls.push({
         guestNumber: 1,
         guestName: booking.attendeeName,
-        dataUrl: qrCodeDataUrl,
+        dataUrl: "cid:booking-qr",
       });
 
       attachments.push({
         filename: `booking-qr-${booking.bookingNumber}.png`,
         content: qrCodeBase64,
         contentType: "image/png",
+        contentId: "booking-qr",
       });
     }
 

@@ -37,15 +37,17 @@ export async function sendServiceBookingConfirmationEmail(
       booking.serviceType === "rental" ||
       booking.serviceName.toLowerCase().includes("rental");
     const qrCodeDataUrl = await generateBookingQRCode(booking.qrToken);
+    const qrContentId = "booking-qr";
     const { error } = await resend.emails.send({
       from: getEmailFrom(),
       to: booking.customerEmail,
       subject: `${isRental ? "Rental" : "Booking"} Confirmed - ${booking.bookingNumber} | Mamalu Kitchen`,
-      html: generateEmailHtml(booking, qrCodeDataUrl),
+      html: generateEmailHtml(booking, `cid:${qrContentId}`),
       attachments: [{
         filename: `booking-qr-${booking.bookingNumber}.png`,
         content: qrCodeDataUrl.replace(/^data:image\/png;base64,/, ""),
         contentType: "image/png",
+        contentId: qrContentId,
       }],
     });
 

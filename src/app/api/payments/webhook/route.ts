@@ -20,6 +20,51 @@ type ProductCheckoutItem = {
   price?: number | string;
 };
 
+interface PaymentLinkServiceBooking {
+  is_deposit_payment: boolean;
+  total_amount: number;
+  event_date: string | null;
+  event_time: string | null;
+  time_label: string | null;
+  items: Array<{
+    event_date?: string | null;
+    event_time?: string | null;
+    time_label?: string | null;
+  }> | null;
+}
+
+function formatBookingDate(date: string | null | undefined): string {
+  if (!date) return "Date pending";
+
+  return new Date(`${date}T00:00:00`).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
+
+function getPaymentLinkSchedule(booking: PaymentLinkServiceBooking | null) {
+  if (booking?.event_date && booking.event_time) {
+    return {
+      classDate: formatBookingDate(booking.event_date),
+      classTime: booking.time_label || booking.event_time,
+    };
+  }
+
+  const scheduledItems = Array.isArray(booking?.items)
+    ? booking.items.filter((item) => item.event_date && item.event_time)
+    : [];
+
+  if (scheduledItems.length > 0) {
+    return {
+      classDate: scheduledItems.map((item) => formatBookingDate(item.event_date)).join(", "),
+      classTime: scheduledItems.map((item) => item.time_label || item.event_time).join(", "),
+    };
+  }
+
+  return { classDate: "Date pending", classTime: "Time pending" };
+}
+
 export async function POST(request: NextRequest) {
   const body = await request.text();
   const signature = request.headers.get("stripe-signature");
@@ -574,6 +619,7 @@ export async function POST(request: NextRequest) {
               .single();
 
             if (paymentLink) {
+              let serviceBooking: PaymentLinkServiceBooking | null = null;
               const newUseCount = (paymentLink.use_count || 0) + 1;
               const shouldDeactivate = paymentLink.single_use || 
                 (paymentLink.max_uses && newUseCount >= paymentLink.max_uses);
@@ -599,11 +645,12 @@ export async function POST(request: NextRequest) {
               if (paymentLink.reference_type === "service_booking" && paymentLink.reference_id) {
                 const { data: booking } = await supabase
                   .from("service_bookings")
-                  .select("is_deposit_payment, deposit_amount, total_amount")
+                  .select("is_deposit_payment, total_amount, event_date, event_time, time_label, items")
                   .eq("id", paymentLink.reference_id)
                   .single();
 
                 if (booking) {
+                  serviceBooking = booking as PaymentLinkServiceBooking;
                   const paidAmount = (session.amount_total || 0) / 100;
                   const isDepositPayment = booking.is_deposit_payment;
                   const isFullPayment = !isDepositPayment || paidAmount >= booking.total_amount;
@@ -720,8 +767,9 @@ export async function POST(request: NextRequest) {
               const customerEmail = session.customer_email || paymentLink.customer_email;
               const numberOfPeople = paymentLink.number_of_people || 1;
 
-              if (customerEmail) {
+              if (customerEmail && paymentLink.reference_type !== "service_booking") {
                 try {
+                  const schedule = getPaymentLinkSchedule(serviceBooking);
                   let guestQRs: Array<{ guestNumber: number; guestName?: string; qrToken: string }> = [];
 
                   // Create individual guest records if multiple people
@@ -754,8 +802,8 @@ export async function POST(request: NextRequest) {
                     attendeeName: paymentLink.customer_name || "Guest",
                     attendeeEmail: customerEmail,
                     classTitle: paymentLink.title,
-                    classDate: "See confirmation details",
-                    classTime: "See confirmation details",
+                    classDate: schedule.classDate,
+                    classTime: schedule.classTime,
                     location: "Mamalu Kitchen",
                     sessionsBooked: 1,
                     totalAmount: (session.amount_total || 0) / 100,
