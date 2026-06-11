@@ -143,6 +143,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const date = searchParams.get("date");
     const category = searchParams.get("category");
+    const excludeBookingId = searchParams.get("excludeBookingId");
 
     if (!date) {
       return NextResponse.json(
@@ -233,7 +234,7 @@ export async function GET(request: NextRequest) {
     try {
       const { data: bookings, error } = await supabase
         .from("service_bookings")
-        .select("event_time, items, guest_count, service_name")
+        .select("id, event_time, items, guest_count, service_name")
         .eq("event_date", date)
         .in("status", BOOKED_SLOT_STATUSES);
 
@@ -254,6 +255,7 @@ export async function GET(request: NextRequest) {
       }
 
       bookedSlots = (bookings || []).flatMap((booking) => {
+        if (excludeBookingId && booking.id === excludeBookingId) return [];
         if (!blocksEntireTimeSlot(booking)) return [];
 
         const slots: BookedSlot[] = booking.event_time ? [{ event_time: booking.event_time }] : [];

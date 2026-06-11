@@ -220,6 +220,13 @@ export default function AdminBookingsPage() {
   const [scheduleItems, setScheduleItems] = useState<BookingScheduleItem[]>([]);
   const [scheduleSaving, setScheduleSaving] = useState(false);
   const [scheduleError, setScheduleError] = useState<string | null>(null);
+  const [rescheduleDate, setRescheduleDate] = useState("");
+  const [rescheduleTime, setRescheduleTime] = useState("");
+  const [rescheduleTimeLabel, setRescheduleTimeLabel] = useState("");
+  const [rescheduleSlots, setRescheduleSlots] = useState<BookingTimeSlot[]>([]);
+  const [rescheduleLoading, setRescheduleLoading] = useState(false);
+  const [rescheduleSaving, setRescheduleSaving] = useState(false);
+  const [rescheduleError, setRescheduleError] = useState<string | null>(null);
   const [packageTimeSlots, setPackageTimeSlots] = useState<BookingTimeSlot[]>([]);
   const [copiedLink, setCopiedLink] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -297,7 +304,44 @@ export default function AdminBookingsPage() {
   useEffect(() => {
     setScheduleItems(selectedBooking?.items ? selectedBooking.items.map((item) => ({ ...item })) : []);
     setScheduleError(null);
+    setRescheduleDate(selectedBooking?.event_date || "");
+    setRescheduleTime(normalizeBookingTime(selectedBooking?.event_time));
+    setRescheduleTimeLabel(selectedBooking?.time_label || "");
+    setRescheduleError(null);
   }, [selectedBooking]);
+
+  useEffect(() => {
+    if (!selectedBooking || !showModal || !rescheduleDate || selectedBooking.status === "completed") {
+      setRescheduleSlots([]);
+      return;
+    }
+
+    const fetchRescheduleSlots = async () => {
+      setRescheduleLoading(true);
+      setRescheduleError(null);
+      try {
+        const params = new URLSearchParams({
+          date: rescheduleDate,
+          excludeBookingId: selectedBooking.id,
+        });
+        const res = await fetch(`/api/services/availability?${params}`);
+        const data = await res.json();
+        if (!res.ok) {
+          setRescheduleError(data.error || "Failed to load available times");
+          setRescheduleSlots([]);
+          return;
+        }
+        setRescheduleSlots(data.availableSlots || []);
+      } catch {
+        setRescheduleError("Failed to load available times");
+        setRescheduleSlots([]);
+      } finally {
+        setRescheduleLoading(false);
+      }
+    };
+
+    fetchRescheduleSlots();
+  }, [rescheduleDate, selectedBooking, showModal]);
 
   useEffect(() => {
     const fetchBookingInvoices = async () => {
@@ -573,6 +617,41 @@ export default function AdminBookingsPage() {
       setScheduleError("Failed to save schedule");
     } finally {
       setScheduleSaving(false);
+    }
+  };
+
+  const saveReschedule = async () => {
+    if (!selectedBooking || selectedBooking.status === "completed") return;
+    if (!rescheduleDate || !rescheduleTime) {
+      setRescheduleError("Select a booking date and time");
+      return;
+    }
+
+    setRescheduleSaving(true);
+    setRescheduleError(null);
+    try {
+      const res = await fetch(`/api/admin/bookings/${selectedBooking.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          event_date: rescheduleDate,
+          event_time: rescheduleTime,
+          time_label: rescheduleTimeLabel,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setRescheduleError(data.error || "Failed to reschedule booking");
+        return;
+      }
+
+      setSelectedBooking(data.booking);
+      setBookings((prev) => prev.map((booking) => booking.id === data.booking.id ? data.booking : booking));
+      await fetchBookings();
+    } catch {
+      setRescheduleError("Failed to reschedule booking");
+    } finally {
+      setRescheduleSaving(false);
     }
   };
 
@@ -1242,6 +1321,59 @@ export default function AdminBookingsPage() {
                       </p>
                     );
                   })()}
+                  {selectedBooking.status !== "completed" && !isCourseScheduleBooking(selectedBooking) && !isPackageBooking(selectedBooking) && (
+                    <div className="mt-3 rounded-lg border border-stone-200 bg-stone-50 p-3">
+                      <p className="mb-3 text-sm font-medium text-stone-900">Reschedule booking</p>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <input
+                          type="date"
+                          value={rescheduleDate}
+                          onChange={(e) => {
+                            setRescheduleDate(e.target.value);
+                            setRescheduleTime("");
+                            setRescheduleTimeLabel("");
+                          }}
+                          className="h-10 rounded-lg border border-stone-200 bg-white px-3 text-sm"
+                        />
+                        <select
+                          value={rescheduleTime}
+                          onChange={(e) => {
+                            const slot = rescheduleSlots.find((item) => item.start === e.target.value);
+                            setRescheduleTime(e.target.value);
+                            setRescheduleTimeLabel(slot?.label || e.target.value);
+                          }}
+                          disabled={!rescheduleDate || rescheduleLoading}
+                          className="h-10 rounded-lg border border-stone-200 bg-white px-3 text-sm disabled:bg-stone-100"
+                        >
+                          <option value="">{rescheduleLoading ? "Loading times..." : "Select time"}</option>
+                          {rescheduleSlots.map((slot) => (
+                            <option key={slot.start} value={slot.start}>
+                              {slot.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      {rescheduleError && <p className="mt-2 text-sm text-red-600">{rescheduleError}</p>}
+                      <div className="mt-3 flex justify-end">
+                        <Button
+                          type="button"
+                          size="sm"
+                          onClick={saveReschedule}
+                          disabled={
+                            rescheduleSaving ||
+                            !rescheduleDate ||
+                            !rescheduleTime ||
+                            (
+                              rescheduleDate === (selectedBooking.event_date || "") &&
+                              rescheduleTime === normalizeBookingTime(selectedBooking.event_time)
+                            )
+                          }
+                        >
+                          {rescheduleSaving ? "Saving..." : "Save New Schedule"}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 

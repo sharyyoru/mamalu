@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendPackageScheduleAssignmentEmail } from "@/lib/email/package-schedule-assignment";
+import { sendBookingRescheduledEmail } from "@/lib/email/booking-rescheduled";
 
 const BOOKING_TABLES = ["service_bookings", "class_bookings"] as const;
 type BookingTable = (typeof BOOKING_TABLES)[number];
@@ -34,6 +35,18 @@ type ServiceBookingForScheduleUpdate = {
   service_name: string;
   package_name?: string | null;
   items?: ScheduleItem[] | null;
+};
+
+type BookingForReschedule = {
+  id: string;
+  booking_number?: string | null;
+  customer_name?: string | null;
+  customer_email?: string | null;
+  service_name?: string | null;
+  menu_name?: string | null;
+  status?: string | null;
+  event_date?: string | null;
+  event_time?: string | null;
 };
 
 async function findBookingTable(supabase: AdminClient, id: string): Promise<BookingTable | null> {
@@ -251,7 +264,7 @@ export async function PATCH(
   try {
     const { id } = await params;
     const body = await request.json();
-    const { status, notes, paid_at, refund_amount, refund_reason, items } = body;
+    const { status, notes, paid_at, refund_amount, refund_reason, items, event_date, event_time, time_label } = body;
 
     const supabase = createAdminClient();
     if (!supabase) {
@@ -265,6 +278,12 @@ export async function PATCH(
 
     const updateData: Record<string, unknown> = {};
     let newlyScheduledItems: ScheduleItem[] = [];
+    let rescheduleDetails: {
+      previousDate?: string | null;
+      previousTime?: string | null;
+      newDate: string;
+      newTime: string;
+    } | null = null;
 
     if (status) {
       updateData.status = status;
@@ -297,6 +316,62 @@ export async function PATCH(
 
     if (paid_at !== undefined) {
       updateData.paid_at = paid_at;
+    }
+
+    if (event_date !== undefined || event_time !== undefined) {
+      if (table !== "service_bookings") {
+        return NextResponse.json({ error: "Only service bookings can be rescheduled" }, { status: 400 });
+      }
+
+      const { data: currentBooking, error: currentError } = await supabase
+        .from("service_bookings")
+        .select("id, booking_number, customer_name, customer_email, service_name, menu_name, status, event_date, event_time")
+        .eq("id", id)
+        .maybeSingle();
+
+      if (currentError) {
+        console.error("Fetch booking for reschedule failed:", currentError);
+        return NextResponse.json({ error: currentError.message }, { status: 500 });
+      }
+
+      if (!currentBooking) {
+        return NextResponse.json({ error: "Booking not found" }, { status: 404 });
+      }
+
+      const current = currentBooking as BookingForReschedule;
+      if (current.status === "completed") {
+        return NextResponse.json({ error: "Completed bookings cannot be rescheduled" }, { status: 409 });
+      }
+
+      const nextDate = event_date ?? current.event_date;
+      const nextTime = event_time ?? current.event_time;
+      if (!nextDate || !nextTime) {
+        return NextResponse.json({ error: "A booking date and time are required" }, { status: 400 });
+      }
+
+      const conflicts = await findScheduleConflicts(supabase, id, [{
+        event_date: nextDate,
+        event_time: nextTime,
+      }]);
+      if (conflicts.length > 0) {
+        const first = conflicts[0];
+        return NextResponse.json(
+          { error: `The selected slot is already occupied${first.booking_number ? ` by ${first.booking_number}` : ""}.` },
+          { status: 409 }
+        );
+      }
+
+      updateData.event_date = nextDate;
+      updateData.event_time = nextTime;
+
+      if (nextDate !== current.event_date || nextTime !== current.event_time) {
+        rescheduleDetails = {
+          previousDate: current.event_date,
+          previousTime: current.event_time,
+          newDate: nextDate,
+          newTime: time_label || nextTime,
+        };
+      }
     }
 
     if (items !== undefined) {
@@ -375,6 +450,24 @@ export async function PATCH(
 
       if (!emailResult.success) {
         console.error("Package schedule assignment email failed:", emailResult.error);
+      }
+    }
+
+    if (rescheduleDetails && table === "service_bookings") {
+      const emailResult = await sendBookingRescheduledEmail({
+        bookingNumber: booking.booking_number,
+        customerName: booking.customer_name,
+        customerEmail: booking.customer_email,
+        serviceName: booking.service_name,
+        menuName: booking.menu_name,
+        previousDate: rescheduleDetails.previousDate,
+        previousTime: rescheduleDetails.previousTime,
+        newDate: rescheduleDetails.newDate,
+        newTime: rescheduleDetails.newTime,
+      });
+
+      if (!emailResult.success) {
+        console.error("Booking rescheduled email failed:", emailResult.error);
       }
     }
 
