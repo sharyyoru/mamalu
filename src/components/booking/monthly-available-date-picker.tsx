@@ -5,6 +5,7 @@ import { Calendar, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface MonthlyAvailableDatePickerProps {
   availableDates?: string[];
+  unavailableDates?: string[];
   value: string;
   onChange: (date: string) => void;
   values?: string[];
@@ -53,6 +54,7 @@ export function getInitialMonthlyCalendarMonth(availableDates: string[], selecte
 
 export function MonthlyAvailableDatePicker({
   availableDates = [],
+  unavailableDates = [],
   value,
   onChange,
   values = [],
@@ -67,6 +69,7 @@ export function MonthlyAvailableDatePicker({
   );
   const [isOpen, setIsOpen] = useState(false);
   const availableSet = new Set(availableDates);
+  const unavailableSet = new Set(unavailableDates);
   const days = getCalendarDays(activeMonth);
   const [year, month] = activeMonth.split("-").map(Number);
   const previousMonth = formatMonthKey(new Date(year, month - 2, 1));
@@ -130,7 +133,9 @@ export function MonthlyAvailableDatePicker({
               const dateKey = formatDateKey(date);
               const inMonth = dateKey.startsWith(activeMonth);
               const isPast = dateKey < today;
-              const isAvailable = !isPast && (!restrictToAvailableDates || availableSet.has(dateKey));
+              const isAvailable = !isPast
+                && !unavailableSet.has(dateKey)
+                && (!restrictToAvailableDates || availableSet.has(dateKey));
               const isSelected = multiple ? values.includes(dateKey) : value === dateKey;
 
               return (

@@ -43,6 +43,7 @@ export default function RentalsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isPurposeOpen, setIsPurposeOpen] = useState(false);
+  const [blockedRentalDates, setBlockedRentalDates] = useState<string[]>([]);
   const today = new Date().toISOString().split("T")[0];
   const selectedPurposeLabel = PURPOSE_OPTIONS.find((option) => option.value === formData.purpose)?.label || "Select purpose";
   const selectedRentalOption = content.rentalOptions.find((o) => o.id === selectedOption);
@@ -57,6 +58,7 @@ export default function RentalsPage() {
 
   useEffect(() => {
     fetchContent();
+    fetchRentalAvailability();
   }, []);
 
   const fetchContent = async () => {
@@ -66,6 +68,17 @@ export default function RentalsPage() {
       setContent(data);
     } catch (error) {
       console.error("Error fetching rentals content:", error);
+    }
+  };
+
+  const fetchRentalAvailability = async () => {
+    try {
+      const res = await fetch("/api/rentals/availability", { cache: "no-store" });
+      if (!res.ok) throw new Error("Failed to fetch rental availability");
+      const data = await res.json();
+      setBlockedRentalDates(Array.isArray(data.blockedDates) ? data.blockedDates : []);
+    } catch (error) {
+      console.error("Error fetching rental availability:", error);
     }
   };
 
@@ -340,6 +353,7 @@ export default function RentalsPage() {
                       value={formData.date}
                       onChange={(date) => setFormData({ ...formData, date })}
                       today={today}
+                      unavailableDates={blockedRentalDates}
                       restrictToAvailableDates={false}
                     />
                   </div>

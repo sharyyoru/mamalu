@@ -13,6 +13,7 @@ const MIN_BOOKING_NOTICE_MINUTES = 120;
 const BUSINESS_TIME_ZONE = "Asia/Dubai";
 const MONTHLY_SLOT_CATEGORY_IDS = new Set(["monthly_mini", "monthly_big"]);
 const SUMMER_CAMP_SLOT_CATEGORY_ID = "summer_camp";
+const FULL_DAY_RENTAL_PACKAGE = "full day rental";
 
 function normalizeTimeForQuery(time: string) {
   return time.slice(0, 5);
@@ -162,6 +163,9 @@ export async function POST(request: NextRequest) {
     const isRentalBooking =
       serviceType === "rental" ||
       String(serviceName).toLowerCase().includes("rental");
+    const isFullDayRental =
+      isRentalBooking &&
+      String(packageName || "").trim().toLowerCase() === FULL_DAY_RENTAL_PACKAGE;
     const isMiniChefBooking = serviceType === "birthday_deck";
     const isBigChefBooking = serviceType === "corporate_deck";
     const isBirthdayBooking = isMiniChefBooking && category === "birthdays";
@@ -265,6 +269,31 @@ export async function POST(request: NextRequest) {
       ) {
         return NextResponse.json(
           { error: "This summer camp class is not available on the selected date. Please choose another camp date." },
+          { status: 409 }
+        );
+      }
+    }
+
+    if (isRentalBooking && eventDate) {
+      const { data: rentalBookings, error: rentalAvailabilityError } = await supabase
+        .from("service_bookings")
+        .select("id, package_name")
+        .eq("event_date", eventDate)
+        .in("status", BOOKED_SLOT_STATUSES)
+        .ilike("service_name", "%rental%");
+
+      if (rentalAvailabilityError) {
+        console.error("Rental availability check error:", rentalAvailabilityError);
+        return NextResponse.json({ error: "Could not verify rental availability" }, { status: 500 });
+      }
+
+      const hasFullDayBooking = (rentalBookings || []).some(
+        (booking) => String(booking.package_name || "").trim().toLowerCase() === FULL_DAY_RENTAL_PACKAGE
+      );
+
+      if (hasFullDayBooking || (isFullDayRental && (rentalBookings || []).length > 0)) {
+        return NextResponse.json(
+          { error: "The selected date is already booked for a kitchen rental. Please choose another date." },
           { status: 409 }
         );
       }
