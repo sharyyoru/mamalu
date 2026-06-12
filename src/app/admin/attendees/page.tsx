@@ -317,7 +317,13 @@ export default function AttendeesPage() {
                         <div className="flex items-center gap-2 text-green-700">
                           <CheckCircle className="h-4 w-4" />
                           <span className="text-sm">
-                            {new Date(booking.checked_in_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            {new Date(booking.checked_in_at).toLocaleString([], {
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
                           </span>
                         </div>
                       ) : booking.status === "confirmed" ? (
