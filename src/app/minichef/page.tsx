@@ -730,7 +730,7 @@ export default function MiniChefPage() {
     }));
 
   const selectedTimeSlotLabel = allTimeSlots.find((slot) => slot.start === eventTime)?.label || eventTime;
-  const displayedTimeSlots = availableTimeSlots;
+  const displayedTimeSlots = isSummerCamp ? allTimeSlots : availableTimeSlots;
 
   // Only birthday bookings allow a 50% deposit when booked more than two days ahead.
   const totalAmount = calculateTotal();
