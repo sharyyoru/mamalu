@@ -31,70 +31,70 @@ const client = createClient({
 
 // Eazy Freezy Products scraped from mamalukitchen.com
 const eazyFreezyProducts = [
-  { title: "Truffle Sauce", price: 78.00, category: "sauces" },
-  { title: "Rigatoni Pasta", price: 10.00, category: "pasta" },
-  { title: "Gnocchi Potato", price: 30.00, category: "pasta" },
-  { title: "Orecchiete Pasta", price: 25.00, category: "pasta" },
-  { title: "Spinach Fatayer", price: 29.00, category: "savory" },
+  { title: "Truffle Sauce", price: 78.00, category: "italian" },
+  { title: "Rigatoni Pasta", price: 10.00, category: "italian" },
+  { title: "Gnocchi Potato", price: 30.00, category: "italian" },
+  { title: "Orecchiete Pasta", price: 25.00, category: "italian" },
+  { title: "Spinach Fatayer", price: 29.00, category: "arabic" },
   {
     title: "Cheese Rolls",
     price: 38.10,
-    category: "savory",
+    category: "arabic",
     description: "Crispy cheese rolls that can be baked or air fried. Perfect for lunch boxes and snacks. Ingredients: Spring Roll Wrappers, Akawi Cheese, Mozzarella Cheese, Flour, Eggs, Feta Cheese, Black Sesame Seeds, Parsley. Weight: 450g (18pcs)",
   },
-  { title: "Mini Cheese Rolls", price: 39.00, category: "savory" },
+  { title: "Mini Cheese Rolls", price: 39.00, category: "arabic" },
   {
     title: "Musakhan Rolls",
     price: 60.00,
-    category: "savory",
+    category: "arabic",
     description: "Crispy, flaky baked wraps filled with hormone-free chicken and sumac. Lunch box and dinner party friendly as well. Ingredients: Markook Bread, Chicken Breast, Lemon Powder, Onion, Sumac Powder, Himalayan Pink Salt, Black Pepper, Olive Oil, Pomegranate Molasses. Weight: 594g",
   },
-  { title: "Churros", price: 28.00, category: "desserts" },
+  { title: "Churros", price: 28.00, category: "dinner-party" },
   { title: "Vegetable Gyoza", price: 28.00, category: "asian" },
   { title: "Prawn Gyoza", price: 28.00, category: "asian" },
-  { title: "Kid Lunch Box Bundle", price: 165.00, category: "bundles" },
-  { title: "Cheese Sambousek", price: 26.00, category: "savory" },
-  { title: "Falafel", price: 25.00, category: "savory" },
-  { title: "Stuffed Zucchini", price: 39.00, category: "mains" },
-  { title: "Stuffed Cabbage Rolls", price: 60.00, category: "mains" },
+  { title: "Kid Lunch Box Bundle", price: 165.00, category: "kids" },
+  { title: "Cheese Sambousek", price: 26.00, category: "arabic" },
+  { title: "Falafel", price: 25.00, category: "arabic" },
+  { title: "Stuffed Zucchini", price: 39.00, category: "arabic" },
+  { title: "Stuffed Cabbage Rolls", price: 60.00, category: "arabic" },
   {
     title: "Beef Sambousek",
     price: 34.53,
-    category: "savory",
+    category: "arabic",
     description: "Hormone-free beef sambousek made with flour, red onion, water, corn flour, labneh, pine seeds, oil, pomegranate molasses, salt, white pepper, black pepper, sweet pepper, cinnamon powder, seven spices, and nutmeg. Weight: 490g (14pcs)",
   },
   {
     title: "Mini Cheese Croissant",
     price: 35.00,
-    category: "savory",
+    category: "dinner-party",
     description: "Mini cheese croissants made with wheat flour, butter, honey, water, salt, and halloumi cheese. Weight: 300g (10pcs)",
   },
   {
     title: "Mini Zataar Croissant",
     price: 36.00,
-    category: "savory",
+    category: "arabic",
     description: "Mini zataar croissants made with wheat flour, butter, honey, water, salt, and zataar (sumac, thyme, sesame seeds, olive oil). Weight: 300g (10pcs)",
   },
-  { title: "Bolognese Sauce With Hidden Vegetables", price: 60.00, category: "sauces" },
-  { title: "Manti (Spinach Filling)", price: 30.00, category: "mains" },
+  { title: "Bolognese Sauce With Hidden Vegetables", price: 60.00, category: "italian" },
+  { title: "Manti (Spinach Filling)", price: 30.00, category: "arabic" },
   {
     title: "Mini Meat Kibbe",
     price: 43.35,
-    category: "savory",
+    category: "arabic",
     description: "Mini meat kibbe that can be boiled, fried, or baked. Can also be cooked and served with hot natural yoghurt. Ingredients: Minced Beef, Burghul, Himalayan Pink Salt, Onion, Black Pepper, Seven Spices, Coconut Oil, Pinenuts. Weight: 360g (24pcs)",
   },
-  { title: "Mini Pumpkin Kibbe", price: 40.00, category: "savory" },
-  { title: "Ouzi", price: 50.00, category: "mains" },
+  { title: "Mini Pumpkin Kibbe", price: 40.00, category: "arabic" },
+  { title: "Ouzi", price: 50.00, category: "arabic" },
   {
     title: "Quinoa Crusted Chicken Tenders",
     price: 43.34,
-    category: "mains",
+    category: "kids",
     description: "A kids favourite, crunchy baked chicken tenders made with hormone-free chicken breast and quinoa crust. Ingredients: Chicken Breast, Himalayan Pink Salt, Garlic Powder, Black Pepper, Quinoa, Bread Crumbs, Egg White, Olive Oil. Weight: 500g (12pcs)",
   },
   {
     title: "Shish Barak (Meat dumplings)",
     price: 38.10,
-    category: "mains",
+    category: "arabic",
     description: "Mini meat dumplings that are cooked in a yoghurt sauce. Ingredients: Flour, Himalayan Pink Salt, Minced Beef, Olive Oil, Onion, Black Pepper, Seven Spices. Weight: 360g (60pcs)",
   },
   {
@@ -106,14 +106,11 @@ const eazyFreezyProducts = [
 ];
 
 const categories = [
-  { title: "Pasta", slug: "pasta" },
-  { title: "Sauces", slug: "sauces" },
-  { title: "Savory Snacks", slug: "savory" },
-  { title: "Main Dishes", slug: "mains" },
-  { title: "Asian", slug: "asian" },
-  { title: "Desserts", slug: "desserts" },
-  { title: "Kids Favorites", slug: "kids" },
-  { title: "Bundles", slug: "bundles" },
+  { title: "Italian", slug: "italian", order: 10 },
+  { title: "Arabic", slug: "arabic", order: 20 },
+  { title: "Kids", slug: "kids", order: 30 },
+  { title: "Dinner Party", slug: "dinner-party", order: 40 },
+  { title: "Asian", slug: "asian", order: 50 },
 ];
 
 async function seedProducts() {
@@ -131,12 +128,17 @@ async function seedProducts() {
 
     if (existingCat) {
       categoryRefs[cat.slug] = existingCat._id;
+      await client.patch(existingCat._id).set({
+        title: cat.title,
+        order: cat.order,
+      }).commit();
       console.log(`  ✓ Category "${cat.title}" already exists`);
     } else {
       const newCat = await client.create({
         _type: "productCategory",
         title: cat.title,
         slug: { _type: "slug", current: cat.slug },
+        order: cat.order,
       });
       categoryRefs[cat.slug] = newCat._id;
       console.log(`  ✓ Created category "${cat.title}"`);
