@@ -208,11 +208,11 @@ export async function GET(request: NextRequest) {
       supabase
         .from("service_bookings")
         .select("*")
-        .in("status", ["confirmed", "completed"]),
+        .eq("status", "completed"),
       supabase
         .from("class_bookings")
         .select("*")
-        .in("status", ["confirmed", "completed"])
+        .eq("status", "completed")
         .gte("start_date", fromISO)
         .lte("start_date", toISO),
       supabase
@@ -605,7 +605,7 @@ export async function GET(request: NextRequest) {
           bookingType: "service",
           serviceType: String(booking.service_name || booking.service_type || "Service"),
           bookedItems: occurrence.items,
-          status: booking.status as "confirmed" | "completed",
+          status: "completed",
           paymentStatus: String(booking.payment_status || "pending"),
           guests: Number(booking.guest_count) || 1,
           allocatedAmount: total / occurrence.divisor,
@@ -638,7 +638,7 @@ export async function GET(request: NextRequest) {
           name: String(booking.class_title || "Class Booking"),
           quantity: Number(booking.sessions_booked) || 1,
         }],
-        status: booking.status as "confirmed" | "completed",
+        status: "completed",
         paymentStatus: booking.paid_at ? "paid" : String(booking.payment_status || "pending"),
         guests: Number(booking.number_of_guests) || 1,
         allocatedAmount: total,
