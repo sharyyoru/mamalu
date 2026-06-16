@@ -679,7 +679,6 @@ export async function GET(request: NextRequest) {
         .filter((booking) => booking.status === "completed")
         .reduce((sum, booking) => sum + booking.allocatedAmount, 0);
       const projectedBookingValue = dateBookings
-        .filter((booking) => booking.status === "confirmed")
         .reduce((sum, booking) => sum + booking.allocatedAmount, 0);
       const productRevenue = dateOrders.reduce((sum, order) => sum + order.totalPaid, 0);
       return {
