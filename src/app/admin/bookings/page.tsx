@@ -38,6 +38,7 @@ import { Badge } from "@/components/ui/badge";
 import { formatPrice, formatDate } from "@/lib/utils";
 import { DEFAULT_BOOKING_TIME_SLOTS } from "@/lib/booking-time-slots";
 import { AdminCreateBookingModal } from "@/components/admin/admin-create-booking-modal";
+import { MonthlyAvailableDatePicker } from "@/components/booking/monthly-available-date-picker";
 
 const CALENDAR_HOURS = Array.from({ length: 13 }, (_, index) => {
   const hour = 9 + index;
@@ -60,6 +61,8 @@ const formatLocalDateKey = (date: Date) => {
 
   return `${year}-${month}-${day}`;
 };
+
+const MONTHLY_SLOT_CATEGORY_IDS = new Set(["monthly_mini", "monthly_big"]);
 
 interface ServiceBooking {
   id: string;
@@ -152,6 +155,34 @@ interface BookingStats {
   balancePending: number;
   totalRevenue: number;
   collectedRevenue: number;
+}
+
+function inferBookingSlotCategory(booking: ServiceBooking | null) {
+  if (!booking) return "";
+
+  const text = [
+    booking.service_name,
+    booking.package_name,
+    booking.menu_name,
+    ...(Array.isArray(booking.items) ? booking.items.map((item) => item.name || item.packageName || "") : []),
+  ].join(" ").toLowerCase();
+
+  if (text.includes("summer camp")) return "summer_camp";
+  if (text.includes("mommy") || text.includes("mummy")) return "mommy_me";
+  if (text.includes("birthday")) return "birthday";
+  if (text.includes("package")) return "packages";
+  if (text.includes("corporate") || text.includes("private")) return "corporate";
+  if (text.includes("teenager")) return "teenagers";
+  if (text.includes("nanny")) return "nanny";
+
+  const isMiniChef = booking.service_type === "birthday_deck";
+  const isBigChef = booking.service_type === "corporate_deck";
+
+  if (text.includes("monthly")) return isBigChef ? "monthly_big" : "monthly_mini";
+  if (isBigChef) return "classics_big";
+  if (isMiniChef) return "classics_mini";
+
+  return "";
 }
 
 const normalizeBookingTime = (value?: string | null) => {
@@ -247,6 +278,8 @@ export default function AdminBookingsPage() {
   const [rescheduleTime, setRescheduleTime] = useState("");
   const [rescheduleTimeLabel, setRescheduleTimeLabel] = useState("");
   const [rescheduleSlots, setRescheduleSlots] = useState<BookingTimeSlot[]>([]);
+  const [rescheduleAllowedDates, setRescheduleAllowedDates] = useState<string[] | null>(null);
+  const [rescheduleDatesLoading, setRescheduleDatesLoading] = useState(false);
   const [rescheduleLoading, setRescheduleLoading] = useState(false);
   const [rescheduleSaving, setRescheduleSaving] = useState(false);
   const [rescheduleError, setRescheduleError] = useState<string | null>(null);
@@ -266,6 +299,7 @@ export default function AdminBookingsPage() {
   // Date range filters
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const todayDateKey = formatLocalDateKey(new Date());
 
   // Get current user on mount
   useEffect(() => {
@@ -332,12 +366,56 @@ export default function AdminBookingsPage() {
     setRescheduleDate(selectedBooking?.event_date || "");
     setRescheduleTime(normalizeBookingTime(selectedBooking?.event_time));
     setRescheduleTimeLabel(selectedBooking?.time_label || "");
+    setRescheduleAllowedDates(null);
     setRescheduleError(null);
   }, [selectedBooking]);
 
   useEffect(() => {
+    const category = inferBookingSlotCategory(selectedBooking);
+    const shouldLoadMonthlyDates = category && MONTHLY_SLOT_CATEGORY_IDS.has(category);
+    const shouldLoadSummerCampDates = category === "summer_camp";
+
+    if (!selectedBooking || !showModal || (!shouldLoadMonthlyDates && !shouldLoadSummerCampDates)) {
+      setRescheduleAllowedDates(null);
+      setRescheduleDatesLoading(false);
+      return;
+    }
+
+    const fetchAllowedDates = async () => {
+      setRescheduleDatesLoading(true);
+      try {
+        const endpoint = shouldLoadSummerCampDates
+          ? "/api/services/summer-camp-dates?option=per-day&days=1"
+          : `/api/services/monthly-dates?category=${category}`;
+        const res = await fetch(endpoint);
+        const data = await res.json();
+        const dates = Array.isArray(data.dates) ? data.dates : [];
+        setRescheduleAllowedDates(dates);
+        if (rescheduleDate && dates.length > 0 && !dates.includes(rescheduleDate)) {
+          setRescheduleTime("");
+          setRescheduleTimeLabel("");
+        }
+      } catch (error) {
+        console.error("Failed to load reschedule date rules:", error);
+        setRescheduleAllowedDates([]);
+      } finally {
+        setRescheduleDatesLoading(false);
+      }
+    };
+
+    fetchAllowedDates();
+  }, [selectedBooking, showModal, rescheduleDate]);
+
+  useEffect(() => {
     if (!selectedBooking || !showModal || !rescheduleDate || selectedBooking.status === "completed") {
       setRescheduleSlots([]);
+      return;
+    }
+
+    const category = inferBookingSlotCategory(selectedBooking);
+    if (rescheduleAllowedDates && !rescheduleAllowedDates.includes(rescheduleDate)) {
+      setRescheduleSlots([]);
+      setRescheduleError("This category is not available on the selected date.");
       return;
     }
 
@@ -349,6 +427,7 @@ export default function AdminBookingsPage() {
           date: rescheduleDate,
           excludeBookingId: selectedBooking.id,
         });
+        if (category) params.set("category", category);
         const res = await fetch(`/api/services/availability?${params}`);
         const data = await res.json();
         if (!res.ok) {
@@ -366,7 +445,7 @@ export default function AdminBookingsPage() {
     };
 
     fetchRescheduleSlots();
-  }, [rescheduleDate, selectedBooking, showModal]);
+  }, [rescheduleDate, selectedBooking, showModal, rescheduleAllowedDates]);
 
   useEffect(() => {
     const fetchBookingInvoices = async () => {
@@ -1407,16 +1486,26 @@ export default function AdminBookingsPage() {
                   {selectedBooking.status !== "completed" && !isCourseScheduleBooking(selectedBooking) && !isPackageBooking(selectedBooking) && (
                     <div className="mt-3 rounded-lg border border-stone-200 bg-stone-50 p-3">
                       <p className="mb-3 text-sm font-medium text-stone-900">Reschedule booking</p>
+                      {rescheduleAllowedDates !== null && (
+                        <p className="mb-3 text-xs text-stone-500">
+                          {rescheduleDatesLoading
+                            ? "Loading category date rules..."
+                            : rescheduleAllowedDates.length > 0
+                              ? `Available dates: ${rescheduleAllowedDates.map(formatDate).join(", ")}`
+                              : "No dates are currently available for this category."}
+                        </p>
+                      )}
                       <div className="grid gap-3 sm:grid-cols-2">
-                        <input
-                          type="date"
+                        <MonthlyAvailableDatePicker
                           value={rescheduleDate}
-                          onChange={(e) => {
-                            setRescheduleDate(e.target.value);
+                          onChange={(date) => {
+                            setRescheduleDate(date);
                             setRescheduleTime("");
                             setRescheduleTimeLabel("");
                           }}
-                          className="h-10 rounded-lg border border-stone-200 bg-white px-3 text-sm"
+                          today={todayDateKey}
+                          availableDates={rescheduleAllowedDates || []}
+                          restrictToAvailableDates={rescheduleAllowedDates !== null}
                         />
                         <select
                           value={rescheduleTime}
@@ -1425,10 +1514,12 @@ export default function AdminBookingsPage() {
                             setRescheduleTime(e.target.value);
                             setRescheduleTimeLabel(slot?.label || e.target.value);
                           }}
-                          disabled={!rescheduleDate || rescheduleLoading}
+                          disabled={!rescheduleDate || rescheduleLoading || rescheduleDatesLoading || (rescheduleAllowedDates !== null && !rescheduleAllowedDates.includes(rescheduleDate))}
                           className="h-10 rounded-lg border border-stone-200 bg-white px-3 text-sm disabled:bg-stone-100"
                         >
-                          <option value="">{rescheduleLoading ? "Loading times..." : "Select time"}</option>
+                          <option value="">
+                            {rescheduleLoading || rescheduleDatesLoading ? "Loading times..." : "Select time"}
+                          </option>
                           {rescheduleSlots.map((slot) => (
                             <option key={slot.start} value={slot.start}>
                               {slot.label}
@@ -1436,6 +1527,9 @@ export default function AdminBookingsPage() {
                           ))}
                         </select>
                       </div>
+                      {rescheduleDate && !rescheduleLoading && !rescheduleDatesLoading && rescheduleSlots.length === 0 && !rescheduleError && (
+                        <p className="mt-2 text-sm text-amber-700">No slots available for this date</p>
+                      )}
                       {rescheduleError && <p className="mt-2 text-sm text-red-600">{rescheduleError}</p>}
                       <div className="mt-3 flex justify-end">
                         <Button
@@ -1444,8 +1538,10 @@ export default function AdminBookingsPage() {
                           onClick={saveReschedule}
                           disabled={
                             rescheduleSaving ||
+                            rescheduleDatesLoading ||
                             !rescheduleDate ||
                             !rescheduleTime ||
+                            (rescheduleAllowedDates !== null && !rescheduleAllowedDates.includes(rescheduleDate)) ||
                             (
                               rescheduleDate === (selectedBooking.event_date || "") &&
                               rescheduleTime === normalizeBookingTime(selectedBooking.event_time)

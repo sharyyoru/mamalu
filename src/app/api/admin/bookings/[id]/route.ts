@@ -4,6 +4,8 @@ import { sendPackageScheduleAssignmentEmail } from "@/lib/email/package-schedule
 import { sendBookingRescheduledEmail } from "@/lib/email/booking-rescheduled";
 
 const BOOKING_TABLES = ["service_bookings", "class_bookings"] as const;
+const MONTHLY_SLOT_CATEGORY_IDS = new Set(["monthly_mini", "monthly_big"]);
+const SUMMER_CAMP_SLOT_CATEGORY_ID = "summer_camp";
 type BookingTable = (typeof BOOKING_TABLES)[number];
 type AdminClient = NonNullable<ReturnType<typeof createAdminClient>>;
 
@@ -43,10 +45,18 @@ type BookingForReschedule = {
   customer_name?: string | null;
   customer_email?: string | null;
   service_name?: string | null;
+  service_type?: string | null;
+  package_name?: string | null;
   menu_name?: string | null;
   status?: string | null;
   event_date?: string | null;
   event_time?: string | null;
+  items?: ScheduleItem[] | null;
+};
+
+type BookingTimeSlotRow = {
+  start_time: string;
+  days_of_week: number[] | null;
 };
 
 async function findBookingTable(supabase: AdminClient, id: string): Promise<BookingTable | null> {
@@ -73,6 +83,113 @@ async function findBookingTable(supabase: AdminClient, id: string): Promise<Book
 function normalizeScheduleKey(date?: string | null, time?: string | null) {
   if (!date || !time) return null;
   return `${date}|${time}`;
+}
+
+function normalizeTime(time: string) {
+  return time.slice(0, 5);
+}
+
+function inferBookingSlotCategory(booking: BookingForReschedule | ServiceBookingForScheduleUpdate) {
+  const text = [
+    booking.service_name,
+    "package_name" in booking ? booking.package_name : "",
+    "menu_name" in booking ? booking.menu_name : "",
+    ...(Array.isArray(booking.items) ? booking.items.map((item) => item.name || item.packageName || "") : []),
+  ].join(" ").toLowerCase();
+
+  if (text.includes("summer camp")) return "summer_camp";
+  if (text.includes("mommy") || text.includes("mummy")) return "mommy_me";
+  if (text.includes("birthday")) return "birthday";
+  if (text.includes("package")) return "packages";
+  if (text.includes("corporate") || text.includes("private")) return "corporate";
+  if (text.includes("teenager")) return "teenagers";
+  if (text.includes("nanny")) return "nanny";
+
+  const serviceType = "service_type" in booking ? booking.service_type : null;
+  const isMiniChef = serviceType === "birthday_deck";
+  const isBigChef = serviceType === "corporate_deck";
+
+  if (text.includes("monthly")) return isBigChef ? "monthly_big" : "monthly_mini";
+  if (isBigChef) return "classics_big";
+  if (isMiniChef) return "classics_mini";
+
+  return "";
+}
+
+async function validateCategorySchedule(
+  supabase: AdminClient,
+  category: string,
+  eventDate: string,
+  eventTime: string
+) {
+  if (!category) return null;
+
+  if (MONTHLY_SLOT_CATEGORY_IDS.has(category)) {
+    const { data: dateRule, error: dateRuleError } = await supabase
+      .from("booking_slot_date_rules")
+      .select("available_dates")
+      .eq("category_id", category)
+      .maybeSingle<{ available_dates: string[] | null }>();
+
+    if (dateRuleError) {
+      console.error("Monthly date rule check error:", dateRuleError);
+      return "Could not verify monthly special date availability";
+    }
+
+    const availableDates = Array.isArray(dateRule?.available_dates) ? dateRule.available_dates : [];
+    if (availableDates.length === 0 || !availableDates.includes(eventDate)) {
+      return "This monthly special is not available on the selected date. Please choose another date.";
+    }
+  }
+
+  if (category === SUMMER_CAMP_SLOT_CATEGORY_ID) {
+    const { data: batches, error: batchesError } = await supabase
+      .from("summer_camp_batches")
+      .select("camp_dates")
+      .eq("is_active", true);
+
+    if (batchesError) {
+      console.error("Summer camp date check error:", batchesError);
+      return "Could not verify summer camp date availability";
+    }
+
+    const availableDates = new Set(
+      (batches || [])
+        .flatMap((batch: { camp_dates?: string[] | null }) => batch.camp_dates || [])
+        .filter((date: string) => date > new Date().toISOString().slice(0, 10))
+    );
+
+    if (!availableDates.has(eventDate)) {
+      return "This summer camp class is not available on the selected date. Please choose another camp date.";
+    }
+  }
+
+  const { data: slots, error: slotError } = await supabase
+    .from("booking_time_slots")
+    .select("start_time, days_of_week")
+    .eq("category_id", category)
+    .eq("is_active", true);
+
+  if (slotError) {
+    console.error("Category time slot check error:", slotError);
+    return "Could not verify category time slot availability";
+  }
+
+  if (slots && slots.length > 0) {
+    const dayOfWeek = new Date(`${eventDate}T00:00:00`).getDay();
+    const requestedTime = normalizeTime(eventTime);
+    const matchesSlot = (slots as BookingTimeSlotRow[]).some((slot) => (
+      normalizeTime(slot.start_time) === requestedTime &&
+      Array.isArray(slot.days_of_week) &&
+      slot.days_of_week.includes(dayOfWeek)
+    ));
+
+    if (!matchesSlot) {
+      return "This category is not available at the selected date and time.";
+    }
+  }
+
+  return null;
 }
 
 function sameIdentity(original: ScheduleItem, next: ScheduleItem) {
@@ -325,7 +442,7 @@ export async function PATCH(
 
       const { data: currentBooking, error: currentError } = await supabase
         .from("service_bookings")
-        .select("id, booking_number, customer_name, customer_email, service_name, menu_name, status, event_date, event_time")
+        .select("id, booking_number, customer_name, customer_email, service_name, service_type, package_name, menu_name, status, event_date, event_time, items")
         .eq("id", id)
         .maybeSingle();
 
@@ -347,6 +464,16 @@ export async function PATCH(
       const nextTime = event_time ?? current.event_time;
       if (!nextDate || !nextTime) {
         return NextResponse.json({ error: "A booking date and time are required" }, { status: 400 });
+      }
+
+      const categoryValidationError = await validateCategorySchedule(
+        supabase,
+        inferBookingSlotCategory(current),
+        nextDate,
+        nextTime
+      );
+      if (categoryValidationError) {
+        return NextResponse.json({ error: categoryValidationError }, { status: 409 });
       }
 
       const conflicts = await findScheduleConflicts(supabase, id, [{
