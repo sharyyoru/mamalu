@@ -43,6 +43,18 @@ const staleCategorySlugs = [
   "savory",
 ];
 
+const activeProductSlugs = new Set([
+  "cheese-rolls",
+  "musakhan-rolls",
+  "beef-sambousek",
+  "mini-cheese-croissant",
+  "mini-zataar-croissant",
+  "mini-meat-kibbe",
+  "quinoa-crusted-chicken-tenders",
+  "shish-barak-meat-dumplings",
+  "smiley-face-pizza",
+]);
+
 const productCategories: Record<string, string[]> = {
   "truffle-sauce": ["italian"],
   "rigatoni-pasta": ["italian"],
@@ -117,6 +129,7 @@ async function syncCategories() {
 
     transaction.patch(product._id, {
       set: {
+        isActive: activeProductSlugs.has(productSlug),
         categories: categorySlugs.map((categorySlug) => ({
             _type: "reference",
             _ref: categoryRefs[categorySlug],

@@ -105,6 +105,18 @@ const eazyFreezyProducts = [
   },
 ];
 
+const activeProductSlugs = new Set([
+  "cheese-rolls",
+  "musakhan-rolls",
+  "beef-sambousek",
+  "mini-cheese-croissant",
+  "mini-zataar-croissant",
+  "mini-meat-kibbe",
+  "quinoa-crusted-chicken-tenders",
+  "shish-barak-meat-dumplings",
+  "smiley-face-pizza",
+]);
+
 const categories = [
   { title: "Italian", slug: "italian", order: 10 },
   { title: "Arabic", slug: "arabic", order: 20 },
@@ -164,6 +176,7 @@ async function seedProducts() {
       _ref: categoryRefs[categorySlug],
       _key: categorySlug,
     })).filter((categoryRef) => Boolean(categoryRef._ref));
+    const isActive = activeProductSlugs.has(slug);
 
     if (existingProduct) {
       const description =
@@ -174,6 +187,7 @@ async function seedProducts() {
         title: product.title,
         price: product.price,
         description,
+        isActive,
         categories: productCategoryRefs,
       }).commit();
 
@@ -192,6 +206,7 @@ async function seedProducts() {
       description,
       price: product.price,
       inStock: true,
+      isActive,
       featured: product.price > 50,
       categories: productCategoryRefs,
     });
