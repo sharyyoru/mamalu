@@ -284,6 +284,8 @@ export default function AdminBookingsPage() {
   const [rescheduleSaving, setRescheduleSaving] = useState(false);
   const [rescheduleError, setRescheduleError] = useState<string | null>(null);
   const [packageTimeSlots, setPackageTimeSlots] = useState<BookingTimeSlot[]>([]);
+  const [scheduleSlotOptions, setScheduleSlotOptions] = useState<Record<string, BookingTimeSlot[]>>({});
+  const [scheduleSlotsLoading, setScheduleSlotsLoading] = useState<Record<string, boolean>>({});
   const [copiedLink, setCopiedLink] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [bookingInvoices, setBookingInvoices] = useState<BookingInvoice[]>([]);
@@ -368,6 +370,8 @@ export default function AdminBookingsPage() {
     setRescheduleTimeLabel(selectedBooking?.time_label || "");
     setRescheduleAllowedDates(null);
     setRescheduleError(null);
+    setScheduleSlotOptions({});
+    setScheduleSlotsLoading({});
   }, [selectedBooking]);
 
   useEffect(() => {
@@ -446,6 +450,51 @@ export default function AdminBookingsPage() {
 
     fetchRescheduleSlots();
   }, [rescheduleDate, selectedBooking, showModal, rescheduleAllowedDates]);
+
+  useEffect(() => {
+    if (!selectedBooking || !showModal || selectedBooking.status === "completed" || !isPackageBooking(selectedBooking)) {
+      setScheduleSlotOptions({});
+      setScheduleSlotsLoading({});
+      return;
+    }
+
+    const category = inferBookingSlotCategory(selectedBooking) || "packages";
+    const datesToLoad = Array.from(new Set(
+      scheduleItems
+        .map((item, index) => {
+          const original = selectedBooking.items?.[index];
+          return original?.event_date && original?.event_time ? null : item.event_date;
+        })
+        .filter((date): date is string => Boolean(date))
+    ));
+
+    datesToLoad.forEach((date) => {
+      const key = `${category}|${date}`;
+      if (scheduleSlotOptions[key] || scheduleSlotsLoading[key]) return;
+
+      setScheduleSlotsLoading((current) => ({ ...current, [key]: true }));
+      fetch(`/api/services/availability?${new URLSearchParams({
+        date,
+        category,
+        excludeBookingId: selectedBooking.id,
+      })}`)
+        .then(async (res) => {
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || "Failed to load available times");
+          setScheduleSlotOptions((current) => ({
+            ...current,
+            [key]: data.availableSlots || [],
+          }));
+        })
+        .catch((error) => {
+          console.error("Failed to fetch package schedule slots:", error);
+          setScheduleSlotOptions((current) => ({ ...current, [key]: [] }));
+        })
+        .finally(() => {
+          setScheduleSlotsLoading((current) => ({ ...current, [key]: false }));
+        });
+    });
+  }, [scheduleItems, selectedBooking, showModal, scheduleSlotOptions, scheduleSlotsLoading]);
 
   useEffect(() => {
     const fetchBookingInvoices = async () => {
@@ -723,14 +772,58 @@ export default function AdminBookingsPage() {
     }).filter((slot) => slot.start);
   };
 
+  const toSlotOption = (slot: BookingTimeSlot) => {
+    const start = normalizeBookingTime(slot.start || slot.start_time);
+    const end = normalizeBookingTime(slot.end || slot.end_time);
+    const label = slot.label || `${start}${end ? ` - ${end}` : ""}`;
+    return { start, label };
+  };
+
+  const getScheduleSlotKey = (date?: string | null) => {
+    if (!selectedBooking || !date) return "";
+    return `${inferBookingSlotCategory(selectedBooking) || "packages"}|${date}`;
+  };
+
+  const getScheduleSlotOptions = (item: BookingScheduleItem, index: number) => {
+    if (!item.event_date) return [];
+
+    const key = getScheduleSlotKey(item.event_date);
+    const availableSlots = (scheduleSlotOptions[key] || []).map(toSlotOption).filter((slot) => slot.start);
+    const occupiedByCurrentBooking = new Set(
+      scheduleItems
+        .filter((otherItem, otherIndex) => (
+          otherIndex !== index &&
+          otherItem.event_date === item.event_date &&
+          Boolean(otherItem.event_time)
+        ))
+        .map((otherItem) => normalizeBookingTime(otherItem.event_time))
+    );
+    const selectedTime = normalizeBookingTime(item.event_time);
+
+    return availableSlots.filter((slot) => (
+      !occupiedByCurrentBooking.has(slot.start) || slot.start === selectedTime
+    ));
+  };
+
+  const getScheduleSlotLabel = (item: BookingScheduleItem, index: number, value: string) => {
+    return getScheduleSlotOptions(item, index).find((slot) => slot.start === value)?.label
+      || getPackageSlotOptions().find((slot) => slot.start === value)?.label
+      || value
+      || null;
+  };
+
   const updateScheduleItem = (index: number, field: "event_date" | "event_time", value: string) => {
     if (isScheduleItemLocked(index)) return;
 
     setScheduleItems((prev) => prev.map((item, idx) => {
       if (idx !== index) return item;
       const next = { ...item, [field]: value || null };
+      if (field === "event_date") {
+        next.event_time = null;
+        next.time_label = null;
+      }
       if (field === "event_time") {
-        next.time_label = getPackageSlotOptions().find((slot) => slot.start === value)?.label || value || null;
+        next.time_label = getScheduleSlotLabel(next, index, value);
       }
       return next;
     }));
@@ -1404,14 +1497,15 @@ export default function AdminBookingsPage() {
                     }
 
                     if (packageScheduleItems.length > 0) {
-                      const slotOptions = getPackageSlotOptions();
-
                       return (
                         <div className="space-y-3">
                           <p className="text-sm text-stone-500">{selectedBooking.guest_count} guest(s)</p>
                           <div className="rounded-lg border border-stone-200 overflow-hidden">
                             {scheduleItems.map((item, idx) => {
                               const locked = isScheduleItemLocked(idx);
+                              const slotOptions = locked ? getPackageSlotOptions() : getScheduleSlotOptions(item, idx);
+                              const slotsLoading = Boolean(scheduleSlotsLoading[getScheduleSlotKey(item.event_date)]);
+                              const disableTimeSelect = locked || !item.event_date || slotsLoading;
 
                               return (
                                 <div
@@ -1444,16 +1538,21 @@ export default function AdminBookingsPage() {
                                   <select
                                     value={item.event_time || ""}
                                     onChange={(e) => updateScheduleItem(idx, "event_time", e.target.value)}
-                                    disabled={locked}
-                                    className={`h-10 rounded-lg border border-stone-200 px-3 text-sm ${locked ? "bg-stone-100 text-stone-500" : ""}`}
+                                    disabled={disableTimeSelect}
+                                    className={`h-10 rounded-lg border border-stone-200 px-3 text-sm ${disableTimeSelect ? "bg-stone-100 text-stone-500" : ""}`}
                                   >
-                                    <option value="">Select time</option>
+                                    <option value="">
+                                      {slotsLoading ? "Loading times..." : "Select time"}
+                                    </option>
                                     {slotOptions.map((slot) => (
                                       <option key={slot.start} value={slot.start}>
                                         {slot.label}
                                       </option>
                                     ))}
                                   </select>
+                                  {!locked && item.event_date && !slotsLoading && slotOptions.length === 0 && (
+                                    <p className="text-xs text-amber-700 sm:col-start-3">No slots available</p>
+                                  )}
                                 </div>
                               );
                             })}
