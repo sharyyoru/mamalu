@@ -453,8 +453,8 @@ export default function AdminBookingsPage() {
 
   useEffect(() => {
     if (!selectedBooking || !showModal || selectedBooking.status === "completed" || !isPackageBooking(selectedBooking)) {
-      setScheduleSlotOptions({});
-      setScheduleSlotsLoading({});
+      setScheduleSlotOptions((current) => Object.keys(current).length > 0 ? {} : current);
+      setScheduleSlotsLoading((current) => Object.keys(current).length > 0 ? {} : current);
       return;
     }
 
