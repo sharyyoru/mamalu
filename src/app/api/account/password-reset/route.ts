@@ -7,6 +7,33 @@ function isValidEmail(value: unknown): value is string {
   return typeof value === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
+function isLocalUrl(value: string) {
+  try {
+    const hostname = new URL(value).hostname;
+    return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1";
+  } catch {
+    return false;
+  }
+}
+
+function getRequestSiteUrl(request: Request) {
+  const origin = request.headers.get("origin");
+  if (origin && !isLocalUrl(origin)) {
+    return origin.replace(/\/+$/, "");
+  }
+
+  const host = request.headers.get("x-forwarded-host") || request.headers.get("host");
+  const protocol = request.headers.get("x-forwarded-proto") || "https";
+  if (host) {
+    const url = `${protocol}://${host}`;
+    if (!isLocalUrl(url)) {
+      return url.replace(/\/+$/, "");
+    }
+  }
+
+  return getPublicSiteUrl();
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -21,7 +48,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Authentication service not configured" }, { status: 500 });
     }
 
-    const redirectTo = `${getPublicSiteUrl()}/account`;
+    const redirectTo = `${getRequestSiteUrl(request)}/account`;
     const { data, error } = await supabase.auth.admin.generateLink({
       type: "recovery",
       email,
