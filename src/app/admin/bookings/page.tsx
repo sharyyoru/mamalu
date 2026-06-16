@@ -128,6 +128,7 @@ interface BookingScheduleItem {
   session?: number;
   packageId?: string;
   packageName?: string;
+  camp_dates?: string[] | null;
   event_date?: string | null;
   event_time?: string | null;
   time_label?: string | null;
@@ -2606,21 +2607,31 @@ function CalendarGrid({ bookings, date, view, timeSlots, onSelectBooking }: Cale
     };
   };
 
+  const getScheduleItemDates = (item: BookingScheduleItem) => {
+    const dates = Array.isArray(item.camp_dates) && item.camp_dates.length > 0
+      ? item.camp_dates
+      : item.event_date
+      ? [item.event_date]
+      : [];
+
+    return [...new Set(dates.filter(Boolean))].sort();
+  };
+
   const calendarEvents: CalendarEvent[] = bookings.flatMap((booking) => {
     const scheduledItems = Array.isArray(booking.items)
-      ? booking.items.filter((item) => item.event_date && item.event_time)
+      ? booking.items.filter((item) => getScheduleItemDates(item).length > 0 && item.event_time)
       : [];
 
     if (scheduledItems.length > 0) {
-      return scheduledItems.map((item, index) => {
+      return scheduledItems.flatMap((item, index) => {
         const range = getEventRange(item.event_time, item.time_label);
-        return {
-          id: `${booking.id}-${item.id || index}`,
+        return getScheduleItemDates(item).map((itemDate) => ({
+          id: `${booking.id}-${item.id || index}-${itemDate}`,
           booking,
           title: item.name || booking.customer_name,
-          date: item.event_date!,
+          date: itemDate,
           ...range,
-        };
+        }));
       });
     }
 
