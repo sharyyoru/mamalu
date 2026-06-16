@@ -160,7 +160,7 @@ export async function getProductBySlug(slug: string) {
 
 export async function getProductCategories() {
   return sanityClient.fetch(`
-    *[_type == "productCategory" && slug.current in ["italian", "arabic", "kids", "dinner-party", "asian"]] | order(order asc, title asc) {
+    *[_type == "productCategory" && (isActive == true || !defined(isActive)) && slug.current in ["italian", "arabic", "kids", "dinner-party", "asian"]] | order(order asc, title asc) {
       _id,
       title,
       slug,

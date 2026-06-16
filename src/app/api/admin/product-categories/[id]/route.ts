@@ -35,6 +35,7 @@ export async function PUT(
         slug: { _type: "slug", current: slugify(body.slug?.current || body.slug || title) },
         description: body.description || "",
         order: Number(body.order || 0),
+        isActive: body.isActive !== false,
       })
       .commit();
 

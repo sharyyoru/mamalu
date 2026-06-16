@@ -118,11 +118,11 @@ const activeProductSlugs = new Set([
 ]);
 
 const categories = [
-  { title: "Italian", slug: "italian", order: 10 },
+  { title: "Italian", slug: "italian", order: 10, isActive: false },
   { title: "Arabic", slug: "arabic", order: 20 },
   { title: "Kids", slug: "kids", order: 30 },
   { title: "Dinner Party", slug: "dinner-party", order: 40 },
-  { title: "Asian", slug: "asian", order: 50 },
+  { title: "Asian", slug: "asian", order: 50, isActive: false },
 ];
 
 async function seedProducts() {
@@ -143,6 +143,7 @@ async function seedProducts() {
       await client.patch(existingCat._id).set({
         title: cat.title,
         order: cat.order,
+        isActive: cat.isActive !== false,
       }).commit();
       console.log(`  ✓ Category "${cat.title}" already exists`);
     } else {
@@ -151,6 +152,7 @@ async function seedProducts() {
         title: cat.title,
         slug: { _type: "slug", current: cat.slug },
         order: cat.order,
+        isActive: cat.isActive !== false,
       });
       categoryRefs[cat.slug] = newCat._id;
       console.log(`  ✓ Created category "${cat.title}"`);

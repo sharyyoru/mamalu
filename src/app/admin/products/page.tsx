@@ -28,6 +28,7 @@ interface ProductCategory {
   slug: { current: string };
   description?: string;
   order?: number;
+  isActive?: boolean;
 }
 
 interface SanityImage {
@@ -91,6 +92,7 @@ const emptyCategory: CategoryDraft = {
   slug: { current: "" },
   description: "",
   order: 0,
+  isActive: true,
 };
 
 function currentSlug(value?: { current: string }) {
@@ -243,6 +245,27 @@ export default function AdminProductsPage() {
     }
   };
 
+  const toggleCategoryActive = async (category: ProductCategory) => {
+    try {
+      const nextIsActive = category.isActive === false;
+      const res = await fetch(`/api/admin/product-categories/${category._id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...category,
+          isActive: nextIsActive,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to update category");
+      setCategories((current) =>
+        current.map((item) => item._id === category._id ? { ...item, isActive: nextIsActive } : item)
+      );
+    } catch (error: unknown) {
+      alert(getErrorMessage(error, "Failed to update category"));
+    }
+  };
+
   const deleteCategory = async (category: ProductCategory) => {
     if (!confirm(`Delete ${category.title}? Products using this category may block deletion.`)) return;
     try {
@@ -294,7 +317,7 @@ export default function AdminProductsPage() {
   const stats = {
     products: products.length,
     active: products.filter((product) => product.isActive !== false).length,
-    categories: categories.length,
+    categories: categories.filter((category) => category.isActive !== false).length,
   };
 
   if (loading) {
@@ -472,6 +495,7 @@ export default function AdminProductsPage() {
                   <th className="text-left text-xs font-semibold text-stone-600 uppercase tracking-wider px-6 py-4">Category</th>
                   <th className="text-left text-xs font-semibold text-stone-600 uppercase tracking-wider px-6 py-4">Slug</th>
                   <th className="text-left text-xs font-semibold text-stone-600 uppercase tracking-wider px-6 py-4">Order</th>
+                  <th className="text-left text-xs font-semibold text-stone-600 uppercase tracking-wider px-6 py-4">Status</th>
                   <th className="px-6 py-4" />
                 </tr>
               </thead>
@@ -484,10 +508,26 @@ export default function AdminProductsPage() {
                     </td>
                     <td className="px-6 py-4 text-sm text-stone-600">{currentSlug(category.slug)}</td>
                     <td className="px-6 py-4 text-sm text-stone-600">{category.order || 0}</td>
+                    <td className="px-6 py-4">
+                      <Badge className={category.isActive !== false ? "bg-blue-100 text-blue-700" : "bg-stone-100 text-stone-600"}>
+                        {category.isActive !== false ? "Active" : "Inactive"}
+                      </Badge>
+                    </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end gap-2">
                         <button onClick={() => openCategoryEditor(category)} className="p-2 rounded-lg hover:bg-stone-100">
                           <Edit3 className="h-4 w-4 text-stone-600" />
+                        </button>
+                        <button
+                          onClick={() => toggleCategoryActive(category)}
+                          className="p-2 rounded-lg hover:bg-stone-100"
+                          title={category.isActive !== false ? "Set inactive" : "Set active"}
+                        >
+                          {category.isActive !== false ? (
+                            <EyeOff className="h-4 w-4 text-stone-600" />
+                          ) : (
+                            <Eye className="h-4 w-4 text-green-600" />
+                          )}
                         </button>
                         <button onClick={() => deleteCategory(category)} className="p-2 rounded-lg hover:bg-red-50">
                           <Trash2 className="h-4 w-4 text-red-600" />
@@ -748,6 +788,15 @@ export default function AdminProductsPage() {
                   className="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-500"
                 />
               </div>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={editingCategory.isActive !== false}
+                  onChange={(event) => setEditingCategory((current) => ({ ...current, isActive: event.target.checked }))}
+                  className="rounded"
+                />
+                <span className="text-sm text-stone-700">Active</span>
+              </label>
             </div>
 
             <div className="border-t px-6 py-4 flex justify-end gap-3">

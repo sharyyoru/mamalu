@@ -98,7 +98,7 @@ export async function GET() {
           compareAtPrice,
           images,
           "imageUrl": images[0].asset->url,
-          categories[]->{_id, title, slug},
+          categories[]->{_id, title, slug, isActive},
           tags,
           inStock,
           isActive,
@@ -114,7 +114,8 @@ export async function GET() {
           title,
           slug,
           description,
-          order
+          order,
+          isActive
         }
       `),
     ]);

@@ -27,11 +27,11 @@ const client = createClient({
 });
 
 const categories = [
-  { title: "Italian", slug: "italian", order: 10 },
+  { title: "Italian", slug: "italian", order: 10, isActive: false },
   { title: "Arabic", slug: "arabic", order: 20 },
   { title: "Kids", slug: "kids", order: 30 },
   { title: "Dinner Party", slug: "dinner-party", order: 40 },
-  { title: "Asian", slug: "asian", order: 50 },
+  { title: "Asian", slug: "asian", order: 50, isActive: false },
 ];
 
 const staleCategorySlugs = [
@@ -98,7 +98,7 @@ async function syncCategories() {
       categoryRefs[category.slug] = existing._id;
       await client
         .patch(existing._id)
-        .set({ title: category.title, order: category.order })
+        .set({ title: category.title, order: category.order, isActive: category.isActive !== false })
         .commit();
       continue;
     }
@@ -108,6 +108,7 @@ async function syncCategories() {
       title: category.title,
       slug: { _type: "slug", current: category.slug },
       order: category.order,
+      isActive: category.isActive !== false,
     });
     categoryRefs[category.slug] = created._id;
   }

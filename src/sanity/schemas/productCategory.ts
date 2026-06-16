@@ -36,6 +36,13 @@ export const productCategory = defineType({
       type: "number",
       initialValue: 0,
     }),
+    defineField({
+      name: "isActive",
+      title: "Active",
+      type: "boolean",
+      description: "Inactive categories are hidden from the public products page.",
+      initialValue: true,
+    }),
   ],
   orderings: [
     {
@@ -47,7 +54,16 @@ export const productCategory = defineType({
   preview: {
     select: {
       title: "title",
+      isActive: "isActive",
       media: "image",
+    },
+    prepare(selection) {
+      const { title, isActive } = selection;
+      return {
+        ...selection,
+        title,
+        subtitle: isActive === false ? "Inactive" : "Active",
+      };
     },
   },
 });
