@@ -90,6 +90,23 @@ export default function AccountPage() {
   }, [checkUser]);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+    const queryParams = new URLSearchParams(window.location.search);
+    const authType = hashParams.get("type") || queryParams.get("type");
+
+    if (authType === "recovery") {
+      setMode("reset-password");
+      setUser(null);
+      setProfile(null);
+      setError("");
+      setSuccess("");
+      setCheckingAuth(false);
+    }
+  }, []);
+
+  useEffect(() => {
     if (!supabase) return;
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
