@@ -8,7 +8,6 @@ import { sendVoucherConfirmationEmail } from "@/lib/email/voucher-confirmation";
 import { createSourceInvoice, markSourceInvoicePaid } from "@/lib/invoices/source-invoices";
 import { findAvailableVoucherForAmount } from "@/lib/vouchers/assign-purchase-voucher";
 import { consumeVoucherUse } from "@/lib/vouchers/voucher-usage";
-import { createSanityAdminClient } from "@/lib/sanity/admin";
 import Stripe from "stripe";
 import { sendAdminNotification } from "@/lib/email/admin-notification";
 
@@ -577,19 +576,29 @@ export async function POST(request: NextRequest) {
               throw new Error(orderInsertError.message);
             }
 
-            const sanity = createSanityAdminClient();
             await Promise.all((items as ProductCheckoutItem[])
               .filter((item) => item.id)
               .map(async (item) => {
                 const quantity = Math.max(1, Math.floor(Number(item.quantity || 1)));
-                const updatedProduct = await sanity
-                  .patch(item.id as string)
-                  .dec({ stockQuantity: quantity })
-                  .commit<{ stockQuantity?: number }>();
+                const { data: product, error: productError } = await supabase
+                  .from("products")
+                  .select("stock_quantity")
+                  .eq("id", item.id as string)
+                  .single();
 
-                if (typeof updatedProduct.stockQuantity === "number" && updatedProduct.stockQuantity <= 0) {
-                  await sanity.patch(item.id as string).set({ inStock: false, stockQuantity: 0 }).commit();
-                }
+                if (productError || typeof product?.stock_quantity !== "number") return;
+
+                const nextStockQuantity = Math.max(0, product.stock_quantity - quantity);
+                const { error: stockUpdateError } = await supabase
+                  .from("products")
+                  .update({
+                    stock_quantity: nextStockQuantity,
+                    in_stock: nextStockQuantity > 0,
+                    updated_at: new Date().toISOString(),
+                  })
+                  .eq("id", item.id as string);
+
+                if (stockUpdateError) throw stockUpdateError;
               }));
 
             const productLineItems = (items as ProductCheckoutItem[]).map((item) => ({

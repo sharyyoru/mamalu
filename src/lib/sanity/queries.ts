@@ -92,82 +92,21 @@ export async function getRecipeCategories() {
 
 // ============ PRODUCT QUERIES ============
 export async function getProducts() {
-  return sanityClient.fetch(`
-    *[_type == "product" && (isActive == true || !defined(isActive))] | order(_createdAt desc) {
-      _id,
-      title,
-      slug,
-      description,
-      price,
-      compareAtPrice,
-      images,
-      categories[]->{_id, title, slug},
-      tags,
-      inStock,
-      isActive,
-      stockQuantity,
-      featured
-    }
-  `);
+  return [];
 }
 
 export async function getProductsByCategory(categorySlug: string) {
-  return sanityClient.fetch(
-    `
-    *[_type == "product" && (isActive == true || !defined(isActive)) && $categorySlug in categories[]->slug.current] | order(_createdAt desc) {
-      _id,
-      title,
-      slug,
-      description,
-      price,
-      compareAtPrice,
-      images,
-      categories[]->{_id, title, slug},
-      inStock,
-      isActive,
-      stockQuantity
-    }
-  `,
-    { categorySlug }
-  );
+  void categorySlug;
+  return [];
 }
 
 export async function getProductBySlug(slug: string) {
-  return sanityClient.fetch(
-    `
-    *[_type == "product" && (isActive == true || !defined(isActive)) && slug.current == $slug][0] {
-      _id,
-      title,
-      slug,
-      description,
-      price,
-      compareAtPrice,
-      images,
-      video,
-      body,
-      categories[]->{_id, title, slug},
-      tags,
-      inStock,
-      isActive,
-      stockQuantity,
-      sku,
-      weight
-    }
-  `,
-    { slug }
-  );
+  void slug;
+  return null;
 }
 
 export async function getProductCategories() {
-  return sanityClient.fetch(`
-    *[_type == "productCategory" && (isActive == true || !defined(isActive)) && slug.current in ["italian", "arabic", "kids", "dinner-party", "asian"]] | order(order asc, title asc) {
-      _id,
-      title,
-      slug,
-      description,
-      image
-    }
-  `);
+  return [];
 }
 
 // ============ CLASS QUERIES ============

@@ -1,17 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createSanityAdminClient } from "@/lib/sanity/admin";
-
-function createKey() {
-  return Math.random().toString(36).slice(2, 12);
-}
+import { createAdminClient } from "@/lib/supabase/admin";
 
 function getErrorMessage(error: unknown, fallback: string) {
   return error instanceof Error ? error.message : fallback;
 }
 
+function extensionFromFile(file: File) {
+  const fromName = file.name.split(".").pop();
+  if (fromName) return fromName.toLowerCase();
+  return file.type.split("/").pop() || "jpg";
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const client = createSanityAdminClient();
+    const supabase = createAdminClient();
+    if (!supabase) throw new Error("Database not configured");
+
     const formData = await request.formData();
     const file = formData.get("file");
 
@@ -19,22 +23,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Image file is required" }, { status: 400 });
     }
 
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const asset = await client.assets.upload("image", buffer, {
-      filename: file.name,
-      contentType: file.type || undefined,
-    });
+    const path = `products/${crypto.randomUUID()}.${extensionFromFile(file)}`;
+    const { error: uploadError } = await supabase.storage
+      .from("product-images")
+      .upload(path, file, {
+        contentType: file.type || "application/octet-stream",
+        upsert: false,
+      });
+
+    if (uploadError) throw uploadError;
+
+    const { data } = supabase.storage.from("product-images").getPublicUrl(path);
 
     return NextResponse.json({
+      imageUrl: data.publicUrl,
       image: {
-        _key: createKey(),
         _type: "image",
-        asset: {
-          _type: "reference",
-          _ref: asset._id,
-        },
+        asset: { _ref: data.publicUrl },
       },
-      asset,
+      asset: { url: data.publicUrl },
     });
   } catch (error: unknown) {
     console.error("Error uploading product image:", error);

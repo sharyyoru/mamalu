@@ -1,27 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
-import { createSanityAdminClient } from "@/lib/sanity/admin";
+import { createAdminClient } from "@/lib/supabase/admin";
+import {
+  currentSlug,
+  fetchProductCategories,
+  fetchProducts,
+  mapProduct,
+  slugify,
+} from "@/lib/products/catalog";
 
-function slugify(value: string) {
-  return value
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
-
-function createKey() {
-  return Math.random().toString(36).slice(2, 12);
-}
-
-interface ProductRequestBody {
+type ProductRequestBody = {
   title?: string;
   slug?: string | { current?: string };
   description?: string;
-  body?: unknown[];
   price?: number | string;
   compareAtPrice?: number | string | null;
-  images?: unknown[];
+  imageUrl?: string;
   categoryIds?: string[];
   tags?: string[] | string;
   inStock?: boolean;
@@ -30,24 +24,14 @@ interface ProductRequestBody {
   sku?: string;
   weight?: number | string | null;
   featured?: boolean;
-}
+};
 
-function categoryRefs(categoryIds: string[] = []) {
-  return categoryIds.map((id) => ({
-    _key: createKey(),
-    _type: "reference",
-    _ref: id,
-  }));
-}
-
-function slugValue(slug: ProductRequestBody["slug"]) {
-  if (typeof slug === "string") return slug;
-  return slug?.current || "";
+function getErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message : fallback;
 }
 
 function productPayload(body: ProductRequestBody) {
   const title = String(body.title || "").trim();
-  const images = Array.isArray(body.images) ? body.images : [];
 
   if (!title) {
     throw new Error("Title is required");
@@ -55,76 +39,60 @@ function productPayload(body: ProductRequestBody) {
 
   return {
     title,
-    slug: { _type: "slug", current: slugify(slugValue(body.slug) || title) },
+    slug: slugify(currentSlug(body.slug) || title),
     description: body.description || "",
-    body: Array.isArray(body.body) ? body.body : [],
     price: Number(body.price || 0),
-    compareAtPrice:
+    compare_at_price:
       body.compareAtPrice === "" || body.compareAtPrice == null
-        ? undefined
+        ? null
         : Number(body.compareAtPrice),
-    images,
-    categories: categoryRefs(body.categoryIds || []),
+    image_url: body.imageUrl || "",
+    category_ids: Array.isArray(body.categoryIds) ? body.categoryIds : [],
     tags: Array.isArray(body.tags)
       ? body.tags
       : String(body.tags || "")
           .split(",")
           .map((tag) => tag.trim())
           .filter(Boolean),
-    inStock: body.inStock !== false,
-    isActive: body.isActive !== false,
-    stockQuantity:
+    in_stock: body.inStock !== false,
+    is_active: body.isActive !== false,
+    stock_quantity:
       body.stockQuantity === "" || body.stockQuantity == null
-        ? undefined
+        ? null
         : Number(body.stockQuantity),
     sku: body.sku || "",
-    weight: body.weight === "" || body.weight == null ? undefined : Number(body.weight),
+    weight: body.weight === "" || body.weight == null ? null : Number(body.weight),
     featured: Boolean(body.featured),
+    updated_at: new Date().toISOString(),
   };
 }
 
 export async function GET() {
   try {
-    const client = createSanityAdminClient();
-    const [products, categories] = await Promise.all([
-      client.fetch(`
-        *[_type == "product"] | order(_createdAt desc) {
-          _id,
-          _createdAt,
-          title,
-          slug,
-          description,
-          price,
-          compareAtPrice,
-          images,
-          "imageUrl": images[0].asset->url,
-          categories[]->{_id, title, slug, isActive},
-          tags,
-          inStock,
-          isActive,
-          stockQuantity,
-          sku,
-          weight,
-          featured
-        }
-      `),
-      client.fetch(`
-        *[_type == "productCategory"] | order(order asc, title asc) {
-          _id,
-          title,
-          slug,
-          description,
-          order,
-          isActive
-        }
-      `),
-    ]);
+    const supabase = createAdminClient();
+    if (!supabase) throw new Error("Database not configured");
 
-    return NextResponse.json({ products, categories });
+    const [productRows, categoryRows] = await Promise.all([
+      fetchProducts(supabase),
+      fetchProductCategories(supabase),
+    ]);
+    const categoryMap = new Map(categoryRows.map((category) => [category.id, category]));
+
+    return NextResponse.json({
+      products: productRows.map((product) => mapProduct(product, categoryMap)),
+      categories: categoryRows.map((category) => ({
+        _id: category.id,
+        title: category.title,
+        slug: { current: category.slug },
+        description: category.description || "",
+        order: category.display_order || 0,
+        isActive: category.is_active !== false,
+      })),
+    });
   } catch (error: unknown) {
     console.error("Error fetching products:", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Failed to fetch products" },
+      { error: getErrorMessage(error, "Failed to fetch products") },
       { status: 500 }
     );
   }
@@ -132,22 +100,24 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const client = createSanityAdminClient();
+    const supabase = createAdminClient();
+    if (!supabase) throw new Error("Database not configured");
+
     const body = await request.json();
-    const product = await client.create({
-      _type: "product",
-      ...productPayload(body),
-    });
+    const payload = productPayload(body);
+    const { data: product, error } = await supabase
+      .from("products")
+      .insert(payload)
+      .select("*")
+      .single();
+
+    if (error) throw error;
 
     revalidatePath("/products");
     return NextResponse.json({ product });
   } catch (error: unknown) {
     console.error("Error creating product:", error);
-    const message = error instanceof Error ? error.message : "Failed to create product";
-    const status = message === "Title is required" ? 400 : 500;
-    return NextResponse.json(
-      { error: message },
-      { status }
-    );
+    const message = getErrorMessage(error, "Failed to create product");
+    return NextResponse.json({ error: message }, { status: message === "Title is required" ? 400 : 500 });
   }
 }

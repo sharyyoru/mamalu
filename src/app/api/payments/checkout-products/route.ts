@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe/server";
-import { createSanityAdminClient } from "@/lib/sanity/admin";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { fetchProducts } from "@/lib/products/catalog";
 
 interface CartItem {
   id: string;
@@ -9,16 +10,6 @@ interface CartItem {
   quantity: number;
   imageUrl?: string;
 }
-
-type SanityCheckoutProduct = {
-  _id: string;
-  title?: string;
-  price?: number;
-  inStock?: boolean;
-  isActive?: boolean;
-  stockQuantity?: number;
-  imageUrl?: string;
-};
 
 const SHIPPING_FEE = 15;
 const FREE_SHIPPING_THRESHOLD = 200;
@@ -77,31 +68,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid cart item" }, { status: 400 });
     }
 
-    const sanity = createSanityAdminClient();
-    const products = await sanity.fetch<SanityCheckoutProduct[]>(
-      `*[_type == "product" && _id in $ids] {
-        _id,
-        title,
-        price,
-        inStock,
-        isActive,
-        stockQuantity,
-        "imageUrl": images[0].asset->url
-      }`,
-      { ids: productIds }
-    );
-    const productsById = new Map(products.map((product) => [product._id, product]));
+    const supabase = createAdminClient();
+    if (!supabase) throw new Error("Database not configured");
+
+    const products = await fetchProducts(supabase, { ids: productIds });
+    const productsById = new Map(products.map((product) => [product.id, product]));
 
     const validatedItems = cartItems.map((item) => {
       const product = productsById.get(item.id);
       const quantity = Math.max(1, Math.floor(Number(item.quantity) || 1));
 
-      if (!product || product.isActive === false || product.inStock === false) {
+      if (!product || product.is_active === false || product.in_stock === false) {
         throw new Error(`${item.title || "A product"} is no longer available`);
       }
 
-      if (typeof product.stockQuantity === "number" && product.stockQuantity < quantity) {
-        throw new Error(`${product.title || item.title} only has ${product.stockQuantity} in stock`);
+      if (typeof product.stock_quantity === "number" && product.stock_quantity < quantity) {
+        throw new Error(`${product.title || item.title} only has ${product.stock_quantity} in stock`);
       }
 
       return {
@@ -109,7 +91,7 @@ export async function POST(request: NextRequest) {
         title: product.title || item.title,
         price: Number(product.price || 0),
         quantity,
-        imageUrl: product.imageUrl || item.imageUrl,
+        imageUrl: product.image_url || item.imageUrl,
       };
     });
 

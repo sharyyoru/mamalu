@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getClasses, getProducts, getRecipes } from "@/lib/sanity/queries";
+import { getClasses, getRecipes } from "@/lib/sanity/queries";
 import { urlFor } from "@/lib/sanity/client";
 import { getPublishedBlogPosts } from "@/lib/blogs";
+import { createServiceClient } from "@/lib/supabase/server";
+import { fetchProducts } from "@/lib/products/catalog";
 
 interface SanityImage {
   asset?: unknown;
@@ -18,11 +20,11 @@ interface SearchableClass {
 }
 
 interface SearchableProduct {
-  _id: string;
+  id: string;
   title?: string;
   description?: string;
-  slug?: { current?: string };
-  images?: SanityImage[];
+  slug?: string;
+  image_url?: string | null;
   price?: number;
 }
 
@@ -83,7 +85,10 @@ export async function GET(request: NextRequest) {
 
     // Search products
     if (type === "all" || type === "product") {
-      const products = await getProducts() as SearchableProduct[];
+      const supabase = createServiceClient();
+      const products = supabase
+        ? await fetchProducts(supabase, { activeOnly: true }) as SearchableProduct[]
+        : [];
       const matchingProducts = (products || [])
         .filter((product) =>
           product.title?.toLowerCase().includes(searchQuery) ||
@@ -91,13 +96,13 @@ export async function GET(request: NextRequest) {
         )
         .slice(0, 5)
         .map((product) => ({
-          id: product._id,
+          id: product.id,
           title: product.title,
           description: product.description,
           type: "product" as const,
-          href: `/products/${product.slug?.current}`,
-          image: product.images?.[0] ? urlFor(product.images[0]).width(100).height(100).url() : null,
-          price: product.price,
+          href: `/products/${product.slug}`,
+          image: product.image_url || null,
+          price: Number(product.price || 0),
         }));
       results.push(...matchingProducts);
     }

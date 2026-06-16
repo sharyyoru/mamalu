@@ -1,14 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
-import { createSanityAdminClient } from "@/lib/sanity/admin";
-
-function slugify(value: string) {
-  return value
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
+import { createAdminClient } from "@/lib/supabase/admin";
+import { currentSlug, mapCategory, slugify } from "@/lib/products/catalog";
 
 function getErrorMessage(error: unknown, fallback: string) {
   return error instanceof Error ? error.message : fallback;
@@ -20,7 +13,9 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
-    const client = createSanityAdminClient();
+    const supabase = createAdminClient();
+    if (!supabase) throw new Error("Database not configured");
+
     const body = await request.json();
     const title = String(body.title || "").trim();
 
@@ -28,19 +23,24 @@ export async function PUT(
       return NextResponse.json({ error: "Title is required" }, { status: 400 });
     }
 
-    const category = await client
-      .patch(id)
-      .set({
+    const { data: category, error } = await supabase
+      .from("product_categories")
+      .update({
         title,
-        slug: { _type: "slug", current: slugify(body.slug?.current || body.slug || title) },
+        slug: slugify(currentSlug(body.slug) || title),
         description: body.description || "",
-        order: Number(body.order || 0),
-        isActive: body.isActive !== false,
+        display_order: Number(body.order || 0),
+        is_active: body.isActive !== false,
+        updated_at: new Date().toISOString(),
       })
-      .commit();
+      .eq("id", id)
+      .select("id,title,slug,description,display_order,is_active")
+      .single();
+
+    if (error) throw error;
 
     revalidatePath("/products");
-    return NextResponse.json({ category });
+    return NextResponse.json({ category: mapCategory(category) });
   } catch (error: unknown) {
     console.error("Error updating product category:", error);
     return NextResponse.json(
@@ -56,8 +56,11 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    const client = createSanityAdminClient();
-    await client.delete(id);
+    const supabase = createAdminClient();
+    if (!supabase) throw new Error("Database not configured");
+
+    const { error } = await supabase.from("product_categories").delete().eq("id", id);
+    if (error) throw error;
 
     revalidatePath("/products");
     return NextResponse.json({ success: true });

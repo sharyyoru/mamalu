@@ -1,10 +1,13 @@
 import { Metadata } from "next";
-import { getProducts, getProductCategories } from "@/lib/sanity/queries";
-import { urlFor } from "@/lib/sanity/client";
 import ProductsClient from "./ProductsClient";
-import type { Product } from "./ProductsClient";
-import { ShoppingBag, Truck, Shield } from "lucide-react";
 import Image from "next/image";
+import { createServiceClient } from "@/lib/supabase/server";
+import {
+  fetchProductCategories,
+  fetchProducts,
+  mapCategory,
+  mapProduct,
+} from "@/lib/products/catalog";
 
 export const metadata: Metadata = {
   title: "Products",
@@ -13,21 +16,16 @@ export const metadata: Metadata = {
 };
 
 export default async function ProductsPage() {
-  const [products, categories] = await Promise.all([
-    getProducts(),
-    getProductCategories(),
-  ]);
-
-  // Pre-process image URLs on the server
-  const productsWithImages = ((products || []) as Product[]).map((product) => {
-    const image = product.images?.[0];
-
-    return {
-      ...product,
-      imageUrl: image ? urlFor(image).width(400).height(400).url() : null,
-      previewImageUrl: image ? urlFor(image).width(900).height(900).url() : null,
-    };
-  });
+  const supabase = createServiceClient();
+  const [productRows, categoryRows] = supabase
+    ? await Promise.all([
+        fetchProducts(supabase, { activeOnly: true }),
+        fetchProductCategories(supabase, { activeOnly: true }),
+      ])
+    : [[], []];
+  const categoryMap = new Map(categoryRows.map((category) => [category.id, category]));
+  const productsWithImages = productRows.map((product) => mapProduct(product, categoryMap));
+  const categories = categoryRows.map(mapCategory);
 
   return (
     <div className="min-h-screen relative overflow-x-hidden">
@@ -63,7 +61,7 @@ export default async function ProductsPage() {
 
       <ProductsClient
         products={productsWithImages}
-        categories={categories || []}
+        categories={categories}
       />
     </div>
   );
