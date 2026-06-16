@@ -29,6 +29,8 @@ import {
   CalendarDays,
   ChevronLeft,
   ChevronRight,
+  ArrowUp,
+  ArrowDown,
   Ticket,
   Lock,
 } from "lucide-react";
@@ -267,6 +269,8 @@ export default function AdminBookingsPage() {
   const [serviceTypeFilter, setServiceTypeFilter] = useState("all");
   const [packageFilter, setPackageFilter] = useState("all");
   const [creatorFilter, setCreatorFilter] = useState("all");
+  const [eventDateSort, setEventDateSort] = useState<"asc" | "desc">("asc");
+  const [hidePastBookings, setHidePastBookings] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<ServiceBooking | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -561,6 +565,7 @@ export default function AdminBookingsPage() {
 
   const filteredBookings = bookings.filter((booking) => {
     if (packageFilter === "with_packages" && !isPackageBooking(booking)) return false;
+    if (hidePastBookings && booking.event_date && booking.event_date < todayDateKey) return false;
     if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
     return (
@@ -571,6 +576,33 @@ export default function AdminBookingsPage() {
       booking.company_name?.toLowerCase().includes(query)
     );
   });
+
+  const getBookingEventTime = (booking: ServiceBooking) => {
+    if (!booking.event_date) return null;
+
+    const normalizedTime = normalizeBookingTime(booking.event_time);
+    const dateTime = normalizedTime ? `${booking.event_date}T${normalizedTime}:00` : `${booking.event_date}T00:00:00`;
+    const time = new Date(dateTime).getTime();
+
+    return Number.isNaN(time) ? null : time;
+  };
+
+  const sortedBookings = [...filteredBookings].sort((a, b) => {
+    const aEventTime = getBookingEventTime(a);
+    const bEventTime = getBookingEventTime(b);
+
+    if (aEventTime === null && bEventTime === null) {
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    }
+    if (aEventTime === null) return 1;
+    if (bEventTime === null) return -1;
+
+    return eventDateSort === "asc" ? aEventTime - bEventTime : bEventTime - aEventTime;
+  });
+
+  const toggleEventDateSort = () => {
+    setEventDateSort((current) => current === "asc" ? "desc" : "asc");
+  };
 
   const updateBookingStatus = async (bookingId: string, newStatus: string) => {
     setActionLoading(bookingId);
@@ -1095,6 +1127,24 @@ export default function AdminBookingsPage() {
                 </option>
               ))}
             </select>
+            <button
+              type="button"
+              onClick={toggleEventDateSort}
+              className="inline-flex items-center gap-2 px-4 py-2 border border-stone-200 rounded-lg text-sm text-stone-700 hover:bg-stone-50"
+              title={`Sort by event date ${eventDateSort === "asc" ? "latest first" : "earliest first"}`}
+            >
+              Event Date
+              {eventDateSort === "asc" ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />}
+            </button>
+            <label className="inline-flex items-center gap-2 px-4 py-2 border border-stone-200 rounded-lg text-sm text-stone-700 hover:bg-stone-50">
+              <input
+                type="checkbox"
+                checked={hidePastBookings}
+                onChange={(e) => setHidePastBookings(e.target.checked)}
+                className="h-4 w-4 rounded border-stone-300 text-amber-600 focus:ring-amber-500"
+              />
+              Hide past events
+            </label>
           </div>
 
           {/* Date Range */}
@@ -1212,7 +1262,7 @@ export default function AdminBookingsPage() {
               </div>
             ) : (
               <CalendarGrid
-                bookings={filteredBookings}
+                bookings={sortedBookings}
                 date={calendarDate}
                 view={calendarView}
                 timeSlots={CALENDAR_HOURS}
@@ -1231,7 +1281,7 @@ export default function AdminBookingsPage() {
             <div className="flex items-center justify-center h-64">
               <RefreshCw className="h-8 w-8 animate-spin text-amber-500" />
             </div>
-          ) : filteredBookings.length === 0 ? (
+          ) : sortedBookings.length === 0 ? (
             <div className="p-8 text-center">
               <Users className="h-12 w-12 text-stone-300 mx-auto mb-4" />
               <h3 className="font-semibold text-stone-900 mb-2">No bookings found</h3>
@@ -1249,7 +1299,17 @@ export default function AdminBookingsPage() {
                     <th className="px-4 py-3 text-left text-sm font-medium text-stone-500">Booking</th>
                     <th className="px-4 py-3 text-left text-sm font-medium text-stone-500">Customer</th>
                     <th className="px-4 py-3 text-left text-sm font-medium text-stone-500">Service</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-stone-500">Event</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-stone-500">
+                      <button
+                        type="button"
+                        onClick={toggleEventDateSort}
+                        className="inline-flex items-center gap-1 hover:text-stone-900"
+                        title={`Sort by event date ${eventDateSort === "asc" ? "latest first" : "earliest first"}`}
+                      >
+                        Event
+                        {eventDateSort === "asc" ? <ArrowUp className="h-3.5 w-3.5" /> : <ArrowDown className="h-3.5 w-3.5" />}
+                      </button>
+                    </th>
                     <th className="px-4 py-3 text-left text-sm font-medium text-stone-500">Amount</th>
                     <th className="px-4 py-3 text-left text-sm font-medium text-stone-500">Payment</th>
                     <th className="px-4 py-3 text-left text-sm font-medium text-stone-500">Status</th>
@@ -1258,7 +1318,7 @@ export default function AdminBookingsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-stone-100">
-                  {filteredBookings.map((booking) => {
+                  {sortedBookings.map((booking) => {
                     const paymentStatus = getPaymentStatusBadge(booking);
                     return (
                       <tr key={booking.id} className="hover:bg-stone-50">
