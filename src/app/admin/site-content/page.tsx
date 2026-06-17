@@ -562,7 +562,6 @@ export default function SiteContentPage() {
       if (!res.ok) throw new Error(data.error || "PDF upload failed");
 
       setMiniChefContent((prev) => ({ ...prev, monthlySpecialsPdfUrl: data.url }));
-      setBigChefContent((prev) => ({ ...prev, monthlySpecialsPdfUrl: prev.monthlySpecialsPdfUrl || data.url }));
     } catch (error) {
       console.error("Error uploading Mini Chef PDF:", error);
       alert(error instanceof Error ? error.message : "Failed to upload PDF. Please try again.");
@@ -1354,39 +1353,12 @@ export default function SiteContentPage() {
         </div>
       )}
 
-      {/* Mini Chef Page Content */}
       {activePage === "minichef" && (
         <div className="bg-white rounded-2xl border border-stone-200 p-6 space-y-6">
-          <h2 className="text-lg font-semibold text-stone-900">Mini Chef Page Content</h2>
-          <p className="text-sm text-stone-500">Configure the header section of the Mini Chef booking page.</p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="text-sm text-stone-600 mb-1 block">Page Title</label>
-              <input
-                type="text"
-                value={miniChefContent.pageTitle}
-                onChange={(e) => setMiniChefContent((prev) => ({ ...prev, pageTitle: e.target.value }))}
-                className="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
-              />
-            </div>
-            <div>
-              <label className="text-sm text-stone-600 mb-1 block">Page Subtitle</label>
-              <input
-                type="text"
-                value={miniChefContent.pageSubtitle}
-                onChange={(e) => setMiniChefContent((prev) => ({ ...prev, pageSubtitle: e.target.value }))}
-                className="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
-              />
-            </div>
-          </div>
-
-          <div className="border border-stone-200 rounded-xl p-4 space-y-3">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h3 className="font-semibold text-stone-900">Monthly Specials PDF</h3>
-                <p className="text-sm text-stone-500">Upload the PDF opened by the Monthly Specials button on the Mini Chef header.</p>
-              </div>
+          <h2 className="text-lg font-semibold text-stone-900">Shared Monthly Specials PDF</h2>
+          <p className="text-sm text-stone-500">This PDF is used by the Monthly Specials button on both Mini Chef and Big Chef.</p>
+          <div className="space-y-3">
+            <div className="flex items-start justify-end gap-4">
               {miniChefContent.monthlySpecialsPdfUrl && (
                 <a
                   href={miniChefContent.monthlySpecialsPdfUrl}
@@ -1430,6 +1402,35 @@ export default function SiteContentPage() {
                   Remove
                 </button>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Mini Chef Page Content */}
+      {activePage === "minichef" && (
+        <div className="bg-white rounded-2xl border border-stone-200 p-6 space-y-6">
+          <h2 className="text-lg font-semibold text-stone-900">Mini Chef Page Content</h2>
+          <p className="text-sm text-stone-500">Configure the header section of the Mini Chef booking page.</p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="text-sm text-stone-600 mb-1 block">Page Title</label>
+              <input
+                type="text"
+                value={miniChefContent.pageTitle}
+                onChange={(e) => setMiniChefContent((prev) => ({ ...prev, pageTitle: e.target.value }))}
+                className="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+              />
+            </div>
+            <div>
+              <label className="text-sm text-stone-600 mb-1 block">Page Subtitle</label>
+              <input
+                type="text"
+                value={miniChefContent.pageSubtitle}
+                onChange={(e) => setMiniChefContent((prev) => ({ ...prev, pageSubtitle: e.target.value }))}
+                className="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+              />
             </div>
           </div>
 
@@ -1593,53 +1594,6 @@ export default function SiteContentPage() {
                 onChange={(e) => setBigChefContent((prev) => ({ ...prev, pageSubtitle: e.target.value }))}
                 className="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
               />
-            </div>
-          </div>
-
-          <div className="border border-stone-200 rounded-xl p-4 space-y-3">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h3 className="font-semibold text-stone-900">Monthly Specials PDF</h3>
-                <p className="text-sm text-stone-500">The Big Chef button uses the same monthly specials PDF by default.</p>
-              </div>
-              {bigChefContent.monthlySpecialsPdfUrl && (
-                <a
-                  href={bigChefContent.monthlySpecialsPdfUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 rounded-lg border border-stone-200 px-3 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50"
-                >
-                  <FileText className="h-4 w-4" />
-                  Open PDF
-                </a>
-              )}
-            </div>
-            <div className="flex flex-col gap-3 md:flex-row md:items-center">
-              <input
-                type="text"
-                value={bigChefContent.monthlySpecialsPdfUrl || ""}
-                onChange={(e) => setBigChefContent((prev) => ({ ...prev, monthlySpecialsPdfUrl: e.target.value }))}
-                placeholder="Uses Mini Chef PDF unless set here"
-                className="flex-1 px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
-              />
-              <button
-                type="button"
-                onClick={() => setBigChefContent((prev) => ({ ...prev, monthlySpecialsPdfUrl: miniChefContent.monthlySpecialsPdfUrl || "" }))}
-                className="inline-flex items-center justify-center gap-2 rounded-lg bg-amber-100 px-4 py-2 text-sm font-semibold text-amber-700 hover:bg-amber-200"
-              >
-                <FileText className="h-4 w-4" />
-                Use Mini Chef PDF
-              </button>
-              {bigChefContent.monthlySpecialsPdfUrl && (
-                <button
-                  type="button"
-                  onClick={() => setBigChefContent((prev) => ({ ...prev, monthlySpecialsPdfUrl: "" }))}
-                  className="inline-flex items-center justify-center gap-2 rounded-lg border border-red-200 px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-50"
-                >
-                  <X className="h-4 w-4" />
-                  Remove
-                </button>
-              )}
             </div>
           </div>
 

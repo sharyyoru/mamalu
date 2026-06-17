@@ -134,7 +134,7 @@ export default function BigChefPage() {
       .then(([bigChefData, miniChefData]) => {
         setPageContent({
           ...bigChefData,
-          monthlySpecialsPdfUrl: bigChefData.monthlySpecialsPdfUrl || miniChefData.monthlySpecialsPdfUrl || "",
+          monthlySpecialsPdfUrl: miniChefData.monthlySpecialsPdfUrl || bigChefData.monthlySpecialsPdfUrl || "",
         });
       })
       .catch(() => setPageContent(defaultBigChefContent));
