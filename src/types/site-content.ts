@@ -56,6 +56,7 @@ export interface MiniChefPageContent {
   pageSubtitle: string;
   headerImage: string;
   headerIcon: string;
+  monthlySpecialsPdfUrl?: string;
   categoryIcons: {
     classics: string;
     monthly: string;
@@ -71,6 +72,7 @@ export interface BigChefPageContent {
   pageSubtitle: string;
   headerImage: string;
   headerIcon: string;
+  monthlySpecialsPdfUrl?: string;
   categoryIcons: {
     corporate: string;
     classics: string;
@@ -242,6 +244,7 @@ export const defaultMiniChefContent: MiniChefPageContent = {
   pageSubtitle: "Fun cooking experiences for little chefs",
   headerImage: "/images/apron.png",
   headerIcon: "/images/girl-01.png",
+  monthlySpecialsPdfUrl: "",
   categoryIcons: {
     classics: "/icons/boy.png",
     monthly: "/icons/girl.png",
@@ -256,6 +259,7 @@ export const defaultBigChefContent: BigChefPageContent = {
   pageSubtitle: "Professional cooking experiences for adults",
   headerImage: "/images/whisk-01.png",
   headerIcon: "/images/knives-01.png",
+  monthlySpecialsPdfUrl: "",
   categoryIcons: {
     corporate: "/icons/knives.png",
     classics: "/icons/whisk.png",

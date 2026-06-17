@@ -44,6 +44,7 @@ import {
   Phone,
   MapPin,
   Share2,
+  FileText,
 } from "lucide-react";
 
 type PageType = "homepage" | "about" | "minichef" | "bigchef" | "rentals" | "footer";
@@ -75,6 +76,7 @@ export default function SiteContentPage() {
   const [videoLoading, setVideoLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploading, setUploading] = useState(false);
+  const [pdfUploading, setPdfUploading] = useState(false);
   const [videoPlaying, setVideoPlaying] = useState(false);
   const [videoMuted, setVideoMuted] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -519,6 +521,55 @@ export default function SiteContentPage() {
       "gallery-new"
     );
     e.target.value = "";
+  };
+
+  const handleMiniChefPdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== "application/pdf") {
+      alert("Please upload a PDF file.");
+      e.target.value = "";
+      return;
+    }
+
+    if (file.size > 20 * 1024 * 1024) {
+      alert("PDF must be less than 20MB.");
+      e.target.value = "";
+      return;
+    }
+
+    setPdfUploading(true);
+
+    try {
+      const supabase = createClient();
+      if (!supabase) throw new Error("Supabase not configured");
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("You must be signed in to upload a PDF.");
+
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("bucket", "documents");
+      formData.append("userId", user.id);
+
+      const res = await fetch("/api/admin/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.error || "PDF upload failed");
+
+      setMiniChefContent((prev) => ({ ...prev, monthlySpecialsPdfUrl: data.url }));
+      setBigChefContent((prev) => ({ ...prev, monthlySpecialsPdfUrl: prev.monthlySpecialsPdfUrl || data.url }));
+    } catch (error) {
+      console.error("Error uploading Mini Chef PDF:", error);
+      alert(error instanceof Error ? error.message : "Failed to upload PDF. Please try again.");
+    } finally {
+      setPdfUploading(false);
+      e.target.value = "";
+    }
   };
 
   // Stat handlers
@@ -1330,6 +1381,58 @@ export default function SiteContentPage() {
             </div>
           </div>
 
+          <div className="border border-stone-200 rounded-xl p-4 space-y-3">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h3 className="font-semibold text-stone-900">Monthly Specials PDF</h3>
+                <p className="text-sm text-stone-500">Upload the PDF opened by the Monthly Specials button on the Mini Chef header.</p>
+              </div>
+              {miniChefContent.monthlySpecialsPdfUrl && (
+                <a
+                  href={miniChefContent.monthlySpecialsPdfUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 rounded-lg border border-stone-200 px-3 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50"
+                >
+                  <FileText className="h-4 w-4" />
+                  Open PDF
+                </a>
+              )}
+            </div>
+            <div className="flex flex-col gap-3 md:flex-row md:items-center">
+              <input
+                type="text"
+                value={miniChefContent.monthlySpecialsPdfUrl || ""}
+                onChange={(e) => setMiniChefContent((prev) => ({ ...prev, monthlySpecialsPdfUrl: e.target.value }))}
+                placeholder="Upload a PDF or paste a PDF URL"
+                className="flex-1 px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+              />
+              <label className={`inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${
+                pdfUploading ? "bg-stone-100 text-stone-400" : "bg-amber-100 text-amber-700 hover:bg-amber-200"
+              }`}>
+                <input
+                  type="file"
+                  accept="application/pdf,.pdf"
+                  className="hidden"
+                  disabled={pdfUploading}
+                  onChange={handleMiniChefPdfUpload}
+                />
+                {pdfUploading ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                {pdfUploading ? "Uploading..." : "Upload PDF"}
+              </label>
+              {miniChefContent.monthlySpecialsPdfUrl && (
+                <button
+                  type="button"
+                  onClick={() => setMiniChefContent((prev) => ({ ...prev, monthlySpecialsPdfUrl: "" }))}
+                  className="inline-flex items-center justify-center gap-2 rounded-lg border border-red-200 px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-50"
+                >
+                  <X className="h-4 w-4" />
+                  Remove
+                </button>
+              )}
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-3">
               <label className="text-sm text-stone-600 block">Header Image (Right side)</label>
@@ -1490,6 +1593,53 @@ export default function SiteContentPage() {
                 onChange={(e) => setBigChefContent((prev) => ({ ...prev, pageSubtitle: e.target.value }))}
                 className="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
               />
+            </div>
+          </div>
+
+          <div className="border border-stone-200 rounded-xl p-4 space-y-3">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h3 className="font-semibold text-stone-900">Monthly Specials PDF</h3>
+                <p className="text-sm text-stone-500">The Big Chef button uses the same monthly specials PDF by default.</p>
+              </div>
+              {bigChefContent.monthlySpecialsPdfUrl && (
+                <a
+                  href={bigChefContent.monthlySpecialsPdfUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 rounded-lg border border-stone-200 px-3 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50"
+                >
+                  <FileText className="h-4 w-4" />
+                  Open PDF
+                </a>
+              )}
+            </div>
+            <div className="flex flex-col gap-3 md:flex-row md:items-center">
+              <input
+                type="text"
+                value={bigChefContent.monthlySpecialsPdfUrl || ""}
+                onChange={(e) => setBigChefContent((prev) => ({ ...prev, monthlySpecialsPdfUrl: e.target.value }))}
+                placeholder="Uses Mini Chef PDF unless set here"
+                className="flex-1 px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+              />
+              <button
+                type="button"
+                onClick={() => setBigChefContent((prev) => ({ ...prev, monthlySpecialsPdfUrl: miniChefContent.monthlySpecialsPdfUrl || "" }))}
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-amber-100 px-4 py-2 text-sm font-semibold text-amber-700 hover:bg-amber-200"
+              >
+                <FileText className="h-4 w-4" />
+                Use Mini Chef PDF
+              </button>
+              {bigChefContent.monthlySpecialsPdfUrl && (
+                <button
+                  type="button"
+                  onClick={() => setBigChefContent((prev) => ({ ...prev, monthlySpecialsPdfUrl: "" }))}
+                  className="inline-flex items-center justify-center gap-2 rounded-lg border border-red-200 px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-50"
+                >
+                  <X className="h-4 w-4" />
+                  Remove
+                </button>
+              )}
             </div>
           </div>
 

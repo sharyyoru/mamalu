@@ -12,6 +12,10 @@ const uploadLimits: Record<string, { maxSize: number; contentTypes: string[] }> 
     maxSize: 50 * 1024 * 1024,
     contentTypes: ["video/mp4", "video/webm", "video/quicktime"],
   },
+  documents: {
+    maxSize: 20 * 1024 * 1024,
+    contentTypes: ["application/pdf"],
+  },
 };
 
 export async function POST(request: NextRequest) {
@@ -49,6 +53,24 @@ export async function POST(request: NextRequest) {
     // Convert file to buffer
     const arrayBuffer = await file.arrayBuffer();
     const buffer = new Uint8Array(arrayBuffer);
+
+    if (bucket === "documents") {
+      const { data: buckets } = await supabase.storage.listBuckets();
+      const bucketExists = buckets?.some((item) => item.id === bucket);
+
+      if (!bucketExists) {
+        const { error: createBucketError } = await supabase.storage.createBucket(bucket, {
+          public: true,
+          fileSizeLimit: uploadLimits.documents.maxSize,
+          allowedMimeTypes: uploadLimits.documents.contentTypes,
+        });
+
+        if (createBucketError) {
+          console.error("Bucket creation error:", createBucketError);
+          return NextResponse.json({ error: createBucketError.message }, { status: 500 });
+        }
+      }
+    }
 
     // Upload to Supabase Storage
     const { data, error } = await supabase.storage

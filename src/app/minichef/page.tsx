@@ -27,6 +27,7 @@ import {
   X,
   AlertTriangle,
   Ticket,
+  ExternalLink,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { MonthlyAvailableDatePicker } from "@/components/booking/monthly-available-date-picker";
@@ -1124,8 +1125,8 @@ export default function MiniChefPage() {
       {/* Header with animated icons */}
       <div className="bg-white border-t relative overflow-hidden">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+          <div className="flex items-center justify-between gap-6">
+            <div className="flex min-w-0 items-center gap-4">
               <button onClick={() => window.dispatchEvent(new CustomEvent("openMamaluMenu"))} className="p-2 hover:bg-stone-100 rounded-full transition-colors">
                 <ArrowLeft className="h-5 w-5" />
               </button>
@@ -1139,6 +1140,17 @@ export default function MiniChefPage() {
                 </p>
               </div>
             </div>
+            {pageContent.monthlySpecialsPdfUrl && (
+              <a
+                href={pageContent.monthlySpecialsPdfUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="ml-auto hidden shrink-0 items-center gap-2 rounded-full border border-[#FF8C6B] bg-[#FF8C6B] px-4 py-2 text-sm font-bold uppercase tracking-wide text-white shadow-sm transition-colors hover:bg-[#ff7e5b] sm:inline-flex"
+              >
+                Monthly Specials
+                <ExternalLink className="h-4 w-4" />
+              </a>
+            )}
             <div className="hidden lg:block">
               <Image src="/images/0312b1_fee52e9b65c54277bd129615e50d68ff~mv2_d_1772_1772_s_2.avif" alt="" width={150} height={150} className="float-medium opacity-70" />
             </div>
