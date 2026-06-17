@@ -22,10 +22,79 @@ function getErrorMessage(error: unknown) {
 // Related admin payloads come from several independently-shaped Supabase tables.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type RecordMap = Record<string, any>;
+// Dynamic admin cleanup touches optional tables/columns from several migrations.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AdminSupabaseClient = ReturnType<typeof createClient<any>>;
 
 const normalizeEmail = (email?: string | null) => String(email || "").trim().toLowerCase();
 
 const normalizePhone = (phone?: string | null) => String(phone || "").replace(/\D/g, "");
+
+const ignorableReferenceCleanupErrorCodes = new Set([
+  "42P01",
+  "42501",
+  "42703",
+  "PGRST200",
+  "PGRST204",
+  "PGRST205",
+]);
+
+type NullableReference = {
+  table: string;
+  column: string;
+};
+
+const nullableUserReferences: NullableReference[] = [
+  { table: "profiles", column: "referred_by" },
+  { table: "leads", column: "assigned_to" },
+  { table: "leads", column: "converted_to_user_id" },
+  { table: "class_bookings", column: "user_id" },
+  { table: "class_bookings", column: "checked_in_by" },
+  { table: "class_bookings", column: "receipt_verified_by" },
+  { table: "service_bookings", column: "user_id" },
+  { table: "service_bookings", column: "created_by" },
+  { table: "service_bookings", column: "checked_in_by" },
+  { table: "payment_links", column: "created_by" },
+  { table: "payment_links", column: "status_changed_by" },
+  { table: "invoices", column: "created_by" },
+  { table: "payment_transactions", column: "processed_by" },
+  { table: "lead_bookings", column: "created_by" },
+  { table: "whatsapp_cash_mentions", column: "reviewed_by" },
+  { table: "site_content", column: "updated_by" },
+  { table: "marketing_campaigns", column: "created_by" },
+  { table: "discount_codes", column: "created_by" },
+  { table: "discount_usage", column: "profile_id" },
+  { table: "campaign_recipients", column: "profile_id" },
+  { table: "referrals", column: "referrer_id" },
+  { table: "referrals", column: "referee_id" },
+  { table: "email_templates", column: "created_by" },
+];
+
+function isIgnorableSchemaError(error: { code?: string; message?: string }) {
+  return Boolean(
+    error.code && ignorableReferenceCleanupErrorCodes.has(error.code)
+  ) || /Could not find|does not exist|permission denied|schema cache/i.test(error.message || "");
+}
+
+async function clearUserReferences(
+  supabase: AdminSupabaseClient,
+  userId: string
+) {
+  const errors = [];
+
+  for (const reference of nullableUserReferences) {
+    const { error } = await supabase
+      .from(reference.table)
+      .update({ [reference.column]: null })
+      .eq(reference.column, userId);
+
+    if (error && !isIgnorableSchemaError(error)) {
+      errors.push({ ...reference, error });
+    }
+  }
+
+  return errors;
+}
 
 const toNumber = (value: unknown) => {
   const number = Number(value);
@@ -396,6 +465,16 @@ export async function DELETE(
 
     if (fetchError || !targetUser) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    const referenceErrors = await clearUserReferences(supabase, id);
+
+    if (referenceErrors.length > 0) {
+      console.error("Error clearing user references:", referenceErrors);
+      return NextResponse.json(
+        { error: "Database error deleting user" },
+        { status: 400 }
+      );
     }
 
     const { error: deleteAuthError } = await supabase.auth.admin.deleteUser(id);
