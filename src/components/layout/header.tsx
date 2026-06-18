@@ -186,7 +186,7 @@ export function Header() {
       {/* Fullscreen Menu Overlay - white bg, centered logo, peach highlights */}
       <div
         className={cn(
-          "fixed inset-0 z-[100] transition-all duration-700",
+          "fixed inset-0 z-[100] overflow-hidden transition-all duration-700",
           menuOpen ? "visible" : "invisible pointer-events-none"
         )}
       >
@@ -200,11 +200,11 @@ export function Header() {
         
         {/* Menu Content */}
         <div className={cn(
-          "relative h-full flex flex-col transition-opacity duration-500 delay-300",
+          "relative h-full overflow-y-auto overscroll-contain flex flex-col transition-opacity duration-500 delay-300",
           menuOpen ? "opacity-100" : "opacity-0"
         )}>
           {/* Top Bar - Centered Logo (2x bigger) and Close */}
-          <div className="flex items-center justify-center px-6 lg:px-12 py-8 relative">
+          <div className="flex shrink-0 items-center justify-center px-6 lg:px-12 py-8 relative">
             <Link href="/" onClick={() => setMenuOpen(false)} className="mx-auto">
               <Image 
                 src="/graphics/mamalu-logo-transparent.png" 
@@ -226,7 +226,7 @@ export function Header() {
           </div>
 
           {/* Menu Links - Large centered text with peach underline highlight on hover */}
-          <div className="flex-1 flex flex-col items-center justify-center gap-6 px-6 relative z-10">
+          <div className="flex-1 min-h-fit flex flex-col items-center justify-center gap-6 px-6 py-6 relative z-10">
             {[{ name: "Home", href: "/" }, ...navLinks, { name: "Vouchers", href: "/vouchers" }, { name: "Eazy Freezy", href: "/products" }, { name: "Account", href: "/account" }].map((link, i) => (
               <Link
                 key={link.name}
@@ -249,7 +249,7 @@ export function Header() {
           </div>
 
           {/* Social Links */}
-          <div className="flex items-center justify-center gap-6 py-6">
+          <div className="flex shrink-0 items-center justify-center gap-6 pt-4 pb-10">
             {socialLinks.map((social) => (
               <a
                 key={social.name}
