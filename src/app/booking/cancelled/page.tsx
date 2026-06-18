@@ -1,35 +1,12 @@
 "use client";
 
-import { Suspense, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import Link from "next/link";
 import { XCircle, Loader2, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
 function CancelledContent() {
-  const searchParams = useSearchParams();
-  const bookingId = searchParams.get("booking_id");
-  const serviceBookingId = searchParams.get("service_booking_id");
-
-  useEffect(() => {
-    const id = bookingId || serviceBookingId;
-    if (!id) return;
-
-    const storageKey = `mamalu-cancelled-payment-email:${serviceBookingId ? "service" : "class"}:${id}`;
-    if (window.localStorage.getItem(storageKey)) return;
-
-    window.localStorage.setItem(storageKey, new Date().toISOString());
-    fetch("/api/payments/cancelled-email", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ bookingId, serviceBookingId }),
-    }).catch((error) => {
-      window.localStorage.removeItem(storageKey);
-      console.error("Failed to send payment reminder email:", error);
-    });
-  }, [bookingId, serviceBookingId]);
-
   return (
     <div className="min-h-screen bg-stone-50 py-12">
       <div className="mx-auto max-w-2xl px-4">
@@ -47,7 +24,7 @@ function CancelledContent() {
 
             <div className="bg-amber-50 rounded-lg p-4 mb-6">
               <p className="text-sm text-amber-800">
-                Don&apos;t worry - we&apos;ve emailed you a link to complete your payment. Your spot is reserved for a limited time.
+                Don&apos;t worry - your booking is still pending. You can restart your booking or contact us on WhatsApp if you need help.
               </p>
             </div>
 
