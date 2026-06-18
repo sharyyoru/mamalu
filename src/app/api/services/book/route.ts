@@ -19,6 +19,20 @@ function normalizeTimeForQuery(time: string) {
   return time.slice(0, 5);
 }
 
+function getDubaiDateKey(value?: string | null) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: BUSINESS_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+  const getPart = (type: string) => parts.find((part) => part.type === type)?.value || "";
+  return `${getPart("year")}-${getPart("month")}-${getPart("day")}`;
+}
+
 function blocksEntireTimeSlot(booking: { guest_count?: number | null; service_name?: string | null }) {
   const serviceName = (booking.service_name || "").toLowerCase();
   const isPrivateCategory = serviceName.includes("birthday")
@@ -200,6 +214,26 @@ export async function POST(request: NextRequest) {
       MONTHLY_SLOT_CATEGORY_IDS.has(bookingSlotCategory) &&
       eventDate
     ) {
+      let matchesSelectedMonthlyMenuSchedule = false;
+      if (menuId && typeof menuId === "string") {
+        const { data: selectedMenu, error: selectedMenuError } = await supabase
+          .from("menu_items")
+          .select("scheduled_date")
+          .eq("id", menuId)
+          .maybeSingle();
+
+        if (selectedMenuError) {
+          console.error("Monthly menu schedule check error:", selectedMenuError);
+          return NextResponse.json({ error: "Could not verify monthly special schedule" }, { status: 500 });
+        }
+
+        const scheduledDate = selectedMenu?.scheduled_date || null;
+        matchesSelectedMonthlyMenuSchedule = getDubaiDateKey(scheduledDate) === eventDate;
+      }
+
+      if (matchesSelectedMonthlyMenuSchedule) {
+        // The selected monthly menu item carries its own date/time schedule.
+      } else {
       const { data: dateRule, error: dateRuleError } = await supabase
         .from("booking_slot_date_rules")
         .select("available_dates")
@@ -296,6 +330,7 @@ export async function POST(request: NextRequest) {
           { error: "The selected date is already booked for a full day kitchen rental. Please choose another date." },
           { status: 409 }
         );
+      }
       }
     }
 

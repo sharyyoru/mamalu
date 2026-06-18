@@ -20,6 +20,7 @@ import {
   ArrowUpDown,
   ChevronUp,
   ChevronDown,
+  CalendarClock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -40,6 +41,10 @@ interface MenuItem {
   sort_order: number;
   scheduled_date: string | null;
   allowed_persons: number | null;
+  metadata: {
+    monthly_special_end_time?: string;
+    [key: string]: unknown;
+  } | null;
   created_at: string;
 }
 
@@ -89,6 +94,7 @@ const emptyItem: Partial<MenuItem> = {
   sort_order: 0,
   scheduled_date: null,
   allowed_persons: null,
+  metadata: {},
 };
 
 // Helper to check if a category requires a scheduled date
@@ -98,6 +104,29 @@ const isMonthlySpecialCategory = (categoryId: string) =>
 // Helper to check if item has any monthly special categories
 const hasMonthlySpecialCategories = (categories: string[]) =>
   categories.some(isMonthlySpecialCategory);
+
+const toLocalParts = (value?: string | null) => {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const offsetMs = date.getTimezoneOffset() * 60 * 1000;
+  return new Date(date.getTime() - offsetMs).toISOString();
+};
+
+const toDateInputValue = (value?: string | null) => toLocalParts(value).slice(0, 10);
+
+const toTimeInputValue = (value?: string | null) => toLocalParts(value).slice(11, 16);
+
+const fromDateAndTimeInputs = (dateValue: string, timeValue: string) => {
+  if (!dateValue || !timeValue) return null;
+  const date = new Date(`${dateValue}T${timeValue}`);
+  return Number.isNaN(date.getTime()) ? null : date.toISOString();
+};
+
+const getMonthlySpecialEndTime = (item: Partial<MenuItem>) =>
+  typeof item.metadata?.monthly_special_end_time === "string"
+    ? item.metadata.monthly_special_end_time
+    : "";
 
 interface UploadResult {
   inserted: number;
@@ -885,9 +914,60 @@ export default function AdminMenuItemsPage() {
                 </div>
               </div>
 
-              {/* Allowed Persons - shown only for monthly specials */}
+              {/* Monthly special settings */}
               {hasMonthlySpecialCategories(editingItem.categories || []) && (
                 <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl space-y-4">
+                  <div>
+                    <label className="flex items-center gap-2 text-sm font-medium text-amber-800 mb-1">
+                      <CalendarClock className="h-4 w-4" />
+                      Available Date
+                    </label>
+                    <p className="text-xs text-amber-600 mb-2">
+                      Shown on the Mini Chef / Big Chef page when this monthly special is selected.
+                    </p>
+                    <input
+                      type="date"
+                      value={toDateInputValue(editingItem.scheduled_date)}
+                      onChange={(e) => setEditingItem((p) => ({
+                        ...p,
+                        scheduled_date: fromDateAndTimeInputs(e.target.value, toTimeInputValue(p?.scheduled_date) || "00:00"),
+                      }))}
+                      className="w-full px-3 py-2 border border-amber-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white"
+                    />
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <label className="block text-sm font-medium text-amber-800 mb-1">
+                        Start Time
+                      </label>
+                      <input
+                        type="time"
+                        value={toTimeInputValue(editingItem.scheduled_date)}
+                        onChange={(e) => setEditingItem((p) => ({
+                          ...p,
+                          scheduled_date: fromDateAndTimeInputs(toDateInputValue(p?.scheduled_date), e.target.value),
+                        }))}
+                        className="w-full px-3 py-2 border border-amber-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-amber-800 mb-1">
+                        End Time
+                      </label>
+                      <input
+                        type="time"
+                        value={getMonthlySpecialEndTime(editingItem)}
+                        onChange={(e) => setEditingItem((p) => ({
+                          ...p,
+                          metadata: {
+                            ...(p?.metadata || {}),
+                            monthly_special_end_time: e.target.value,
+                          },
+                        }))}
+                        className="w-full px-3 py-2 border border-amber-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white"
+                      />
+                    </div>
+                  </div>
                   <div>
                     <label className="block text-sm font-medium text-amber-800 mb-1">
                       Allowed Persons
