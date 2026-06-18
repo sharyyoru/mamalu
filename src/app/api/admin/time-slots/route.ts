@@ -41,6 +41,20 @@ interface DateRuleRow {
   available_dates: string[] | null;
 }
 
+interface HiddenTimeSlotPayload {
+  id?: string;
+  date: string;
+  start: string;
+  end: string;
+}
+
+interface HiddenTimeSlotRow {
+  id: string;
+  hidden_date: string;
+  start_time: string;
+  end_time: string;
+}
+
 function isValidSlot(slot: TimeSlotPayload) {
   return (
     CATEGORY_IDS.has(slot.category_id) &&
@@ -52,6 +66,11 @@ function isValidSlot(slot: TimeSlotPayload) {
     slot.days.length > 0 &&
     slot.days.every((day) => Number.isInteger(day) && day >= 0 && day <= 6)
   );
+}
+
+function toMinutes(time: string) {
+  const [hours, minutes] = time.split(":").map(Number);
+  return hours * 60 + minutes;
 }
 
 function toApiSlot(row: TimeSlotRow) {
@@ -68,6 +87,15 @@ function toApiSlot(row: TimeSlotRow) {
   };
 }
 
+function toApiHiddenTimeSlot(row: HiddenTimeSlotRow) {
+  return {
+    id: row.id,
+    date: String(row.hidden_date).slice(0, 10),
+    start: String(row.start_time).slice(0, 5),
+    end: String(row.end_time).slice(0, 5),
+  };
+}
+
 function normalizeDateRules(rules: DateRulePayload[] | undefined): DateRulePayload[] {
   if (!Array.isArray(rules)) return [];
 
@@ -76,6 +104,24 @@ function normalizeDateRules(rules: DateRulePayload[] | undefined): DateRulePaylo
     .map((rule) => ({
       category_id: rule.category_id,
       available_dates: [...new Set((rule.available_dates || []).filter((date) => DATE_PATTERN.test(date)))].sort(),
+    }));
+}
+
+function normalizeHiddenTimeSlots(rules: HiddenTimeSlotPayload[] | undefined): HiddenTimeSlotPayload[] {
+  if (!Array.isArray(rules)) return [];
+
+  return rules
+    .filter((rule) => (
+      DATE_PATTERN.test(rule.date)
+      && TIME_PATTERN.test(rule.start)
+      && TIME_PATTERN.test(rule.end)
+      && toMinutes(rule.start) < toMinutes(rule.end)
+    ))
+    .map((rule) => ({
+      id: rule.id,
+      date: rule.date,
+      start: rule.start,
+      end: rule.end,
     }));
 }
 
@@ -108,9 +154,20 @@ export async function GET() {
       console.warn("Booking slot date rules are not available yet:", dateRulesError.message);
     }
 
+    const { data: hiddenTimeSlots, error: hiddenTimeSlotsError } = await supabase
+      .from("booking_hidden_time_slots")
+      .select("id, hidden_date, start_time, end_time")
+      .order("hidden_date", { ascending: true })
+      .order("start_time", { ascending: true });
+
+    if (hiddenTimeSlotsError) {
+      console.warn("Hidden booking time slots are not available yet:", hiddenTimeSlotsError.message);
+    }
+
     return NextResponse.json({
       slots: (data || []).map(toApiSlot),
       dateRules: toDateRuleMap(dateRules || null),
+      hiddenTimeSlots: (hiddenTimeSlots || []).map(toApiHiddenTimeSlot),
     });
   } catch (error: unknown) {
     console.error("Error fetching booking time slots:", error);
@@ -126,7 +183,9 @@ export async function PUT(request: NextRequest) {
 
     const body = await request.json();
     const slots = body.slots as TimeSlotPayload[];
+    const hiddenTimeSlotPayload = body.hiddenTimeSlots as HiddenTimeSlotPayload[] | undefined;
     const dateRules = normalizeDateRules(body.dateRules);
+    const hiddenTimeSlots = normalizeHiddenTimeSlots(hiddenTimeSlotPayload);
 
     if (!Array.isArray(slots)) {
       return NextResponse.json({ error: "Expected slots array" }, { status: 400 });
@@ -136,6 +195,13 @@ export async function PUT(request: NextRequest) {
     if (invalidSlot) {
       return NextResponse.json(
         { error: `Invalid slot configuration for ${invalidSlot.category_id || "unknown category"}` },
+        { status: 400 }
+      );
+    }
+
+    if (Array.isArray(hiddenTimeSlotPayload) && hiddenTimeSlots.length !== hiddenTimeSlotPayload.length) {
+      return NextResponse.json(
+        { error: "Each hidden time slot needs a date and a valid start/end time range." },
         { status: 400 }
       );
     }
@@ -197,6 +263,43 @@ export async function PUT(request: NextRequest) {
       if (dateRuleError) throw dateRuleError;
     }
 
+    const hiddenIds = hiddenTimeSlots
+      .map((rule) => rule.id)
+      .filter((id): id is string => Boolean(id));
+
+    if (hiddenIds.length > 0) {
+      const { error: hiddenDeleteError } = await supabase
+        .from("booking_hidden_time_slots")
+        .delete()
+        .not("id", "in", `(${hiddenIds.join(",")})`);
+
+      if (hiddenDeleteError) throw hiddenDeleteError;
+    } else {
+      const { error: hiddenDeleteError } = await supabase
+        .from("booking_hidden_time_slots")
+        .delete()
+        .not("id", "is", null);
+
+      if (hiddenDeleteError) throw hiddenDeleteError;
+    }
+
+    if (hiddenTimeSlots.length > 0) {
+      const { error: hiddenUpsertError } = await supabase
+        .from("booking_hidden_time_slots")
+        .upsert(
+          hiddenTimeSlots.map((rule) => ({
+            id: rule.id || crypto.randomUUID(),
+            hidden_date: rule.date,
+            start_time: rule.start,
+            end_time: rule.end,
+            updated_at: new Date().toISOString(),
+          })),
+          { onConflict: "id" }
+        );
+
+      if (hiddenUpsertError) throw hiddenUpsertError;
+    }
+
     const { data, error } = await supabase
       .from("booking_time_slots")
       .select("*")
@@ -213,9 +316,18 @@ export async function PUT(request: NextRequest) {
 
     if (savedDateRulesError) throw savedDateRulesError;
 
+    const { data: savedHiddenTimeSlots, error: savedHiddenTimeSlotsError } = await supabase
+      .from("booking_hidden_time_slots")
+      .select("id, hidden_date, start_time, end_time")
+      .order("hidden_date", { ascending: true })
+      .order("start_time", { ascending: true });
+
+    if (savedHiddenTimeSlotsError) throw savedHiddenTimeSlotsError;
+
     return NextResponse.json({
       slots: (data || []).map(toApiSlot),
       dateRules: toDateRuleMap(savedDateRules || null),
+      hiddenTimeSlots: (savedHiddenTimeSlots || []).map(toApiHiddenTimeSlot),
     });
   } catch (error: unknown) {
     console.error("Error saving booking time slots:", error);

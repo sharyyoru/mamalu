@@ -46,6 +46,11 @@ interface DateRuleRow {
   available_dates: string[] | null;
 }
 
+interface HiddenTimeSlotRow {
+  start_time: string;
+  end_time: string;
+}
+
 function parseTime(timeStr: string): number {
   const [hours, minutes] = timeStr.split(":").map(Number);
   return hours * 60 + minutes;
@@ -145,6 +150,17 @@ function getSlotsForDay(dayOfWeek: number, slots: TimeSlotInfo[]): TimeSlotInfo[
   return slots.filter(slot => slot.days.includes(dayOfWeek));
 }
 
+function isSlotHidden(slot: TimeSlotInfo, hiddenSlots: HiddenTimeSlotRow[]): boolean {
+  const slotStart = parseTime(slot.start);
+  const slotEnd = parseTime(slot.end);
+
+  return hiddenSlots.some((hiddenSlot) => {
+    const hiddenStart = parseTime(normalizeTime(hiddenSlot.start_time));
+    const hiddenEnd = parseTime(normalizeTime(hiddenSlot.end_time));
+    return slotStart >= hiddenStart && slotEnd <= hiddenEnd;
+  });
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -230,9 +246,23 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    let hiddenTimeSlots: HiddenTimeSlotRow[] = [];
+
+    const { data: hiddenRows, error: hiddenRowsError } = await supabase
+      .from("booking_hidden_time_slots")
+      .select("start_time, end_time")
+      .eq("hidden_date", date);
+
+    if (hiddenRowsError) {
+      console.warn("Hidden booking time slots are not available yet:", hiddenRowsError.message);
+    } else {
+      hiddenTimeSlots = hiddenRows || [];
+    }
+
     // Get slots available for this day of the week
     const slotsForDay = getSlotsForDay(dayOfWeek, configuredSlots).filter((slot) =>
       isSlotBookableByNotice(date, slot)
+      && !isSlotHidden(slot, hiddenTimeSlots)
     );
 
     // Fetch all confirmed bookings for the given date
