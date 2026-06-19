@@ -3,7 +3,8 @@ import { createServiceClient } from "@/lib/supabase/server";
 
 interface Contact {
   id: string;
-  email: string;
+  email?: string | null;
+  phone?: string | null;
   first_name?: string;
   last_name?: string;
   full_name?: string;
@@ -39,16 +40,18 @@ export async function GET(request: NextRequest) {
     // Get newsletter leads (all, not just subscribed)
     const { data: leads } = await supabase
       .from("newsletter_leads")
-      .select("id, email, first_name, last_name")
+      .select("id, email, phone, first_name, last_name")
       .neq("status", "unsubscribed")
       .order("created_at", { ascending: false });
 
     leads?.forEach(lead => {
-      if (lead.email && !emailSet.has(lead.email.toLowerCase())) {
-        emailSet.add(lead.email.toLowerCase());
+      const key = (lead.email || lead.phone || "").toLowerCase();
+      if (key && !emailSet.has(key)) {
+        emailSet.add(key);
         contacts.push({
           id: lead.id,
           email: lead.email,
+          phone: lead.phone || undefined,
           first_name: lead.first_name || undefined,
           last_name: lead.last_name || undefined,
           full_name: lead.first_name && lead.last_name 
@@ -62,15 +65,17 @@ export async function GET(request: NextRequest) {
     // Get profiles
     const { data: profiles } = await supabase
       .from("profiles")
-      .select("id, email, full_name")
+      .select("id, email, phone, full_name")
       .order("created_at", { ascending: false });
 
     profiles?.forEach(profile => {
-      if (profile.email && !emailSet.has(profile.email.toLowerCase())) {
-        emailSet.add(profile.email.toLowerCase());
+      const key = (profile.email || profile.phone || "").toLowerCase();
+      if (key && !emailSet.has(key)) {
+        emailSet.add(key);
         contacts.push({
           id: profile.id,
           email: profile.email,
+          phone: profile.phone || undefined,
           full_name: profile.full_name || undefined,
           source: "profiles",
         });
@@ -82,7 +87,8 @@ export async function GET(request: NextRequest) {
     if (search) {
       const searchLower = search.toLowerCase();
       filteredContacts = contacts.filter(c =>
-        c.email.toLowerCase().includes(searchLower) ||
+        (c.email && c.email.toLowerCase().includes(searchLower)) ||
+        (c.phone && c.phone.toLowerCase().includes(searchLower)) ||
         (c.first_name && c.first_name.toLowerCase().includes(searchLower)) ||
         (c.last_name && c.last_name.toLowerCase().includes(searchLower)) ||
         (c.full_name && c.full_name.toLowerCase().includes(searchLower))
@@ -245,7 +251,7 @@ async function getFilteredContacts(
   if (search) {
     const searchLower = search.toLowerCase();
     result = result.filter(c =>
-      c.email.toLowerCase().includes(searchLower) ||
+      (c.email && c.email.toLowerCase().includes(searchLower)) ||
       (c.full_name && c.full_name.toLowerCase().includes(searchLower))
     );
   }

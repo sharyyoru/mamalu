@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Plus, Users, Search, Trash2, X, Check, UserPlus, Filter, ChevronDown, ChevronUp, Sparkles, DollarSign, Clock, ShoppingBag, RefreshCw } from "lucide-react";
+import { Plus, Users, Search, Trash2, X, Check, UserPlus, Filter, ChevronDown, ChevronUp, Sparkles, DollarSign, Clock, ShoppingBag, RefreshCw, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -18,12 +18,15 @@ interface ContactList {
 
 interface ListMember {
   id: string;
-  email: string;
+  name?: string | null;
+  email?: string | null;
+  phone?: string | null;
 }
 
 interface Contact {
   id: string;
-  email: string;
+  email?: string | null;
+  phone?: string | null;
   first_name?: string;
   last_name?: string;
   full_name?: string;
@@ -53,9 +56,14 @@ export default function ListsPage() {
   const [selectedContacts, setSelectedContacts] = useState<Set<string>>(new Set());
   const [loadingContacts, setLoadingContacts] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [uploadingContacts, setUploadingContacts] = useState(false);
+  const [uploadMessage, setUploadMessage] = useState("");
+  const [manualContact, setManualContact] = useState({ name: "", email: "", phone: "" });
+  const [manualContactMessage, setManualContactMessage] = useState("");
   const [syncingCategories, setSyncingCategories] = useState(false);
   const [expandedListId, setExpandedListId] = useState<string | null>(null);
   const [listMembers, setListMembers] = useState<Record<string, ListMember[]>>({});
+  const [editingMember, setEditingMember] = useState<ListMember | null>(null);
   
   // Smart filter state
   const [filterOptions, setFilterOptions] = useState<FilterOptions | null>(null);
@@ -139,6 +147,16 @@ export default function ListsPage() {
     syncBookingCategories();
   }, [syncBookingCategories]);
 
+  const fetchListMembers = async (listId: string) => {
+    try {
+      const res = await fetch(`/api/admin/marketing/lists/members?listId=${listId}`);
+      const data = await res.json();
+      setListMembers((current) => ({ ...current, [listId]: data.members || [] }));
+    } catch (error) {
+      console.error("Error fetching list members:", error);
+    }
+  };
+
   const toggleListMembers = async (listId: string) => {
     if (expandedListId === listId) {
       setExpandedListId(null);
@@ -148,13 +166,7 @@ export default function ListsPage() {
     setExpandedListId(listId);
     if (listMembers[listId]) return;
 
-    try {
-      const res = await fetch(`/api/admin/marketing/lists/members?listId=${listId}`);
-      const data = await res.json();
-      setListMembers((current) => ({ ...current, [listId]: data.members || [] }));
-    } catch (error) {
-      console.error("Error fetching list members:", error);
-    }
+    fetchListMembers(listId);
   };
 
   const handleCreateList = async () => {
@@ -192,6 +204,9 @@ export default function ListsPage() {
     setShowAddContactsModal({ show: true, list });
     setSelectedContacts(new Set());
     setContactSearch("");
+    setUploadMessage("");
+    setManualContact({ name: "", email: "", phone: "" });
+    setManualContactMessage("");
     setActiveSmartFilter("");
     setActiveServiceType("");
     setActiveMonth("");
@@ -220,20 +235,130 @@ export default function ListsPage() {
 
   const hasActiveFilters = activeSmartFilter || activeServiceType || activeMonth || activeClassTitle;
 
-  const toggleContact = (email: string) => {
+  const getContactKey = (contact: Contact) => contact.email || contact.phone || contact.id;
+
+  const toggleContact = (key: string) => {
     const newSelected = new Set(selectedContacts);
-    if (newSelected.has(email)) {
-      newSelected.delete(email);
+    if (newSelected.has(key)) {
+      newSelected.delete(key);
     } else {
-      newSelected.add(email);
+      newSelected.add(key);
     }
     setSelectedContacts(newSelected);
   };
 
+  const startEditingMember = (member: ListMember) => {
+    setEditingMember({
+      id: member.id,
+      name: member.name || "",
+      email: member.email || "",
+      phone: member.phone || "",
+    });
+  };
+
+  const handleSaveMember = async (listId: string) => {
+    if (!editingMember) return;
+    setSaving(true);
+    try {
+      const res = await fetch("/api/admin/marketing/lists/members", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: editingMember.id,
+          name: editingMember.name || null,
+          email: editingMember.email || null,
+          phone: editingMember.phone || null,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to update contact");
+      }
+      const data = await res.json();
+      setListMembers((current) => ({
+        ...current,
+        [listId]: (current[listId] || []).map((member) =>
+          member.id === editingMember.id ? data.member : member
+        ),
+      }));
+      setEditingMember(null);
+      fetchLists();
+    } catch (error) {
+      console.error("Error updating contact:", error);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const selectAllFiltered = () => {
     const newSelected = new Set(selectedContacts);
-    filteredContacts.forEach(c => newSelected.add(c.email));
+    filteredContacts.forEach(c => newSelected.add(getContactKey(c)));
     setSelectedContacts(newSelected);
+  };
+
+  const handleUploadContacts = async (file: File | null) => {
+    if (!file || !showAddContactsModal.list) return;
+    setUploadingContacts(true);
+    setUploadMessage("");
+    try {
+      const formData = new FormData();
+      formData.append("listId", showAddContactsModal.list.id);
+      formData.append("file", file);
+
+      const res = await fetch("/api/admin/marketing/lists/members", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to upload contacts");
+      }
+
+      setUploadMessage(`Added ${data.added || 0} contact${data.added === 1 ? "" : "s"} from ${file.name}.`);
+      fetchLists();
+      if (expandedListId === showAddContactsModal.list.id) {
+        fetchListMembers(showAddContactsModal.list.id);
+      }
+    } catch (error) {
+      setUploadMessage(error instanceof Error ? error.message : "Failed to upload contacts");
+    } finally {
+      setUploadingContacts(false);
+    }
+  };
+
+  const handleManualAddContact = async () => {
+    if (!showAddContactsModal.list || (!manualContact.email.trim() && !manualContact.phone.trim())) return;
+    setSaving(true);
+    setManualContactMessage("");
+    try {
+      const res = await fetch("/api/admin/marketing/lists/members", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          listId: showAddContactsModal.list.id,
+          contacts: [{
+            name: manualContact.name.trim() || null,
+            email: manualContact.email.trim() || null,
+            phone: manualContact.phone.trim() || null,
+            source: "manual",
+          }],
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to add contact");
+      }
+      setManualContact({ name: "", email: "", phone: "" });
+      setManualContactMessage("Contact added.");
+      fetchLists();
+      if (expandedListId === showAddContactsModal.list.id) {
+        fetchListMembers(showAddContactsModal.list.id);
+      }
+    } catch (error) {
+      setManualContactMessage(error instanceof Error ? error.message : "Failed to add contact");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleAddContacts = async () => {
@@ -241,8 +366,8 @@ export default function ListsPage() {
     setSaving(true);
     try {
       const contactsToAdd = contacts
-        .filter(c => selectedContacts.has(c.email))
-        .map(c => ({ email: c.email, id: c.id, source: c.source }));
+        .filter(c => selectedContacts.has(getContactKey(c)))
+        .map(c => ({ email: c.email || null, phone: c.phone || null, id: c.id, source: c.source }));
 
       const res = await fetch("/api/admin/marketing/lists/members", {
         method: "POST",
@@ -254,6 +379,9 @@ export default function ListsPage() {
       });
 
       if (res.ok) {
+        if (expandedListId === showAddContactsModal.list.id) {
+          fetchListMembers(showAddContactsModal.list.id);
+        }
         setShowAddContactsModal({ show: false, list: null });
         fetchLists();
       }
@@ -267,7 +395,8 @@ export default function ListsPage() {
   const filteredContacts = contacts.filter(c => {
     const search = contactSearch.toLowerCase();
     return (
-      c.email.toLowerCase().includes(search) ||
+      (c.email && c.email.toLowerCase().includes(search)) ||
+      (c.phone && c.phone.toLowerCase().includes(search)) ||
       (c.first_name && c.first_name.toLowerCase().includes(search)) ||
       (c.last_name && c.last_name.toLowerCase().includes(search)) ||
       (c.full_name && c.full_name.toLowerCase().includes(search))
@@ -357,16 +486,63 @@ export default function ListsPage() {
                     className="w-full mb-2"
                   >
                     {expandedListId === list.id ? <ChevronUp className="h-4 w-4 mr-2" /> : <ChevronDown className="h-4 w-4 mr-2" />}
-                    {expandedListId === list.id ? "Hide Emails" : "View Emails"}
+                    {expandedListId === list.id ? "Hide Contacts" : "View Contacts"}
                   </Button>
                   {expandedListId === list.id && (
-                    <div className="mb-3 max-h-40 overflow-y-auto rounded-lg bg-stone-50 p-3">
+                    <div className="mb-3 max-h-72 overflow-y-auto rounded-lg bg-stone-50 p-3">
                       {(listMembers[list.id] || []).length === 0 ? (
-                        <p className="text-sm text-stone-500">No booked customer emails yet.</p>
+                        <p className="text-sm text-stone-500">No contacts yet.</p>
                       ) : (
-                        <div className="space-y-1">
+                        <div className="space-y-2">
                           {(listMembers[list.id] || []).map((member) => (
-                            <p key={member.id} className="text-sm text-stone-700 break-all">{member.email}</p>
+                            <div key={member.id} className="rounded-md border border-stone-200 bg-white p-2">
+                              {editingMember?.id === member.id ? (
+                                <div className="space-y-2">
+                                  <Input
+                                    value={editingMember.name || ""}
+                                    onChange={(event) => setEditingMember({ ...editingMember, name: event.target.value })}
+                                    placeholder="Name"
+                                    className="h-8 text-sm"
+                                  />
+                                  <Input
+                                    value={editingMember.email || ""}
+                                    onChange={(event) => setEditingMember({ ...editingMember, email: event.target.value })}
+                                    placeholder="Email"
+                                    className="h-8 text-sm"
+                                  />
+                                  <Input
+                                    value={editingMember.phone || ""}
+                                    onChange={(event) => setEditingMember({ ...editingMember, phone: event.target.value })}
+                                    placeholder="Phone"
+                                    className="h-8 text-sm"
+                                  />
+                                  <div className="flex justify-end gap-2">
+                                    <Button variant="outline" size="sm" onClick={() => setEditingMember(null)}>
+                                      Cancel
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      onClick={() => handleSaveMember(list.id)}
+                                      disabled={saving || (!editingMember.email && !editingMember.phone)}
+                                      className="bg-amber-500 hover:bg-amber-600"
+                                    >
+                                      Save
+                                    </Button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="flex items-start justify-between gap-2">
+                                  <div className="min-w-0 space-y-1 text-sm">
+                                    <p className="font-medium text-stone-900 truncate">{member.name || "No name"}</p>
+                                    <p className="text-stone-600 break-all">{member.email || "No email"}</p>
+                                    <p className="text-stone-600 break-all">{member.phone || "No phone"}</p>
+                                  </div>
+                                  <Button variant="ghost" size="sm" onClick={() => startEditingMember(member)}>
+                                    Edit
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
                           ))}
                         </div>
                       )}
@@ -461,7 +637,7 @@ export default function ListsPage() {
                   <Input
                     value={contactSearch}
                     onChange={(e) => setContactSearch(e.target.value)}
-                    placeholder="Search contacts by name or email..."
+                    placeholder="Search contacts by name, email, or phone..."
                     className="pl-10"
                   />
                 </div>
@@ -571,6 +747,66 @@ export default function ListsPage() {
               )}
             </div>
 
+            <div className="mb-4 rounded-lg border border-dashed border-stone-300 p-3">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm font-medium text-stone-800">Upload contacts</p>
+                  <p className="text-xs text-stone-500">Excel or CSV columns must be name, email, phone.</p>
+                </div>
+                <label className="inline-flex cursor-pointer items-center justify-center rounded-md border px-3 py-2 text-sm hover:bg-stone-50">
+                  <Upload className="mr-2 h-4 w-4" />
+                  {uploadingContacts ? "Uploading..." : "Choose File"}
+                  <input
+                    type="file"
+                    accept=".xlsx,.xls,.csv"
+                    className="hidden"
+                    disabled={uploadingContacts}
+                    onChange={(event) => {
+                      handleUploadContacts(event.target.files?.[0] || null);
+                      event.currentTarget.value = "";
+                    }}
+                  />
+                </label>
+              </div>
+              {uploadMessage && <p className="mt-2 text-xs text-stone-600">{uploadMessage}</p>}
+            </div>
+
+            <div className="mb-4 rounded-lg border border-stone-200 p-3">
+              <p className="text-sm font-medium text-stone-800">Manual contact</p>
+              <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
+                <Input
+                  value={manualContact.name}
+                  onChange={(event) => setManualContact({ ...manualContact, name: event.target.value })}
+                  placeholder="Name"
+                  className="h-9 text-sm"
+                />
+                <Input
+                  value={manualContact.email}
+                  onChange={(event) => setManualContact({ ...manualContact, email: event.target.value })}
+                  placeholder="Email"
+                  className="h-9 text-sm"
+                />
+                <Input
+                  value={manualContact.phone}
+                  onChange={(event) => setManualContact({ ...manualContact, phone: event.target.value })}
+                  placeholder="Phone"
+                  className="h-9 text-sm"
+                />
+              </div>
+              <div className="mt-3 flex items-center justify-between gap-3">
+                <p className="text-xs text-stone-500">Email or phone is required.</p>
+                <Button
+                  size="sm"
+                  onClick={handleManualAddContact}
+                  disabled={saving || (!manualContact.email.trim() && !manualContact.phone.trim())}
+                  className="bg-amber-500 hover:bg-amber-600"
+                >
+                  Add Contact
+                </Button>
+              </div>
+              {manualContactMessage && <p className="mt-2 text-xs text-stone-600">{manualContactMessage}</p>}
+            </div>
+
             {selectedContacts.size > 0 && (
               <div className="mb-4 p-2 bg-amber-50 rounded-lg flex items-center justify-between">
                 <span className="text-sm text-amber-700">{selectedContacts.size} contacts selected</span>
@@ -591,30 +827,32 @@ export default function ListsPage() {
                 </div>
               ) : (
                 <div className="divide-y">
-                  {filteredContacts.slice(0, 100).map((contact) => (
+                  {filteredContacts.slice(0, 100).map((contact) => {
+                    const contactKey = getContactKey(contact);
+                    return (
                     <div
-                      key={contact.email}
+                      key={contactKey}
                       className={`p-3 flex items-center gap-3 cursor-pointer hover:bg-stone-50 ${
-                        selectedContacts.has(contact.email) ? "bg-amber-50" : ""
+                        selectedContacts.has(contactKey) ? "bg-amber-50" : ""
                       }`}
-                      onClick={() => toggleContact(contact.email)}
+                      onClick={() => toggleContact(contactKey)}
                     >
                       <div
                         className={`w-5 h-5 rounded border flex items-center justify-center ${
-                          selectedContacts.has(contact.email)
+                          selectedContacts.has(contactKey)
                             ? "bg-amber-500 border-amber-500"
                             : "border-stone-300"
                         }`}
                       >
-                        {selectedContacts.has(contact.email) && (
+                        {selectedContacts.has(contactKey) && (
                           <Check className="h-3 w-3 text-white" />
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-stone-900 truncate">
-                          {contact.full_name || contact.first_name || contact.email}
+                          {contact.full_name || contact.first_name || contact.email || contact.phone}
                         </p>
-                        <p className="text-sm text-stone-500 truncate">{contact.email}</p>
+                        <p className="text-sm text-stone-500 truncate">{contact.email || contact.phone}</p>
                       </div>
                       {/* Show stats when using smart filters */}
                       {hasActiveFilters && contact.total_spend !== undefined && (
@@ -633,7 +871,8 @@ export default function ListsPage() {
                          contact.source}
                       </Badge>
                     </div>
-                  ))}
+                    );
+                  })}
                   {filteredContacts.length > 100 && (
                     <div className="p-3 text-center text-sm text-stone-500">
                       Showing 100 of {filteredContacts.length} contacts. Use search to find more.

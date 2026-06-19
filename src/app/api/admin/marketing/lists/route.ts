@@ -174,12 +174,13 @@ export async function POST(request: NextRequest) {
 
     // Add contacts if provided
     if (contacts && contacts.length > 0) {
-      const members = contacts.map((contact: { email: string; id?: string; source?: string }) => ({
+      const members = contacts.map((contact: { email?: string | null; phone?: string | null; id?: string; source?: string }) => ({
         list_id: list.id,
-        email: contact.email,
+        email: contact.email || null,
+        phone: contact.phone || null,
         contact_id: contact.id || null,
         contact_source: contact.source || null,
-      }));
+      })).filter((member: { email: string | null; phone: string | null }) => member.email || member.phone);
 
       const { error: membersError } = await supabase
         .from("contact_list_members")
