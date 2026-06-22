@@ -38,6 +38,9 @@ interface MenuItem {
   id: string;
   name: string;
   price: number;
+  original_price?: number;
+  discount_percentage?: number;
+  discount_active?: boolean;
   image: string;
   dishes: string[];
   category: string;
@@ -202,6 +205,9 @@ interface SummerCampApiItem {
   name: string;
   description: string;
   price: number;
+  original_price?: number;
+  discount_percentage?: number;
+  discount_active?: boolean;
   price_unit: string;
   image_url: string | null;
 }
@@ -694,6 +700,9 @@ export default function MiniChefPage() {
               id: item.id,
               name: item.name,
               price: Number(item.price) || 0,
+              original_price: Number(item.original_price) || Number(item.price) || 0,
+              discount_percentage: Number(item.discount_percentage) || 0,
+              discount_active: Boolean(item.discount_active),
               image: item.image_url || "/images/summer camp .png",
               dishes: [item.description || item.price_unit],
               category: "summer_camp",
@@ -1567,6 +1576,12 @@ export default function MiniChefPage() {
                               AED {isMommyAndMe && selectedMenu?.id === menu.id ? getMenuPrice(menu).toLocaleString() : menu.price.toLocaleString()}
                             </span>
                           </div>
+                          {isSummerCamp && menu.discount_active && menu.original_price && menu.original_price > menu.price && (
+                            <div className="mt-1 flex items-center justify-end gap-2 text-xs">
+                              <span className="text-stone-400 line-through">AED {menu.original_price.toLocaleString()}</span>
+                              <span className="font-bold text-[#ff7f5c]">{menu.discount_percentage}% off</span>
+                            </div>
+                          )}
                           {isMommyAndMe && (
                             <p className="text-xs text-stone-400 mt-1">
                               +AED {MOMMY_ME_ADDITIONAL_CHILD_PRICE} per additional child

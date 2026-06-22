@@ -18,6 +18,9 @@ interface SummerCampItemPayload {
   price: number;
   price_unit: string;
   image_url: string | null;
+  discount_percentage?: number | null;
+  discount_start_date?: string | null;
+  discount_end_date?: string | null;
   is_active: boolean;
   sort_order: number;
 }
@@ -42,6 +45,10 @@ function normalizeDates(dates: unknown) {
   return [...new Set(dates.filter((date): date is string => typeof date === "string" && DATE_PATTERN.test(date)))].sort();
 }
 
+function normalizeOptionalDate(date: unknown) {
+  return typeof date === "string" && DATE_PATTERN.test(date) ? date : null;
+}
+
 function toApiBatch(row: SummerCampBatchRow) {
   return {
     id: row.id,
@@ -62,6 +69,9 @@ function toApiItem(row: SummerCampItemRow) {
     price: Number(row.price) || 0,
     price_unit: row.price_unit,
     image_url: row.image_url,
+    discount_percentage: Number(row.discount_percentage) || 0,
+    discount_start_date: row.discount_start_date || null,
+    discount_end_date: row.discount_end_date || null,
     is_active: row.is_active,
     sort_order: row.sort_order,
     created_at: row.created_at,
@@ -148,7 +158,11 @@ export async function PUT(request: NextRequest) {
       const existingRows = rows.filter((row) => row.id);
       const newRows = rows
         .filter((row) => !row.id)
-        .map(({ id: _id, ...row }) => row);
+        .map((row) => {
+          const { id, ...newRow } = row;
+          void id;
+          return newRow;
+        });
 
       if (existingRows.length > 0) {
         const { error: updateError } = await supabase
@@ -175,10 +189,24 @@ export async function PUT(request: NextRequest) {
         price: Math.max(0, Number(item.price) || 0),
         price_unit: item.price_unit?.trim() || "per guest",
         image_url: item.image_url?.trim() || null,
+        discount_percentage: Math.min(100, Math.max(0, Number(item.discount_percentage) || 0)),
+        discount_start_date: normalizeOptionalDate(item.discount_start_date),
+        discount_end_date: normalizeOptionalDate(item.discount_end_date),
         is_active: Boolean(item.is_active),
         sort_order: Number.isInteger(item.sort_order) ? item.sort_order : index * 10,
         updated_at: new Date().toISOString(),
       }));
+
+      const invalidDiscountItem = itemRows.find((item) =>
+        item.discount_percentage > 0 &&
+        (!item.discount_start_date || !item.discount_end_date || item.discount_start_date > item.discount_end_date)
+      );
+      if (invalidDiscountItem) {
+        return NextResponse.json(
+          { error: `${invalidDiscountItem.name} discount needs a valid start date and end date.` },
+          { status: 400 }
+        );
+      }
 
       const { error: itemError } = await supabase
         .from("summer_camp_items")

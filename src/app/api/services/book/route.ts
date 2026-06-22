@@ -105,6 +105,27 @@ function getSummerCampFullWeekBatches(batches: Array<{ camp_dates?: string[] | n
     .filter((dates) => dates.length === 5 && dates.every((date) => date > today));
 }
 
+function getEffectiveSummerCampPrice(item: {
+  price?: number | string | null;
+  discount_percentage?: number | string | null;
+  discount_start_date?: string | null;
+  discount_end_date?: string | null;
+}, today: string) {
+  const price = Number(item.price) || 0;
+  const discountPercentage = Math.min(100, Math.max(0, Number(item.discount_percentage) || 0));
+  const discountStartDate = item.discount_start_date || null;
+  const discountEndDate = item.discount_end_date || null;
+  const hasActiveDiscount = discountPercentage > 0
+    && Boolean(discountStartDate)
+    && Boolean(discountEndDate)
+    && discountStartDate! <= today
+    && today <= discountEndDate!;
+
+  return hasActiveDiscount
+    ? Math.round(price * (1 - discountPercentage / 100) * 100) / 100
+    : price;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const supabase = createAdminClient();
@@ -155,6 +176,41 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    let effectiveTotalAmount = Number(totalAmount) || 0;
+
+    if (bookingSlotCategory === SUMMER_CAMP_SLOT_CATEGORY_ID) {
+      const summerCampItems = Array.isArray(items)
+        ? items as Array<{ id?: string | null; quantity?: number | string | null }>
+        : [];
+      const selectedSummerCampItem = summerCampItems[0];
+
+      if (selectedSummerCampItem?.id) {
+        const { data: summerCampItem, error: summerCampItemError } = await supabase
+          .from("summer_camp_items")
+          .select("id, price, discount_percentage, discount_start_date, discount_end_date")
+          .eq("id", selectedSummerCampItem.id)
+          .eq("is_active", true)
+          .maybeSingle();
+
+        if (summerCampItemError) {
+          console.error("Summer camp price check error:", summerCampItemError);
+          return NextResponse.json({ error: "Could not verify summer camp price" }, { status: 500 });
+        }
+
+        if (!summerCampItem) {
+          return NextResponse.json({ error: "This summer camp option is no longer available." }, { status: 409 });
+        }
+
+        const quantity = selectedSummerCampItem.id === "summer-camp-per-day"
+          ? Math.min(5, Math.max(1, Number(selectedSummerCampItem.quantity) || 1))
+          : 1;
+        effectiveTotalAmount = getEffectiveSummerCampPrice(summerCampItem, getBusinessDateParts().date)
+          * (Number(guestCount) || 1)
+          * quantity
+          + (Number(extrasAmount) || 0);
+      }
+    }
+
     let voucher: { id: string; code: string; discount_value: number } | null = null;
     let discountAmount = 0;
 
@@ -172,7 +228,7 @@ export async function POST(request: NextRequest) {
         code: voucherData.code,
         discount_value: Number(voucherData.discount_value) || 0,
       };
-      discountAmount = Math.min(Number(totalAmount), voucher.discount_value);
+      discountAmount = Math.min(effectiveTotalAmount, voucher.discount_value);
     }
 
     const isRentalBooking =
@@ -197,7 +253,7 @@ export async function POST(request: NextRequest) {
       : isMiniChefBooking || isBigChefBooking
         ? false
         : Boolean(requestedDepositPayment);
-    const discountedTotalAmount = Math.max(0, Number(totalAmount) - discountAmount);
+    const discountedTotalAmount = Math.max(0, effectiveTotalAmount - discountAmount);
     const adjustedDepositAmount = isDepositPayment ? Math.ceil(discountedTotalAmount * 0.5) : null;
     const adjustedBalanceAmount = isDepositPayment
       ? discountedTotalAmount - (adjustedDepositAmount || 0)
@@ -424,7 +480,7 @@ export async function POST(request: NextRequest) {
       guest_count: guestCount || 1,
       items: items || [],
       extras: extras || [],
-      base_amount: baseAmount || totalAmount,
+      base_amount: bookingSlotCategory === SUMMER_CAMP_SLOT_CATEGORY_ID ? effectiveTotalAmount : baseAmount || totalAmount,
       extras_amount: extrasAmount || 0,
       discount_amount: discountAmount,
       total_amount: discountedTotalAmount,

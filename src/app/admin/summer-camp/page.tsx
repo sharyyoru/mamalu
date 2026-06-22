@@ -19,6 +19,9 @@ interface SummerCampItem {
   price: number;
   price_unit: string;
   image_url: string | null;
+  discount_percentage: number;
+  discount_start_date: string | null;
+  discount_end_date: string | null;
   is_active: boolean;
   sort_order: number;
 }
@@ -33,6 +36,9 @@ const DEFAULT_ITEMS: SummerCampItem[] = [
     price: 250,
     price_unit: "per guest per day",
     image_url: "/images/summer camp .png",
+    discount_percentage: 0,
+    discount_start_date: null,
+    discount_end_date: null,
     is_active: true,
     sort_order: 10,
   },
@@ -43,6 +49,9 @@ const DEFAULT_ITEMS: SummerCampItem[] = [
     price: 1000,
     price_unit: "per guest per week",
     image_url: "/images/week 1 summer camp.png",
+    discount_percentage: 0,
+    discount_start_date: null,
+    discount_end_date: null,
     is_active: true,
     sort_order: 20,
   },
@@ -95,6 +104,9 @@ export default function AdminSummerCampPage() {
       );
       setItems((data.items && data.items.length > 0 ? data.items : DEFAULT_ITEMS).map((item: SummerCampItem, index: number) => ({
         ...item,
+        discount_percentage: Number(item.discount_percentage) || 0,
+        discount_start_date: item.discount_start_date || null,
+        discount_end_date: item.discount_end_date || null,
         sort_order: item.sort_order ?? index * 10,
       })));
     } catch (error) {
@@ -177,6 +189,17 @@ export default function AdminSummerCampPage() {
         throw new Error(`${invalidBatch.name} must have exactly ${DATES_PER_BATCH} unique dates.`);
       }
 
+      const invalidDiscountItem = items.find((item) => {
+        const discountPercentage = Number(item.discount_percentage) || 0;
+        if (discountPercentage <= 0) return false;
+        return !item.discount_start_date
+          || !item.discount_end_date
+          || item.discount_start_date > item.discount_end_date;
+      });
+      if (invalidDiscountItem) {
+        throw new Error(`${invalidDiscountItem.name} discount needs a valid start date and end date.`);
+      }
+
       const res = await fetch("/api/admin/summer-camp", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -189,6 +212,9 @@ export default function AdminSummerCampPage() {
             price: Number(item.price) || 0,
             price_unit: item.price_unit.trim(),
             image_url: item.image_url?.trim() || null,
+            discount_percentage: Math.min(100, Math.max(0, Number(item.discount_percentage) || 0)),
+            discount_start_date: item.discount_start_date || null,
+            discount_end_date: item.discount_end_date || null,
             sort_order: index * 10,
           })),
         }),
@@ -290,6 +316,37 @@ export default function AdminSummerCampPage() {
                     onChange={(event) => updateItem(index, { image_url: event.target.value })}
                     className="mt-1 w-full rounded-md border border-stone-300 px-3 py-2 text-sm"
                   />
+                </div>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <div>
+                    <label className="text-xs font-semibold uppercase text-stone-500">Discount %</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={item.discount_percentage}
+                      onChange={(event) => updateItem(index, { discount_percentage: Number(event.target.value) || 0 })}
+                      className="mt-1 w-full rounded-md border border-stone-300 px-3 py-2 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold uppercase text-stone-500">Discount Start</label>
+                    <input
+                      type="date"
+                      value={item.discount_start_date || ""}
+                      onChange={(event) => updateItem(index, { discount_start_date: event.target.value || null })}
+                      className="mt-1 w-full rounded-md border border-stone-300 px-3 py-2 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold uppercase text-stone-500">Discount End</label>
+                    <input
+                      type="date"
+                      value={item.discount_end_date || ""}
+                      onChange={(event) => updateItem(index, { discount_end_date: event.target.value || null })}
+                      className="mt-1 w-full rounded-md border border-stone-300 px-3 py-2 text-sm"
+                    />
+                  </div>
                 </div>
                 <div className="rounded-lg border border-dashed border-stone-300 p-3">
                   {item.image_url ? (

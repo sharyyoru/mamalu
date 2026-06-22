@@ -15,6 +15,9 @@ interface SummerCampItemRow {
   price: number;
   price_unit: string;
   image_url: string | null;
+  discount_percentage?: number | null;
+  discount_start_date?: string | null;
+  discount_end_date?: string | null;
   sort_order: number;
 }
 
@@ -48,6 +51,31 @@ function getAvailableWeekBatches(batches: SummerCampBatchRow[], today: string) {
     .filter((batch) => batch.dates.length === 5 && batch.dates.every((date) => date > today));
 }
 
+function getDiscountedItem(item: SummerCampItemRow, today: string) {
+  const originalPrice = Number(item.price) || 0;
+  const discountPercentage = Math.min(100, Math.max(0, Number(item.discount_percentage) || 0));
+  const discountStartDate = item.discount_start_date || null;
+  const discountEndDate = item.discount_end_date || null;
+  const hasActiveDiscount = discountPercentage > 0
+    && Boolean(discountStartDate)
+    && Boolean(discountEndDate)
+    && discountStartDate! <= today
+    && today <= discountEndDate!;
+  const price = hasActiveDiscount
+    ? Math.round(originalPrice * (1 - discountPercentage / 100) * 100) / 100
+    : originalPrice;
+
+  return {
+    ...item,
+    price,
+    original_price: originalPrice,
+    discount_percentage: discountPercentage,
+    discount_start_date: discountStartDate,
+    discount_end_date: discountEndDate,
+    discount_active: hasActiveDiscount,
+  };
+}
+
 export async function GET(request: NextRequest) {
   try {
     const supabase = createAdminClient();
@@ -72,7 +100,7 @@ export async function GET(request: NextRequest) {
 
     const { data: itemData, error: itemError } = await supabase
       .from("summer_camp_items")
-      .select("id, name, description, price, price_unit, image_url, sort_order")
+      .select("id, name, description, price, price_unit, image_url, discount_percentage, discount_start_date, discount_end_date, sort_order")
       .eq("is_active", true)
       .order("sort_order", { ascending: true });
 
@@ -81,10 +109,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       dates,
       batches: getAvailableWeekBatches(batches, today),
-      items: ((itemData || []) as SummerCampItemRow[]).map((item) => ({
-        ...item,
-        price: Number(item.price) || 0,
-      })),
+      items: ((itemData || []) as SummerCampItemRow[]).map((item) => getDiscountedItem(item, today)),
     });
   } catch (error: unknown) {
     console.error("Error fetching summer camp dates:", error);
