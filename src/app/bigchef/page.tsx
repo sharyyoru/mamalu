@@ -36,6 +36,7 @@ interface TimeSlot { start: string; end: string; duration: number; label: string
 interface NannyMenuSchedule { date: string; time: string; allTimeSlots: TimeSlot[]; availableTimeSlots: TimeSlot[]; loading: boolean; }
 interface AppliedVoucher { code: string; amount: number; }
 type CategoryType = "corporate" | "classics" | "monthly" | "teenagers" | "nanny";
+type PaymentOption = "deposit" | "full";
 
 const formatTimeLabel = (time: string) => {
   const [hours, minutes] = time.split(":").map(Number);
@@ -239,6 +240,7 @@ export default function BigChefPage() {
   const [appliedVoucher, setAppliedVoucher] = useState<AppliedVoucher | null>(null);
   const [voucherError, setVoucherError] = useState("");
   const [applyingVoucher, setApplyingVoucher] = useState(false);
+  const [paymentOption, setPaymentOption] = useState<PaymentOption>("deposit");
 
   const categoryConfig = getCategoryConfig(pageContent);
   const currentConfig = categoryConfig[activeCategory];
@@ -367,6 +369,7 @@ export default function BigChefPage() {
     setStep(1);
     setEventDate("");
     setEventTime("");
+    setPaymentOption("deposit");
   }, [activeCategory]);
 
   // Fetch capacity for monthly special menu items
@@ -540,9 +543,11 @@ export default function BigChefPage() {
   const totalAmount = baseAmount + extrasTotal;
   const voucherDiscount = appliedVoucher ? Math.min(totalAmount, Number(appliedVoucher.amount) || 0) : 0;
   const discountedTotalAmount = Math.max(0, totalAmount - voucherDiscount);
-  const requiresDeposit = isCorporate && dateAllowsDeposit(eventDate, getDubaiDate());
-  const depositAmount = requiresDeposit ? Math.ceil(discountedTotalAmount * 0.5) : discountedTotalAmount;
-  const balanceAmount = requiresDeposit ? discountedTotalAmount - depositAmount : 0;
+  const depositEligible = isCorporate && dateAllowsDeposit(eventDate, getDubaiDate());
+  const paysDeposit = depositEligible && paymentOption === "deposit";
+  const depositAmount = depositEligible ? Math.ceil(discountedTotalAmount * 0.5) : discountedTotalAmount;
+  const balanceAmount = paysDeposit ? discountedTotalAmount - depositAmount : 0;
+  const amountDueNow = paysDeposit ? depositAmount : discountedTotalAmount;
 
   const handleApplyVoucher = async () => {
     if (!voucherCode.trim()) return;
@@ -600,7 +605,7 @@ export default function BigChefPage() {
       const res = await fetch("/api/services/book", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ serviceType: "corporate_deck", serviceName: `Big Chef - ${currentConfig.label}`, packageName: isNanny ? "Nanny Class (4 Sessions)" : isTeenager ? "Teenager Course (4 Sessions)" : selectedMenu?.name, ...menuData, customerName, customerEmail, customerPhone, companyName, eventDate: bookingEventDate, eventTime: bookingEventTime, guestCount: isNanny ? 1 : guestCount, items: usesFourMenuSelection ? courseScheduleItems : [], extras: extrasData, baseAmount, extrasAmount: extrasTotal, totalAmount, isDepositPayment: requiresDeposit, depositAmount: requiresDeposit ? depositAmount : null, balanceAmount: requiresDeposit ? balanceAmount : null, specialRequests: usesFourMenuSelection && scheduleSummary ? `${specialRequests ? `${specialRequests}\n\n` : ""}${currentConfig.label} schedule:\n${scheduleSummary}` : specialRequests, waiverAccepted: waiverAccepted || acceptedWaiver, category: activeCategory, bookingSlotCategory: AVAILABILITY_CATEGORY_BY_TAB[activeCategory], voucherCode: appliedVoucher?.code || null }),
+        body: JSON.stringify({ serviceType: "corporate_deck", serviceName: `Big Chef - ${currentConfig.label}`, packageName: isNanny ? "Nanny Class (4 Sessions)" : isTeenager ? "Teenager Course (4 Sessions)" : selectedMenu?.name, ...menuData, customerName, customerEmail, customerPhone, companyName, eventDate: bookingEventDate, eventTime: bookingEventTime, guestCount: isNanny ? 1 : guestCount, items: usesFourMenuSelection ? courseScheduleItems : [], extras: extrasData, baseAmount, extrasAmount: extrasTotal, totalAmount, paymentOption: paysDeposit ? "deposit" : "full", isDepositPayment: paysDeposit, depositAmount: paysDeposit ? depositAmount : null, balanceAmount: paysDeposit ? balanceAmount : null, specialRequests: usesFourMenuSelection && scheduleSummary ? `${specialRequests ? `${specialRequests}\n\n` : ""}${currentConfig.label} schedule:\n${scheduleSummary}` : specialRequests, waiverAccepted: waiverAccepted || acceptedWaiver, category: activeCategory, bookingSlotCategory: AVAILABILITY_CATEGORY_BY_TAB[activeCategory], voucherCode: appliedVoucher?.code || null }),
       });
       if (res.ok) { const data = await res.json(); if (data.checkoutUrl) window.location.href = data.checkoutUrl; else if (data.booking?.booking_number) window.location.href = `/booking/success?booking=${data.booking.booking_number}`; }
       else { const error = await res.json(); alert(error.error || "Failed to create booking"); }
@@ -1149,11 +1154,50 @@ export default function BigChefPage() {
                         <span className="font-bold">-AED {voucherDiscount.toLocaleString()}</span>
                       </div>
                     )}
+                    {depositEligible && (
+                      <div className="mt-4 rounded-lg border border-stone-200 bg-stone-50 p-3">
+                        <p className="mb-2 text-sm font-bold text-stone-700">Payment option</p>
+                        <div className="grid gap-2 sm:grid-cols-2">
+                          {[
+                            {
+                              value: "deposit" as const,
+                              label: "Pay 50% deposit",
+                              amount: depositAmount,
+                              note: `Balance later: AED ${(discountedTotalAmount - depositAmount).toLocaleString()}`,
+                            },
+                            {
+                              value: "full" as const,
+                              label: "Pay full amount",
+                              amount: discountedTotalAmount,
+                              note: "No balance due later",
+                            },
+                          ].map((option) => (
+                            <button
+                              key={option.value}
+                              type="button"
+                              onClick={() => setPaymentOption(option.value)}
+                              className={`rounded-lg border px-3 py-3 text-left transition ${
+                                paymentOption === option.value
+                                  ? "border-[#FF8C6B] bg-white shadow-sm"
+                                  : "border-stone-200 bg-white hover:border-[#FF8C6B]"
+                              }`}
+                            >
+                              <span className="flex items-center justify-between gap-2">
+                                <span className="font-bold text-stone-900">{option.label}</span>
+                                {paymentOption === option.value && <Check className="h-4 w-4 text-[#FF8C6B]" />}
+                              </span>
+                              <span className="mt-1 block text-sm font-bold text-[#FF8C6B]">AED {option.amount.toLocaleString()}</span>
+                              <span className="mt-1 block text-xs text-stone-500">{option.note}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                     <div className="mt-3 border-t pt-3 flex justify-between text-lg">
-                      <span className="font-bold text-stone-900">{requiresDeposit ? "Deposit Due" : "Total Due"}</span>
-                      <span className="font-bold text-[#FF8C6B]">AED {depositAmount.toLocaleString()}</span>
+                      <span className="font-bold text-stone-900">{paysDeposit ? "Deposit Due" : "Total Due"}</span>
+                      <span className="font-bold text-[#FF8C6B]">AED {amountDueNow.toLocaleString()}</span>
                     </div>
-                    {requiresDeposit && (
+                    {paysDeposit && (
                       <p className="mt-1 text-sm text-stone-500">Balance due later: AED {balanceAmount.toLocaleString()}</p>
                     )}
                   </div>
@@ -1179,7 +1223,7 @@ export default function BigChefPage() {
                   {isNanny ? `Nanny Class • ${selectedNannyMenus.length} menus` : isTeenager ? `Teenager Course • ${selectedTeenMenus.length}/4 menus • ${guestCount} guests` : `${selectedMenu?.name} • ${guestCount} guests`}
                 </p>
                 <p className="text-xs font-bold text-stone-600 sm:text-sm">
-                  Step {step} of {maxStep} • AED {discountedTotalAmount.toLocaleString()}
+                  Step {step} of {maxStep} • AED {(step === maxStep ? amountDueNow : discountedTotalAmount).toLocaleString()}
                 </p>
               </div>
               

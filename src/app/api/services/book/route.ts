@@ -137,6 +137,7 @@ export async function POST(request: NextRequest) {
       totalAmount,
       // Split payment info
       isDepositPayment: requestedDepositPayment,
+      paymentOption,
       specialRequests,
       ageRange,
       waiverAccepted,
@@ -186,8 +187,13 @@ export async function POST(request: NextRequest) {
     const isCorporatePrivateBooking =
       isBigChefBooking && category === "corporate";
     const usesDateBasedDeposit = isRentalBooking || isBirthdayBooking || isCorporatePrivateBooking;
-    const isDepositPayment = usesDateBasedDeposit && eventDate
+    const depositEligible = usesDateBasedDeposit && eventDate
       ? dateAllowsDeposit(eventDate, getBusinessDateParts().date)
+      : false;
+    const isDepositPayment = depositEligible
+      ? paymentOption === "full"
+        ? false
+        : true
       : isMiniChefBooking || isBigChefBooking
         ? false
         : Boolean(requestedDepositPayment);
