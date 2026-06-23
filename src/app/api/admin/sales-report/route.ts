@@ -577,6 +577,9 @@ export async function GET(request: NextRequest) {
       const items = Array.isArray(booking.items) ? booking.items as ScheduledItem[] : [];
       const packageItems = getPackageBookingItems(booking) as ScheduledItem[];
       const allocatableItems = packageItems.length > 0 ? packageItems : items;
+      const hasCampDateSchedule = allocatableItems.some((item) =>
+        Array.isArray(item.camp_dates) && item.camp_dates.filter(Boolean).length > 0
+      );
       const scheduledItems = allocatableItems.flatMap((item) => {
         const campDates = Array.isArray(item.camp_dates) ? item.camp_dates.filter(Boolean) : [];
         if (campDates.length > 0) {
@@ -588,7 +591,10 @@ export async function GET(request: NextRequest) {
 
         return item.event_date ? [item] : [];
       });
-      const allocationDivisor = Math.max(packageItems.length > 0 ? packageItems.length : scheduledItems.length, 1);
+      const allocationDivisor = Math.max(
+        hasCampDateSchedule ? scheduledItems.length : packageItems.length > 0 ? packageItems.length : scheduledItems.length,
+        1
+      );
       const matchingItems = scheduledItems.filter(
         (item) => item.event_date && item.event_date >= requestedFromDate && item.event_date <= requestedToDate
       );
