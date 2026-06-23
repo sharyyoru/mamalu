@@ -81,10 +81,10 @@ export async function POST(request: NextRequest) {
         email: authData.user.email,
       },
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error creating user:", error);
     return NextResponse.json(
-      { error: error.message || "Internal server error" },
+      { error: error instanceof Error ? error.message : "Internal server error" },
       { status: 500 }
     );
   }
@@ -131,10 +131,10 @@ export async function GET(request: NextRequest) {
       limit,
       offset,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error fetching users:", error);
     return NextResponse.json(
-      { error: error.message || "Internal server error" },
+      { error: error instanceof Error ? error.message : "Internal server error" },
       { status: 500 }
     );
   }

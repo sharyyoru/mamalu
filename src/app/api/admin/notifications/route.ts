@@ -15,7 +15,7 @@ function normalizeRecipientGroup(value: unknown) {
 
 export async function GET(request: NextRequest) {
   try {
-    const auth = await requireAuth(request, ["staff", "admin", "super_admin"]);
+    const auth = await requireAuth(request, ["staff", "admin", "super_admin", "mall", "accountant", "chef"]);
     if (auth instanceof NextResponse) return auth;
 
     const supabase = createServiceClient();

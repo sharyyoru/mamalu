@@ -119,7 +119,7 @@ function monthlyTargetStatus(booking: Record<string, unknown>): MonthlyTargetBoo
 }
 
 export async function GET(request: NextRequest) {
-  const authResult = await requireAuth(request, ["staff", "admin", "super_admin"]);
+  const authResult = await requireAuth(request, ["staff", "admin", "super_admin", "mall", "accountant"]);
   if (authResult instanceof NextResponse) {
     return authResult;
   }

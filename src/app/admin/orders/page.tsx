@@ -12,7 +12,6 @@ import {
   Eye,
   DollarSign,
   TrendingUp,
-  Users,
   RefreshCw,
   MapPin,
   X
@@ -21,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatPrice } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/client";
 
 interface OrderItem {
   id: string;
@@ -76,6 +76,25 @@ export default function OrdersPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [updating, setUpdating] = useState(false);
+  const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
+  const isMallUser = currentUserRole === "mall";
+
+  useEffect(() => {
+    const supabase = createClient();
+    if (!supabase) return;
+
+    supabase.auth.getUser().then(async ({ data }) => {
+      if (!data.user) return;
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", data.user.id)
+        .single();
+
+      setCurrentUserRole(profile?.role || null);
+    });
+  }, []);
 
   const fetchOrders = useCallback(async () => {
     try {
@@ -427,56 +446,58 @@ export default function OrdersPage() {
               </div>
 
               {/* Actions */}
-              <div>
-                <h3 className="font-semibold text-stone-700 mb-3">Update Status</h3>
-                <div className="flex flex-wrap gap-2">
-                  {selectedOrder.status !== "processing" && (
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => updateOrderStatus(selectedOrder.id, "processing")}
-                      disabled={updating}
-                    >
-                      <Package className="h-4 w-4 mr-1" />
-                      Processing
-                    </Button>
-                  )}
-                  {selectedOrder.status !== "shipped" && (
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => updateOrderStatus(selectedOrder.id, "shipped")}
-                      disabled={updating}
-                    >
-                      <Truck className="h-4 w-4 mr-1" />
-                      Mark Shipped
-                    </Button>
-                  )}
-                  {selectedOrder.status !== "delivered" && (
-                    <Button 
-                      size="sm"
-                      className="bg-green-600 hover:bg-green-700"
-                      onClick={() => updateOrderStatus(selectedOrder.id, "delivered")}
-                      disabled={updating}
-                    >
-                      <CheckCircle className="h-4 w-4 mr-1" />
-                      Mark Delivered
-                    </Button>
-                  )}
-                  {selectedOrder.status !== "cancelled" && selectedOrder.status !== "delivered" && (
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      className="text-red-600 hover:bg-red-50"
-                      onClick={() => updateOrderStatus(selectedOrder.id, "cancelled")}
-                      disabled={updating}
-                    >
-                      <XCircle className="h-4 w-4 mr-1" />
-                      Cancel
-                    </Button>
-                  )}
+              {!isMallUser && (
+                <div>
+                  <h3 className="font-semibold text-stone-700 mb-3">Update Status</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedOrder.status !== "processing" && (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => updateOrderStatus(selectedOrder.id, "processing")}
+                        disabled={updating}
+                      >
+                        <Package className="h-4 w-4 mr-1" />
+                        Processing
+                      </Button>
+                    )}
+                    {selectedOrder.status !== "shipped" && (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => updateOrderStatus(selectedOrder.id, "shipped")}
+                        disabled={updating}
+                      >
+                        <Truck className="h-4 w-4 mr-1" />
+                        Mark Shipped
+                      </Button>
+                    )}
+                    {selectedOrder.status !== "delivered" && (
+                      <Button 
+                        size="sm"
+                        className="bg-green-600 hover:bg-green-700"
+                        onClick={() => updateOrderStatus(selectedOrder.id, "delivered")}
+                        disabled={updating}
+                      >
+                        <CheckCircle className="h-4 w-4 mr-1" />
+                        Mark Delivered
+                      </Button>
+                    )}
+                    {selectedOrder.status !== "cancelled" && selectedOrder.status !== "delivered" && (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="text-red-600 hover:bg-red-50"
+                        onClick={() => updateOrderStatus(selectedOrder.id, "cancelled")}
+                        disabled={updating}
+                      >
+                        <XCircle className="h-4 w-4 mr-1" />
+                        Cancel
+                      </Button>
+                    )}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </div>

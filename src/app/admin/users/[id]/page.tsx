@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -100,6 +100,9 @@ const roleOptions = [
   { value: "staff", label: "Staff", color: "bg-amber-100 text-amber-700" },
   { value: "admin", label: "Admin", color: "bg-[#FF8C6B]/20 text-[#FF8C6B]" },
   { value: "super_admin", label: "Super Admin", color: "bg-red-100 text-red-700" },
+  { value: "mall", label: "Mall", color: "bg-blue-100 text-blue-700" },
+  { value: "accountant", label: "Accountant", color: "bg-emerald-100 text-emerald-700" },
+  { value: "chef", label: "Chef", color: "bg-amber-100 text-amber-700" },
 ];
 
 const emptyStats: UserStats = {
@@ -120,8 +123,6 @@ const emptyStats: UserStats = {
 const getRoleColor = (role: string) => {
   return roleOptions.find(r => r.value === role)?.color || "bg-stone-100 text-stone-700";
 };
-
-const isCustomerRole = (role?: string | null) => role === "customer";
 
 type BadgeVariant = "success" | "warning" | "secondary";
 
@@ -281,7 +282,6 @@ function InvoiceRows({
 
 export default function UserDetailPage() {
   const params = useParams();
-  const router = useRouter();
   const userId = params.id as string;
 
   const [user, setUser] = useState<UserProfile | null>(null);
@@ -314,11 +314,6 @@ export default function UserDetailPage() {
       const response = await fetch(`/api/admin/users/${userId}`);
       if (response.ok) {
         const data = await response.json();
-
-        if (!isCustomerRole(data.user?.role)) {
-          router.replace("/admin/users");
-          return;
-        }
 
         setUser(data.user);
         setSelectedRole(data.user.role);
@@ -355,10 +350,6 @@ export default function UserDetailPage() {
       if (response.ok) {
         setUser(prev => prev ? { ...prev, role: selectedRole } : null);
         setEditingRole(false);
-
-        if (!isCustomerRole(selectedRole)) {
-          router.replace("/admin/users");
-        }
       }
     } catch (error) {
       console.error("Error updating role:", error);

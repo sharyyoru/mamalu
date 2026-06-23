@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { stripe } from "@/lib/stripe/server";
 import { sendPaymentLinkCreatedEmail } from "@/lib/email/payment-link-created";
+import { requireAuth } from "@/lib/auth/api-auth";
 
 interface AdminBookingScheduleItem {
   id?: string;
@@ -296,6 +297,9 @@ export async function GET(request: NextRequest) {
 // POST: Create a new booking (admin)
 export async function POST(request: NextRequest) {
   try {
+    const authResult = await requireAuth(request, ["staff", "admin", "super_admin", "accountant", "chef"]);
+    if (authResult instanceof NextResponse) return authResult;
+
     const supabase = createAdminClient();
     if (!supabase) {
       return NextResponse.json({ error: "Database not configured" }, { status: 500 });

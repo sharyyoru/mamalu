@@ -1,0 +1,3 @@
+ALTER TYPE user_role ADD VALUE IF NOT EXISTS 'mall';
+ALTER TYPE user_role ADD VALUE IF NOT EXISTS 'accountant';
+ALTER TYPE user_role ADD VALUE IF NOT EXISTS 'chef';

@@ -3,6 +3,7 @@ import { stripe } from "@/lib/stripe/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendBookingPaymentReminderEmail } from "@/lib/email/booking-payment-reminder";
 import { createSourceInvoice } from "@/lib/invoices/source-invoices";
+import { requireAuth } from "@/lib/auth/api-auth";
 
 async function findBalanceInvoice(
   supabase: NonNullable<ReturnType<typeof createAdminClient>>,
@@ -23,6 +24,9 @@ async function findBalanceInvoice(
 
 export async function POST(request: NextRequest) {
   try {
+    const authResult = await requireAuth(request, ["staff", "admin", "super_admin", "accountant", "chef"]);
+    if (authResult instanceof NextResponse) return authResult;
+
     const supabase = createAdminClient();
     if (!supabase) {
       return NextResponse.json({ error: "Database not configured" }, { status: 500 });

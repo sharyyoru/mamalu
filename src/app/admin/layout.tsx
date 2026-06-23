@@ -58,7 +58,7 @@ export default async function AdminLayout({
   const isWilson = user.email === "wilson@mutant.ae";
   
   // Check if user has admin access
-  const adminRoles = ["staff", "admin", "super_admin"];
+  const adminRoles = ["staff", "admin", "super_admin", "mall", "accountant", "chef"];
   if (!isWilson && (!profile || !adminRoles.includes(profile.role))) {
     redirect("/admin/unauthorized");
   }
@@ -66,6 +66,33 @@ export default async function AdminLayout({
   // Use profile data or defaults for wilson
   const userRole = profile?.role || (isWilson ? "super_admin" : "customer");
   const userName = profile?.full_name || (isWilson ? "Wilson Admin" : user.email || "");
+
+  if (userRole === "mall") {
+    const mallAllowedPaths = ["/admin/bookings", "/admin/orders", "/admin/sales"];
+    const isMallAllowedPath = mallAllowedPaths.some((path) => pathname === path || pathname.startsWith(`${path}/`));
+
+    if (pathname === "/admin" || !isMallAllowedPath) {
+      redirect("/admin/bookings");
+    }
+  }
+
+  if (userRole === "accountant") {
+    const accountantBlockedPaths = ["/admin/users", "/admin/role-management", "/admin/marketing"];
+    const isAccountantBlockedPath = accountantBlockedPaths.some((path) => pathname === path || pathname.startsWith(`${path}/`));
+
+    if (isAccountantBlockedPath) {
+      redirect("/admin");
+    }
+  }
+
+  if (userRole === "chef") {
+    const chefAllowedPaths = ["/admin/bookings", "/admin/products", "/admin/orders"];
+    const isChefAllowedPath = chefAllowedPaths.some((path) => pathname === path || pathname.startsWith(`${path}/`));
+
+    if (pathname === "/admin" || !isChefAllowedPath) {
+      redirect("/admin/bookings");
+    }
+  }
 
   return (
     <AdminShell

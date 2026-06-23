@@ -4,12 +4,16 @@ import { stripe } from "@/lib/stripe/server";
 import { sendBookingPaymentReminderEmail } from "@/lib/email/booking-payment-reminder";
 import { createSourceInvoice } from "@/lib/invoices/source-invoices";
 import { getSiteUrl } from "@/lib/url/site";
+import { requireAuth } from "@/lib/auth/api-auth";
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const authResult = await requireAuth(request, ["staff", "admin", "super_admin", "accountant", "chef"]);
+    if (authResult instanceof NextResponse) return authResult;
+
     const { id } = await params;
     const supabase = createAdminClient();
 

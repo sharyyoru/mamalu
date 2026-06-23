@@ -29,6 +29,7 @@ import {
   BellRing,
   CalendarDays,
   AlertCircle,
+  ShieldCheck,
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -39,6 +40,7 @@ interface AdminSidebarProps {
 const navigation = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { name: "Mamalu Users", href: "/admin/users", icon: Users },
+  { name: "Role Management", href: "/admin/role-management", icon: ShieldCheck, superAdminOnly: true },
   { name: "Leads CRM", href: "/admin/leads", icon: UserPlus },
   { name: "Bookings", href: "/admin/bookings", icon: Ticket },
   { name: "Unpaid Bookings", href: "/admin/unpaid-bookings", icon: AlertCircle },
@@ -71,11 +73,30 @@ const navigation = [
   { name: "Site Content", href: "/admin/site-content", icon: Palette },
 ];
 
+const roleNavigation: Record<string, string[]> = {
+  mall: ["/admin/bookings", "/admin/orders", "/admin/sales"],
+  chef: ["/admin/bookings", "/admin/products", "/admin/orders"],
+};
+
+const roleHiddenNavigation: Record<string, string[]> = {
+  accountant: ["/admin/users", "/admin/role-management", "/admin/marketing"],
+};
+
 export function AdminSidebar({ userRole, onNavigate }: AdminSidebarProps) {
   const pathname = usePathname();
 
   // Filter navigation items based on user role
   const filteredNavigation = navigation.filter(item => {
+    const allowedForRole = roleNavigation[userRole];
+    if (allowedForRole && !allowedForRole.includes(item.href)) {
+      return false;
+    }
+
+    const hiddenForRole = roleHiddenNavigation[userRole];
+    if (hiddenForRole?.includes(item.href)) {
+      return false;
+    }
+
     if (item.superAdminOnly && userRole !== 'super_admin') {
       return false;
     }

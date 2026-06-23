@@ -298,6 +298,7 @@ export function AdminBookingsPageContent({ unpaidOnly = false }: AdminBookingsPa
   const [scheduleSlotsLoading, setScheduleSlotsLoading] = useState<Record<string, boolean>>({});
   const [copiedLink, setCopiedLink] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
   const [bookingInvoices, setBookingInvoices] = useState<BookingInvoice[]>([]);
   const [bookingInvoicesLoading, setBookingInvoicesLoading] = useState(false);
   const [generatingBalanceLink, setGeneratingBalanceLink] = useState(false);
@@ -312,6 +313,9 @@ export function AdminBookingsPageContent({ unpaidOnly = false }: AdminBookingsPa
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const todayDateKey = formatLocalDateKey(new Date());
+  const isMallUser = currentUserRole === "mall";
+  const isChefUser = currentUserRole === "chef";
+  const hideBookingFinancials = isChefUser;
 
   // Get current user on mount
   useEffect(() => {
@@ -320,6 +324,12 @@ export function AdminBookingsPageContent({ unpaidOnly = false }: AdminBookingsPa
       supabase.auth.getUser().then(({ data }) => {
         if (data.user) {
           setCurrentUserId(data.user.id);
+          supabase
+            .from("profiles")
+            .select("role")
+            .eq("id", data.user.id)
+            .single()
+            .then(({ data: profile }) => setCurrentUserRole(profile?.role || null));
         }
       });
     }
@@ -1008,7 +1018,7 @@ export function AdminBookingsPageContent({ unpaidOnly = false }: AdminBookingsPa
             <RefreshCw className="h-4 w-4 mr-2" />
             Refresh
           </Button>
-          {!unpaidOnly && (
+          {!unpaidOnly && !isMallUser && (
             <Button onClick={() => setShowCreateModal(true)}>
               <Plus className="h-4 w-4 mr-2" />
               Create Booking
@@ -1019,7 +1029,7 @@ export function AdminBookingsPageContent({ unpaidOnly = false }: AdminBookingsPa
 
       {/* Stats */}
       {!unpaidOnly && (
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <div className={`grid grid-cols-1 gap-4 ${hideBookingFinancials ? "md:grid-cols-3" : "md:grid-cols-5"}`}>
           <Card>
             <CardContent className="p-4 flex items-center gap-4">
               <div className="p-3 rounded-xl bg-violet-100">
@@ -1053,28 +1063,32 @@ export function AdminBookingsPageContent({ unpaidOnly = false }: AdminBookingsPa
               </div>
             </CardContent>
           </Card>
-          <Card>
-            <CardContent className="p-4 flex items-center gap-4">
-              <div className="p-3 rounded-xl bg-blue-100">
-                <DollarSign className="h-5 w-5 text-blue-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-stone-900">{stats?.balancePending || 0}</p>
-                <p className="text-sm text-stone-500">Balance Due</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 flex items-center gap-4">
-              <div className="p-3 rounded-xl bg-emerald-100">
-                <DollarSign className="h-5 w-5 text-emerald-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-stone-900">{formatPrice(stats?.collectedRevenue || 0)}</p>
-                <p className="text-sm text-stone-500">Collected</p>
-              </div>
-            </CardContent>
-          </Card>
+          {!hideBookingFinancials && (
+            <>
+              <Card>
+                <CardContent className="p-4 flex items-center gap-4">
+                  <div className="p-3 rounded-xl bg-blue-100">
+                    <DollarSign className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-stone-900">{stats?.balancePending || 0}</p>
+                    <p className="text-sm text-stone-500">Balance Due</p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4 flex items-center gap-4">
+                  <div className="p-3 rounded-xl bg-emerald-100">
+                    <DollarSign className="h-5 w-5 text-emerald-600" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-stone-900">{formatPrice(stats?.collectedRevenue || 0)}</p>
+                    <p className="text-sm text-stone-500">Collected</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </>
+          )}
         </div>
       )}
 
@@ -1312,7 +1326,7 @@ export function AdminBookingsPageContent({ unpaidOnly = false }: AdminBookingsPa
               <p className="text-stone-500 mb-4">
                 {unpaidOnly ? "No unpaid bookings match your filters" : "Try adjusting your filters or create a new booking"}
               </p>
-              {!unpaidOnly && (
+              {!unpaidOnly && !isMallUser && (
                 <Button onClick={() => setShowCreateModal(true)}>
                   <Plus className="h-4 w-4 mr-2" />
                   Create Booking
@@ -1338,8 +1352,12 @@ export function AdminBookingsPageContent({ unpaidOnly = false }: AdminBookingsPa
                         {eventDateSort === "asc" ? <ArrowUp className="h-3.5 w-3.5" /> : <ArrowDown className="h-3.5 w-3.5" />}
                       </button>
                     </th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-stone-500">Amount</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-stone-500">Payment</th>
+                    {!hideBookingFinancials && (
+                      <>
+                        <th className="px-4 py-3 text-left text-sm font-medium text-stone-500">Amount</th>
+                        <th className="px-4 py-3 text-left text-sm font-medium text-stone-500">Payment</th>
+                      </>
+                    )}
                     <th className="px-4 py-3 text-left text-sm font-medium text-stone-500">Status</th>
                     <th className="px-4 py-3 text-left text-sm font-medium text-stone-500">Created By</th>
                     <th className="px-4 py-3 text-right text-sm font-medium text-stone-500">Actions</th>
@@ -1387,30 +1405,34 @@ export function AdminBookingsPageContent({ unpaidOnly = false }: AdminBookingsPa
                             <span className="text-stone-400">Not scheduled</span>
                           )}
                         </td>
-                        <td className="px-4 py-3">
-                          {booking.is_voucher_redemption ? (
-                            <div>
-                              <div className="font-medium text-green-600">FREE</div>
-                              <div className="text-xs text-stone-500 line-through">
-                                {formatPrice(booking.original_price || 0)}
-                              </div>
-                            </div>
-                          ) : (
-                            <>
-                              <div className="font-medium text-stone-900">{formatPrice(booking.total_amount)}</div>
-                              {booking.is_deposit_payment && (
-                                <div className="text-xs text-stone-500">
-                                  Deposit: {formatPrice(booking.deposit_amount || 0)}
+                        {!hideBookingFinancials && (
+                          <>
+                            <td className="px-4 py-3">
+                              {booking.is_voucher_redemption ? (
+                                <div>
+                                  <div className="font-medium text-green-600">FREE</div>
+                                  <div className="text-xs text-stone-500 line-through">
+                                    {formatPrice(booking.original_price || 0)}
+                                  </div>
                                 </div>
+                              ) : (
+                                <>
+                                  <div className="font-medium text-stone-900">{formatPrice(booking.total_amount)}</div>
+                                  {booking.is_deposit_payment && (
+                                    <div className="text-xs text-stone-500">
+                                      Deposit: {formatPrice(booking.deposit_amount || 0)}
+                                    </div>
+                                  )}
+                                </>
                               )}
-                            </>
-                          )}
-                        </td>
-                        <td className="px-4 py-3">
-                          <Badge className={paymentStatus.className}>
-                            {paymentStatus.label}
-                          </Badge>
-                        </td>
+                            </td>
+                            <td className="px-4 py-3">
+                              <Badge className={paymentStatus.className}>
+                                {paymentStatus.label}
+                              </Badge>
+                            </td>
+                          </>
+                        )}
                         <td className="px-4 py-3">
                           <Badge className={getStatusBadge(booking.status)}>
                             {booking.status}
@@ -1437,7 +1459,7 @@ export function AdminBookingsPageContent({ unpaidOnly = false }: AdminBookingsPa
                             >
                               <Eye className="h-4 w-4" />
                             </Button>
-                            {booking.payment_link?.stripe_payment_link_url && (
+                            {!isMallUser && !hideBookingFinancials && booking.payment_link?.stripe_payment_link_url && (
                               <Button
                                 size="sm"
                                 variant="ghost"
@@ -1451,7 +1473,7 @@ export function AdminBookingsPageContent({ unpaidOnly = false }: AdminBookingsPa
                                 )}
                               </Button>
                             )}
-                            {canSendBalanceReminder(booking) && (
+                            {!isMallUser && !hideBookingFinancials && canSendBalanceReminder(booking) && (
                               <Button
                                 size="sm"
                                 variant="ghost"
@@ -1514,10 +1536,12 @@ export function AdminBookingsPageContent({ unpaidOnly = false }: AdminBookingsPa
                   <p className="text-sm text-stone-500">Created</p>
                   <p className="font-medium">{formatDate(selectedBooking.created_at)}</p>
                 </div>
-                <div>
-                  <p className="text-sm text-stone-500">Total Amount</p>
-                  <p className="font-medium text-lg">{formatPrice(selectedBooking.total_amount)}</p>
-                </div>
+                {!hideBookingFinancials && (
+                  <div>
+                    <p className="text-sm text-stone-500">Total Amount</p>
+                    <p className="font-medium text-lg">{formatPrice(selectedBooking.total_amount)}</p>
+                  </div>
+                )}
               </div>
 
               {/* Customer Info */}
@@ -1591,9 +1615,10 @@ export function AdminBookingsPageContent({ unpaidOnly = false }: AdminBookingsPa
                           <div className="rounded-lg border border-stone-200 overflow-hidden">
                             {scheduleItems.map((item, idx) => {
                               const locked = isScheduleItemLocked(idx);
+                              const readOnly = isMallUser || locked;
                               const slotOptions = locked ? getPackageSlotOptions() : getScheduleSlotOptions(item, idx);
                               const slotsLoading = Boolean(scheduleSlotsLoading[getScheduleSlotKey(item.event_date)]);
-                              const disableTimeSelect = locked || !item.event_date || slotsLoading;
+                              const disableTimeSelect = readOnly || !item.event_date || slotsLoading;
 
                               return (
                                 <div
@@ -1620,8 +1645,8 @@ export function AdminBookingsPageContent({ unpaidOnly = false }: AdminBookingsPa
                                     type="date"
                                     value={item.event_date || ""}
                                     onChange={(e) => updateScheduleItem(idx, "event_date", e.target.value)}
-                                    disabled={locked}
-                                    className={`h-10 rounded-lg border border-stone-200 px-3 text-sm ${locked ? "bg-stone-100 text-stone-500" : ""}`}
+                                    disabled={readOnly}
+                                    className={`h-10 rounded-lg border border-stone-200 px-3 text-sm ${readOnly ? "bg-stone-100 text-stone-500" : ""}`}
                                   />
                                   <select
                                     value={item.event_time || ""}
@@ -1638,7 +1663,7 @@ export function AdminBookingsPageContent({ unpaidOnly = false }: AdminBookingsPa
                                       </option>
                                     ))}
                                   </select>
-                                  {!locked && item.event_date && !slotsLoading && slotOptions.length === 0 && (
+                                  {!readOnly && item.event_date && !slotsLoading && slotOptions.length === 0 && (
                                     <p className="text-xs text-amber-700 sm:col-start-3">No slots available</p>
                                   )}
                                 </div>
@@ -1648,6 +1673,7 @@ export function AdminBookingsPageContent({ unpaidOnly = false }: AdminBookingsPa
                           {scheduleError && (
                             <p className="text-sm text-red-600">{scheduleError}</p>
                           )}
+                          {!isMallUser && (
                           <div className="flex justify-end">
                             <Button
                               type="button"
@@ -1658,6 +1684,7 @@ export function AdminBookingsPageContent({ unpaidOnly = false }: AdminBookingsPa
                               {scheduleSaving ? "Saving..." : "Save Schedule"}
                             </Button>
                           </div>
+                          )}
                         </div>
                       );
                     }
@@ -1670,7 +1697,7 @@ export function AdminBookingsPageContent({ unpaidOnly = false }: AdminBookingsPa
                       </p>
                     );
                   })()}
-                  {selectedBooking.status !== "completed" && !isCourseScheduleBooking(selectedBooking) && !isPackageBooking(selectedBooking) && (
+                  {!isMallUser && selectedBooking.status !== "completed" && !isCourseScheduleBooking(selectedBooking) && !isPackageBooking(selectedBooking) && (
                     <div className="mt-3 rounded-lg border border-stone-200 bg-stone-50 p-3">
                       <p className="mb-3 text-sm font-medium text-stone-900">Reschedule booking</p>
                       {rescheduleAllowedDates !== null && (
@@ -1744,6 +1771,7 @@ export function AdminBookingsPageContent({ unpaidOnly = false }: AdminBookingsPa
               </div>
 
               {/* Payment Info */}
+              {!hideBookingFinancials && (
               <div className="border-t pt-4">
                 <h3 className="font-semibold mb-3">Payment</h3>
                 <div className="space-y-2">
@@ -1784,6 +1812,7 @@ export function AdminBookingsPageContent({ unpaidOnly = false }: AdminBookingsPa
                                 {formatPrice(selectedBooking.balance_amount || 0)} balance due
                               </p>
                             </div>
+                            {!isMallUser && (
                             <div className="flex items-center gap-1">
                               <a
                                 href={selectedBooking.balance_payment_link}
@@ -1817,6 +1846,7 @@ export function AdminBookingsPageContent({ unpaidOnly = false }: AdminBookingsPa
                                 {sendingBalanceLink ? "Sending..." : "Send via Email"}
                               </Button>
                             </div>
+                            )}
                           </div>
                         ) : (
                           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -1826,6 +1856,7 @@ export function AdminBookingsPageContent({ unpaidOnly = false }: AdminBookingsPa
                                 Generate a {formatPrice(selectedBooking.balance_amount || 0)} payment link.
                               </p>
                             </div>
+                            {!isMallUser && (
                             <Button
                               size="sm"
                               onClick={() => generateBalancePaymentLink(false)}
@@ -1838,6 +1869,7 @@ export function AdminBookingsPageContent({ unpaidOnly = false }: AdminBookingsPa
                               )}
                               {generatingBalanceLink ? "Generating..." : "Generate Payment Link"}
                             </Button>
+                            )}
                           </div>
                         )}
                       </div>
@@ -1853,6 +1885,7 @@ export function AdminBookingsPageContent({ unpaidOnly = false }: AdminBookingsPa
                       >
                         Payment Link <ExternalLink className="h-3 w-3" />
                       </a>
+                      {!isMallUser && (
                       <Button
                         size="sm"
                         variant="ghost"
@@ -1860,12 +1893,15 @@ export function AdminBookingsPageContent({ unpaidOnly = false }: AdminBookingsPa
                       >
                         <Copy className="h-3 w-3" />
                       </Button>
+                      )}
                     </div>
                   )}
                 </div>
               </div>
+              )}
 
               {/* Invoices */}
+              {!hideBookingFinancials && (
               <div className="border-t pt-4">
                 <div className="mb-3 flex items-center justify-between">
                   <h3 className="font-semibold">Invoices</h3>
@@ -1920,6 +1956,7 @@ export function AdminBookingsPageContent({ unpaidOnly = false }: AdminBookingsPa
                                 >
                                   <ExternalLink className="h-4 w-4" />
                                 </a>
+                                {!isMallUser && (
                                 <button
                                   type="button"
                                   onClick={() => copyPaymentLink(invoice.payment_link!, invoice.id)}
@@ -1928,6 +1965,7 @@ export function AdminBookingsPageContent({ unpaidOnly = false }: AdminBookingsPa
                                 >
                                   <Copy className="h-4 w-4" />
                                 </button>
+                                )}
                               </>
                             )}
                             <Link
@@ -1944,9 +1982,10 @@ export function AdminBookingsPageContent({ unpaidOnly = false }: AdminBookingsPa
                   </div>
                 )}
               </div>
+              )}
 
               {/* Extras */}
-              {selectedBooking.extras && selectedBooking.extras.length > 0 && (
+              {!hideBookingFinancials && selectedBooking.extras && selectedBooking.extras.length > 0 && (
                 <div className="border-t pt-4">
                   <h3 className="font-semibold mb-3">Extras</h3>
                   <div className="space-y-1">
@@ -1988,6 +2027,7 @@ export function AdminBookingsPageContent({ unpaidOnly = false }: AdminBookingsPa
             </div>
 
             {/* Actions Footer */}
+            {!isMallUser && (
             <div className="p-6 border-t bg-stone-50 flex gap-2 justify-end">
               {selectedBooking.status === "pending" && (
                 <>
@@ -2015,6 +2055,7 @@ export function AdminBookingsPageContent({ unpaidOnly = false }: AdminBookingsPa
                 </Button>
               )}
             </div>
+            )}
           </div>
         </div>
       )}

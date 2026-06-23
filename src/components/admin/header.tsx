@@ -78,6 +78,9 @@ export function AdminHeader({ user, onMenuClick }: AdminHeaderProps) {
     staff: "Staff",
     admin: "Admin",
     super_admin: "Super Admin",
+    mall: "Mall",
+    accountant: "Accountant",
+    chef: "Chef",
   };
 
   return (

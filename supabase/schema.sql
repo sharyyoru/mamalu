@@ -15,7 +15,7 @@ CREATE EXTENSION IF NOT EXISTS "pg_trgm"; -- For search
 -- ===========================================
 
 -- User roles enum
-CREATE TYPE user_role AS ENUM ('customer', 'student', 'renter', 'instructor', 'staff', 'admin', 'super_admin');
+CREATE TYPE user_role AS ENUM ('customer', 'student', 'renter', 'instructor', 'staff', 'admin', 'super_admin', 'mall', 'accountant', 'chef');
 CREATE TYPE skill_level AS ENUM ('beginner', 'intermediate', 'advanced', 'professional');
 
 -- ===========================================

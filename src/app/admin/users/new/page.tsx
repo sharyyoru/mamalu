@@ -46,8 +46,8 @@ export default function NewUserPage() {
       setTimeout(() => {
         router.push("/admin/users");
       }, 2000);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to create user");
     } finally {
       setLoading(false);
     }
@@ -157,6 +157,9 @@ export default function NewUserPage() {
                   <option value="staff">Staff</option>
                   <option value="admin">Admin</option>
                   <option value="super_admin">Super Admin</option>
+                  <option value="mall">Mall</option>
+                  <option value="accountant">Accountant</option>
+                  <option value="chef">Chef</option>
                 </select>
               </div>
             </div>

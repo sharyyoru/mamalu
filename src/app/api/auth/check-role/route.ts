@@ -92,7 +92,8 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const hasAdminAccess = profile && ["staff", "admin", "super_admin"].includes(profile.role);
+    const adminRoles = ["staff", "admin", "super_admin", "mall", "accountant", "chef"];
+    const hasAdminAccess = profile && adminRoles.includes(profile.role);
     console.log("Final result:", { profile, hasAdminAccess });
 
     return NextResponse.json({ 
@@ -101,8 +102,11 @@ export async function POST(request: NextRequest) {
       debug: queryError ? { error: queryError.message } : undefined
     });
 
-  } catch (error: any) {
+  } catch (error) {
     console.error("Check role error:", error);
-    return NextResponse.json({ error: error.message, stack: error.stack }, { status: 500 });
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Role check failed" },
+      { status: 500 }
+    );
   }
 }

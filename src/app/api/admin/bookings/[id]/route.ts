@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendPackageScheduleAssignmentEmail } from "@/lib/email/package-schedule-assignment";
 import { sendBookingRescheduledEmail } from "@/lib/email/booking-rescheduled";
+import { requireAuth } from "@/lib/auth/api-auth";
 
 const BOOKING_TABLES = ["service_bookings", "class_bookings"] as const;
 const MONTHLY_SLOT_CATEGORY_IDS = new Set(["monthly_mini", "monthly_big"]);
@@ -379,6 +380,9 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const authResult = await requireAuth(request, ["staff", "admin", "super_admin", "accountant", "chef"]);
+    if (authResult instanceof NextResponse) return authResult;
+
     const { id } = await params;
     const body = await request.json();
     const { status, notes, paid_at, refund_amount, refund_reason, items, event_date, event_time, time_label } = body;
@@ -611,6 +615,9 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const authResult = await requireAuth(request, ["staff", "admin", "super_admin", "accountant", "chef"]);
+    if (authResult instanceof NextResponse) return authResult;
+
     const { id } = await params;
 
     const supabase = createAdminClient();

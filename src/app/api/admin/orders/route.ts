@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
+import { requireAuth } from "@/lib/auth/api-auth";
 
 export async function GET(request: NextRequest) {
   try {
@@ -58,15 +59,18 @@ export async function GET(request: NextRequest) {
       },
       newOrdersCount: newOrdersCount || 0,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Orders API error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: error instanceof Error ? error.message : "Failed to fetch orders" }, { status: 500 });
   }
 }
 
 // Update order status
 export async function PATCH(request: NextRequest) {
   try {
+    const authResult = await requireAuth(request, ["staff", "admin", "super_admin", "accountant", "chef"]);
+    if (authResult instanceof NextResponse) return authResult;
+
     const supabase = createServiceClient();
     if (!supabase) {
       return NextResponse.json({ error: "Database not configured" }, { status: 500 });
@@ -79,7 +83,7 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "Order ID required" }, { status: 400 });
     }
 
-    const updates: Record<string, any> = {};
+    const updates: Record<string, string | boolean> = {};
     
     if (status) {
       updates.status = status;
@@ -109,15 +113,18 @@ export async function PATCH(request: NextRequest) {
     }
 
     return NextResponse.json({ order: data });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Update order error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: error instanceof Error ? error.message : "Failed to update order" }, { status: 500 });
   }
 }
 
 // Mark orders as viewed (clear new flag)
 export async function POST(request: NextRequest) {
   try {
+    const authResult = await requireAuth(request, ["staff", "admin", "super_admin", "accountant", "chef"]);
+    if (authResult instanceof NextResponse) return authResult;
+
     const supabase = createServiceClient();
     if (!supabase) {
       return NextResponse.json({ error: "Database not configured" }, { status: 500 });
@@ -143,8 +150,8 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ error: "Invalid action" }, { status: 400 });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Orders action error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: error instanceof Error ? error.message : "Failed to update orders" }, { status: 500 });
   }
 }

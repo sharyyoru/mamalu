@@ -14,7 +14,7 @@ CREATE EXTENSION IF NOT EXISTS "pg_trgm";
 -- SECTION 1: ENUMS & TYPES
 -- ███████████████████████████████████████████
 
-CREATE TYPE user_role AS ENUM ('customer', 'student', 'renter', 'instructor', 'staff', 'admin', 'super_admin');
+CREATE TYPE user_role AS ENUM ('customer', 'student', 'renter', 'instructor', 'staff', 'admin', 'super_admin', 'mall', 'accountant', 'chef');
 CREATE TYPE skill_level AS ENUM ('beginner', 'intermediate', 'advanced', 'professional');
 CREATE TYPE lead_status AS ENUM ('new', 'contacted', 'qualified', 'proposal', 'negotiation', 'won', 'lost');
 CREATE TYPE lead_source AS ENUM ('website', 'referral', 'social', 'event', 'walk_in', 'phone', 'other');

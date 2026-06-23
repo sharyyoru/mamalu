@@ -58,6 +58,9 @@ const roleColors: Record<string, string> = {
   staff: "bg-amber-100 text-amber-700",
   admin: "bg-[#FF8C6B]/20 text-[#FF8C6B]",
   super_admin: "bg-red-100 text-red-700",
+  mall: "bg-blue-100 text-blue-700",
+  accountant: "bg-emerald-100 text-emerald-700",
+  chef: "bg-amber-100 text-amber-700",
 };
 
 export default async function UsersPage() {
@@ -101,6 +104,10 @@ export default async function UsersPage() {
               <option value="instructor">Instructors</option>
               <option value="staff">Staff</option>
               <option value="admin">Admins</option>
+              <option value="super_admin">Super Admins</option>
+              <option value="mall">Mall</option>
+              <option value="accountant">Accountants</option>
+              <option value="chef">Chefs</option>
             </select>
             <Button variant="outline">
               <Filter className="h-4 w-4 mr-2" />
@@ -189,13 +196,11 @@ export default async function UsersPage() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-end gap-2">
-                          {user.role === "customer" && (
-                            <Link href={`/admin/users/${user.id}`}>
-                              <Button variant="ghost" size="sm">
-                                View
-                              </Button>
-                            </Link>
-                          )}
+                          <Link href={`/admin/users/${user.id}`}>
+                            <Button variant="ghost" size="sm">
+                              View
+                            </Button>
+                          </Link>
                           {canDeleteUsers && currentUser?.id !== user.id && (
                             <DeleteUserButton
                               userId={user.id}
