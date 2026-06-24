@@ -4,7 +4,6 @@ import {
   Users, 
   Calendar, 
   ShoppingBag, 
-  ChefHat,
   Utensils,
   ArrowUpRight,
   ArrowDownRight,
@@ -53,10 +52,10 @@ type DashboardData = {
     color: string;
     href: string;
   }>;
-  popularClasses: Array<{
+  topProducts: Array<{
     name: string;
-    students: number;
-    revenue: string;
+    count: number;
+    revenue: number;
     fill: number;
   }>;
 };
@@ -118,6 +117,13 @@ function getRevenueRange(period: RevenuePeriod) {
   }
 
   return { start, end, from: start.toISOString(), to: end.toISOString() };
+}
+
+function getAnalyticsWeekRange() {
+  const to = new Date();
+  const from = new Date(to);
+  from.setDate(from.getDate() - 7);
+  return { from: from.toISOString(), to: to.toISOString() };
 }
 
 function getRevenueBuckets(period: RevenuePeriod, range: { start: Date; end: Date }) {
@@ -292,6 +298,7 @@ async function getDashboardData(revenuePeriod: RevenuePeriod): Promise<Dashboard
   if (!supabase) return null;
 
   const revenueRange = getRevenueRange(revenuePeriod);
+  const analyticsWeekRange = getAnalyticsWeekRange();
 
   const [
     stats,
@@ -308,7 +315,7 @@ async function getDashboardData(revenuePeriod: RevenuePeriod): Promise<Dashboard
     recentServiceBookings,
     recentOrders,
     recentLeads,
-    popularClassRows,
+    topProductRows,
   ] = await Promise.all([
     getStats(),
     getTrend("profiles"),
@@ -358,10 +365,11 @@ async function getDashboardData(revenuePeriod: RevenuePeriod): Promise<Dashboard
       .order("created_at", { ascending: false })
       .limit(5)),
     safeData<Record<string, unknown>>(supabase
-      .from("class_bookings")
-      .select("class_title,sessions_booked,total_amount,status,paid_at")
-      .order("created_at", { ascending: false })
-      .limit(200)),
+      .from("product_orders")
+      .select("items,total_amount,status,payment_status,paid_at")
+      .eq("payment_status", "paid")
+      .gte("paid_at", analyticsWeekRange.from)
+      .lte("paid_at", analyticsWeekRange.to)),
   ]);
 
   const monthlyRevenue = getRevenueBuckets(revenuePeriod, revenueRange);
@@ -423,23 +431,34 @@ async function getDashboardData(revenuePeriod: RevenuePeriod): Promise<Dashboard
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 5);
 
-  const classMap = new Map<string, { students: number; revenue: number }>();
-  popularClassRows.forEach((row) => {
-    const name = String(row.class_title || "Untitled class");
-    const existing = classMap.get(name) || { students: 0, revenue: 0 };
-    existing.students += toNumber(row.sessions_booked) || 1;
-    existing.revenue += row.paid_at || row.status === "completed" || row.status === "confirmed" ? toNumber(row.total_amount) : 0;
-    classMap.set(name, existing);
+  const topProductMap = new Map<string, { count: number; revenue: number }>();
+  topProductRows
+    .filter((row) => !["cancelled", "refunded"].includes(String(row.status || "").toLowerCase()))
+    .forEach((row) => {
+      const products = (Array.isArray(row.items) ? row.items : []).map((item) => {
+        const value = item && typeof item === "object" ? item as Record<string, unknown> : {};
+        return {
+          name: String(value.title || value.name || value.product_name || "Product"),
+          quantity: toNumber(value.quantity) || 1,
+        };
+      });
+      const orderUnits = products.reduce((sum, product) => sum + product.quantity, 0) || 1;
+      products.forEach((product) => {
+        const existing = topProductMap.get(product.name) || { count: 0, revenue: 0 };
+        existing.count += product.quantity;
+        existing.revenue += toNumber(row.total_amount) * (product.quantity / orderUnits);
+        topProductMap.set(product.name, existing);
+      });
   });
-  const maxStudents = Math.max(...Array.from(classMap.values()).map((item) => item.students), 1);
-  const popularClasses = Array.from(classMap.entries())
+  const maxProductUnits = Math.max(...Array.from(topProductMap.values()).map((item) => item.count), 1);
+  const topProducts = Array.from(topProductMap.entries())
     .map(([name, value]) => ({
       name,
-      students: value.students,
-      revenue: formatCurrency(value.revenue),
-      fill: Math.max(5, Math.round((value.students / maxStudents) * 100)),
+      count: value.count,
+      revenue: value.revenue,
+      fill: Math.max(5, Math.round((value.count / maxProductUnits) * 100)),
     }))
-    .sort((a, b) => b.students - a.students)
+    .sort((a, b) => b.count - a.count)
     .slice(0, 4);
 
   return {
@@ -463,7 +482,7 @@ async function getDashboardData(revenuePeriod: RevenuePeriod): Promise<Dashboard
     })),
     revenuePeriod,
     recentActivity,
-    popularClasses,
+    topProducts,
   };
 }
 
@@ -507,7 +526,7 @@ export default async function AdminDashboard({
   ];
 
   const recentActivity = dashboard?.recentActivity || [];
-  const popularClasses = dashboard?.popularClasses || [];
+  const topProducts = dashboard?.topProducts || [];
   const statCards = [
     {
       label: "Total Users",
@@ -750,33 +769,33 @@ export default async function AdminDashboard({
           </div>
         </div>
 
-        {/* Popular Classes */}
+        {/* Top Classes */}
         <div className="bg-white rounded-2xl border border-stone-200/60 shadow-sm overflow-hidden">
           <div className="p-6 border-b border-stone-100 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-xl bg-gradient-to-br from-violet-500 to-purple-500 text-white">
-                <ChefHat className="h-4 w-4" />
+                <ShoppingBag className="h-4 w-4" />
               </div>
-              <h3 className="font-semibold text-stone-900">Popular Classes</h3>
+              <h3 className="font-semibold text-stone-900">Top Classes</h3>
             </div>
-            <Link href="/admin/bookings" className="text-sm text-amber-600 hover:text-amber-700 font-medium">View all</Link>
+            <Link href="/admin/analytics" className="text-sm text-amber-600 hover:text-amber-700 font-medium">View all</Link>
           </div>
           <div className="p-4 space-y-4">
-            {popularClasses.length === 0 ? (
-              <p className="py-6 text-center text-sm text-stone-500">No class bookings yet.</p>
-            ) : popularClasses.map((course, i) => (
+            {topProducts.length === 0 ? (
+              <p className="py-6 text-center text-sm text-stone-500">No classes sold in this period.</p>
+            ) : topProducts.map((product, i) => (
               <div key={i} className="group">
                 <div className="flex items-center justify-between mb-2">
                   <div>
-                    <p className="text-sm font-medium text-stone-900 group-hover:text-amber-600 transition-colors">{course.name}</p>
-                    <p className="text-xs text-stone-500">{course.students} students</p>
+                    <p className="text-sm font-medium text-stone-900 group-hover:text-amber-600 transition-colors">{i + 1}. {product.name}</p>
+                    <p className="text-xs text-stone-500">{product.count} units</p>
                   </div>
-                  <span className="text-sm font-semibold text-stone-700">{course.revenue}</span>
+                  <span className="text-sm font-semibold text-stone-700">est. {formatCurrency(product.revenue)}</span>
                 </div>
                 <div className="h-2 bg-stone-100 rounded-full overflow-hidden">
                   <div 
-                    className="h-full bg-gradient-to-r from-[#FF8C6B] to-[#ff7a54] rounded-full transition-all group-hover:from-[#ffa891] group-hover:to-[#FF8C6B]"
-                    style={{ width: `${course.fill}%` }}
+                    className="h-full bg-blue-500 rounded-full transition-all group-hover:bg-blue-400"
+                    style={{ width: `${product.fill}%` }}
                   />
                 </div>
               </div>
