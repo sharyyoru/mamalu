@@ -520,10 +520,7 @@ export function AdminBookingsPageContent({ unpaidOnly = false }: AdminBookingsPa
     const category = inferBookingSlotCategory(selectedBooking) || "packages";
     const datesToLoad = Array.from(new Set(
       scheduleItems
-        .map((item, index) => {
-          const original = selectedBooking.items?.[index];
-          return original?.event_date && original?.event_time ? null : item.event_date;
-        })
+        .map((item) => item.event_date)
         .filter((date): date is string => Boolean(date))
     ));
 
@@ -917,7 +914,7 @@ export function AdminBookingsPageContent({ unpaidOnly = false }: AdminBookingsPa
   };
 
   const updateScheduleItem = (index: number, field: "event_date" | "event_time", value: string) => {
-    if (isScheduleItemLocked(index)) return;
+    if (isScheduleItemLocked()) return;
 
     setScheduleItems((prev) => prev.map((item, idx) => {
       if (idx !== index) return item;
@@ -934,9 +931,8 @@ export function AdminBookingsPageContent({ unpaidOnly = false }: AdminBookingsPa
     setScheduleError(null);
   };
 
-  const isScheduleItemLocked = (index: number) => {
-    const original = selectedBooking?.items?.[index];
-    return Boolean(original?.event_date && original?.event_time);
+  const isScheduleItemLocked = () => {
+    return selectedBooking?.status === "completed";
   };
 
   const hasScheduleChanged = (original: BookingScheduleItem | undefined, next: BookingScheduleItem) => (
@@ -951,7 +947,7 @@ export function AdminBookingsPageContent({ unpaidOnly = false }: AdminBookingsPa
 
   const hasScheduleItemChanges = scheduleItems.some((item, index) => (
     hasScheduleStatusChanged(selectedBooking?.items?.[index], item) ||
-    (!isScheduleItemLocked(index) && hasScheduleChanged(selectedBooking?.items?.[index], item) && item.event_date && item.event_time)
+    (!isScheduleItemLocked() && hasScheduleChanged(selectedBooking?.items?.[index], item) && item.event_date && item.event_time)
   ));
 
   const saveScheduleItems = async (itemsToSave: BookingScheduleItem[]) => {
@@ -1795,7 +1791,7 @@ export function AdminBookingsPageContent({ unpaidOnly = false }: AdminBookingsPa
                           <p className="text-sm text-stone-500">{selectedBooking.guest_count} guest(s)</p>
                           <div className="rounded-lg border border-stone-200 overflow-hidden">
                             {scheduleItems.map((item, idx) => {
-                              const locked = isScheduleItemLocked(idx);
+                              const locked = isScheduleItemLocked();
                               const readOnly = isMallUser || locked;
                               const slotOptions = locked ? getPackageSlotOptions() : getScheduleSlotOptions(item, idx);
                               const slotsLoading = Boolean(scheduleSlotsLoading[getScheduleSlotKey(item.event_date)]);
@@ -1815,7 +1811,7 @@ export function AdminBookingsPageContent({ unpaidOnly = false }: AdminBookingsPa
                                       {locked && (
                                         <span className="inline-flex items-center gap-1 rounded-md bg-stone-200 px-2 py-0.5 text-xs font-medium text-stone-600">
                                           <Lock className="h-3 w-3" />
-                                          Confirmed
+                                          Booking completed
                                         </span>
                                       )}
                                       {itemStatus === "completed" && (

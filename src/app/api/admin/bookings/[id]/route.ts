@@ -40,6 +40,7 @@ type ServiceBookingForScheduleUpdate = {
   customer_email: string;
   service_name: string;
   package_name?: string | null;
+  status?: string | null;
   items?: ScheduleItem[] | null;
 };
 
@@ -226,14 +227,6 @@ function hasCompleteSchedule(item: ScheduleItem) {
   return Boolean(item.event_date && item.event_time);
 }
 
-function sameSchedule(original: ScheduleItem, next: ScheduleItem) {
-  return (
-    (original.event_date || null) === (next.event_date || null) &&
-    (original.event_time || null) === (next.event_time || null) &&
-    (original.time_label || original.event_time || null) === (next.time_label || next.event_time || null)
-  );
-}
-
 function isScheduleChanged(original: ScheduleItem, next: ScheduleItem) {
   return (
     (original.event_date || null) !== (next.event_date || null) ||
@@ -263,7 +256,11 @@ function normalizeCampDateStatuses(
   return normalized;
 }
 
-function validateScheduleItems(originalItems: ScheduleItem[] | null | undefined, nextItems: unknown) {
+function validateScheduleItems(
+  originalItems: ScheduleItem[] | null | undefined,
+  nextItems: unknown,
+  parentStatus?: string | null
+) {
   if (!Array.isArray(originalItems) || originalItems.length === 0) {
     return { error: "This booking does not have package menus to schedule" };
   }
@@ -285,11 +282,11 @@ function validateScheduleItems(originalItems: ScheduleItem[] | null | undefined,
       return { error: "Schedule items cannot change package menu details" };
     }
 
-    if (hasCompleteSchedule(original) && !sameSchedule(original, incoming)) {
-      return { error: "Package menu schedules cannot be changed after they are confirmed" };
-    }
-
     const scheduleChanged = isScheduleChanged(original, incoming);
+
+    if (parentStatus === "completed" && scheduleChanged) {
+      return { error: "Package menu schedules cannot be changed after the booking is completed" };
+    }
 
     if (scheduleChanged && !incoming.event_date) {
       return { error: "The package menu you are scheduling needs a date" };
@@ -559,7 +556,7 @@ export async function PATCH(
 
       const { data: currentBooking, error: currentError } = await supabase
         .from("service_bookings")
-        .select("id, booking_number, customer_name, customer_email, service_name, package_name, items")
+        .select("id, booking_number, customer_name, customer_email, service_name, package_name, status, items")
         .eq("id", id)
         .maybeSingle();
 
@@ -568,7 +565,11 @@ export async function PATCH(
       }
 
       const currentScheduleBooking = currentBooking as ServiceBookingForScheduleUpdate;
-      const validation = validateScheduleItems(currentScheduleBooking.items as ScheduleItem[] | null, items);
+      const validation = validateScheduleItems(
+        currentScheduleBooking.items as ScheduleItem[] | null,
+        items,
+        currentScheduleBooking.status
+      );
       if (validation.error || !validation.items) {
         return NextResponse.json({ error: validation.error }, { status: 400 });
       }
