@@ -67,6 +67,8 @@ const currencyFormatter = new Intl.NumberFormat("en-AE", {
 });
 
 const monthLabels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const NON_UNPAID_STATUS_FILTER = "status.is.null,status.neq.unpaid";
+const NON_UNPAID_PAYMENT_STATUS_FILTER = "payment_status.is.null,payment_status.neq.unpaid";
 
 function toNumber(value: unknown) {
   const parsed = Number(value);
@@ -122,7 +124,8 @@ async function safeData<T>(query: PromiseLike<SupabaseQueryResult<T>>) {
 async function getTrend(
   table: string,
   column = "created_at",
-  activeLeadsOnly = false
+  activeLeadsOnly = false,
+  excludeUnpaidBookings = false
 ): Promise<StatTrend> {
   const supabase = createAdminClient();
   if (!supabase) return { current: 0, previous: 0, change: 0, sparkline: [0, 0, 0, 0, 0, 0] };
@@ -135,6 +138,11 @@ async function getTrend(
       .gte(column, window.from)
       .lt(column, window.to);
     if (activeLeadsOnly) query = query.not("status", "in", "(won,lost)");
+    if (excludeUnpaidBookings) {
+      query = query
+        .or(NON_UNPAID_STATUS_FILTER)
+        .or(NON_UNPAID_PAYMENT_STATUS_FILTER);
+    }
     return safeCount(query);
   }));
 
@@ -155,7 +163,11 @@ async function getStats() {
   const [users, classBookings, serviceBookings, productOrders, legacyOrders, activeLeads] = await Promise.all([
     safeCount(supabase.from("profiles").select("*", { count: "exact", head: true })),
     safeCount(supabase.from("class_bookings").select("*", { count: "exact", head: true })),
-    safeCount(supabase.from("service_bookings").select("*", { count: "exact", head: true })),
+    safeCount(supabase
+      .from("service_bookings")
+      .select("*", { count: "exact", head: true })
+      .or(NON_UNPAID_STATUS_FILTER)
+      .or(NON_UNPAID_PAYMENT_STATUS_FILTER)),
     safeCount(supabase.from("product_orders").select("*", { count: "exact", head: true })),
     safeCount(supabase.from("orders").select("*", { count: "exact", head: true })),
     safeCount(supabase.from("leads").select("*", { count: "exact", head: true }).not("status", "in", "(won,lost)")),
@@ -196,7 +208,7 @@ async function getDashboardData(): Promise<DashboardData | null> {
     getStats(),
     getTrend("profiles"),
     getTrend("class_bookings"),
-    getTrend("service_bookings"),
+    getTrend("service_bookings", "created_at", false, true),
     getTrend("product_orders", "created_at"),
     getTrend("orders", "created_at"),
     getTrend("leads", "created_at", true),
@@ -209,7 +221,9 @@ async function getDashboardData(): Promise<DashboardData | null> {
       .from("service_bookings")
       .select("created_at,total_amount,status,payment_status,paid_at,balance_paid,deposit_paid,deposit_amount")
       .gte("created_at", yearStart)
-      .lt("created_at", yearEnd)),
+      .lt("created_at", yearEnd)
+      .or(NON_UNPAID_STATUS_FILTER)
+      .or(NON_UNPAID_PAYMENT_STATUS_FILTER)),
     safeData<Record<string, unknown>>(supabase
       .from("product_orders")
       .select("created_at,total_amount,total_paid,total,status,payment_status,paid_at")
@@ -223,6 +237,8 @@ async function getDashboardData(): Promise<DashboardData | null> {
     safeData<Record<string, unknown>>(supabase
       .from("service_bookings")
       .select("id,booking_number,service_name,customer_name,created_at")
+      .or(NON_UNPAID_STATUS_FILTER)
+      .or(NON_UNPAID_PAYMENT_STATUS_FILTER)
       .order("created_at", { ascending: false })
       .limit(5)),
     safeData<Record<string, unknown>>(supabase
