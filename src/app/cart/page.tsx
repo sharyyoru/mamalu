@@ -41,8 +41,6 @@ interface ProductCartSettings {
   deliveryFee: number;
 }
 
-const FREE_SHIPPING_THRESHOLD = 200;
-
 export default function CartPage() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -112,7 +110,7 @@ export default function CartPage() {
   );
   const minimumOrderValue = settings.minimumOrderValue;
   const deliveryFee = settings.deliveryFee;
-  const shipping = subtotal > FREE_SHIPPING_THRESHOLD ? 0 : deliveryFee;
+  const shipping = cartItems.length > 0 ? deliveryFee : 0;
   const total = subtotal + shipping;
   const minimumOrderRemaining = Math.max(0, minimumOrderValue - subtotal);
   const canCheckout = cartItems.length > 0 && subtotal >= minimumOrderValue;
@@ -360,15 +358,8 @@ export default function CartPage() {
                     </div>
                     <div className="flex justify-between text-stone-600 font-bold">
                       <span>Shipping</span>
-                      <span>
-                        {shipping === 0 ? "Free" : formatPrice(shipping)}
-                      </span>
+                      <span>{formatPrice(shipping)}</span>
                     </div>
-                    {shipping > 0 && (
-                      <p className="text-xs text-stone-500">
-                        Free shipping on orders over {formatPrice(FREE_SHIPPING_THRESHOLD)}
-                      </p>
-                    )}
                     {minimumOrderRemaining > 0 && (
                       <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-800">
                         Add {formatPrice(minimumOrderRemaining)} more to reach the {formatPrice(minimumOrderValue)} minimum order value.

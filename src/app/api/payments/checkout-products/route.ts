@@ -12,8 +12,6 @@ interface CartItem {
   imageUrl?: string;
 }
 
-const FREE_SHIPPING_THRESHOLD = 200;
-
 function metadataValue(value: unknown) {
   return String(value || "").slice(0, 500);
 }
@@ -119,7 +117,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const shippingCost = subtotal > FREE_SHIPPING_THRESHOLD ? 0 : settings.deliveryFee;
+    const shippingCost = settings.deliveryFee;
 
     // Add shipping as a line item if applicable
     if (shippingCost > 0) {
