@@ -44,6 +44,7 @@ type DashboardData = {
     services: number;
     products: number;
   }>;
+  revenuePeriod: RevenuePeriod;
   recentActivity: Array<{
     action: string;
     user: string;
@@ -60,6 +61,8 @@ type DashboardData = {
   }>;
 };
 
+type RevenuePeriod = "month" | "quarter" | "year";
+
 const currencyFormatter = new Intl.NumberFormat("en-AE", {
   style: "currency",
   currency: "AED",
@@ -69,6 +72,11 @@ const currencyFormatter = new Intl.NumberFormat("en-AE", {
 const monthLabels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const NON_UNPAID_STATUS_FILTER = "status.is.null,status.neq.unpaid";
 const NON_UNPAID_PAYMENT_STATUS_FILTER = "payment_status.is.null,payment_status.neq.unpaid";
+const revenuePeriods: Array<{ label: string; value: RevenuePeriod }> = [
+  { label: "Month", value: "month" },
+  { label: "Quarter", value: "quarter" },
+  { label: "Year", value: "year" },
+];
 
 function toNumber(value: unknown) {
   const parsed = Number(value);
@@ -77,6 +85,104 @@ function toNumber(value: unknown) {
 
 function formatCurrency(amount: number) {
   return currencyFormatter.format(amount).replace("AED", "AED ");
+}
+
+function getRowDate(row: Record<string, unknown>, columns: string[]) {
+  for (const column of columns) {
+    const value = row[column];
+    if (value) return String(value);
+  }
+  return null;
+}
+
+function getRevenueRange(period: RevenuePeriod) {
+  const now = new Date();
+  const start = new Date(now);
+  start.setHours(0, 0, 0, 0);
+
+  if (period === "month") {
+    start.setDate(1);
+  } else if (period === "quarter") {
+    start.setMonth(Math.floor(now.getMonth() / 3) * 3, 1);
+  } else {
+    start.setMonth(0, 1);
+  }
+
+  const end = new Date(start);
+  if (period === "month") {
+    end.setMonth(end.getMonth() + 1);
+  } else if (period === "quarter") {
+    end.setMonth(end.getMonth() + 3);
+  } else {
+    end.setFullYear(end.getFullYear() + 1);
+  }
+
+  return { start, end, from: start.toISOString(), to: end.toISOString() };
+}
+
+function getRevenueBuckets(period: RevenuePeriod, range: { start: Date; end: Date }) {
+  if (period === "month") {
+    const days = Math.round((range.end.getTime() - range.start.getTime()) / 86400000);
+    return Array.from({ length: days }, (_, index) => {
+      const start = new Date(range.start);
+      start.setDate(start.getDate() + index);
+      const end = new Date(start);
+      end.setDate(end.getDate() + 1);
+      return {
+        label: String(start.getDate()),
+        start,
+        end,
+        classes: 0,
+        services: 0,
+        products: 0,
+      };
+    });
+  }
+
+  if (period === "quarter") {
+    return Array.from({ length: 3 }, (_, index) => {
+      const start = new Date(range.start);
+      start.setMonth(start.getMonth() + index);
+      const end = new Date(start);
+      end.setMonth(end.getMonth() + 1);
+      return {
+        label: monthLabels[start.getMonth()],
+        start,
+        end,
+        classes: 0,
+        services: 0,
+        products: 0,
+      };
+    });
+  }
+
+  return monthLabels.map((label, index) => {
+    const start = new Date(range.start.getFullYear(), index, 1);
+    const end = new Date(start);
+    end.setMonth(end.getMonth() + 1);
+    return { label, start, end, classes: 0, services: 0, products: 0 };
+  });
+}
+
+function addRevenueToBucket(
+  buckets: ReturnType<typeof getRevenueBuckets>,
+  row: Record<string, unknown>,
+  dateColumns: string[]
+) {
+  const rawDate = getRowDate(row, dateColumns);
+  if (!rawDate) return null;
+
+  const date = new Date(String(rawDate));
+  if (Number.isNaN(date.getTime())) return null;
+
+  const bucket = buckets.find((item) => date >= item.start && date < item.end);
+  if (bucket) return bucket;
+  return null;
+}
+
+function isRevenueExcluded(row: Record<string, unknown>) {
+  return ["unpaid", "cancelled", "refunded", "failed"].includes(String(row.status || ""))
+    || ["unpaid", "refunded", "failed"].includes(String(row.payment_status || ""));
 }
 
 function relativeTime(value?: string | null) {
@@ -181,12 +287,11 @@ async function getStats() {
   };
 }
 
-async function getDashboardData(): Promise<DashboardData | null> {
+async function getDashboardData(revenuePeriod: RevenuePeriod): Promise<DashboardData | null> {
   const supabase = createAdminClient();
   if (!supabase) return null;
 
-  const yearStart = new Date(new Date().getFullYear(), 0, 1).toISOString();
-  const yearEnd = new Date(new Date().getFullYear() + 1, 0, 1).toISOString();
+  const revenueRange = getRevenueRange(revenuePeriod);
 
   const [
     stats,
@@ -214,21 +319,22 @@ async function getDashboardData(): Promise<DashboardData | null> {
     getTrend("leads", "created_at", true),
     safeData<Record<string, unknown>>(supabase
       .from("class_bookings")
-      .select("created_at,total_amount,status,paid_at")
-      .gte("created_at", yearStart)
-      .lt("created_at", yearEnd)),
+      .select("created_at,total_amount,status,payment_status")
+      .eq("status", "completed")
+      .gte("created_at", revenueRange.from)
+      .lt("created_at", revenueRange.to)),
     safeData<Record<string, unknown>>(supabase
       .from("service_bookings")
-      .select("created_at,total_amount,status,payment_status,paid_at,balance_paid,deposit_paid,deposit_amount")
-      .gte("created_at", yearStart)
-      .lt("created_at", yearEnd)
-      .or(NON_UNPAID_STATUS_FILTER)
-      .or(NON_UNPAID_PAYMENT_STATUS_FILTER)),
+      .select("created_at,event_date,total_amount,status,payment_status")
+      .eq("status", "completed")
+      .gte("event_date", revenueRange.from.slice(0, 10))
+      .lt("event_date", revenueRange.to.slice(0, 10))),
     safeData<Record<string, unknown>>(supabase
       .from("product_orders")
-      .select("created_at,total_amount,total_paid,total,status,payment_status,paid_at")
-      .gte("created_at", yearStart)
-      .lt("created_at", yearEnd)),
+      .select("created_at,delivered_at,total_amount,status,payment_status")
+      .eq("status", "delivered")
+      .gte("created_at", revenueRange.from)
+      .lt("created_at", revenueRange.to)),
     safeData<Record<string, unknown>>(supabase
       .from("class_bookings")
       .select("id,booking_number,class_title,attendee_name,created_at")
@@ -258,21 +364,22 @@ async function getDashboardData(): Promise<DashboardData | null> {
       .limit(200)),
   ]);
 
-  const monthlyRevenue = monthLabels.map((month) => ({ month, classes: 0, services: 0, products: 0 }));
+  const monthlyRevenue = getRevenueBuckets(revenuePeriod, revenueRange);
   classRevenueRows.forEach((row) => {
-    if (!row.created_at || !(row.paid_at || row.status === "completed" || row.status === "confirmed")) return;
-    monthlyRevenue[new Date(String(row.created_at)).getMonth()].classes += toNumber(row.total_amount);
+    if (isRevenueExcluded(row)) return;
+    const bucket = addRevenueToBucket(monthlyRevenue, row, ["created_at"]);
+    if (bucket) bucket.classes += toNumber(row.total_amount);
   });
   serviceRevenueRows.forEach((row) => {
-    if (!row.created_at) return;
-    const collected = row.payment_status === "paid" || row.payment_status === "fully_paid" || row.balance_paid || row.paid_at
-      ? toNumber(row.total_amount)
-      : row.deposit_paid ? toNumber(row.deposit_amount) : 0;
-    monthlyRevenue[new Date(String(row.created_at)).getMonth()].services += collected;
+    if (isRevenueExcluded(row)) return;
+    const bucket = addRevenueToBucket(monthlyRevenue, row, ["event_date", "created_at"]);
+    if (bucket) bucket.services += toNumber(row.total_amount);
   });
   productRevenueRows.forEach((row) => {
-    if (!row.created_at || !(row.payment_status === "paid" || row.status === "paid" || row.paid_at)) return;
-    monthlyRevenue[new Date(String(row.created_at)).getMonth()].products += toNumber(row.total_paid || row.total_amount || row.total);
+    if (isRevenueExcluded(row)) return;
+    const amount = toNumber(row.total_amount);
+    const bucket = addRevenueToBucket(monthlyRevenue, row, ["delivered_at", "created_at"]);
+    if (bucket) bucket.products += amount;
   });
 
   const recentActivity = [
@@ -348,18 +455,49 @@ async function getDashboardData(): Promise<DashboardData | null> {
       orders: productOrderTrend.current || productOrderTrend.previous || productOrderTrend.sparkline.some(Boolean) ? productOrderTrend : legacyOrderTrend,
       leads: leadTrend,
     },
-    monthlyRevenue,
+    monthlyRevenue: monthlyRevenue.map((item) => ({
+      month: item.label,
+      classes: item.classes,
+      services: item.services,
+      products: item.products,
+    })),
+    revenuePeriod,
     recentActivity,
     popularClasses,
   };
 }
 
-export default async function AdminDashboard() {
-  const dashboard = await getDashboardData();
+export default async function AdminDashboard({
+  searchParams,
+}: {
+  searchParams?: Promise<{ revenuePeriod?: string }> | { revenuePeriod?: string };
+}) {
+  const resolvedSearchParams = searchParams ? await searchParams : {};
+  const selectedRevenuePeriod = revenuePeriods.some((period) => period.value === resolvedSearchParams.revenuePeriod)
+    ? resolvedSearchParams.revenuePeriod as RevenuePeriod
+    : "month";
+  const dashboard = await getDashboardData(selectedRevenuePeriod);
   const stats = dashboard?.stats || { totalUsers: 0, totalBookings: 0, totalOrders: 0, totalLeads: 0 };
   const trends = dashboard?.trends;
-  const monthlyRevenue = dashboard?.monthlyRevenue || monthLabels.map((month) => ({ month, classes: 0, services: 0, products: 0 }));
+  const revenuePeriod = dashboard?.revenuePeriod || selectedRevenuePeriod;
+  const monthlyRevenue = dashboard?.monthlyRevenue || getRevenueBuckets(revenuePeriod, getRevenueRange(revenuePeriod)).map((item) => ({
+    month: item.label,
+    classes: 0,
+    services: 0,
+    products: 0,
+  }));
   const maxMonthlyRevenue = Math.max(...monthlyRevenue.map((item) => item.classes + item.services + item.products), 1);
+  const hasMonthlyRevenue = monthlyRevenue.some((item) => item.classes + item.services + item.products > 0);
+  const revenueSubtitle = revenuePeriod === "month"
+    ? "Daily performance this month"
+    : revenuePeriod === "quarter"
+      ? "Monthly performance this quarter"
+      : "Monthly performance this year";
+  const emptyRevenueMessage = revenuePeriod === "month"
+    ? "No completed booking or delivered order revenue recorded this month yet."
+    : revenuePeriod === "quarter"
+      ? "No completed booking or delivered order revenue recorded this quarter yet."
+      : "No completed booking or delivered order revenue recorded this year yet.";
 
   const quickActions = [
     { label: "Process Order", icon: ShoppingBag, color: "from-[#FF8C6B] to-[#ff7a54]", href: "/admin/orders" },
@@ -466,43 +604,84 @@ export default async function AdminDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="font-semibold text-stone-900">Revenue Overview</h3>
-                <p className="text-sm text-stone-500">Monthly performance</p>
+                <p className="text-sm text-stone-500">{revenueSubtitle}</p>
               </div>
               <div className="flex items-center gap-2">
-                <button className="px-3 py-1.5 text-sm font-medium text-amber-600 bg-amber-50 rounded-lg">Month</button>
-                <button className="px-3 py-1.5 text-sm font-medium text-stone-500 hover:bg-stone-50 rounded-lg">Quarter</button>
-                <button className="px-3 py-1.5 text-sm font-medium text-stone-500 hover:bg-stone-50 rounded-lg">Year</button>
+                {revenuePeriods.map((period) => {
+                  const isActive = period.value === revenuePeriod;
+                  return (
+                    <Link
+                      key={period.value}
+                      href={period.value === "month" ? "/admin" : `/admin?revenuePeriod=${period.value}`}
+                      className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+                        isActive
+                          ? "text-amber-600 bg-amber-50"
+                          : "text-stone-500 hover:bg-stone-50"
+                      }`}
+                    >
+                      {period.label}
+                    </Link>
+                  );
+                })}
               </div>
             </div>
           </div>
           <div className="p-6">
-            <div className="flex items-end justify-between gap-3 h-48">
-              {monthlyRevenue.map((item) => {
-                const total = item.classes + item.services + item.products;
-                const barHeight = Math.max((total / maxMonthlyRevenue) * 100, total > 0 ? 4 : 0);
-                return (
-                  <div key={item.month} className="group flex-1 flex flex-col items-center gap-2">
-                    <div className="flex h-full w-full items-end">
-                      <div
-                        className="flex w-full flex-col-reverse overflow-hidden rounded-t-lg bg-stone-100 transition-all"
-                        style={{ height: `${barHeight}%`, minHeight: total > 0 ? 8 : 0 }}
-                        title={`${item.month}: ${formatCurrency(total)}`}
-                      >
-                        <div className="w-full bg-amber-500" style={{ flexBasis: `${total ? (item.classes / total) * 100 : 0}%` }} />
-                        <div className="w-full bg-emerald-500" style={{ flexBasis: `${total ? (item.services / total) * 100 : 0}%` }} />
-                        <div className="w-full bg-purple-500" style={{ flexBasis: `${total ? (item.products / total) * 100 : 0}%` }} />
+            {hasMonthlyRevenue ? (
+              <div className="flex items-end justify-between gap-3 h-48">
+                {monthlyRevenue.map((item) => {
+                  const total = item.classes + item.services + item.products;
+                  const barHeight = Math.max((total / maxMonthlyRevenue) * 100, total > 0 ? 4 : 0);
+                  const classesHeight = total ? (item.classes / total) * 100 : 0;
+                  const servicesHeight = total ? (item.services / total) * 100 : 0;
+                  const productsHeight = total ? (item.products / total) * 100 : 0;
+                  return (
+                    <div key={item.month} className="group flex-1 flex flex-col items-center gap-2">
+                      <div className="relative flex min-h-0 h-full w-full items-end">
+                        {total > 0 && (
+                          <div
+                            className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap text-[11px] font-semibold text-stone-700"
+                            style={{ bottom: `calc(${barHeight}% + 6px)` }}
+                          >
+                            {formatCurrency(total)}
+                          </div>
+                        )}
+                        <div
+                          className="relative w-full overflow-hidden rounded-t-lg bg-stone-100 transition-all group-hover:brightness-105"
+                          style={{ height: `${barHeight}%`, minHeight: total > 0 ? 8 : 0 }}
+                          title={`${item.month}: ${formatCurrency(total)}`}
+                        >
+                          {item.classes > 0 && (
+                            <div
+                              className="absolute bottom-0 left-0 w-full bg-amber-500"
+                              style={{ height: `${classesHeight}%` }}
+                            />
+                          )}
+                          {item.services > 0 && (
+                            <div
+                              className="absolute left-0 w-full bg-emerald-500"
+                              style={{ bottom: `${classesHeight}%`, height: `${servicesHeight}%` }}
+                            />
+                          )}
+                          {item.products > 0 && (
+                            <div
+                              className="absolute left-0 w-full bg-purple-500"
+                              style={{ bottom: `${classesHeight + servicesHeight}%`, height: `${productsHeight}%` }}
+                            />
+                          )}
+                        </div>
                       </div>
+                      <span className="text-xs text-stone-400">{item.month}</span>
                     </div>
-                    <span className="text-xs text-stone-400">{item.month}</span>
-                  </div>
-                );
-              })}
-            </div>
-            <div className="flex items-center justify-center gap-6 mt-6 pt-4 border-t border-stone-100">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-amber-500" />
-                <span className="text-sm text-stone-600">Classes Revenue</span>
+                  );
+                })}
               </div>
+            ) : (
+              <div className="flex h-48 items-center justify-center rounded-xl border border-dashed border-stone-200 bg-stone-50 text-sm text-stone-500">
+                {emptyRevenueMessage}
+              </div>
+            )}
+            <div className="flex items-center justify-center gap-6 mt-6 pt-4 border-t border-stone-100">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-emerald-500" />
                 <span className="text-sm text-stone-600">Service Bookings</span>
