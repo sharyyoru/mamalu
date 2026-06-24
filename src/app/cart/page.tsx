@@ -339,6 +339,9 @@ export default function CartPage() {
                         <option>United Arab Emirates</option>
                       </select>
                     </label>
+                    <p className="rounded-md border border-[#FF8C6B]/30 bg-[#FF8C6B]/10 px-3 py-2 text-sm font-bold text-stone-700 sm:col-span-2">
+                      Delivery is available within the UAE only.
+                    </p>
                   </div>
                 </CardContent>
               </Card>
