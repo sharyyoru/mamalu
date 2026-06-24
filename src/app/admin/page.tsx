@@ -479,17 +479,18 @@ export default async function AdminDashboard() {
             <div className="flex items-end justify-between gap-3 h-48">
               {monthlyRevenue.map((item) => {
                 const total = item.classes + item.services + item.products;
+                const barHeight = Math.max((total / maxMonthlyRevenue) * 100, total > 0 ? 4 : 0);
                 return (
                   <div key={item.month} className="group flex-1 flex flex-col items-center gap-2">
-                    <div className="relative flex h-full w-full items-end">
+                    <div className="flex h-full w-full items-end">
                       <div
-                        className="w-full overflow-hidden rounded-t-lg bg-stone-100 transition-all"
-                        style={{ height: `${Math.max((total / maxMonthlyRevenue) * 100, total > 0 ? 3 : 0)}%` }}
+                        className="flex w-full flex-col-reverse overflow-hidden rounded-t-lg bg-stone-100 transition-all"
+                        style={{ height: `${barHeight}%`, minHeight: total > 0 ? 8 : 0 }}
                         title={`${item.month}: ${formatCurrency(total)}`}
                       >
-                        <div className="bg-purple-500" style={{ height: `${total ? (item.products / total) * 100 : 0}%` }} />
-                        <div className="bg-emerald-500" style={{ height: `${total ? (item.services / total) * 100 : 0}%` }} />
-                        <div className="bg-amber-500" style={{ height: `${total ? (item.classes / total) * 100 : 0}%` }} />
+                        <div className="w-full bg-amber-500" style={{ flexBasis: `${total ? (item.classes / total) * 100 : 0}%` }} />
+                        <div className="w-full bg-emerald-500" style={{ flexBasis: `${total ? (item.services / total) * 100 : 0}%` }} />
+                        <div className="w-full bg-purple-500" style={{ flexBasis: `${total ? (item.products / total) * 100 : 0}%` }} />
                       </div>
                     </div>
                     <span className="text-xs text-stone-400">{item.month}</span>
