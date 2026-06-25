@@ -11,6 +11,9 @@ interface HiddenTimeSlot {
   end: string;
 }
 
+const WHOLE_DAY_START = "00:00";
+const WHOLE_DAY_END = "23:59";
+
 function toMinutes(time: string) {
   const [hours, minutes] = time.split(":").map(Number);
   return hours * 60 + minutes;
@@ -27,6 +30,10 @@ function formatTimeLabel(time: string) {
   return `${hour12}:${minutes.toString().padStart(2, "0")} ${suffix}`;
 }
 
+function isWholeDayRule(rule: Pick<HiddenTimeSlot, "start" | "end">) {
+  return rule.start === WHOLE_DAY_START && rule.end === WHOLE_DAY_END;
+}
+
 export function HiddenTimeSlotsManager() {
   const [slots, setSlots] = useState([]);
   const [dateRules, setDateRules] = useState({});
@@ -34,6 +41,7 @@ export function HiddenTimeSlotsManager() {
   const [hiddenDate, setHiddenDate] = useState("");
   const [hiddenStart, setHiddenStart] = useState("16:00");
   const [hiddenEnd, setHiddenEnd] = useState("18:00");
+  const [isWholeDay, setIsWholeDay] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -60,18 +68,29 @@ export function HiddenTimeSlotsManager() {
   }
 
   function addHiddenTimeSlot() {
-    if (!hiddenDate || calculateDuration(hiddenStart, hiddenEnd) <= 0) return;
+    const start = isWholeDay ? WHOLE_DAY_START : hiddenStart;
+    const end = isWholeDay ? WHOLE_DAY_END : hiddenEnd;
+
+    if (!hiddenDate || calculateDuration(start, end) <= 0) return;
 
     setHiddenTimeSlots((current) =>
       [
         ...current,
         {
           date: hiddenDate,
-          start: hiddenStart,
-          end: hiddenEnd,
+          start,
+          end,
         },
       ].sort((a, b) => a.date.localeCompare(b.date) || a.start.localeCompare(b.start))
     );
+  }
+
+  function toggleWholeDay(checked: boolean) {
+    setIsWholeDay(checked);
+    if (checked) {
+      setHiddenStart(WHOLE_DAY_START);
+      setHiddenEnd(WHOLE_DAY_END);
+    }
   }
 
   function removeHiddenTimeSlot(index: number) {
@@ -151,7 +170,7 @@ export function HiddenTimeSlotsManager() {
               Hide public Mini Chef and Big Chef slots that fall fully inside a date and time range.
             </p>
           </div>
-          <div className="grid gap-2 sm:grid-cols-[minmax(160px,1fr)_130px_130px_auto]">
+          <div className="grid gap-2 sm:grid-cols-[minmax(160px,1fr)_130px_130px_auto_auto]">
             <input
               type="date"
               value={hiddenDate}
@@ -162,19 +181,30 @@ export function HiddenTimeSlotsManager() {
               type="time"
               value={hiddenStart}
               onChange={(event) => setHiddenStart(event.target.value)}
-              className="rounded-md border border-stone-300 bg-white px-3 py-2 text-sm"
+              disabled={isWholeDay}
+              className="rounded-md border border-stone-300 bg-white px-3 py-2 text-sm disabled:bg-stone-100 disabled:text-stone-400"
             />
             <input
               type="time"
               value={hiddenEnd}
               onChange={(event) => setHiddenEnd(event.target.value)}
-              className="rounded-md border border-stone-300 bg-white px-3 py-2 text-sm"
+              disabled={isWholeDay}
+              className="rounded-md border border-stone-300 bg-white px-3 py-2 text-sm disabled:bg-stone-100 disabled:text-stone-400"
             />
+            <label className="inline-flex min-h-10 items-center gap-2 rounded-md border border-stone-300 bg-white px-3 py-2 text-sm text-stone-700">
+              <input
+                type="checkbox"
+                checked={isWholeDay}
+                onChange={(event) => toggleWholeDay(event.target.checked)}
+                className="h-4 w-4 rounded border-stone-300 accent-[#FF7A5C]"
+              />
+              Whole day
+            </label>
             <Button
               type="button"
               variant="outline"
               onClick={addHiddenTimeSlot}
-              disabled={!hiddenDate || calculateDuration(hiddenStart, hiddenEnd) <= 0}
+              disabled={!hiddenDate || calculateDuration(isWholeDay ? WHOLE_DAY_START : hiddenStart, isWholeDay ? WHOLE_DAY_END : hiddenEnd) <= 0}
             >
               <Plus className="h-4 w-4 mr-2" />
               Add Hide Rule
@@ -200,7 +230,7 @@ export function HiddenTimeSlotsManager() {
                   year: "numeric",
                 })}
                 <span className="text-stone-400">/</span>
-                {formatTimeLabel(rule.start)} - {formatTimeLabel(rule.end)}
+                {isWholeDayRule(rule) ? "Whole day" : `${formatTimeLabel(rule.start)} - ${formatTimeLabel(rule.end)}`}
                 <button
                   type="button"
                   onClick={() => removeHiddenTimeSlot(index)}
