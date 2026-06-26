@@ -1,14 +1,4 @@
 import React, { CSSProperties } from "react";
-import {
-  Body,
-  Container,
-  Head,
-  Html,
-  Img,
-  Preview,
-  Section,
-  Text,
-} from "react-email";
 
 type MamaluVoucherEmailProps = {
   recipientName?: string;
@@ -22,41 +12,39 @@ export default function MamaluVoucherEmail({
   termsImageSrc = "cid:mamalu-voucher-terms",
 }: MamaluVoucherEmailProps): React.JSX.Element {
   return (
-    <Html lang="en">
-      <Head />
-      <Preview>Your Mamalu Kitchen gift voucher</Preview>
+    <html lang="en">
+      <head />
+      <body style={bodyStyle}>
+        <div style={containerStyle}>
+          <p style={greetingStyle}>Hi {recipientName},</p>
 
-      <Body style={bodyStyle}>
-        <Container style={containerStyle}>
-          <Text style={greetingStyle}>Hi {recipientName},</Text>
-
-          <Text style={messageStyle}>
+          <p style={messageStyle}>
             Your Mamalu Kitchen gift voucher is ready. The voucher code and
             issue date are already included in the designs below.
-          </Text>
+          </p>
 
-          <Section style={imageSectionStyle}>
-            <Img
+          <div style={imageSectionStyle}>
+            <img
               src={frontImageSrc}
               alt="Mamalu Kitchen gift card"
-              width="815"
-              height="579"
+              width={815}
+              height={579}
               style={imageStyle}
             />
-          </Section>
+          </div>
 
-          <Section style={imageSectionStyle}>
-            <Img
+          <div style={imageSectionStyle}>
+            <img
               src={termsImageSrc}
               alt="Mamalu Kitchen voucher terms and conditions"
-              width="815"
-              height="579"
+              width={815}
+              height={579}
               style={imageStyle}
             />
-          </Section>
-        </Container>
-      </Body>
-    </Html>
+          </div>
+        </div>
+      </body>
+    </html>
   );
 }
 
