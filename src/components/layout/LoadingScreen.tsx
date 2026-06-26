@@ -42,7 +42,7 @@ export default function LoadingScreen() {
       <h1 className="text-2xl font-bold text-stone-800 mb-2" style={{ fontFamily: 'var(--font-mossy), cursive' }}>
         Mamalu Kitchen
       </h1>
-      <p className="text-stone-500 text-sm">Feeding Families with Love</p>
+      <p className="text-stone-500 text-sm">Feeding Families</p>
     </div>
   );
 }

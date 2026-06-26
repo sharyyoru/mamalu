@@ -237,7 +237,8 @@ async function getTrend(
   table: string,
   column = "created_at",
   activeLeadsOnly = false,
-  excludeUnpaidBookings = false
+  excludeUnpaidBookings = false,
+  role?: string
 ): Promise<StatTrend> {
   const supabase = createAdminClient();
   if (!supabase) return { current: 0, previous: 0, change: 0, sparkline: [0, 0, 0, 0, 0, 0] };
@@ -250,6 +251,7 @@ async function getTrend(
       .gte(column, window.from)
       .lt(column, window.to);
     if (activeLeadsOnly) query = query.not("status", "in", "(won,lost)");
+    if (role) query = query.eq("role", role);
     if (excludeUnpaidBookings) {
       query = query
         .or(NON_UNPAID_STATUS_FILTER)
@@ -273,7 +275,7 @@ async function getStats() {
   if (!supabase) return null;
 
   const [users, classBookings, serviceBookings, productOrders, legacyOrders, activeLeads] = await Promise.all([
-    safeCount(supabase.from("profiles").select("*", { count: "exact", head: true })),
+    safeCount(supabase.from("profiles").select("*", { count: "exact", head: true }).eq("role", "customer")),
     safeCount(supabase.from("class_bookings").select("*", { count: "exact", head: true })),
     safeCount(supabase
       .from("service_bookings")
@@ -318,7 +320,7 @@ async function getDashboardData(revenuePeriod: RevenuePeriod): Promise<Dashboard
     topProductRows,
   ] = await Promise.all([
     getStats(),
-    getTrend("profiles"),
+    getTrend("profiles", "created_at", false, false, "customer"),
     getTrend("class_bookings"),
     getTrend("service_bookings", "created_at", false, true),
     getTrend("product_orders", "created_at"),
@@ -507,6 +509,22 @@ export default async function AdminDashboard({
   }));
   const maxMonthlyRevenue = Math.max(...monthlyRevenue.map((item) => item.classes + item.services + item.products), 1);
   const hasMonthlyRevenue = monthlyRevenue.some((item) => item.classes + item.services + item.products > 0);
+  const revenueChartPoints = monthlyRevenue.map((item, index) => {
+    const x = monthlyRevenue.length > 1 ? (index / (monthlyRevenue.length - 1)) * 100 : 50;
+    const point = (value: number) => `${x},${92 - (value / maxMonthlyRevenue) * 78}`;
+
+    return {
+      ...item,
+      x,
+      total: item.classes + item.services + item.products,
+      classesPoint: point(item.classes),
+      servicesPoint: point(item.services),
+      productsPoint: point(item.products),
+      totalPoint: point(item.classes + item.services + item.products),
+    };
+  });
+  const revenueLine = (key: "classesPoint" | "servicesPoint" | "productsPoint" | "totalPoint") =>
+    revenueChartPoints.map((item) => item[key]).join(" ");
   const revenueSubtitle = revenuePeriod === "month"
     ? "Daily performance this month"
     : revenuePeriod === "quarter"
@@ -647,53 +665,44 @@ export default async function AdminDashboard({
           </div>
           <div className="p-6">
             {hasMonthlyRevenue ? (
-              <div className="flex items-end justify-between gap-3 h-48">
-                {monthlyRevenue.map((item) => {
-                  const total = item.classes + item.services + item.products;
-                  const barHeight = Math.max((total / maxMonthlyRevenue) * 100, total > 0 ? 4 : 0);
-                  const classesHeight = total ? (item.classes / total) * 100 : 0;
-                  const servicesHeight = total ? (item.services / total) * 100 : 0;
-                  const productsHeight = total ? (item.products / total) * 100 : 0;
-                  return (
-                    <div key={item.month} className="group flex-1 flex flex-col items-center gap-2">
-                      <div className="relative flex min-h-0 h-full w-full items-end">
-                        {total > 0 && (
-                          <div
-                            className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap text-[11px] font-semibold text-stone-700"
-                            style={{ bottom: `calc(${barHeight}% + 6px)` }}
-                          >
-                            {formatCurrency(total)}
-                          </div>
-                        )}
-                        <div
-                          className="relative w-full overflow-hidden rounded-t-lg bg-stone-100 transition-all group-hover:brightness-105"
-                          style={{ height: `${barHeight}%`, minHeight: total > 0 ? 8 : 0 }}
-                          title={`${item.month}: ${formatCurrency(total)}`}
-                        >
-                          {item.classes > 0 && (
-                            <div
-                              className="absolute bottom-0 left-0 w-full bg-amber-500"
-                              style={{ height: `${classesHeight}%` }}
-                            />
-                          )}
-                          {item.services > 0 && (
-                            <div
-                              className="absolute left-0 w-full bg-emerald-500"
-                              style={{ bottom: `${classesHeight}%`, height: `${servicesHeight}%` }}
-                            />
-                          )}
-                          {item.products > 0 && (
-                            <div
-                              className="absolute left-0 w-full bg-purple-500"
-                              style={{ bottom: `${classesHeight + servicesHeight}%`, height: `${productsHeight}%` }}
-                            />
-                          )}
-                        </div>
+              <div className="h-48">
+                <div className="relative h-40">
+                  <svg className="h-full w-full overflow-visible" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label="Revenue line chart">
+                    {[14, 40, 66, 92].map((y) => (
+                      <line key={y} x1="0" x2="100" y1={y} y2={y} stroke="#e7e5e4" strokeWidth="0.5" vectorEffect="non-scaling-stroke" />
+                    ))}
+                    <polyline points={revenueLine("totalPoint")} fill="none" stroke="#f59e0b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+                    <polyline points={revenueLine("servicesPoint")} fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+                    <polyline points={revenueLine("productsPoint")} fill="none" stroke="#a855f7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+                  </svg>
+                  {revenueChartPoints.map((item) => (
+                    <div
+                      key={item.month}
+                      className="group absolute top-0 h-full -translate-x-1/2"
+                      style={{ left: `${item.x}%` }}
+                    >
+                      <div className="h-full w-px bg-transparent group-hover:bg-stone-200" />
+                      <div
+                        className="absolute h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-amber-500 shadow"
+                        style={{ top: `${92 - (item.total / maxMonthlyRevenue) * 78}%` }}
+                        title={`${item.month}: ${formatCurrency(item.total)}`}
+                      />
+                      <div
+                        className="pointer-events-none absolute left-1/2 z-10 hidden -translate-x-1/2 rounded-lg border border-stone-200 bg-white px-3 py-2 text-xs shadow-lg group-hover:block"
+                        style={{ top: `${Math.max(0, 92 - (item.total / maxMonthlyRevenue) * 78 - 28)}%` }}
+                      >
+                        <p className="whitespace-nowrap font-semibold text-stone-900">{item.month}: {formatCurrency(item.total)}</p>
+                        <p className="whitespace-nowrap text-stone-500">Services {formatCurrency(item.services)}</p>
+                        <p className="whitespace-nowrap text-stone-500">Products {formatCurrency(item.products)}</p>
                       </div>
-                      <span className="text-xs text-stone-400">{item.month}</span>
                     </div>
-                  );
-                })}
+                  ))}
+                </div>
+                <div className="mt-2 flex justify-between">
+                  {revenueChartPoints.map((item) => (
+                    <span key={item.month} className="text-xs text-stone-400">{item.month}</span>
+                  ))}
+                </div>
               </div>
             ) : (
               <div className="flex h-48 items-center justify-center rounded-xl border border-dashed border-stone-200 bg-stone-50 text-sm text-stone-500">
@@ -708,6 +717,10 @@ export default async function AdminDashboard({
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-purple-500" />
                 <span className="text-sm text-stone-600">Product Sales</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-amber-500" />
+                <span className="text-sm text-stone-600">Total Revenue</span>
               </div>
             </div>
           </div>
@@ -769,14 +782,14 @@ export default async function AdminDashboard({
           </div>
         </div>
 
-        {/* Top Classes */}
+        {/* Easy Freezy */}
         <div className="bg-white rounded-2xl border border-stone-200/60 shadow-sm overflow-hidden">
           <div className="p-6 border-b border-stone-100 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-xl bg-gradient-to-br from-violet-500 to-purple-500 text-white">
                 <ShoppingBag className="h-4 w-4" />
               </div>
-              <h3 className="font-semibold text-stone-900">Top Classes</h3>
+              <h3 className="font-semibold text-stone-900">Easy Freezy</h3>
             </div>
             <Link href="/admin/analytics" className="text-sm text-amber-600 hover:text-amber-700 font-medium">View all</Link>
           </div>
