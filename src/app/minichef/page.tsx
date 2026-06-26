@@ -1768,60 +1768,62 @@ export default function MiniChefPage() {
                       return (
                         <div key={cat}>
                           <h3 className="font-semibold text-stone-900 mb-3">{catLabels[cat]}</h3>
-                          <div className="grid sm:grid-cols-2 gap-3">
+                          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                             {catExtras.map((extra) => {
                               const Icon = extra.icon;
                               const qty = selectedExtras[extra.id] || 0;
                               return (
-                                <Card key={extra.id} className={qty > 0 ? "ring-2 ring-[#FF8C6B]" : ""}>
-                                  <CardContent className="p-6">
-                                    <div className="flex items-start gap-3">
-                                      <div className="flex-shrink-0">
-                                        {extra.image ? (
-                                          <button
-                                            type="button"
-                                            onClick={() => setPreviewExtra(extra)}
-                                            className="group relative h-40 w-40 overflow-hidden rounded-lg bg-stone-100 focus:outline-none focus:ring-2 focus:ring-[#FF8C6B] focus:ring-offset-2"
-                                            aria-label={`Preview ${extra.name}`}
-                                          >
-                                            <Image src={extra.image} alt={extra.name} fill className="object-cover transition group-hover:scale-105" />
-                                          </button>
-                                        ) : (
-                                          <div className="p-2 bg-stone-100 rounded-lg">
-                                            <Icon className="h-5 w-5 text-stone-600" />
+                                <Card key={extra.id} className={`overflow-hidden transition-all hover:shadow-lg ${qty > 0 ? "ring-2 ring-[#FF8C6B] shadow-md" : ""}`}>
+                                  <CardContent className="p-0">
+                                    <div className="flex flex-col">
+                                      {extra.image ? (
+                                        <button
+                                          type="button"
+                                          onClick={() => setPreviewExtra(extra)}
+                                          className="group relative w-full h-72 overflow-hidden bg-stone-100 focus:outline-none focus:ring-2 focus:ring-[#FF8C6B] focus:ring-offset-2"
+                                          aria-label={`Preview ${extra.name}`}
+                                        >
+                                          <Image src={extra.image} alt={extra.name} fill className="object-cover transition group-hover:scale-105" />
+                                        </button>
+                                      ) : (
+                                        <div className="w-full h-48 flex items-center justify-center bg-gradient-to-br from-[#fff5eb] to-[#ffe4d6]">
+                                          <div className="p-4 bg-white rounded-full shadow-sm">
+                                            <Icon className="h-8 w-8 text-[#FF8C6B]" />
                                           </div>
-                                        )}
-                                      </div>
-                                      <div className="flex-1">
-                                        <h4 className="font-bold text-stone-900">{extra.name}</h4>
-                                        <p className="text-sm text-stone-900">{extra.description}</p>
-                                        <p className="text-sm font-bold text-stone-900 mt-1">AED {extra.price}</p>
-                                      </div>
-                                      <div className="flex items-center gap-2">
-                                        <Button
-                                          variant="outline"
-                                          size="icon"
-                                          className="h-8 w-8"
-                                          onClick={() => setSelectedExtras(prev => ({
-                                            ...prev,
-                                            [extra.id]: Math.max(0, (prev[extra.id] || 0) - 1)
-                                          }))}
-                                          disabled={qty === 0}
-                                        >
-                                          <Minus className="h-3 w-3" />
-                                        </Button>
-                                        <span className="w-6 text-center font-bold">{qty}</span>
-                                        <Button
-                                          variant="outline"
-                                          size="icon"
-                                          className="h-8 w-8"
-                                          onClick={() => setSelectedExtras(prev => ({
-                                            ...prev,
-                                            [extra.id]: (prev[extra.id] || 0) + 1
-                                          }))}
-                                        >
-                                          <Plus className="h-3 w-3" />
-                                        </Button>
+                                        </div>
+                                      )}
+                                      <div className="p-4 flex-1 flex flex-col">
+                                        <h4 className="font-bold text-stone-900 text-lg">{extra.name}</h4>
+                                        <p className="text-sm text-stone-600 mt-1 flex-1">{extra.description}</p>
+                                        <div className="flex items-center justify-between mt-3 pt-3 border-t border-stone-100">
+                                          <p className="text-lg font-bold text-[#FF8C6B]">AED {extra.price}</p>
+                                          <div className="flex items-center gap-2">
+                                            <Button
+                                              variant="outline"
+                                              size="icon"
+                                              className="h-9 w-9 rounded-full border-[#FF8C6B] text-[#FF8C6B] hover:bg-[#FF8C6B] hover:text-white"
+                                              onClick={() => setSelectedExtras(prev => ({
+                                                ...prev,
+                                                [extra.id]: Math.max(0, (prev[extra.id] || 0) - 1)
+                                              }))}
+                                              disabled={qty === 0}
+                                            >
+                                              <Minus className="h-4 w-4" />
+                                            </Button>
+                                            <span className="w-8 text-center font-bold text-lg">{qty}</span>
+                                            <Button
+                                              variant="outline"
+                                              size="icon"
+                                              className="h-9 w-9 rounded-full border-[#FF8C6B] text-[#FF8C6B] hover:bg-[#FF8C6B] hover:text-white"
+                                              onClick={() => setSelectedExtras(prev => ({
+                                                ...prev,
+                                                [extra.id]: (prev[extra.id] || 0) + 1
+                                              }))}
+                                            >
+                                              <Plus className="h-4 w-4" />
+                                            </Button>
+                                          </div>
+                                        </div>
                                       </div>
                                     </div>
                                   </CardContent>

@@ -196,9 +196,6 @@ export default function HomePage() {
     <main className="relative">
       {/* Decorative margin images - hidden on mobile */}
       <div className="pointer-events-none hidden xl:block" style={{ position: "absolute", inset: 0, zIndex: 100 }}>
-        <Image src="/images/knives-01-01.png" alt="" width={80} height={80} style={{ position: "absolute", left: 16, top: 80, transform: "rotate(-15deg)", opacity: 0.85 }} />
-        <Image src="/images/image-random/turkey-02.png" alt="" width={110} height={110} style={{ position: "absolute", right: 16, top: 80, transform: "rotate(15deg)", opacity: 0.85 }} />
-        <Image src="/images/image-random/turkey-01.png" alt="" width={110} height={110} style={{ position: "absolute", left: 16, top: "35%", transform: "rotate(-12deg)", opacity: 0.7 }} />
         <Image src="/images/image-random/pizza cutter-01.png" alt="" width={80} height={80} style={{ position: "absolute", right: 16, top: "33%", transform: "rotate(15deg)", opacity: 0.7 }} />
         <Image src="/images/image-random/gloves-01.png" alt="" width={80} height={80} style={{ position: "absolute", left: 16, top: "60%", transform: "rotate(8deg)", opacity: 0.65 }} />
         <Image src="/images/image-random/spoon big-01-2.png" alt="" width={80} height={80} style={{ position: "absolute", right: 16, top: "63%", transform: "rotate(-10deg)", opacity: 0.65 }} />

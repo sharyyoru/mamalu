@@ -125,50 +125,45 @@ export default function VouchersPage() {
             <p className="text-sm mt-1">Check back soon!</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {groups.map((g) => (
               <div
                 key={g.amount}
-                className="group relative rounded-3xl overflow-hidden bg-white border-2 border-stone-100 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+                className="group relative flex flex-col rounded-2xl overflow-hidden bg-[#fff9f6] border border-[#ffd9cb] shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
               >
-                <div className="h-24 bg-gradient-to-br from-[#ff7f5c] to-[#ff9a7c] relative overflow-hidden">
-                  <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-white/10" />
-                  <div className="absolute -bottom-6 -left-6 w-24 h-24 rounded-full bg-white/10" />
-                  <div
-                    className="absolute inset-0 opacity-10"
-                    style={{
-                      backgroundImage: "url(/logos/logo-white.png)",
-                      backgroundSize: "contain",
-                      backgroundPosition: "center",
-                      backgroundRepeat: "no-repeat",
-                    }}
-                  />
-                </div>
+                {/* Top stripe */}
+                <div className="h-2 bg-gradient-to-r from-[#ff7f5c] to-[#ffb899]" />
 
-                <div className="p-8 pt-6">
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="p-2 rounded-xl bg-[#ff7f5c]/10">
-                      <Gift className="h-5 w-5 text-[#ff7f5c]" />
-                    </div>
-                    <p className="text-xs font-semibold uppercase tracking-wider text-stone-500">
+                <div className="flex flex-col flex-1 p-7">
+                  {/* Header row */}
+                  <div className="flex items-center justify-between mb-6">
+                    <p className="text-sm font-bold text-stone-500 tracking-wide" style={{ fontFamily: "var(--font-mossy), cursive" }}>Mamalu Kitchen</p>
+                    <span className="text-xs font-bold uppercase tracking-[0.15em] text-[#ff7f5c] bg-[#ff7f5c]/10 px-3 py-1.5 rounded-full">
                       Gift Voucher
+                    </span>
+                  </div>
+
+                  {/* Amount */}
+                  <div className="flex-1 flex flex-col items-center justify-center py-6 border-t border-b border-dashed border-[#ffd9cb]">
+                    <Gift className="h-8 w-8 text-[#ff7f5c]/40 mb-3" />
+                    <p
+                      className="text-6xl font-bold text-stone-800"
+                      style={{ fontFamily: "var(--font-mossy), cursive" }}
+                    >
+                      {formatPrice(g.amount)}
                     </p>
                   </div>
 
-                  <p
-                    className="text-5xl font-bold text-stone-900 mb-3"
-                    style={{ fontFamily: "var(--font-mossy), cursive" }}
-                  >
-                    {formatPrice(g.amount)}
-                  </p>
-
-                  <div className="text-sm text-stone-600 mb-6">
-                    <span className="text-stone-500">Valid 6 months</span>
+                  {/* Footer info */}
+                  <div className="mt-5 text-center text-xs text-stone-400">
+                    <span>Valid 6 months</span>
                   </div>
 
+                  {/* CTA */}
                   <button
                     onClick={() => openModal(g)}
-                    className="w-full text-center bg-[#ff7f5c] text-white font-bold py-3.5 rounded-2xl hover:bg-[#ff6a42] transition-all hover:scale-[1.02] active:scale-[0.98]"
+                    className="mt-5 w-full py-3.5 rounded-xl bg-[#ff7f5c] text-white font-bold text-sm tracking-wide hover:bg-[#ff6a42] active:scale-[0.98] transition-all shadow-sm"
+                    style={{ fontFamily: "var(--font-mossy), cursive" }}
                   >
                     Buy Now
                   </button>
