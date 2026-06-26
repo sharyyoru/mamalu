@@ -4,7 +4,6 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { ensureCustomerAccountAndSendAccess } from "@/lib/account/customer-account";
 import { sendBookingConfirmationEmail } from "@/lib/email/booking-confirmation";
 import { sendServiceBookingConfirmationEmail } from "@/lib/email/service-booking-confirmation";
-import { sendVoucherConfirmationEmail } from "@/lib/email/voucher-confirmation";
 import { createSourceInvoice, markSourceInvoicePaid } from "@/lib/invoices/source-invoices";
 import { findAvailableVoucherForAmount } from "@/lib/vouchers/assign-purchase-voucher";
 import { consumeVoucherUse } from "@/lib/vouchers/voucher-usage";
@@ -493,32 +492,9 @@ export async function POST(request: NextRequest) {
             const deliveryEmail = purchase?.is_gift ? purchase.recipient_email : customerEmail;
             const deliveryMobile = purchase?.is_gift ? purchase.recipient_mobile : purchase?.customer_mobile;
 
-            // Send the voucher and account access to the owner of the voucher.
+            // Voucher email is now sent from the success page using canvas-rendered images.
+            // sendVoucherConfirmationEmail is no longer called here to avoid duplicate emails.
             if (chosen && deliveryEmail) {
-              console.log(`📧 Sending voucher email to ${deliveryEmail}`);
-              const { success } = await sendVoucherConfirmationEmail({
-                customerName: deliveryName || "Customer",
-                customerEmail: deliveryEmail,
-                amount,
-                voucherCode: chosen.code,
-                purchaser: purchase?.is_gift
-                  ? {
-                      name: customerName || "Customer",
-                      email: customerEmail,
-                      mobile: purchase.customer_mobile,
-                    }
-                  : undefined,
-              });
-              
-              console.log(`Email send result: ${success ? "✅ SUCCESS" : "❌ FAILED"}`);
-              
-              if (success) {
-                await supabase
-                  .from("voucher_purchases")
-                  .update({ email_sent_at: new Date().toISOString() })
-                  .eq("stripe_session_id", session.id);
-              }
-
               const accountResult = await ensureCustomerAccountAndSendAccess({
                 supabase,
                 email: deliveryEmail,
@@ -531,7 +507,7 @@ export async function POST(request: NextRequest) {
                 console.error(`Customer account email failed for voucher purchase ${deliveryEmail}: ${accountResult.error}`);
               }
             } else {
-              console.warn("⚠️ Cannot send email - missing voucher or customer email");
+              console.warn("⚠️ Cannot send account access email - missing voucher or customer email");
             }
 
             console.log(`✅ Voucher purchase completed for ${customerEmail} – code: ${chosen?.code || "N/A"}`);

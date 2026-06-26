@@ -26,6 +26,7 @@ const socialLinks = [
 export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
+  const [partyBg, setPartyBg] = useState(false);
 
   useEffect(() => {
     const updateCartCount = () => {
@@ -55,6 +56,16 @@ export function Header() {
     return () => window.removeEventListener("openMamaluMenu", handleOpenMenu);
   }, []);
 
+  // Listen for minichef category change to show/hide party background
+  useEffect(() => {
+    const handleCategoryChange = (e: Event) => {
+      const detail = (e as CustomEvent<{ partyBg: boolean }>).detail;
+      setPartyBg(detail.partyBg);
+    };
+    window.addEventListener("miniChefCategoryChange", handleCategoryChange);
+    return () => window.removeEventListener("miniChefCategoryChange", handleCategoryChange);
+  }, []);
+
 
   // Prevent body scroll when menu is open
   useEffect(() => {
@@ -71,9 +82,17 @@ export function Header() {
   return (
     <>
       {/* Header - Sticky */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white">
+      <header
+        className="fixed top-0 left-0 right-0 z-50 bg-white"
+        style={partyBg ? {
+          backgroundImage: "linear-gradient(to bottom, transparent 0%, transparent 45%, rgba(255,255,255,0.92) 70%, white 100%), url('/hanging-kitchen-strings-transparent.png')",
+          backgroundSize: "cover",
+          backgroundPosition: "top center",
+          backgroundRepeat: "no-repeat",
+        } : undefined}
+      >
         <nav className="container mx-auto px-6 lg:px-8">
-          <div className="flex items-center justify-between relative py-4 min-h-[100px] lg:min-h-[160px]">
+          <div className={`flex items-center justify-between relative ${partyBg ? "py-2 min-h-[80px] lg:min-h-[110px]" : "py-4 min-h-[100px] lg:min-h-[160px]"}`}>
             
             {/* Left: Nav Links - Horizontal layout, 2x bigger text, line separators */}
             <div className="hidden lg:flex flex-row items-center gap-6 z-10">
@@ -121,7 +140,7 @@ export function Header() {
             </button>
 
             {/* Center: Logo */}
-            <div className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 flex flex-col items-center z-0">
+            <div className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 flex flex-col items-center z-10">
               <Link href="/">
                 <Image 
                   src="/graphics/mamalu-logo-transparent.png" 
@@ -180,7 +199,7 @@ export function Header() {
         </nav>
       </header>
 
-      {/* Spacer for fixed header */}
+      {/* Spacer for fixed header — grows when party banner is visible */}
       <div className="h-[100px] lg:h-[160px]" />
 
       {/* Fullscreen Menu Overlay - white bg, centered logo, peach highlights */}
