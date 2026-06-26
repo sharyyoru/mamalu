@@ -237,7 +237,8 @@ async function getTrend(
   table: string,
   column = "created_at",
   activeLeadsOnly = false,
-  excludeUnpaidBookings = false
+  excludeUnpaidBookings = false,
+  role?: string
 ): Promise<StatTrend> {
   const supabase = createAdminClient();
   if (!supabase) return { current: 0, previous: 0, change: 0, sparkline: [0, 0, 0, 0, 0, 0] };
@@ -250,6 +251,7 @@ async function getTrend(
       .gte(column, window.from)
       .lt(column, window.to);
     if (activeLeadsOnly) query = query.not("status", "in", "(won,lost)");
+    if (role) query = query.eq("role", role);
     if (excludeUnpaidBookings) {
       query = query
         .or(NON_UNPAID_STATUS_FILTER)
@@ -273,7 +275,7 @@ async function getStats() {
   if (!supabase) return null;
 
   const [users, classBookings, serviceBookings, productOrders, legacyOrders, activeLeads] = await Promise.all([
-    safeCount(supabase.from("profiles").select("*", { count: "exact", head: true })),
+    safeCount(supabase.from("profiles").select("*", { count: "exact", head: true }).eq("role", "customer")),
     safeCount(supabase.from("class_bookings").select("*", { count: "exact", head: true })),
     safeCount(supabase
       .from("service_bookings")
@@ -318,7 +320,7 @@ async function getDashboardData(revenuePeriod: RevenuePeriod): Promise<Dashboard
     topProductRows,
   ] = await Promise.all([
     getStats(),
-    getTrend("profiles"),
+    getTrend("profiles", "created_at", false, false, "customer"),
     getTrend("class_bookings"),
     getTrend("service_bookings", "created_at", false, true),
     getTrend("product_orders", "created_at"),
