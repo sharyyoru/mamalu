@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const defaultPartyExtras = [
@@ -21,15 +21,23 @@ const defaultPartyExtras = [
   { name: "Soft Drinks (per pc)", description: "Soft drink per piece", price: 15, image_url: null, sort_order: 170, metadata: { extra_category: "drinks", icon: "drinks" } },
 ];
 
-export async function POST() {
+const allowedCategories = new Set(["party_extras", "corporate_party_extras"]);
+
+export async function POST(request: NextRequest) {
   try {
     const supabase = createAdminClient();
     if (!supabase) throw new Error("Failed to create Supabase client");
 
+    const { searchParams } = new URL(request.url);
+    const category = searchParams.get("category") || "party_extras";
+    if (!allowedCategories.has(category)) {
+      return NextResponse.json({ error: "Invalid party extras category" }, { status: 400 });
+    }
+
     const { data: existing, error: fetchError } = await supabase
       .from("menu_items")
       .select("name")
-      .contains("categories", ["party_extras"]);
+      .contains("categories", [category]);
 
     if (fetchError) throw fetchError;
 
@@ -37,7 +45,7 @@ export async function POST() {
     const missingItems = defaultPartyExtras
       .filter((item) => !existingNames.has(item.name))
       .map((item) => ({
-        categories: ["party_extras"],
+        categories: [category],
         name: item.name,
         description: item.description,
         dishes: [],

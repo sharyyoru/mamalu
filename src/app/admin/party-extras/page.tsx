@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { ChangeEvent } from "react";
 import Image from "next/image";
 import {
@@ -39,8 +39,38 @@ interface PartyExtra {
   metadata: {
     extra_category?: string;
     icon?: string;
+    table_option?: boolean;
+    table_pricing_tiers?: TablePricingTier[];
   } | null;
 }
+
+interface TablePricingTier {
+  max_guests: number;
+  price: number;
+}
+
+const defaultTablePricingTiers: TablePricingTier[] = [
+  { max_guests: 10, price: 300 },
+  { max_guests: 20, price: 400 },
+  { max_guests: 30, price: 500 },
+];
+
+const extraAudiences = [
+  {
+    id: "party_extras",
+    name: "Mini Chef Parties",
+    title: "Party Extras",
+    description: "Manage Mini Chef party add-ons, photos, and prices",
+    emptyLabel: "party extras",
+  },
+  {
+    id: "corporate_party_extras",
+    name: "Corporate / Private",
+    title: "Corporate / Private Extras",
+    description: "Manage Big Chef corporate/private add-ons, photos, and prices",
+    emptyLabel: "corporate/private extras",
+  },
+];
 
 const extraCategories = [
   { id: "custom", name: "Personalized Items", icon: Gift },
@@ -90,33 +120,44 @@ export default function AdminPartyExtrasPage() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [seeding, setSeeding] = useState(false);
+  const [showTablePricing, setShowTablePricing] = useState(false);
+  const [tablePricingTiers, setTablePricingTiers] = useState<TablePricingTier[]>(defaultTablePricingTiers);
+  const [activeAudience, setActiveAudience] = useState(extraAudiences[0].id);
   const [activeCategory, setActiveCategory] = useState("custom");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const audienceConfig = extraAudiences.find((audience) => audience.id === activeAudience) || extraAudiences[0];
 
-  const getExtraCategory = (extra: Partial<PartyExtra>) => extra.metadata?.extra_category || "custom";
+  const getExtraCategory = useCallback((extra: Partial<PartyExtra>) => extra.metadata?.extra_category || "custom", []);
+  const isTableOption = useCallback((extra: Partial<PartyExtra>) =>
+    Boolean(extra.metadata?.table_option)
+    || (getExtraCategory(extra) === "decor" && (extra.description || "").toLowerCase().includes("plates, cups")), [getExtraCategory]);
 
-  const fetchExtras = async () => {
+  const fetchExtras = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/admin/menu-items?category=party_extras");
+      const res = await fetch(`/api/admin/menu-items?category=${activeAudience}`);
       if (res.ok) {
         const data = await res.json();
         setExtras(data.items || []);
+        const tableOption = (data.items || []).find((item: PartyExtra) => isTableOption(item));
+        const tiers = tableOption?.metadata?.table_pricing_tiers;
+        setTablePricingTiers(Array.isArray(tiers) && tiers.length > 0 ? tiers : defaultTablePricingTiers);
       }
     } catch {
       alert("Failed to load party extras");
     } finally {
       setLoading(false);
     }
-  };
+  }, [activeAudience, isTableOption]);
 
   useEffect(() => {
     fetchExtras();
-  }, []);
+  }, [fetchExtras]);
 
   const openCreate = () => {
     setEditingExtra({
       ...emptyExtra,
+      categories: [activeAudience],
       metadata: {
         extra_category: activeCategory,
         icon: getDefaultIcon(activeCategory),
@@ -129,7 +170,9 @@ export default function AdminPartyExtrasPage() {
     if (!editingExtra?.name) return;
     setSaving(true);
     try {
-      const categories = Array.from(new Set([...(editingExtra.categories || []), "party_extras"]));
+      const otherAudienceIds = extraAudiences.map((audience) => audience.id).filter((id) => id !== activeAudience);
+      const categories = Array.from(new Set([...(editingExtra.categories || []), activeAudience]))
+        .filter((category) => !otherAudienceIds.includes(category));
       const payload = {
         ...editingExtra,
         categories,
@@ -138,6 +181,8 @@ export default function AdminPartyExtrasPage() {
         metadata: {
           ...(editingExtra.metadata || {}),
           extra_category: getExtraCategory(editingExtra),
+          table_option: Boolean(editingExtra.metadata?.table_option),
+          table_pricing_tiers: editingExtra.metadata?.table_option ? tablePricingTiers : undefined,
         },
       };
       const url = isCreating ? "/api/admin/menu-items" : `/api/admin/menu-items/${editingExtra.id}`;
@@ -176,11 +221,11 @@ export default function AdminPartyExtrasPage() {
   const seedDefaults = async () => {
     setSeeding(true);
     try {
-      const res = await fetch("/api/admin/party-extras/seed", { method: "POST" });
+      const res = await fetch(`/api/admin/party-extras/seed?category=${activeAudience}`, { method: "POST" });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to populate party extras");
       await fetchExtras();
-      alert(`Populated ${data.inserted || 0} party extras`);
+      alert(`Populated ${data.inserted || 0} ${audienceConfig.emptyLabel}`);
     } catch (error: unknown) {
       alert(error instanceof Error ? error.message : "Failed to populate party extras");
     } finally {
@@ -202,6 +247,51 @@ export default function AdminPartyExtrasPage() {
       }
     } catch {
       alert("Failed to update extra");
+    }
+  };
+
+  const saveTablePricing = async () => {
+    const normalizedTiers = tablePricingTiers
+      .map((tier) => ({
+        max_guests: Number(tier.max_guests) || 0,
+        price: Number(tier.price) || 0,
+      }))
+      .filter((tier) => tier.max_guests > 0)
+      .sort((a, b) => a.max_guests - b.max_guests);
+
+    const tableOptions = extras.filter((extra) => isTableOption(extra));
+    if (tableOptions.length === 0) {
+      alert("Create or mark at least one Decorations & Setup item as a table option first.");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const updates = await Promise.all(tableOptions.map((extra) =>
+        fetch(`/api/admin/menu-items/${extra.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            metadata: {
+              ...(extra.metadata || {}),
+              extra_category: "decor",
+              icon: extra.metadata?.icon || "party",
+              table_option: true,
+              table_pricing_tiers: normalizedTiers,
+            },
+          }),
+        })
+      ));
+
+      const failed = updates.find((res) => !res.ok);
+      if (failed) throw new Error("Failed to save table pricing settings");
+      setTablePricingTiers(normalizedTiers);
+      await fetchExtras();
+      setShowTablePricing(false);
+    } catch (error: unknown) {
+      alert(error instanceof Error ? error.message : "Failed to save table pricing settings");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -249,11 +339,16 @@ export default function AdminPartyExtrasPage() {
           <div>
             <h1 className="text-2xl font-bold text-stone-900 flex items-center gap-2">
               <PartyPopper className="h-7 w-7" />
-              Party Extras
+              {audienceConfig.title}
             </h1>
-            <p className="text-stone-500 mt-1">Manage Mini Chef party add-ons, photos, and prices</p>
+            <p className="text-stone-500 mt-1">{audienceConfig.description}</p>
           </div>
           <div className="flex gap-2">
+            {activeAudience === "party_extras" && activeCategory === "decor" && (
+              <Button variant="outline" onClick={() => setShowTablePricing(true)}>
+                Table Pricing Settings
+              </Button>
+            )}
             <Button variant="outline" onClick={seedDefaults} disabled={seeding}>
               {seeding ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <PartyPopper className="h-4 w-4 mr-2" />}
               Populate Defaults
@@ -263,6 +358,18 @@ export default function AdminPartyExtrasPage() {
               Add Extra
             </Button>
           </div>
+        </div>
+
+        <div className="flex flex-wrap gap-2 mb-4">
+          {extraAudiences.map((audience) => (
+            <button
+              key={audience.id}
+              onClick={() => setActiveAudience(audience.id)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeAudience === audience.id ? "bg-[#FF8C6B] text-white" : "bg-white text-stone-600 hover:bg-stone-100 border"}`}
+            >
+              {audience.name}
+            </button>
+          ))}
         </div>
 
         <div className="flex flex-wrap gap-2 mb-6">
@@ -322,8 +429,8 @@ export default function AdminPartyExtrasPage() {
           {filteredExtras.length === 0 && (
             <div className="col-span-full text-center py-12 text-stone-500">
               <PartyPopper className="h-12 w-12 mx-auto mb-3 text-stone-300" />
-              <p className="font-medium">No party extras in this category</p>
-              <p className="text-sm mt-1">Click &quot;Populate Defaults&quot; to import the old Customize Your Party items</p>
+              <p className="font-medium">No {audienceConfig.emptyLabel} in this category</p>
+              <p className="text-sm mt-1">Click &quot;Populate Defaults&quot; to import the default customization items</p>
               <Button variant="outline" className="mt-4" onClick={seedDefaults} disabled={seeding}>
                 {seeding ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <PartyPopper className="h-4 w-4 mr-2" />}
                 Populate Defaults
@@ -337,7 +444,7 @@ export default function AdminPartyExtrasPage() {
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between z-10">
-              <h2 className="text-xl font-bold text-stone-900">{isCreating ? "Add Party Extra" : "Edit Party Extra"}</h2>
+              <h2 className="text-xl font-bold text-stone-900">{isCreating ? `Add ${audienceConfig.title.replace(" Extras", "")} Extra` : `Edit ${audienceConfig.title.replace(" Extras", "")} Extra`}</h2>
               <button onClick={() => { setEditingExtra(null); setIsCreating(false); }}>
                 <X className="h-5 w-5 text-stone-400 hover:text-stone-600" />
               </button>
@@ -373,15 +480,17 @@ export default function AdminPartyExtrasPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className={`grid gap-4 ${editingExtra.metadata?.table_option ? "grid-cols-1" : "grid-cols-2"}`}>
                 <div>
                   <label className="block text-sm font-medium text-stone-700 mb-1">Name *</label>
                   <input type="text" value={editingExtra.name || ""} onChange={(e) => setEditingExtra({ ...editingExtra, name: e.target.value })} className="w-full px-3 py-2 border rounded-lg" />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-stone-700 mb-1">Price (AED) *</label>
-                  <input type="number" value={editingExtra.price || ""} onChange={(e) => setEditingExtra({ ...editingExtra, price: parseFloat(e.target.value) || 0 })} className="w-full px-3 py-2 border rounded-lg" />
-                </div>
+                {!editingExtra.metadata?.table_option && (
+                  <div>
+                    <label className="block text-sm font-medium text-stone-700 mb-1">Price (AED) *</label>
+                    <input type="number" value={editingExtra.price || ""} onChange={(e) => setEditingExtra({ ...editingExtra, price: parseFloat(e.target.value) || 0 })} className="w-full px-3 py-2 border rounded-lg" />
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -402,6 +511,25 @@ export default function AdminPartyExtrasPage() {
                   </select>
                 </div>
               </div>
+
+              {getExtraCategory(editingExtra) === "decor" && (
+                <label className="flex items-center gap-2 cursor-pointer rounded-lg border border-stone-200 bg-stone-50 px-3 py-3">
+                  <input
+                    type="checkbox"
+                    checked={Boolean(editingExtra.metadata?.table_option)}
+                    onChange={(e) => setEditingExtra({
+                      ...editingExtra,
+                      metadata: {
+                        ...(editingExtra.metadata || {}),
+                        table_option: e.target.checked,
+                        table_pricing_tiers: e.target.checked ? tablePricingTiers : undefined,
+                      },
+                    })}
+                    className="rounded"
+                  />
+                  <span className="text-sm">Table option - use Table Pricing Settings for customer pricing</span>
+                </label>
+              )}
 
               <div>
                 <label className="block text-sm font-medium text-stone-700 mb-1">Description</label>
@@ -429,6 +557,68 @@ export default function AdminPartyExtrasPage() {
               <Button onClick={handleSave} disabled={saving || !editingExtra.name}>
                 {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
                 {isCreating ? "Create" : "Save Changes"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showTablePricing && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full">
+            <div className="border-b px-6 py-4 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-stone-900">Table Pricing Settings</h2>
+              <button onClick={() => setShowTablePricing(false)}>
+                <X className="h-5 w-5 text-stone-400 hover:text-stone-600" />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              {tablePricingTiers.map((tier, index) => (
+                <div key={index} className="grid grid-cols-[1fr_1fr_auto] gap-3 items-end">
+                  <div>
+                    <label className="block text-sm font-medium text-stone-700 mb-1">Max Guests</label>
+                    <input
+                      type="number"
+                      min={1}
+                      value={tier.max_guests}
+                      onChange={(e) => setTablePricingTiers((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, max_guests: parseInt(e.target.value, 10) || 0 } : item))}
+                      className="w-full px-3 py-2 border rounded-lg"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-stone-700 mb-1">Price (AED)</label>
+                    <input
+                      type="number"
+                      min={0}
+                      value={tier.price}
+                      onChange={(e) => setTablePricingTiers((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, price: parseFloat(e.target.value) || 0 } : item))}
+                      className="w-full px-3 py-2 border rounded-lg"
+                    />
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="text-red-500"
+                    onClick={() => setTablePricingTiers((current) => current.filter((_, itemIndex) => itemIndex !== index))}
+                    disabled={tablePricingTiers.length <= 1}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+              <Button
+                variant="outline"
+                onClick={() => setTablePricingTiers((current) => [...current, { max_guests: (current[current.length - 1]?.max_guests || 0) + 10, price: 0 }])}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Tier
+              </Button>
+            </div>
+            <div className="border-t px-6 py-4 flex justify-end gap-3">
+              <Button variant="outline" onClick={() => setShowTablePricing(false)}>Cancel</Button>
+              <Button onClick={saveTablePricing} disabled={saving}>
+                {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+                Save Settings
               </Button>
             </div>
           </div>

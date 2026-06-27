@@ -389,7 +389,7 @@ export default function BigChefPage() {
     async function fetchCorporateExtras() {
       setLoadingExtras(true);
       try {
-        const res = await fetch("/api/admin/menu-items?category=party_extras&active=true");
+        const res = await fetch("/api/admin/menu-items?category=corporate_party_extras&active=true");
         const data = res.ok ? await res.json() : { items: [] };
         const mappedExtras = (data.items || []).map((item: PartyExtraMenuItem) => {
           const iconKey = item.metadata?.icon || "gift";
@@ -406,7 +406,7 @@ export default function BigChefPage() {
         });
         setCorporateExtras(mappedExtras);
       } catch (error) {
-        console.error("Failed to fetch party extras:", error);
+        console.error("Failed to fetch corporate/private extras:", error);
         setCorporateExtras([]);
       } finally {
         setLoadingExtras(false);

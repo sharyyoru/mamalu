@@ -106,7 +106,8 @@ export function AdminCreateBookingModal({ isOpen, onClose, onSuccess, currentUse
   const [category, setCategory] = useState<CategoryRule | null>(null);
   const [menus, setMenus] = useState<MenuItem[]>([]);
   const [packages, setPackages] = useState<PackageItem[]>([]);
-  const [extras, setExtras] = useState<MenuItem[]>([]);
+  const [partyExtras, setPartyExtras] = useState<MenuItem[]>([]);
+  const [corporateExtras, setCorporateExtras] = useState<MenuItem[]>([]);
   const [summerCampItems, setSummerCampItems] = useState<MenuItem[]>(STATIC_SUMMER_CAMP_MENUS);
   const [summerCampAvailableDates, setSummerCampAvailableDates] = useState<string[]>([]);
   const [summerCampBatches, setSummerCampBatches] = useState<SummerCampBatch[]>([]);
@@ -139,10 +140,12 @@ export function AdminCreateBookingModal({ isOpen, onClose, onSuccess, currentUse
       fetch("/api/admin/menu-items?active=true").then((res) => res.json()),
       fetch("/api/admin/packages?active=true").then((res) => res.json()),
       fetch("/api/admin/menu-items?category=party_extras&active=true").then((res) => res.json()),
-    ]).then(([menuData, packageData, extraData]) => {
+      fetch("/api/admin/menu-items?category=corporate_party_extras&active=true").then((res) => res.json()),
+    ]).then(([menuData, packageData, extraData, corporateExtraData]) => {
       setMenus(menuData.items || []);
       setPackages(packageData.packages || []);
-      setExtras(extraData.items || []);
+      setPartyExtras(extraData.items || []);
+      setCorporateExtras(corporateExtraData.items || []);
     }).finally(() => setLoadingData(false));
   }, [isOpen]);
 
@@ -167,6 +170,7 @@ export function AdminCreateBookingModal({ isOpen, onClose, onSuccess, currentUse
   const selectedPackage = category?.packages ? selectedMenus[0] as PackageItem | undefined : undefined;
   const packageClassLimit = selectedPackage?.metadata?.class_count || 1;
   const packageClassOptions = selectedPackage?.menu_items || [];
+  const extras = category?.id === "corporate" ? corporateExtras : partyExtras;
 
   const resetForCategory = (rule: CategoryRule) => {
     setCategory(rule);

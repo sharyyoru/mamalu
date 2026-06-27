@@ -136,6 +136,13 @@ interface ExtraItem {
   icon: LucideIcon;
   category: string;
   image?: string;
+  tableOption?: boolean;
+  tablePricingTiers?: TablePricingTier[];
+}
+
+interface TablePricingTier {
+  max_guests: number;
+  price: number;
 }
 
 interface DbPartyExtra {
@@ -147,6 +154,8 @@ interface DbPartyExtra {
   metadata: {
     extra_category?: string;
     icon?: string;
+    table_option?: boolean;
+    table_pricing_tiers?: TablePricingTier[];
   } | null;
 }
 
@@ -545,6 +554,8 @@ export default function MiniChefPage() {
             icon: icon || Gift,
             category,
             image: item.image_url || undefined,
+            tableOption: item.metadata?.table_option,
+            tablePricingTiers: item.metadata?.table_pricing_tiers,
           };
         });
         setBirthdayExtras(extras);
@@ -656,6 +667,47 @@ export default function MiniChefPage() {
     if (!pkg) return false;
     return selectedItems.length === getPackageClassLimit(pkg);
   };
+
+  const isTableOption = (extra: ExtraItem) =>
+    Boolean(extra.tableOption)
+    || (extra.category === "decor" && extra.description.toLowerCase().includes("plates, cups"));
+
+  const fallbackTablePricingTiers: TablePricingTier[] = [
+    { max_guests: 10, price: 300 },
+    { max_guests: 20, price: 400 },
+    { max_guests: 30, price: 500 },
+  ];
+
+  const getTablePricingTiers = (extra: ExtraItem) => {
+    const tiers = extra.tablePricingTiers;
+    if (Array.isArray(tiers) && tiers.length > 0) {
+      return tiers
+        .map((tier) => ({ max_guests: Number(tier.max_guests) || 0, price: Number(tier.price) || 0 }))
+        .filter((tier) => tier.max_guests > 0)
+        .sort((a, b) => a.max_guests - b.max_guests);
+    }
+    return fallbackTablePricingTiers;
+  };
+
+  const getResolvedTableTier = (extra: ExtraItem) => {
+    const tiers = getTablePricingTiers(extra);
+    return tiers.find((tier) => tier.max_guests >= guestCount) || tiers[tiers.length - 1];
+  };
+
+  const getExtraPrice = (extra: ExtraItem) => {
+    if (!isTableOption(extra)) return extra.price;
+    return getResolvedTableTier(extra)?.price || extra.price;
+  };
+
+  const getExtraDescription = (extra: ExtraItem) => {
+    if (!isTableOption(extra)) return extra.description;
+    const tier = getResolvedTableTier(extra);
+    return tier?.max_guests
+      ? `${extra.description} for up to ${tier.max_guests} guests`
+      : extra.description;
+  };
+
+  const tableSetupIds = new Set(birthdayExtras.filter(isTableOption).map((extra) => extra.id));
 
   const togglePendingPackageMenuItem = (item: MenuItem) => {
     const limit = getPackageClassLimit(pendingPackage);
@@ -929,7 +981,7 @@ export default function MiniChefPage() {
   const calculateExtrasTotal = () => {
     return Object.entries(selectedExtras).reduce((total, [id, qty]) => {
       const extra = birthdayExtras.find(e => e.id === id);
-      return total + (extra?.price || 0) * qty;
+      return total + (extra ? getExtraPrice(extra) : 0) * qty;
     }, 0);
   };
 
@@ -942,7 +994,7 @@ export default function MiniChefPage() {
     .map((extra) => ({
       ...extra,
       quantity: selectedExtras[extra.id],
-      total: extra.price * selectedExtras[extra.id],
+      total: getExtraPrice(extra) * selectedExtras[extra.id],
     }));
 
   const minimumBookableDate = getMinimumBookableDate();
@@ -1032,12 +1084,15 @@ export default function MiniChefPage() {
     try {
       const extrasData = birthdayExtras
         .filter((e) => selectedExtras[e.id])
-        .map((e) => ({
-          id: e.id,
-          name: e.name,
-          price: e.price,
-          quantity: selectedExtras[e.id],
-      }));
+        .map((e) => {
+          const resolvedTier = isTableOption(e) ? getResolvedTableTier(e) : null;
+          return {
+            id: e.id,
+            name: resolvedTier?.max_guests ? `${e.name} (up to ${resolvedTier.max_guests} guests)` : e.name,
+            price: getExtraPrice(e),
+            quantity: selectedExtras[e.id],
+          };
+        });
 
       const isDepositPayment = requiresDeposit;
       const packageClassNames = selectedPackageMenuItems.map((item) => item.name).join(", ");
@@ -1804,9 +1859,14 @@ export default function MiniChefPage() {
                                       )}
                                       <div className="p-4 flex-1 flex flex-col">
                                         <h4 className="font-bold text-stone-900 text-lg">{extra.name}</h4>
-                                        <p className="text-sm text-stone-600 mt-1 flex-1">{extra.description}</p>
+                                        <p className="text-sm text-stone-600 mt-1 flex-1">{getExtraDescription(extra)}</p>
+                                        {isTableOption(extra) ? (
+                                          <p className="mt-2 text-xs font-bold text-stone-500">
+                                            Auto-priced for {guestCount} guests
+                                          </p>
+                                        ) : null}
                                         <div className="flex items-center justify-between mt-3 pt-3 border-t border-stone-100">
-                                          <p className="text-lg font-bold text-[#FF8C6B]">AED {extra.price}</p>
+                                          <p className="text-lg font-bold text-[#FF8C6B]">AED {getExtraPrice(extra)}</p>
                                           <div className="flex items-center gap-2">
                                             <Button
                                               variant="outline"
@@ -1825,10 +1885,20 @@ export default function MiniChefPage() {
                                               variant="outline"
                                               size="icon"
                                               className="h-9 w-9 rounded-full border-[#FF8C6B] text-[#FF8C6B] hover:bg-[#FF8C6B] hover:text-white"
-                                              onClick={() => setSelectedExtras(prev => ({
-                                                ...prev,
-                                                [extra.id]: (prev[extra.id] || 0) + 1
-                                              }))}
+                                              onClick={() => setSelectedExtras(prev => {
+                                                if (!tableSetupIds.has(extra.id)) {
+                                                  return {
+                                                    ...prev,
+                                                    [extra.id]: (prev[extra.id] || 0) + 1,
+                                                  };
+                                                }
+                                                const next = { ...prev };
+                                                tableSetupIds.forEach((id) => {
+                                                  if (id !== extra.id) delete next[id];
+                                                });
+                                                next[extra.id] = 1;
+                                                return next;
+                                              })}
                                             >
                                               <Plus className="h-4 w-4" />
                                             </Button>
