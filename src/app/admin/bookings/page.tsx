@@ -33,6 +33,7 @@ import {
   ArrowDown,
   Ticket,
   Lock,
+  FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -41,6 +42,7 @@ import { formatPrice, formatDate } from "@/lib/utils";
 import { DEFAULT_BOOKING_TIME_SLOTS } from "@/lib/booking-time-slots";
 import { AdminCreateBookingModal } from "@/components/admin/admin-create-booking-modal";
 import { MonthlyAvailableDatePicker } from "@/components/booking/monthly-available-date-picker";
+import { CreditNotePdfData, downloadTaxCreditNotePdf } from "@/lib/credit-notes/pdf";
 
 const CALENDAR_HOURS = Array.from({ length: 13 }, (_, index) => {
   const hour = 9 + index;
@@ -298,6 +300,11 @@ interface AdminBookingsPageContentProps {
   unpaidOnly?: boolean;
 }
 
+interface CreditNote extends CreditNotePdfData {
+  id: string;
+  downloaded_at: string | null;
+}
+
 export function AdminBookingsPageContent({ unpaidOnly = false }: AdminBookingsPageContentProps) {
   const [bookings, setBookings] = useState<ServiceBooking[]>([]);
   const [stats, setStats] = useState<BookingStats | null>(null);
@@ -336,6 +343,10 @@ export function AdminBookingsPageContent({ unpaidOnly = false }: AdminBookingsPa
   const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
   const [bookingInvoices, setBookingInvoices] = useState<BookingInvoice[]>([]);
   const [bookingInvoicesLoading, setBookingInvoicesLoading] = useState(false);
+  const [bookingCreditNotes, setBookingCreditNotes] = useState<CreditNote[]>([]);
+  const [bookingCreditNotesLoading, setBookingCreditNotesLoading] = useState(false);
+  const [creditNoteError, setCreditNoteError] = useState<string | null>(null);
+  const [generatingCreditNote, setGeneratingCreditNote] = useState(false);
   const [generatingBalanceLink, setGeneratingBalanceLink] = useState(false);
   const [sendingBalanceLink, setSendingBalanceLink] = useState(false);
   
@@ -584,6 +595,39 @@ export function AdminBookingsPageContent({ unpaidOnly = false }: AdminBookingsPa
     fetchBookingInvoices();
   }, [selectedBooking, showModal]);
 
+  useEffect(() => {
+    const fetchBookingCreditNotes = async () => {
+      if (!selectedBooking || !showModal) {
+        setBookingCreditNotes([]);
+        return;
+      }
+
+      setBookingCreditNotesLoading(true);
+      setCreditNoteError(null);
+      try {
+        const params = new URLSearchParams({
+          sourceType: "service_booking",
+          sourceId: selectedBooking.id,
+        });
+        const res = await fetch(`/api/admin/credit-notes?${params}`);
+        if (!res.ok) {
+          setBookingCreditNotes([]);
+          return;
+        }
+
+        const data = await res.json();
+        setBookingCreditNotes(data.creditNotes || []);
+      } catch (error) {
+        console.error("Failed to fetch booking credit notes:", error);
+        setBookingCreditNotes([]);
+      } finally {
+        setBookingCreditNotesLoading(false);
+      }
+    };
+
+    fetchBookingCreditNotes();
+  }, [selectedBooking, showModal]);
+
   const setQuickDateRange = (range: string) => {
     const today = new Date();
     let start = new Date();
@@ -744,6 +788,46 @@ export function AdminBookingsPageContent({ unpaidOnly = false }: AdminBookingsPa
       }
     }
     return { className: "bg-amber-100 text-amber-700", label: "Pending" };
+  };
+
+  const canGenerateBookingCreditNote = (booking: ServiceBooking) => {
+    return (
+      !booking.is_voucher_redemption &&
+      Number(booking.total_amount || 0) > 0 &&
+      booking.status !== "cancelled" &&
+      Boolean(booking.paid_at || booking.payment_status === "fully_paid" || (booking.is_deposit_payment && booking.deposit_paid && booking.balance_paid))
+    );
+  };
+
+  const generateBookingCreditNote = async () => {
+    if (!selectedBooking) return;
+
+    setGeneratingCreditNote(true);
+    setCreditNoteError(null);
+    try {
+      const res = await fetch("/api/admin/credit-notes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sourceType: "service_booking", sourceId: selectedBooking.id }),
+      });
+      const data = await res.json();
+
+      if (!res.ok || !data.creditNote) {
+        setCreditNoteError(data.error || "Failed to generate tax credit note");
+        return;
+      }
+
+      setBookingCreditNotes((current) => {
+        const withoutNote = current.filter((note) => note.id !== data.creditNote.id);
+        return [data.creditNote, ...withoutNote];
+      });
+      downloadTaxCreditNotePdf(data.creditNote);
+    } catch (error) {
+      console.error("Failed to generate tax credit note:", error);
+      setCreditNoteError("Failed to generate tax credit note");
+    } finally {
+      setGeneratingCreditNote(false);
+    }
   };
 
   const getInvoiceStatusBadge = (status: string) => {
@@ -2181,6 +2265,80 @@ export function AdminBookingsPageContent({ unpaidOnly = false }: AdminBookingsPa
                   </div>
                 )}
               </div>
+              )}
+
+              {/* Tax Credit Notes */}
+              {!hideBookingFinancials && !isMallUser && (
+                <div className="border-t pt-4">
+                  <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <h3 className="font-semibold">Tax Credit Notes</h3>
+                      {creditNoteError && <p className="mt-1 text-sm text-red-600">{creditNoteError}</p>}
+                    </div>
+                    {canGenerateBookingCreditNote(selectedBooking) && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={generateBookingCreditNote}
+                        disabled={generatingCreditNote}
+                      >
+                        {generatingCreditNote ? (
+                          <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                        ) : (
+                          <FileText className="h-4 w-4 mr-2" />
+                        )}
+                        {bookingCreditNotes.length > 0 ? "Download Tax Credit Note" : "Generate Tax Credit Note"}
+                      </Button>
+                    )}
+                  </div>
+                  {bookingCreditNotesLoading ? (
+                    <div className="flex items-center gap-2 text-sm text-stone-500">
+                      <RefreshCw className="h-4 w-4 animate-spin" />
+                      Loading tax credit notes...
+                    </div>
+                  ) : bookingCreditNotes.length === 0 ? (
+                    <p className="text-sm text-stone-500">
+                      {canGenerateBookingCreditNote(selectedBooking)
+                        ? "No tax credit note has been generated yet."
+                        : "This booking is not eligible for a tax credit note."}
+                    </p>
+                  ) : (
+                    <div className="rounded-lg border border-stone-200 overflow-hidden">
+                      {bookingCreditNotes.map((note) => (
+                        <div
+                          key={note.id}
+                          className="border-b border-stone-100 p-3 last:border-b-0"
+                        >
+                          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                            <div className="min-w-0 space-y-1">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <p className="font-medium text-stone-900">{note.credit_note_number}</p>
+                                <Badge className="bg-stone-100 text-stone-700">TCN</Badge>
+                              </div>
+                              <p className="text-xs text-stone-500">Created {formatDate(note.created_at)}</p>
+                              <div className="grid gap-1 text-sm text-stone-600 sm:grid-cols-2">
+                                <p><span className="text-stone-500">Old invoice:</span> {note.original_invoice_number || "N/A"}</p>
+                                <p><span className="text-stone-500">Old booking:</span> {note.source_reference}</p>
+                                <p><span className="text-stone-500">Customer:</span> {note.customer_name}</p>
+                                <p><span className="text-stone-500">Email:</span> {note.customer_email}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center justify-between gap-3 sm:flex-col sm:items-end">
+                              <div className="text-right">
+                                <p className="font-semibold text-stone-900">{formatPrice(note.total_credit_amount)}</p>
+                                <p className="text-xs text-stone-500">VAT {formatPrice(note.vat_amount)}</p>
+                              </div>
+                              <Button size="sm" variant="ghost" onClick={() => downloadTaxCreditNotePdf(note)}>
+                                <FileText className="h-4 w-4 mr-1" />
+                                PDF
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               )}
 
               {/* Extras */}

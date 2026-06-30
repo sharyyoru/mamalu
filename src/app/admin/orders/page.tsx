@@ -14,13 +14,15 @@ import {
   TrendingUp,
   RefreshCw,
   MapPin,
-  X
+  X,
+  FileText
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatPrice } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
+import { CreditNotePdfData, downloadTaxCreditNotePdf } from "@/lib/credit-notes/pdf";
 
 interface OrderItem {
   id: string;
@@ -60,6 +62,11 @@ interface Order {
   created_at: string;
 }
 
+interface CreditNote extends CreditNotePdfData {
+  id: string;
+  downloaded_at: string | null;
+}
+
 interface Stats {
   totalOrders: number;
   totalRevenue: number;
@@ -77,7 +84,13 @@ export default function OrdersPage() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [updating, setUpdating] = useState(false);
   const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
+  const [orderCreditNotes, setOrderCreditNotes] = useState<CreditNote[]>([]);
+  const [orderCreditNotesLoading, setOrderCreditNotesLoading] = useState(false);
+  const [creditNoteError, setCreditNoteError] = useState<string | null>(null);
+  const [generatingCreditNote, setGeneratingCreditNote] = useState(false);
   const isMallUser = currentUserRole === "mall";
+  const isChefUser = currentUserRole === "chef";
+  const canUseFinancialActions = !isMallUser && !isChefUser;
 
   useEffect(() => {
     const supabase = createClient();
@@ -118,6 +131,39 @@ export default function OrdersPage() {
     fetchOrders();
   }, [fetchOrders]);
 
+  useEffect(() => {
+    const fetchOrderCreditNotes = async () => {
+      if (!selectedOrder) {
+        setOrderCreditNotes([]);
+        return;
+      }
+
+      setOrderCreditNotesLoading(true);
+      setCreditNoteError(null);
+      try {
+        const params = new URLSearchParams({
+          sourceType: "product_order",
+          sourceId: selectedOrder.id,
+        });
+        const res = await fetch(`/api/admin/credit-notes?${params}`);
+        if (!res.ok) {
+          setOrderCreditNotes([]);
+          return;
+        }
+
+        const data = await res.json();
+        setOrderCreditNotes(data.creditNotes || []);
+      } catch (error) {
+        console.error("Failed to fetch order credit notes:", error);
+        setOrderCreditNotes([]);
+      } finally {
+        setOrderCreditNotesLoading(false);
+      }
+    };
+
+    fetchOrderCreditNotes();
+  }, [selectedOrder]);
+
   const updateOrderStatus = async (orderId: string, status: string, trackingNumber?: string) => {
     setUpdating(true);
     try {
@@ -134,6 +180,41 @@ export default function OrdersPage() {
       console.error("Failed to update order:", error);
     } finally {
       setUpdating(false);
+    }
+  };
+
+  const canGenerateOrderCreditNote = (order: Order) => {
+    return order.payment_status === "paid" && Number(order.total_amount || 0) > 0;
+  };
+
+  const generateOrderCreditNote = async () => {
+    if (!selectedOrder) return;
+
+    setGeneratingCreditNote(true);
+    setCreditNoteError(null);
+    try {
+      const res = await fetch("/api/admin/credit-notes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sourceType: "product_order", sourceId: selectedOrder.id }),
+      });
+      const data = await res.json();
+
+      if (!res.ok || !data.creditNote) {
+        setCreditNoteError(data.error || "Failed to generate tax credit note");
+        return;
+      }
+
+      setOrderCreditNotes((current) => {
+        const withoutNote = current.filter((note) => note.id !== data.creditNote.id);
+        return [data.creditNote, ...withoutNote];
+      });
+      downloadTaxCreditNotePdf(data.creditNote);
+    } catch (error) {
+      console.error("Failed to generate tax credit note:", error);
+      setCreditNoteError("Failed to generate tax credit note");
+    } finally {
+      setGeneratingCreditNote(false);
     }
   };
 
@@ -444,6 +525,80 @@ export default function OrdersPage() {
                   </Badge>
                 </div>
               </div>
+
+              {/* Tax Credit Notes */}
+              {canUseFinancialActions && (
+                <div>
+                  <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <h3 className="font-semibold text-stone-700">Tax Credit Notes</h3>
+                      {creditNoteError && <p className="mt-1 text-sm text-red-600">{creditNoteError}</p>}
+                    </div>
+                    {canGenerateOrderCreditNote(selectedOrder) && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={generateOrderCreditNote}
+                        disabled={generatingCreditNote}
+                      >
+                        {generatingCreditNote ? (
+                          <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                        ) : (
+                          <FileText className="h-4 w-4 mr-2" />
+                        )}
+                        {orderCreditNotes.length > 0 ? "Download Tax Credit Note" : "Generate Tax Credit Note"}
+                      </Button>
+                    )}
+                  </div>
+                  {orderCreditNotesLoading ? (
+                    <div className="flex items-center gap-2 text-sm text-stone-500">
+                      <RefreshCw className="h-4 w-4 animate-spin" />
+                      Loading tax credit notes...
+                    </div>
+                  ) : orderCreditNotes.length === 0 ? (
+                    <p className="text-sm text-stone-500">
+                      {canGenerateOrderCreditNote(selectedOrder)
+                        ? "No tax credit note has been generated yet."
+                        : "This order is not eligible for a tax credit note."}
+                    </p>
+                  ) : (
+                    <div className="rounded-lg border border-stone-200 overflow-hidden">
+                      {orderCreditNotes.map((note) => (
+                        <div
+                          key={note.id}
+                          className="border-b border-stone-100 p-3 last:border-b-0"
+                        >
+                          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                            <div className="min-w-0 space-y-1">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <p className="font-medium text-stone-900">{note.credit_note_number}</p>
+                                <Badge className="bg-stone-100 text-stone-700">TCN</Badge>
+                              </div>
+                              <p className="text-xs text-stone-500">Created {formatDate(note.created_at)}</p>
+                              <div className="grid gap-1 text-sm text-stone-600 sm:grid-cols-2">
+                                <p><span className="text-stone-500">Old invoice:</span> {note.original_invoice_number || "N/A"}</p>
+                                <p><span className="text-stone-500">Old order:</span> {note.source_reference}</p>
+                                <p><span className="text-stone-500">Customer:</span> {note.customer_name}</p>
+                                <p><span className="text-stone-500">Email:</span> {note.customer_email}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center justify-between gap-3 sm:flex-col sm:items-end">
+                              <div className="text-right">
+                                <p className="font-semibold text-stone-900">{formatPrice(note.total_credit_amount)}</p>
+                                <p className="text-xs text-stone-500">VAT {formatPrice(note.vat_amount)}</p>
+                              </div>
+                              <Button size="sm" variant="ghost" onClick={() => downloadTaxCreditNotePdf(note)}>
+                                <FileText className="h-4 w-4 mr-1" />
+                                PDF
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Actions */}
               {!isMallUser && (
