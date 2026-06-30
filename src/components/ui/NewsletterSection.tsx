@@ -64,14 +64,14 @@ export default function NewsletterSection() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Enter your email"
-            className="w-full sm:flex-1 px-6 py-3 rounded-full bg-white border-0 text-stone-800 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-800"
+            className="w-full sm:flex-1 px-6 py-3 rounded-full bg-white border border-stone-800 text-stone-800 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-800"
             style={{ fontFamily: 'var(--font-mossy), cursive' }}
             disabled={status === "loading"}
           />
           <button
             type="submit"
             disabled={status === "loading" || !email}
-            className="w-full sm:w-auto px-8 py-3 bg-[#c9977a] text-white rounded-full font-semibold hover:bg-[#b8866a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full sm:w-auto px-8 py-3 bg-[#f5e6dc] text-stone-800 border border-stone-300 rounded-full font-semibold hover:bg-[#f0ddd0] transition-colors disabled:cursor-not-allowed flex items-center justify-center gap-2"
             style={{ fontFamily: 'var(--font-mossy), cursive' }}
           >
             {status === "loading" ? (

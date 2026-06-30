@@ -48,7 +48,7 @@ export function Footer() {
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 lg:gap-12">
             {/* Brand */}
             <div className="col-span-2 md:col-span-3 lg:col-span-2">
-              <Link href="/" className="block w-fit mx-auto md:mx-0 group">
+              <Link href="/" className="block w-fit mx-auto group">
                 <Image 
                   src="/graphics/mamalu-logo-transparent.png" 
                   alt="Mamalu Kitchen" 
