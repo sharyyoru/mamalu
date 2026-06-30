@@ -20,7 +20,7 @@ export default function NewUserPage() {
     password: "",
     full_name: "",
     phone: "",
-    role: "customer",
+    role: "student",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -150,7 +150,6 @@ export default function NewUserPage() {
                   className="w-full px-3 py-2 border border-stone-300 rounded-lg"
                   required
                 >
-                  <option value="customer">Customer</option>
                   <option value="student">Student</option>
                   <option value="renter">Kitchen Renter</option>
                   <option value="instructor">Instructor</option>
