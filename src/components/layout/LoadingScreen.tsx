@@ -29,8 +29,8 @@ export default function LoadingScreen() {
         <Image 
           src="/graphics/mamalu-logo-transparent.png"
           alt="Mamalu Kitchen"
-          width={96}
-          height={96}
+          width={200}
+          height={200}
           className="object-contain"
           priority
         />
