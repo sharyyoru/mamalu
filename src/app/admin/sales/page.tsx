@@ -115,6 +115,7 @@ interface SalesData {
 interface DailyReportBooking {
   id: string;
   bookingNumber: string;
+  invoiceNumber: string;
   date: string;
   time: string | null;
   customerName: string;
@@ -134,6 +135,7 @@ interface DailyReportBooking {
 interface DailyReportProductOrder {
   id: string;
   orderNumber: string;
+  invoiceNumber: string;
   date: string;
   paidAt: string;
   customerName: string;
@@ -445,9 +447,9 @@ export default function AdminSalesPage() {
     XLSX.utils.book_append_sheet(wb, summarySheet, "Summary");
 
     const bookingData = [
-      ["Date", "Payment Date", "Time", "Booking Number", "Customer", "Email", "Type", "Service/Class", "Booked Items", "Status", "Payment Status", "Guests", "Allocated Amount", "Amount Collected", "Outstanding"],
+      ["Date", "Payment Date", "Time", "Booking Number", "Invoice #", "Customer", "Email", "Type", "Service/Class", "Booked Items", "Status", "Payment Status", "Guests", "Allocated Amount", "Amount Collected", "Outstanding"],
       ...report.bookings.map((booking) => [
-        booking.date, formatPaymentDate(booking.paidAt), booking.time || "", booking.bookingNumber, booking.customerName,
+        booking.date, formatPaymentDate(booking.paidAt), booking.time || "", booking.bookingNumber, booking.invoiceNumber, booking.customerName,
         booking.customerEmail, booking.bookingType, booking.serviceType,
         booking.bookedItems.map((item) => `${item.name} x${item.quantity}`).join(", "),
         booking.status, booking.paymentStatus, booking.guests, booking.allocatedAmount,
@@ -457,11 +459,11 @@ export default function AdminSalesPage() {
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(bookingData), "Bookings");
 
     const orderData = [
-      ["Paid Date", "Paid Time (Dubai)", "Order Number", "Customer", "Email", "Products", "Subtotal", "Shipping", "Total Paid", "Fulfillment Status"],
+      ["Paid Date", "Paid Time (Dubai)", "Order Number", "Invoice #", "Customer", "Email", "Products", "Subtotal", "Shipping", "Total Paid", "Fulfillment Status"],
       ...report.productOrders.map((order) => [
         order.date,
         new Date(order.paidAt).toLocaleTimeString("en-GB", { timeZone: "Asia/Dubai", hour: "2-digit", minute: "2-digit" }),
-        order.orderNumber, order.customerName, order.customerEmail,
+        order.orderNumber, order.invoiceNumber, order.customerName, order.customerEmail,
         order.products.map((item) => `${item.name} x${item.quantity}`).join(", "),
         order.subtotal, order.shipping, order.totalPaid, order.fulfillmentStatus,
       ]),
@@ -581,18 +583,18 @@ export default function AdminSalesPage() {
       ["Guests", completedBookings.reduce((sum, booking) => sum + booking.guests, 0)],
     ]), "Summary");
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
-      ["Date", "Time", "Booking Number", "Customer", "Type", "Service/Class", "Booked Items", "Guests", "Amount"],
+      ["Date", "Time", "Booking Number", "Invoice #", "Customer", "Type", "Service/Class", "Booked Items", "Guests", "Amount"],
       ...completedBookings.map((booking) => [
-        booking.date, booking.time || "", booking.bookingNumber, booking.customerName,
+        booking.date, booking.time || "", booking.bookingNumber, booking.invoiceNumber, booking.customerName,
         booking.bookingType, booking.serviceType,
         booking.bookedItems.map((item) => `${item.name} x${item.quantity}`).join(", "),
         booking.guests, booking.allocatedAmount,
       ]),
     ]), "Completed Bookings");
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
-      ["Paid Date", "Order Number", "Customer", "Products", "Subtotal", "Shipping", "Total Paid", "Fulfillment"],
+      ["Paid Date", "Order Number", "Invoice #", "Customer", "Products", "Subtotal", "Shipping", "Total Paid", "Fulfillment"],
       ...monthlySalesData.productOrders.map((order) => [
-        order.date, order.orderNumber, order.customerName,
+        order.date, order.orderNumber, order.invoiceNumber, order.customerName,
         order.products.map((item) => `${item.name} x${item.quantity}`).join(", "),
         order.subtotal, order.shipping, order.totalPaid, order.fulfillmentStatus,
       ]),
@@ -731,12 +733,12 @@ export default function AdminSalesPage() {
                         <div className="overflow-x-auto">
                           <table className="min-w-[1200px] w-full text-sm">
                             <thead><tr className="bg-stone-100 text-left">
-                              {["Time", "Booking #", "Customer", "Type", "Booked Items", "Status", "Payment", "Payment Date", "Guests", "Allocated", "Collected", "Outstanding"].map((heading) => <th key={heading} className="px-3 py-2">{heading}</th>)}
+                              {["Time", "Booking #", "Invoice #", "Customer", "Type", "Booked Items", "Status", "Payment", "Payment Date", "Guests", "Allocated", "Collected", "Outstanding"].map((heading) => <th key={heading} className="px-3 py-2">{heading}</th>)}
                             </tr></thead>
                             <tbody>
                               {dayBookings.map((booking) => (
                                 <tr key={booking.id} className="border-b border-stone-100">
-                                  <td className="px-3 py-3">{booking.time || "-"}</td><td className="px-3 py-3 font-medium">{booking.bookingNumber}</td>
+                                  <td className="px-3 py-3">{booking.time || "-"}</td><td className="px-3 py-3 font-medium">{booking.bookingNumber}</td><td className="px-3 py-3">{booking.invoiceNumber || "-"}</td>
                                   <td className="px-3 py-3"><div>{booking.customerName}</div><div className="text-xs text-stone-400">{booking.customerEmail}</div></td>
                                   <td className="px-3 py-3">{booking.serviceType}</td>
                                   <td className="px-3 py-3">{booking.bookedItems.map((item) => `${item.name} x${item.quantity}`).join(", ")}</td>
@@ -745,7 +747,7 @@ export default function AdminSalesPage() {
                                   <td className="px-3 py-3 text-right">{formatCurrency(booking.allocatedAmount)}</td><td className="px-3 py-3 text-right">{formatCurrency(booking.amountCollected)}</td><td className="px-3 py-3 text-right">{formatCurrency(booking.outstandingBalance)}</td>
                                 </tr>
                               ))}
-                              {dayBookings.length === 0 && <tr><td colSpan={12} className="px-3 py-8 text-center text-stone-500">No bookings scheduled for this day.</td></tr>}
+                              {dayBookings.length === 0 && <tr><td colSpan={13} className="px-3 py-8 text-center text-stone-500">No bookings scheduled for this day.</td></tr>}
                             </tbody>
                           </table>
                         </div>
@@ -755,18 +757,18 @@ export default function AdminSalesPage() {
                         <div className="overflow-x-auto">
                           <table className="min-w-[900px] w-full text-sm">
                             <thead><tr className="bg-stone-100 text-left">
-                              {["Paid Time", "Order #", "Customer", "Products", "Subtotal", "Shipping", "Total Paid", "Fulfillment"].map((heading) => <th key={heading} className="px-3 py-2">{heading}</th>)}
+                              {["Paid Time", "Order #", "Invoice #", "Customer", "Products", "Subtotal", "Shipping", "Total Paid", "Fulfillment"].map((heading) => <th key={heading} className="px-3 py-2">{heading}</th>)}
                             </tr></thead>
                             <tbody>
                               {dayOrders.map((order) => (
                                 <tr key={order.id} className="border-b border-stone-100">
                                   <td className="px-3 py-3">{new Date(order.paidAt).toLocaleTimeString("en-GB", { timeZone: "Asia/Dubai", hour: "2-digit", minute: "2-digit" })}</td>
-                                  <td className="px-3 py-3 font-medium">{order.orderNumber}</td><td className="px-3 py-3"><div>{order.customerName}</div><div className="text-xs text-stone-400">{order.customerEmail}</div></td>
+                                  <td className="px-3 py-3 font-medium">{order.orderNumber}</td><td className="px-3 py-3">{order.invoiceNumber || "-"}</td><td className="px-3 py-3"><div>{order.customerName}</div><div className="text-xs text-stone-400">{order.customerEmail}</div></td>
                                   <td className="px-3 py-3">{order.products.map((item) => `${item.name} x${item.quantity}`).join(", ")}</td>
                                   <td className="px-3 py-3 text-right">{formatCurrency(order.subtotal)}</td><td className="px-3 py-3 text-right">{formatCurrency(order.shipping)}</td><td className="px-3 py-3 text-right font-medium">{formatCurrency(order.totalPaid)}</td><td className="px-3 py-3">{order.fulfillmentStatus}</td>
                                 </tr>
                               ))}
-                              {dayOrders.length === 0 && <tr><td colSpan={8} className="px-3 py-8 text-center text-stone-500">No paid product orders for this day.</td></tr>}
+                              {dayOrders.length === 0 && <tr><td colSpan={9} className="px-3 py-8 text-center text-stone-500">No paid product orders for this day.</td></tr>}
                             </tbody>
                           </table>
                         </div>
@@ -840,19 +842,19 @@ export default function AdminSalesPage() {
                       <div className="overflow-x-auto">
                         <table className="min-w-[1100px] w-full text-sm">
                           <thead><tr className="bg-stone-100 text-left">
-                            {["Date", "Time", "Booking #", "Customer", "Type", "Booked Items", "Guests", "Amount", "Collected"].map((heading) => <th key={heading} className="px-3 py-2">{heading}</th>)}
+                            {["Date", "Time", "Booking #", "Invoice #", "Customer", "Type", "Booked Items", "Guests", "Amount", "Collected"].map((heading) => <th key={heading} className="px-3 py-2">{heading}</th>)}
                           </tr></thead>
                           <tbody>
                             {completedBookings.map((booking) => (
                               <tr key={booking.id} className="border-b border-stone-100">
                                 <td className="px-3 py-3">{booking.date}</td><td className="px-3 py-3">{booking.time || "-"}</td>
-                                <td className="px-3 py-3 font-medium">{booking.bookingNumber}</td>
+                                <td className="px-3 py-3 font-medium">{booking.bookingNumber}</td><td className="px-3 py-3">{booking.invoiceNumber || "-"}</td>
                                 <td className="px-3 py-3"><div>{booking.customerName}</div><div className="text-xs text-stone-400">{booking.customerEmail}</div></td>
                                 <td className="px-3 py-3">{booking.serviceType}</td><td className="px-3 py-3">{booking.bookedItems.map((item) => `${item.name} x${item.quantity}`).join(", ")}</td>
                                 <td className="px-3 py-3 text-right">{booking.guests}</td><td className="px-3 py-3 text-right">{formatCurrency(booking.allocatedAmount)}</td><td className="px-3 py-3 text-right">{formatCurrency(booking.amountCollected)}</td>
                               </tr>
                             ))}
-                            {completedBookings.length === 0 && <tr><td colSpan={9} className="px-3 py-8 text-center text-stone-500">No completed bookings for this month.</td></tr>}
+                            {completedBookings.length === 0 && <tr><td colSpan={10} className="px-3 py-8 text-center text-stone-500">No completed bookings for this month.</td></tr>}
                           </tbody>
                         </table>
                       </div>
@@ -862,19 +864,19 @@ export default function AdminSalesPage() {
                       <div className="overflow-x-auto">
                         <table className="min-w-[950px] w-full text-sm">
                           <thead><tr className="bg-stone-100 text-left">
-                            {["Paid Date", "Paid Time", "Order #", "Customer", "Products", "Subtotal", "Shipping", "Total Paid", "Fulfillment"].map((heading) => <th key={heading} className="px-3 py-2">{heading}</th>)}
+                            {["Paid Date", "Paid Time", "Order #", "Invoice #", "Customer", "Products", "Subtotal", "Shipping", "Total Paid", "Fulfillment"].map((heading) => <th key={heading} className="px-3 py-2">{heading}</th>)}
                           </tr></thead>
                           <tbody>
                             {monthlySalesData.productOrders.map((order) => (
                               <tr key={order.id} className="border-b border-stone-100">
                                 <td className="px-3 py-3">{order.date}</td><td className="px-3 py-3">{new Date(order.paidAt).toLocaleTimeString("en-GB", { timeZone: "Asia/Dubai", hour: "2-digit", minute: "2-digit" })}</td>
-                                <td className="px-3 py-3 font-medium">{order.orderNumber}</td><td className="px-3 py-3">{order.customerName}</td>
+                                <td className="px-3 py-3 font-medium">{order.orderNumber}</td><td className="px-3 py-3">{order.invoiceNumber || "-"}</td><td className="px-3 py-3">{order.customerName}</td>
                                 <td className="px-3 py-3">{order.products.map((item) => `${item.name} x${item.quantity}`).join(", ")}</td>
                                 <td className="px-3 py-3 text-right">{formatCurrency(order.subtotal)}</td><td className="px-3 py-3 text-right">{formatCurrency(order.shipping)}</td>
                                 <td className="px-3 py-3 text-right font-medium">{formatCurrency(order.totalPaid)}</td><td className="px-3 py-3">{order.fulfillmentStatus}</td>
                               </tr>
                             ))}
-                            {monthlySalesData.productOrders.length === 0 && <tr><td colSpan={9} className="px-3 py-8 text-center text-stone-500">No paid product orders for this month.</td></tr>}
+                            {monthlySalesData.productOrders.length === 0 && <tr><td colSpan={10} className="px-3 py-8 text-center text-stone-500">No paid product orders for this month.</td></tr>}
                           </tbody>
                         </table>
                       </div>

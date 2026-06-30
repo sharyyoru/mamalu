@@ -21,6 +21,7 @@ type ScheduledItem = {
 type DailyBooking = {
   id: string;
   bookingNumber: string;
+  invoiceNumber: string;
   date: string;
   time: string | null;
   customerName: string;
@@ -40,6 +41,7 @@ type DailyBooking = {
 type DailyProductOrder = {
   id: string;
   orderNumber: string;
+  invoiceNumber: string;
   date: string;
   paidAt: string;
   customerName: string;
@@ -629,6 +631,7 @@ export async function GET(request: NextRequest) {
         dailyBookings.push({
           id: `${booking.id}-${occurrence.date}-${occurrence.time || ""}`,
           bookingNumber: String(booking.booking_number || ""),
+          invoiceNumber: String(booking.invoice_number || ""),
           date: occurrence.date,
           time: occurrence.time,
           customerName: String(booking.customer_name || "Unknown"),
@@ -655,6 +658,7 @@ export async function GET(request: NextRequest) {
       dailyBookings.push({
         id: String(booking.id),
         bookingNumber: String(booking.booking_number || ""),
+        invoiceNumber: String(booking.invoice_number || ""),
         date,
         time: new Date(String(booking.start_date)).toLocaleTimeString("en-GB", {
           timeZone: "Asia/Dubai",
@@ -685,6 +689,7 @@ export async function GET(request: NextRequest) {
       .map((order: Record<string, unknown>) => ({
         id: String(order.id),
         orderNumber: String(order.order_number || ""),
+        invoiceNumber: String(order.invoice_number || ""),
         date: dubaiDateString(new Date(String(order.paid_at))),
         paidAt: String(order.paid_at),
         customerName: String(order.customer_name || "Unknown"),
