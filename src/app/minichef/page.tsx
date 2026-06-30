@@ -141,6 +141,14 @@ interface ExtraItem {
   tablePricingTiers?: TablePricingTier[];
 }
 
+interface DisplayExtraItem extends ExtraItem {
+  displayName: string;
+  displayPrice: number;
+  displayDescription: string;
+  displayTier?: TablePricingTier;
+  disabled?: boolean;
+}
+
 interface TablePricingTier {
   max_guests: number;
   price: number;
@@ -696,12 +704,27 @@ export default function MiniChefPage() {
     return getResolvedTableTier(extra)?.price || extra.price;
   };
 
-  const getExtraDescription = (extra: ExtraItem) => {
-    if (!isTableOption(extra)) return extra.description;
-    const tier = getResolvedTableTier(extra);
-    return tier?.max_guests
-      ? `${extra.description} for up to ${tier.max_guests} guests`
-      : extra.description;
+  const getDisplayExtras = (extras: ExtraItem[]): DisplayExtraItem[] => {
+    return extras.flatMap((extra) => {
+      if (!isTableOption(extra)) {
+        return [{
+          ...extra,
+          displayName: extra.name,
+          displayPrice: extra.price,
+          displayDescription: extra.description,
+        }];
+      }
+
+      const resolvedTier = getResolvedTableTier(extra);
+      return getTablePricingTiers(extra).map((tier) => ({
+        ...extra,
+        displayName: `${extra.name} ${tier.max_guests} persons`,
+        displayPrice: tier.price,
+        displayDescription: `${extra.description} for up to ${tier.max_guests} guests`,
+        displayTier: tier,
+        disabled: resolvedTier?.max_guests !== tier.max_guests,
+      }));
+    });
   };
 
   const tableSetupIds = new Set(birthdayExtras.filter(isTableOption).map((extra) => extra.id));
@@ -1823,7 +1846,7 @@ export default function MiniChefPage() {
                 ) : (
                   <div className="space-y-4">
                     {["custom", "cake", "decor", "snacks", "drinks"].map((cat) => {
-                      const catExtras = birthdayExtras.filter(e => e.category === cat);
+                      const catExtras = getDisplayExtras(birthdayExtras.filter(e => e.category === cat));
                       if (catExtras.length === 0) return null;
 
                       const catLabels: Record<string, string> = {
@@ -1840,19 +1863,20 @@ export default function MiniChefPage() {
                           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                             {catExtras.map((extra) => {
                               const Icon = extra.icon;
-                              const qty = selectedExtras[extra.id] || 0;
+                              const qty = extra.disabled ? 0 : selectedExtras[extra.id] || 0;
                               return (
-                                <Card key={extra.id} className={`overflow-hidden transition-all hover:shadow-lg ${qty > 0 ? "ring-2 ring-[#FF8C6B] shadow-md" : ""}`}>
+                                <Card key={`${extra.id}-${extra.displayTier?.max_guests || "standard"}`} className={`overflow-hidden transition-all ${extra.disabled ? "opacity-50" : "hover:shadow-lg"} ${qty > 0 ? "ring-2 ring-[#FF8C6B] shadow-md" : ""}`}>
                                   <CardContent className="p-0">
                                     <div className="flex flex-col">
                                       {extra.image ? (
                                         <button
                                           type="button"
                                           onClick={() => setPreviewExtra(extra)}
-                                          className="group relative w-full h-72 overflow-hidden bg-stone-100 focus:outline-none focus:ring-2 focus:ring-[#FF8C6B] focus:ring-offset-2"
-                                          aria-label={`Preview ${extra.name}`}
+                                          disabled={extra.disabled}
+                                          className="group relative w-full h-72 overflow-hidden bg-stone-100 focus:outline-none focus:ring-2 focus:ring-[#FF8C6B] focus:ring-offset-2 disabled:cursor-not-allowed"
+                                          aria-label={`Preview ${extra.displayName}`}
                                         >
-                                          <Image src={extra.image} alt={extra.name} fill className="object-cover transition group-hover:scale-105" />
+                                          <Image src={extra.image} alt={extra.displayName} fill className="object-cover transition group-hover:scale-105" />
                                         </button>
                                       ) : (
                                         <div className="w-full h-48 flex items-center justify-center bg-gradient-to-br from-[#fff5eb] to-[#ffe4d6]">
@@ -1862,15 +1886,15 @@ export default function MiniChefPage() {
                                         </div>
                                       )}
                                       <div className="p-4 flex-1 flex flex-col">
-                                        <h4 className="font-bold text-stone-900 text-lg">{extra.name}</h4>
-                                        <p className="text-sm text-stone-600 mt-1 flex-1">{getExtraDescription(extra)}</p>
+                                        <h4 className="font-bold text-stone-900 text-lg">{extra.displayName}</h4>
+                                        <p className="text-sm text-stone-600 mt-1 flex-1">{extra.displayDescription}</p>
                                         {isTableOption(extra) ? (
                                           <p className="mt-2 text-xs font-bold text-stone-500">
-                                            Auto-priced for {guestCount} guests
+                                            {extra.disabled ? `Unavailable for ${guestCount} guests` : `Matches ${guestCount} guests`}
                                           </p>
                                         ) : null}
                                         <div className="flex items-center justify-between mt-3 pt-3 border-t border-stone-100">
-                                          <p className="text-lg font-bold text-[#FF8C6B]">AED {getExtraPrice(extra)}</p>
+                                          <p className="text-lg font-bold text-[#FF8C6B]">AED {extra.displayPrice}</p>
                                           <div className="flex items-center gap-2">
                                             <Button
                                               variant="outline"
@@ -1880,7 +1904,7 @@ export default function MiniChefPage() {
                                                 ...prev,
                                                 [extra.id]: Math.max(0, (prev[extra.id] || 0) - 1)
                                               }))}
-                                              disabled={qty === 0}
+                                              disabled={extra.disabled || qty === 0}
                                             >
                                               <Minus className="h-4 w-4" />
                                             </Button>
@@ -1903,6 +1927,7 @@ export default function MiniChefPage() {
                                                 next[extra.id] = 1;
                                                 return next;
                                               })}
+                                              disabled={extra.disabled}
                                             >
                                               <Plus className="h-4 w-4" />
                                             </Button>
