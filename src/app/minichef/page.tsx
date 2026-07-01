@@ -309,7 +309,7 @@ const getCategoryConfig = (pageContent: MiniChefPageContent): Record<CategoryTyp
   mommy_me: { label: "Mommy & Me", icon: pageContent.categoryIcons?.mommy_me || "/icons/boy.png", minGuests: 1, maxGuests: 20, description: "Mom and kid have their own station where they share laughter, learning, and delicious moments together!" },
   birthdays: { label: "Birthdays", icon: pageContent.categoryIcons?.birthdays || "/icons/girl.png", minGuests: 6, maxGuests: 35, description: "2-hour private birthday cooking experience" },
   packages: { label: "Packages", icon: pageContent.categoryIcons?.packages || "/icons/boy.png", minGuests: 6, maxGuests: 35, description: "Bundled menu packages for groups" },
-  afterschool_club: { label: "Afterschool Club", icon: pageContent.categoryIcons?.packages || "/icons/boy.png", minGuests: 1, maxGuests: 35, description: "Bundled afterschool club classes" },
+  afterschool_club: { label: "Afterschool Club", icon: pageContent.categoryIcons?.packages || "/icons/boy.png", minGuests: 6, maxGuests: 35, description: "Bundled afterschool club classes" },
   summer_camp: { label: "Mini Chef Camp", icon: pageContent.categoryIcons?.packages || "/icons/boy.png", minGuests: 1, maxGuests: 35, description: "Choose Per Day or Per Week for the selected camp date." },
 });
 
