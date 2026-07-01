@@ -57,7 +57,7 @@ interface SessionSchedule {
 
 type CategoryId =
   | "classics_mini" | "monthly_mini" | "mommy_me" | "birthday"
-  | "packages" | "corporate" | "classics_big" | "monthly_big"
+  | "packages" | "afterschool_club" | "corporate" | "classics_big" | "monthly_big"
   | "teenagers" | "nanny" | "summer_camp";
 
 interface CategoryRule {
@@ -70,6 +70,7 @@ interface CategoryRule {
   selectionCount: number;
   separateSchedules?: boolean;
   packages?: boolean;
+  packageCategory?: string;
   extras?: boolean;
   flatPrice?: number;
   summerCamp?: boolean;
@@ -81,6 +82,7 @@ const RULES: CategoryRule[] = [
   { id: "mommy_me", group: "Mini Chef", label: "Mommy & Me", serviceType: "birthday_deck", minGuests: 1, maxGuests: 20, selectionCount: 1 },
   { id: "birthday", group: "Mini Chef", label: "Birthdays", serviceType: "birthday_deck", minGuests: 6, maxGuests: 35, selectionCount: 1, extras: true },
   { id: "packages", group: "Mini Chef", label: "Packages", serviceType: "birthday_deck", minGuests: 6, maxGuests: 35, selectionCount: 1, packages: true },
+  { id: "afterschool_club", group: "Mini Chef", label: "Afterschool Club", serviceType: "birthday_deck", minGuests: 1, maxGuests: 35, selectionCount: 1, packages: true, packageCategory: "afterschool_club" },
   { id: "summer_camp", group: "Mini Chef", label: "Mini Chef Camp", serviceType: "birthday_deck", minGuests: 1, maxGuests: 35, selectionCount: 1, summerCamp: true },
   { id: "corporate", group: "Big Chef", label: "Corporate / Private", serviceType: "corporate_deck", minGuests: 6, maxGuests: 35, selectionCount: 1, extras: true },
   { id: "classics_big", group: "Big Chef", label: "Our Classics", serviceType: "corporate_deck", minGuests: 1, maxGuests: 35, selectionCount: 1 },
@@ -163,7 +165,7 @@ export function AdminCreateBookingModal({ isOpen, onClose, onSuccess, currentUse
     if (!category) return [];
     if (category.summerCamp) return summerCampItems;
     return category.packages
-      ? packages.filter((item) => item.categories?.includes("packages"))
+      ? packages.filter((item) => item.categories?.includes(category.packageCategory || category.id))
       : menus.filter((item) => item.categories?.includes(category.id));
   }, [category, menus, packages, summerCampItems]);
 

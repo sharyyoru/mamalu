@@ -32,6 +32,8 @@ interface HiddenTimeSlot {
 type DateRules = Partial<Record<BookingSlotCategoryId, string[]>>;
 
 const MONTHLY_SLOT_CATEGORY_IDS: BookingSlotCategoryId[] = ["monthly_mini", "monthly_big"];
+const AFTERSCHOOL_CATEGORY_ID: BookingSlotCategoryId = "afterschool_club";
+const PACKAGES_CATEGORY_ID: BookingSlotCategoryId = "packages";
 
 function toMinutes(time: string) {
   const [hours, minutes] = time.split(":").map(Number);
@@ -66,6 +68,25 @@ function normalizeSlot(slot: TimeSlot, index: number): TimeSlot {
     days: [...new Set(slot.days)].sort((a, b) => a - b),
     sort_order: index * 10,
   };
+}
+
+function withAfterschoolPackageSlots(nextSlots: TimeSlot[]) {
+  const hasAfterschoolSlots = nextSlots.some((slot) => slot.category_id === AFTERSCHOOL_CATEGORY_ID);
+  if (hasAfterschoolSlots) return nextSlots;
+
+  const packageSlots = nextSlots
+    .filter((slot) => slot.category_id === PACKAGES_CATEGORY_ID)
+    .sort((a, b) => a.sort_order - b.sort_order || a.start.localeCompare(b.start));
+
+  return [
+    ...nextSlots,
+    ...packageSlots.map((slot, index) => ({
+      ...slot,
+      id: undefined,
+      category_id: AFTERSCHOOL_CATEGORY_ID,
+      sort_order: index * 10,
+    })),
+  ];
 }
 
 export default function AdminTimeSlotsPage() {
@@ -111,7 +132,7 @@ export default function AdminTimeSlotsPage() {
       const res = await fetch("/api/admin/time-slots");
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to load time slots");
-      setSlots(data.slots || []);
+      setSlots(withAfterschoolPackageSlots(data.slots || []));
       setDateRules(data.dateRules || {});
       setHiddenTimeSlots(data.hiddenTimeSlots || []);
     } catch (error) {

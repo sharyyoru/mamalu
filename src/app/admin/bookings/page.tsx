@@ -67,6 +67,7 @@ const formatLocalDateKey = (date: Date) => {
 };
 
 const MONTHLY_SLOT_CATEGORY_IDS = new Set(["monthly_mini", "monthly_big"]);
+const PACKAGE_STYLE_SLOT_CATEGORY_IDS = new Set(["packages", "afterschool_club"]);
 const URL_PATTERN = /(https?:\/\/[^\s]+)/g;
 const SUPPLIER_SECTION_TITLE = "External Suppliers Requirements";
 
@@ -210,6 +211,7 @@ function inferBookingSlotCategory(booking: ServiceBooking | null) {
   if (text.includes("summer camp")) return "summer_camp";
   if (text.includes("mommy") || text.includes("mummy")) return "mommy_me";
   if (text.includes("birthday")) return "birthday";
+  if (text.includes("afterschool")) return "afterschool_club";
   if (text.includes("package")) return "packages";
   if (text.includes("corporate") || text.includes("private")) return "corporate";
   if (text.includes("teenager")) return "teenagers";
@@ -421,7 +423,11 @@ export function AdminBookingsPageContent({ unpaidOnly = false }: AdminBookingsPa
         if (!res.ok) return;
         const data = await res.json();
         const slots = (data.slots || data.timeSlots || []).filter(
-          (slot: BookingTimeSlot) => slot.category_id === "packages" && slot.active !== false && slot.is_active !== false
+          (slot: BookingTimeSlot) => (
+            PACKAGE_STYLE_SLOT_CATEGORY_IDS.has(slot.category_id || "") &&
+            slot.active !== false &&
+            slot.is_active !== false
+          )
         );
         setPackageTimeSlots(slots);
       } catch (error) {
@@ -655,8 +661,11 @@ export function AdminBookingsPageContent({ unpaidOnly = false }: AdminBookingsPa
   };
 
   const isPackageBooking = (booking: ServiceBooking) => {
+    const category = inferBookingSlotCategory(booking);
+    if (PACKAGE_STYLE_SLOT_CATEGORY_IDS.has(category)) return true;
+
     const serviceText = `${booking.service_name || ""} ${booking.package_name || ""}`.toLowerCase();
-    return serviceText.includes("package");
+    return serviceText.includes("package") || serviceText.includes("afterschool");
   };
 
   const filteredBookings = bookings.filter((booking) => {
@@ -941,8 +950,12 @@ export function AdminBookingsPageContent({ unpaidOnly = false }: AdminBookingsPa
   };
 
   const getPackageSlotOptions = () => {
-    const source: BookingTimeSlot[] = packageTimeSlots.length > 0
-      ? packageTimeSlots
+    const category = inferBookingSlotCategory(selectedBooking) || "packages";
+    const categorySlots = packageTimeSlots.filter((slot) => slot.category_id === category);
+    const source: BookingTimeSlot[] = categorySlots.length > 0
+      ? categorySlots
+      : packageTimeSlots.length > 0
+      ? packageTimeSlots.filter((slot) => !slot.category_id || slot.category_id === "packages")
       : DEFAULT_BOOKING_TIME_SLOTS.map((slot) => ({
           start: slot.start,
           end: slot.end,

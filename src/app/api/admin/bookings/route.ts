@@ -38,6 +38,7 @@ const ADMIN_CATEGORY_RULES: Record<string, { minGuests: number; maxGuests: numbe
   mommy_me: { minGuests: 1, maxGuests: 20, menuCount: 1 },
   birthday: { minGuests: 6, maxGuests: 35, menuCount: 1 },
   packages: { minGuests: 6, maxGuests: 35, menuCount: 1 },
+  afterschool_club: { minGuests: 1, maxGuests: 35, menuCount: 1 },
   summer_camp: { minGuests: 1, maxGuests: 35, menuCount: 1 },
   corporate: { minGuests: 6, maxGuests: 35, menuCount: 1 },
   classics_big: { minGuests: 1, maxGuests: 35, menuCount: 1 },
@@ -387,7 +388,7 @@ export async function POST(request: NextRequest) {
       // Admin package selections come from the `packages` catalog. This column
       // references the legacy `service_packages` table, so catalog package
       // details are retained in package_name/items instead.
-      package_id: bookingSlotCategory === "packages" ? null : packageId || null,
+      package_id: bookingSlotCategory === "packages" || bookingSlotCategory === "afterschool_club" ? null : packageId || null,
       service_type: serviceType || null,
       service_name: serviceName,
       package_name: packageName || null,

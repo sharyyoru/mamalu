@@ -16,7 +16,6 @@ import {
   EyeOff,
   ChevronDown,
   ChevronUp,
-  GripVertical,
   Check,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -56,9 +55,15 @@ interface PackageItem {
 const isPackageSelectableMenuItem = (item: MenuItem) =>
   !(item.categories || []).includes("party_extras");
 
+const PACKAGE_TABS = [
+  { id: "packages", name: "Packages", singular: "Package" },
+  { id: "afterschool_club", name: "Afterschool club", singular: "Afterschool club" },
+];
+
 const CATEGORIES = [
   { id: "all", name: "All" },
   { id: "packages", name: "Packages" },
+  { id: "afterschool_club", name: "Afterschool club" },
   { id: "birthday", name: "Kids Birthday" },
   { id: "classics_mini", name: "Our Classics (Mini Chef)" },
   { id: "classics_big", name: "Our Classics (Big Chef)" },
@@ -75,6 +80,7 @@ const CATEGORIES = [
 
 const CATEGORY_COLORS: Record<string, string> = {
   packages: "bg-yellow-100 text-yellow-700",
+  afterschool_club: "bg-lime-100 text-lime-700",
   birthday: "bg-pink-100 text-pink-700",
   classics_mini: "bg-sky-100 text-sky-700",
   classics_big: "bg-blue-100 text-blue-700",
@@ -117,6 +123,7 @@ export default function AdminPackagesPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
+  const [activeTab, setActiveTab] = useState(PACKAGE_TABS[0].id);
   const [editingPkg, setEditingPkg] = useState<typeof emptyPackage & { id?: string } | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -126,6 +133,7 @@ export default function AdminPackagesPage() {
   const [itemCategoryFilter, setItemCategoryFilter] = useState("all");
 
   const imageInputRef = useRef<HTMLInputElement>(null);
+  const activeTabConfig = PACKAGE_TABS.find((tab) => tab.id === activeTab) || PACKAGE_TABS[0];
 
   useEffect(() => {
     fetchPackages();
@@ -160,7 +168,7 @@ export default function AdminPackagesPage() {
   };
 
   const openCreate = () => {
-    setEditingPkg({ ...emptyPackage, metadata: { ...emptyPackage.metadata }, categories: ["packages"], menu_item_ids: [] });
+    setEditingPkg({ ...emptyPackage, metadata: { ...emptyPackage.metadata }, categories: [activeTab], menu_item_ids: [] });
     setIsCreating(true);
     setItemSearch("");
     setItemCategoryFilter("all");
@@ -173,7 +181,7 @@ export default function AdminPackagesPage() {
       description: pkg.description || "",
       price: pkg.price,
       price_unit: pkg.price_unit,
-      categories: ["packages"],
+      categories: pkg.categories?.length ? pkg.categories : [activeTab],
       image_url: pkg.image_url,
       emoji: pkg.emoji || "",
       is_active: pkg.is_active,
@@ -198,6 +206,7 @@ export default function AdminPackagesPage() {
       const method = isCreating ? "POST" : "PUT";
       const payload = {
         ...editingPkg,
+        categories: Array.from(new Set([activeTab, ...(editingPkg.categories || [])])),
         menu_item_ids: editingPkg.menu_item_ids.filter((id) =>
           allMenuItems.some((item) => item.id === id && isPackageSelectableMenuItem(item))
         ),
@@ -317,7 +326,9 @@ export default function AdminPackagesPage() {
     });
   };
 
-  const filteredPackages = packages.filter((p) => {
+  const tabPackages = packages.filter((p) => (p.categories || []).includes(activeTab));
+
+  const filteredPackages = tabPackages.filter((p) => {
     const matchesSearch =
       !search ||
       p.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -345,9 +356,9 @@ export default function AdminPackagesPage() {
     packageSelectableMenuItems.every((item) => selectedMenuItemIds.includes(item.id));
 
   const stats = {
-    total: packages.length,
-    active: packages.filter((p) => p.is_active).length,
-    totalItems: packages.reduce((sum, p) => sum + p.menu_items.length, 0),
+    total: tabPackages.length,
+    active: tabPackages.filter((p) => p.is_active).length,
+    totalItems: tabPackages.reduce((sum, p) => sum + p.menu_items.length, 0),
   };
 
   if (loading) {
@@ -366,20 +377,44 @@ export default function AdminPackagesPage() {
           <div>
             <h1 className="text-2xl font-bold text-stone-900 flex items-center gap-2">
               <Package className="h-7 w-7" />
-              Packages
+              {activeTabConfig.name}
             </h1>
             <p className="text-stone-500 mt-1">Curated sets of menu items customers can choose from</p>
           </div>
           <Button onClick={openCreate}>
             <Plus className="h-4 w-4 mr-2" />
-            Add Package
+            Add {activeTabConfig.singular}
           </Button>
+        </div>
+
+        <div className="mb-6 flex flex-wrap gap-2 border-b border-stone-200">
+          {PACKAGE_TABS.map((tab) => {
+            const selected = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => {
+                  setActiveTab(tab.id);
+                  setCategoryFilter("all");
+                  setSearch("");
+                }}
+                className={`border-b-2 px-4 py-3 text-sm font-semibold transition-colors ${
+                  selected
+                    ? "border-amber-500 text-stone-900"
+                    : "border-transparent text-stone-500 hover:text-stone-800"
+                }`}
+              >
+                {tab.name}
+              </button>
+            );
+          })}
         </div>
 
         {/* Stats */}
         <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
           {[
-            { label: "Total Packages", value: stats.total, color: "from-stone-500 to-stone-600" },
+            { label: `Total ${activeTabConfig.name}`, value: stats.total, color: "from-stone-500 to-stone-600" },
             { label: "Active", value: stats.active, color: "from-green-500 to-emerald-600" },
             { label: "Total Menu Items Linked", value: stats.totalItems, color: "from-amber-500 to-orange-500" },
           ].map((s) => (
@@ -398,7 +433,7 @@ export default function AdminPackagesPage() {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search packages..."
+              placeholder={`Search ${activeTabConfig.name.toLowerCase()}...`}
               className="w-full pl-10 pr-4 py-2.5 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-500 bg-white"
             />
           </div>
@@ -584,7 +619,7 @@ export default function AdminPackagesPage() {
                     <p className="text-sm mt-1">
                       {search || categoryFilter !== "all"
                         ? "Try adjusting your filters"
-                        : 'Click "Add Package" to create your first package'}
+                        : `Click "Add ${activeTabConfig.singular}" to create your first ${activeTabConfig.singular.toLowerCase()}`}
                     </p>
                   </td>
                 </tr>
@@ -601,7 +636,7 @@ export default function AdminPackagesPage() {
             {/* Modal header */}
             <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between z-10 rounded-t-2xl">
               <h2 className="text-xl font-bold text-stone-900">
-                {isCreating ? "Add Package" : "Edit Package"}
+                {isCreating ? `Add ${activeTabConfig.singular}` : `Edit ${activeTabConfig.singular}`}
               </h2>
               <button onClick={() => { setEditingPkg(null); setIsCreating(false); }}>
                 <X className="h-5 w-5 text-stone-400 hover:text-stone-600" />
@@ -654,7 +689,7 @@ export default function AdminPackagesPage() {
                   type="text"
                   value={editingPkg.name}
                   onChange={(e) => setEditingPkg((p) => p ? { ...p, name: e.target.value } : p)}
-                  placeholder="e.g. Birthday Deluxe Package"
+                  placeholder={activeTab === "afterschool_club" ? "e.g. Afterschool Club 5 Classes" : "e.g. Birthday Deluxe Package"}
                   className="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-500"
                 />
               </div>
@@ -791,7 +826,7 @@ export default function AdminPackagesPage() {
                 </div>
 
                 {/* Item grid */}
-                <div className="border border-stone-200 rounded-lg overflow-hidden max-h-64 overflow-y-auto">
+                <div className="h-80 max-h-[38vh] overflow-y-scroll overscroll-contain rounded-lg border border-stone-200">
                   {filteredMenuItems.length === 0 ? (
                     <p className="text-sm text-stone-400 text-center py-6">No items found</p>
                   ) : (
@@ -877,7 +912,7 @@ export default function AdminPackagesPage() {
               </Button>
               <Button onClick={handleSave} disabled={saving || !editingPkg.name}>
                 {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-                {isCreating ? "Create Package" : "Save Changes"}
+                {isCreating ? `Create ${activeTabConfig.singular}` : "Save Changes"}
               </Button>
             </div>
           </div>

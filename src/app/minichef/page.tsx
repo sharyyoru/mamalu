@@ -237,7 +237,7 @@ interface AppliedVoucher {
 }
 
 // Category type
-type CategoryType = "classics" | "monthly" | "mommy_me" | "birthdays" | "packages" | "summer_camp";
+type CategoryType = "classics" | "monthly" | "mommy_me" | "birthdays" | "packages" | "afterschool_club" | "summer_camp";
 
 const AVAILABILITY_CATEGORY_BY_TAB: Record<CategoryType, string> = {
   classics: "classics_mini",
@@ -245,6 +245,7 @@ const AVAILABILITY_CATEGORY_BY_TAB: Record<CategoryType, string> = {
   mommy_me: "mommy_me",
   birthdays: "birthday",
   packages: "packages",
+  afterschool_club: "afterschool_club",
   summer_camp: "summer_camp",
 };
 
@@ -277,6 +278,30 @@ const STATIC_SUMMER_CAMP_MENUS: MenuItem[] = [
   },
 ];
 
+const PACKAGE_STYLE_CATEGORIES: CategoryType[] = ["packages", "afterschool_club"];
+
+const mapPackageToMenuItem = (pkg: DbPackage, category: CategoryType): MenuItem => ({
+  id: pkg.id,
+  name: pkg.name,
+  description: pkg.description || null,
+  price: pkg.price,
+  image: pkg.image_url || "/images/placeholder.jpg",
+  dishes: (pkg.menu_items || []).map((mi) => mi.name),
+  category,
+  class_count: pkg.metadata?.class_count,
+});
+
+const mapPackageMenuItems = (pkg: DbPackage, category: CategoryType): MenuItem[] =>
+  (pkg.menu_items || []).map((mi) => ({
+    id: mi.id,
+    name: mi.name,
+    description: mi.description || null,
+    price: mi.price,
+    image: mi.image_url || "/images/placeholder.jpg",
+    dishes: mi.dishes || [],
+    category,
+  }));
+
 // Category configuration with min guests - Birthdays last
 const getCategoryConfig = (pageContent: MiniChefPageContent): Record<CategoryType, { label: string; icon: string; minGuests: number; maxGuests: number; description: string }> => ({
   classics: { label: "Our Classics", icon: pageContent.categoryIcons?.classics || "/icons/boy.png", minGuests: 1, maxGuests: 35, description: "1 and a half hour hands-on cooking experience with professional chefs" },
@@ -284,6 +309,7 @@ const getCategoryConfig = (pageContent: MiniChefPageContent): Record<CategoryTyp
   mommy_me: { label: "Mommy & Me", icon: pageContent.categoryIcons?.mommy_me || "/icons/boy.png", minGuests: 1, maxGuests: 20, description: "Mom and kid have their own station where they share laughter, learning, and delicious moments together!" },
   birthdays: { label: "Birthdays", icon: pageContent.categoryIcons?.birthdays || "/icons/girl.png", minGuests: 6, maxGuests: 35, description: "2-hour private birthday cooking experience" },
   packages: { label: "Packages", icon: pageContent.categoryIcons?.packages || "/icons/boy.png", minGuests: 6, maxGuests: 35, description: "Bundled menu packages for groups" },
+  afterschool_club: { label: "Afterschool Club", icon: pageContent.categoryIcons?.packages || "/icons/boy.png", minGuests: 1, maxGuests: 35, description: "Bundled afterschool club classes" },
   summer_camp: { label: "Mini Chef Camp", icon: pageContent.categoryIcons?.packages || "/icons/boy.png", minGuests: 1, maxGuests: 35, description: "Choose Per Day or Per Week for the selected camp date." },
 });
 
@@ -504,7 +530,7 @@ export default function MiniChefPage() {
   const isBirthday = activeCategory === "birthdays";
   const isMonthly = activeCategory === "monthly";
   const isMommyAndMe = activeCategory === "mommy_me";
-  const isPackage = activeCategory === "packages";
+  const isPackage = activeCategory === "packages" || activeCategory === "afterschool_club";
   const isSummerCamp = activeCategory === "summer_camp";
   const selectedSummerCampMenu = selectedSummerCampMenus[0] || null;
   const isSummerCampPerDay = selectedSummerCampMenu?.id === "summer-camp-per-day";
@@ -591,7 +617,7 @@ export default function MiniChefPage() {
           "summer_camp": "summer_camp",
         };
 
-        const grouped: Record<string, MenuItem[]> = { classics: [], monthly: [], mommy_me: [], birthdays: [], packages: [], summer_camp: [] };
+        const grouped: Record<string, MenuItem[]> = { classics: [], monthly: [], mommy_me: [], birthdays: [], packages: [], afterschool_club: [], summer_camp: [] };
 
         for (const item of (itemsData.items || []) as DbMenuItem[]) {
           for (const dbLabel of (item.categories || [])) {
@@ -613,33 +639,21 @@ export default function MiniChefPage() {
           }
         }
 
-        const activePkgs = ((pkgsData.packages || []) as DbPackage[]).filter((pkg) =>
-          (pkg.categories || []).includes("packages")
-        );
+        const allActivePkgs = ((pkgsData.packages || []) as DbPackage[]);
 
-        grouped.packages = activePkgs.map((pkg) => ({
-          id: pkg.id,
-          name: pkg.name,
-          description: pkg.description || null,
-          price: pkg.price,
-          image: pkg.image_url || "/images/placeholder.jpg",
-          dishes: (pkg.menu_items || []).map((mi) => mi.name),
-          category: "packages",
-          class_count: pkg.metadata?.class_count,
-        }));
+        for (const packageCategory of PACKAGE_STYLE_CATEGORIES) {
+          const activePkgs = allActivePkgs.filter((pkg) =>
+            (pkg.categories || []).includes(packageCategory)
+          );
 
-        // Store full menu item details per package for the selection modal
+          grouped[packageCategory] = activePkgs.map((pkg) => mapPackageToMenuItem(pkg, packageCategory));
+        }
+
+        // Store full menu item details per package-style item for the selection modal
         const pkgItemsMap: Record<string, MenuItem[]> = {};
-        for (const pkg of activePkgs) {
-          pkgItemsMap[pkg.id] = (pkg.menu_items || []).map((mi) => ({
-            id: mi.id,
-            name: mi.name,
-            description: mi.description || null,
-            price: mi.price,
-            image: mi.image_url || "/images/placeholder.jpg",
-            dishes: mi.dishes || [],
-            category: "packages",
-          }));
+        for (const pkg of allActivePkgs.filter((pkg) => PACKAGE_STYLE_CATEGORIES.some((category) => (pkg.categories || []).includes(category)))) {
+          const packageCategory = (pkg.categories || []).includes("afterschool_club") ? "afterschool_club" : "packages";
+          pkgItemsMap[pkg.id] = mapPackageMenuItems(pkg, packageCategory);
         }
 
         setMenuItemsByCategory(grouped);
@@ -652,6 +666,36 @@ export default function MiniChefPage() {
     }
     fetchMenuData();
   }, []);
+
+  useEffect(() => {
+    if (!isPackage || loadingMenus || (menuItemsByCategory[activeCategory] || []).length > 0) return;
+
+    let cancelled = false;
+    async function fetchPackageCategory() {
+      try {
+        const res = await fetch(`/api/admin/packages?active=true&category=${activeCategory}`);
+        const data = res.ok ? await res.json() : { packages: [] };
+        if (cancelled) return;
+
+        const packages = (data.packages || []) as DbPackage[];
+        setMenuItemsByCategory((current) => ({
+          ...current,
+          [activeCategory]: packages.map((pkg) => mapPackageToMenuItem(pkg, activeCategory)),
+        }));
+        setPackageMenuItems((current) => ({
+          ...current,
+          ...Object.fromEntries(packages.map((pkg) => [pkg.id, mapPackageMenuItems(pkg, activeCategory)])),
+        }));
+      } catch (error) {
+        console.error(`Failed to fetch ${activeCategory} packages:`, error);
+      }
+    }
+
+    fetchPackageCategory();
+    return () => {
+      cancelled = true;
+    };
+  }, [activeCategory, isPackage, loadingMenus, menuItemsByCategory]);
 
   // Get menus for current category
   const getCurrentMenus = (): MenuItem[] => {
@@ -1537,7 +1581,7 @@ export default function MiniChefPage() {
                         selectedMenu?.id === menu.id || isSummerCampSelected ? "ring-2 ring-[#FF8C6B] shadow-lg" : "hover:shadow-md"
                       }`}
                       onClick={() => {
-                        if (activeCategory === "packages" && packageMenuItems[menu.id]?.length > 0) {
+                        if (isPackage && packageMenuItems[menu.id]?.length > 0) {
                           setPendingPackage(menu);
                           setPendingPackageMenuItems(selectedMenu?.id === menu.id ? selectedPackageMenuItems : []);
                           setShowPackageModal(true);
@@ -1570,7 +1614,7 @@ export default function MiniChefPage() {
                             <p className="mb-3 line-clamp-3 text-base text-stone-600">{menu.description}</p>
                           )}
                           {/* Dishes list - hide for packages */}
-                          {activeCategory !== "packages" && (
+                          {!isPackage && (
                             <div className="space-y-1 flex-1">
                               {menu.dishes.map((dish, idx) => (
                                 <div key={idx} className="flex items-center gap-2 text-base text-stone-600">
@@ -1583,7 +1627,7 @@ export default function MiniChefPage() {
                         </div>
                         {/* Price in separate box at bottom */}
                         <div className="bg-stone-50 border-t px-4 py-3">
-                          {activeCategory === "packages" && selectedMenu?.id === menu.id && selectedPackageMenuItems.length > 0 && (
+                          {isPackage && selectedMenu?.id === menu.id && selectedPackageMenuItems.length > 0 && (
                             <p className="text-xs text-[#ff7f5c] font-bold mb-1.5">
                               ✓ {selectedPackageMenuItems.length} class{selectedPackageMenuItems.length === 1 ? "" : "es"} selected
                             </p>
@@ -1593,7 +1637,7 @@ export default function MiniChefPage() {
                           )}
                           <div className="flex items-center justify-between">
                             <span className="text-base text-stone-500">
-                              {activeCategory === "packages"
+                              {isPackage
                                 ? "flat rate"
                                 : isMommyAndMe
                                 ? "mom + 1 child"
@@ -1618,7 +1662,7 @@ export default function MiniChefPage() {
                               +AED {MOMMY_ME_ADDITIONAL_CHILD_PRICE} per additional child
                             </p>
                           )}
-                          {activeCategory === "packages" && selectedMenu?.id !== menu.id && (
+                          {isPackage && selectedMenu?.id !== menu.id && (
                             <p className="text-xs text-stone-400 mt-1">Click to choose your classes</p>
                           )}
                         </div>
