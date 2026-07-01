@@ -239,6 +239,11 @@ interface AppliedVoucher {
 // Category type
 type CategoryType = "classics" | "monthly" | "mommy_me" | "birthdays" | "packages" | "afterschool_club" | "summer_camp";
 
+const CATEGORY_TYPES: CategoryType[] = ["classics", "monthly", "mommy_me", "birthdays", "packages", "afterschool_club", "summer_camp"];
+
+const isCategoryType = (value: string | null): value is CategoryType =>
+  CATEGORY_TYPES.includes(value as CategoryType);
+
 const AVAILABILITY_CATEGORY_BY_TAB: Record<CategoryType, string> = {
   classics: "classics_mini",
   monthly: "monthly_mini",
@@ -538,6 +543,15 @@ export default function MiniChefPage() {
   const summerCampBookingOption = selectedSummerCampMenu?.id === "summer-camp-per-week" ? "per-week" : "per-day";
   const summerCampRequiredDateCount = isSummerCampPerWeek ? 5 : summerCampDayCount;
   const hasExtras = isBirthday;
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const category = params.get("category");
+
+    if (isCategoryType(category)) {
+      setActiveCategory(category);
+    }
+  }, []);
   // Fetch page content
   useEffect(() => {
     fetch("/api/site-content?page=minichef")
